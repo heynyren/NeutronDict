@@ -1,0 +1,82 @@
+name: Build Android APK
+
+# Build APK debug ngay trên GitHub. Chạy khi push đổi phần android/, hoặc bấm chạy tay
+# ở tab Actions (Run workflow). Kết quả: tải APK ở mục Artifacts của lần chạy, và ở
+# Release "latest-debug".
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Patch native (menu bôi đen, Chia sẻ, tên app)
+        run: node patch-android.js
+
+      - name: Generate branded icons (tuỳ chọn)
+        run: npx --yes @capacitor/assets generate --android || echo "Bỏ qua tạo icon — dùng icon mặc định."
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk NeutronDict-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-debug-apk
+          path: android/NeutronDict-debug.apk
+          if-no-files-found: error
+
+      - name: Publish to "latest-debug" release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-debug
+          name: NeutronDict — debug build
+          body: |
+            Bản APK debug tự build từ commit mới nhất trên nhánh `main`.
+            Tải file `NeutronDict-debug.apk` bên dưới, mở trên điện thoại và cho phép
+            "Cài đặt từ nguồn không xác định" để cài.
+          prerelease: true
+          files: android/NeutronDict-debug.apk
