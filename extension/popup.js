@@ -71,8 +71,15 @@ function lookup(word, dict) {
 }
 
 // ---- Phát âm: ưu tiên file audio thật, không có thì giọng máy (en-US) ----
-function speak(text, audio) {
-  if (audio) { try { const a = new Audio(audio); a.play(); return; } catch (e) { /* rơi xuống TTS */ } }
+// Giữ sẵn (preload) các file audio đã hiện để bấm loa là phát ngay, không bị trễ.
+const _audioCache = new Map();
+function getAudio(url) {
+  let a = _audioCache.get(url);
+  if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
+  return a;
+}
+function preloadAudio(url) { if (url) { try { getAudio(url); } catch (e) {} } }
+function ttsSpeak(text) {
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -82,6 +89,19 @@ function speak(text, audio) {
     speechSynthesis.speak(u);
   } catch (e) { /* máy không có giọng Anh */ }
 }
+function speak(text, audio) {
+  if (audio) {
+    try {
+      const a = getAudio(audio);
+      a.currentTime = 0;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => ttsSpeak(text));
+      return;
+    } catch (e) { /* rơi xuống TTS */ }
+  }
+  ttsSpeak(text);
+}
+try { speechSynthesis.getVoices(); } catch (e) {}   // hâm nóng danh sách giọng
 
 // ---- Lưu sổ tay qua service worker ----
 function saveEntry(dict, en) {
@@ -113,6 +133,7 @@ async function renderWord(res) {
   }
   tabDetailEl.disabled = !(lastEntry && ((lastEntry.pos && lastEntry.pos.length) || lastEntry.reading));
   for (const en of entries) {
+    preloadAudio(en.audio);
     const box = document.createElement("div");
     box.className = "entry";
     const head = document.createElement("div");
@@ -230,9 +251,10 @@ let lastTranslated = "";
 function doTranslate(raw) {
   const text = (raw || "").trim();
   if (!text) { transEl.className = "state"; transEl.textContent = "Nhập hoặc dán đoạn cần dịch."; return; }
-  const from = dirEl.value === "vien" ? "vi" : "en";
-  const to = dirEl.value === "vien" ? "en" : "vi";
-  const tkey = from + ">" + to + ":" + text;
+  const dir = dirEl.value;
+  const from = dir === "auto" ? "auto" : (dir === "vien" ? "vi" : "en");
+  const to = dir === "auto" ? "" : (dir === "vien" ? "en" : "vi");
+  const tkey = dir + ":" + text;
   if (lastTranslated === tkey && transEl.querySelector(".tr")) return;
   transEl.className = "state"; transEl.textContent = "Đang dịch…";
   chrome.runtime.sendMessage({ type: "TRANSLATE", text, from, to }, (res) => {
@@ -241,9 +263,15 @@ function doTranslate(raw) {
     lastTranslated = tkey;
     transEl.className = "trbox";
     transEl.innerHTML = "";
+    // Phần tiếng Anh để phát âm: nếu bản dịch là tiếng Anh thì đọc bản dịch, ngược lại đọc câu gốc.
+    const engText = res.target === "en" ? res.text : text;
     const hd = document.createElement("div"); hd.className = "hd";
     const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = res.text;
     hd.appendChild(tr);
+    const right = document.createElement("div"); right.style.cssText = "display:flex;gap:4px;align-items:flex-start;flex:none";
+    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Nghe câu tiếng Anh";
+    spk.addEventListener("click", () => speak(engText));
+    right.appendChild(spk);
     const sv = document.createElement("button"); sv.className = "save"; sv.textContent = "＋ Lưu";
     sv.addEventListener("click", () => {
       const entry = { word: text, reading: "", means: [res.text], kind: "sent" };
@@ -253,7 +281,8 @@ function doTranslate(raw) {
         try { chrome.runtime.sendMessage({ type: "SYNC_SOON" }); } catch (e) {}
       });
     });
-    hd.appendChild(sv);
+    right.appendChild(sv);
+    hd.appendChild(right);
     transEl.appendChild(hd);
     const src = document.createElement("div"); src.className = "src"; src.textContent = text;
     transEl.appendChild(src);

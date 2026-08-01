@@ -72,8 +72,33 @@ async function gtxTranslate(text, f, t) {
   return out;
 }
 
+// Có phải tiếng Việt (có dấu) không — nhận diện nhanh trước khi gọi mạng.
+function looksVietnamese(s) {
+  return /[ăâđêôơưàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i.test(s || "");
+}
+// Google Dịch có nhận diện nguồn (sl=auto) -> { text, src }.
+async function gtxTranslateDetect(text, to) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
+    + "&sl=auto&tl=" + encodeURIComponent(to || "vi") + "&q=" + encodeURIComponent(text);
+  const data = await httpGetJson(url);
+  const segs = (data && data[0]) || [];
+  const out = segs.map((s) => (s && s[0]) || "").join("").trim();
+  const src = (data && data[2]) || "";
+  return { text: out, src };
+}
+
+// Giữ sẵn audio để bấm loa phát ngay.
+const _audioCache = new Map();
+function getAudioEl(url) {
+  let a = _audioCache.get(url);
+  if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
+  return a;
+}
+function preloadAudio(url) { if (url) { try { getAudioEl(url); } catch (e) {} } }
 async function speak(text, audio) {
-  if (audio) { try { const a = new Audio(audio); await a.play(); return; } catch (e) { /* rơi xuống TTS */ } }
+  if (audio) {
+    try { const a = getAudioEl(audio); a.currentTime = 0; await a.play(); return; } catch (e) { /* rơi xuống TTS */ }
+  }
   try {
     if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: "en-US", rate: 0.9 }); return; }
   } catch (e) { /* thử fallback */ }
@@ -158,12 +183,24 @@ async function lookup(word, dict) {
   const w = (word || "").trim();
   lastLookupError = "";
   if (!w) return [];
+  // Tự động nhận diện
+  if (dict === "auto") {
+    if (looksVietnamese(w)) dict = "vien";
+    else {
+      const en = await lookup(w, "envi");
+      if (en.length) return en;
+      let src = "";
+      try { const d = await gtxTranslateDetect(w, "en"); src = d.src; } catch (e) {}
+      dict = (src && !src.startsWith("en")) ? "vien" : "envi";
+      if (dict === "envi") return en;   // vẫn không ra -> trả rỗng
+    }
+  }
   try {
     if (dict === "vien") {
       let en = "";
       try { en = await gtxTranslate(w, "vi", "en"); } catch (e) { en = ""; }
       const dd = en ? await fetchDictionary(en) : null;
-      const entry = { word: en || w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means: [w], pos: dd ? posFrom(dd) : [] };
+      const entry = { word: en || w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means: [w], pos: dd ? posFrom(dd) : [], dict: "vien" };
       return entry.word ? [entry] : [];
     }
     const [dd, vi] = await Promise.all([ fetchDictionary(w), gtxTranslate(w, "en", "vi").catch(() => "") ]);
@@ -171,7 +208,7 @@ async function lookup(word, dict) {
     const means = [];
     if (vi && vi.trim().toLowerCase() !== w.toLowerCase()) means.push(vi.trim());
     if (!means.length) { const fd = firstDefOf(pos); if (fd) means.push(fd); }
-    const entry = { word: w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means, pos };
+    const entry = { word: w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means, pos, dict: "envi" };
     if (!entry.means.length && !entry.pos.length && !entry.reading) { lastLookupError = "Không tìm thấy từ này"; return []; }
     return [entry];
   } catch (e) { lastLookupError = (e && e.message) || String(e); return []; }
@@ -300,6 +337,7 @@ async function renderWord(entries) {
     return;
   }
   for (const en of entries) {
+    preloadAudio(en.audio);
     const div = document.createElement("div"); div.className = "entry";
     const head = document.createElement("div"); head.className = "ehead";
     const left = document.createElement("div");
@@ -309,14 +347,15 @@ async function renderWord(entries) {
     if (en.reading) { const r = document.createElement("span"); r.className = "read"; r.textContent = en.reading; left.appendChild(r); }
     head.appendChild(left);
     const btn = document.createElement("button"); btn.className = "save";
-    const key = $("dir").value + ":" + en.word;
+    const dd = en.dict || (($("dir").value === "auto") ? "envi" : $("dir").value);
+    const key = dd + ":" + en.word;
     if (nb[key] && !nb[key].del) { btn.textContent = "✓ Đã lưu"; btn.classList.add("saved"); }
     else {
       btn.textContent = "＋ Lưu";
       btn.addEventListener("click", async () => {
         const nb2 = await getNB();
         const old2 = nb2[key];
-        const ne2 = { word: en.word, reading: en.reading || "", means: en.means || [], dict: $("dir").value, ts: Date.now() };
+        const ne2 = { word: en.word, reading: en.reading || "", means: en.means || [], dict: dd, ts: Date.now() };
         if (en.pos && en.pos.length) ne2.pos = en.pos;
         if (en.audio) ne2.audio = en.audio;
         if (srcSnap) ne2.src = srcSnap;
@@ -385,13 +424,36 @@ function renderDetail() {
 }
 
 // ================= Dịch câu =================
-async function translateText(text, from, to) {
+// Trả về { text, target }. dir: "auto" | "envi" | "vien".
+async function translateText(text, dir) {
   const t = (text || "").trim();
   if (!t) throw new Error("Chưa có nội dung");
   const cache = (await Store.get("trCache")) || {};
+  const now = Date.now();
+  const fresh = (k) => { const h = cache[k]; return (h && now - (h.ts || 0) < 30 * DAY) ? h : null; };
+  const put = (k, v, target) => {
+    cache[k] = { v, target, ts: now };
+    const ks = Object.keys(cache);
+    if (ks.length > 300) { ks.sort((a, b) => cache[a].ts - cache[b].ts); for (let i = 0; i < ks.length - 300; i++) delete cache[ks[i]]; }
+  };
+  let from, to;
+  if (dir === "auto") {
+    if (looksVietnamese(t)) { from = "vi"; to = "en"; }
+    else {
+      const ak = "auto>en:" + t;
+      const ah = fresh(ak);
+      if (ah) return { text: ah.v, target: ah.target || "en" };
+      let det = null;
+      try { det = await gtxTranslateDetect(t, "en"); } catch (e) {}
+      if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
+      from = "en"; to = "vi";
+    }
+  } else if (dir === "vien") { from = "vi"; to = "en"; }
+  else { from = "en"; to = "vi"; }
+
   const key = from + ">" + to + ":" + t;
-  const hit = cache[key];
-  if (hit && Date.now() - (hit.ts || 0) < 30 * DAY) return hit.v;
+  const hit = fresh(key);
+  if (hit) return { text: hit.v, target: to };
   let out = "";
   try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
   if (!out) {
@@ -401,25 +463,25 @@ async function translateText(text, from, to) {
     if (!r || r.ok === false || !r.text) throw new Error((r && r.error) || "Không dịch được");
     out = r.text;
   }
-  cache[key] = { v: out, ts: Date.now() };
-  const ks = Object.keys(cache);
-  if (ks.length > 300) { ks.sort((a, b) => cache[a].ts - cache[b].ts); for (let i = 0; i < ks.length - 300; i++) delete cache[ks[i]]; }
-  await Store.set("trCache", cache);
-  return out;
+  put(key, out, to); await Store.set("trCache", cache);
+  return { text: out, target: to };
 }
 
 async function showTranslate(text) {
   const box = $("trans");
-  const from = $("dir").value === "vien" ? "vi" : "en";
-  const to = $("dir").value === "vien" ? "en" : "vi";
   const srcSnap = (currentSrc && currentSrc.url) ? { url: currentSrc.url, title: currentSrc.title, sel: text } : null;
   box.className = "state"; box.textContent = "Đang dịch…";
   try {
-    const out = await translateText(text, from, to);
+    const res = await translateText(text, $("dir").value);
+    const out = res.text;
+    const engText = res.target === "en" ? out : text;   // phần tiếng Anh để đọc
     box.className = "trbox"; box.innerHTML = "";
     const hd = document.createElement("div"); hd.className = "hd";
     const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = out;
     hd.appendChild(tr);
+    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Nghe câu tiếng Anh";
+    spk.addEventListener("click", () => speak(engText));
+    hd.appendChild(spk);
     const sv = document.createElement("button"); sv.className = "save"; sv.textContent = "＋ Lưu";
     const key = "envi:" + text;
     const nb0 = await getNB();

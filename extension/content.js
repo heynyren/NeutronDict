@@ -96,10 +96,15 @@
   }
 
   // Phát âm: ưu tiên file audio thật của từ điển, không có thì dùng giọng máy (en-US).
-  function speak(text, audio) {
-    if (audio) {
-      try { const a = new Audio(audio); a.play(); return; } catch (e) { /* rơi xuống TTS */ }
-    }
+  // Giữ sẵn (preload) audio để bấm loa là phát ngay.
+  const _audioCache = new Map();
+  function getAudio(url) {
+    let a = _audioCache.get(url);
+    if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
+    return a;
+  }
+  function preloadAudio(url) { if (url) { try { getAudio(url); } catch (e) {} } }
+  function ttsSpeak(text) {
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -107,6 +112,19 @@
       speechSynthesis.speak(u);
     } catch (e) { /* không có giọng Anh */ }
   }
+  function speak(text, audio) {
+    if (audio) {
+      try {
+        const a = getAudio(audio);
+        a.currentTime = 0;
+        const p = a.play();
+        if (p && p.catch) p.catch(() => ttsSpeak(text));
+        return;
+      } catch (e) { /* rơi xuống TTS */ }
+    }
+    ttsSpeak(text);
+  }
+  try { speechSynthesis.getVoices(); } catch (e) {}
 
   function render(box, res, word) {
     box.textContent = "";
@@ -120,6 +138,7 @@
       return;
     }
     entries.slice(0, 3).forEach((en) => {
+      preloadAudio(en.audio);
       const wrap = document.createElement("div"); wrap.className = "en";
       const hd = document.createElement("div"); hd.className = "hd";
       const left = document.createElement("div");
@@ -178,9 +197,14 @@
     const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = "DỊCH CÂU";
     box.appendChild(lbl);
 
+    const engText = res.target === "en" ? res.text : text;   // phần tiếng Anh để đọc
     const hd = document.createElement("div"); hd.className = "hd";
     const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = res.text;
     hd.appendChild(tr);
+    const right = document.createElement("div"); right.style.cssText = "display:flex;gap:3px;align-items:flex-start;flex:none";
+    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Nghe câu tiếng Anh";
+    spk.addEventListener("click", (e) => { e.stopPropagation(); speak(engText); });
+    right.appendChild(spk);
     const sv = document.createElement("button"); sv.className = "sv"; sv.textContent = "＋ Lưu";
     sv.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -190,7 +214,8 @@
         dict: "envi"
       }, () => { sv.textContent = "✓ Đã lưu"; sv.classList.add("on"); });
     });
-    hd.appendChild(sv);
+    right.appendChild(sv);
+    hd.appendChild(right);
     box.appendChild(hd);
 
     const src = document.createElement("div"); src.className = "src"; src.textContent = text;
@@ -204,7 +229,7 @@
     const st = document.createElement("div"); st.className = "st";
     st.textContent = "Đang dịch…";
     box.appendChild(st);
-    chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "en", to: "vi" }, (res) => {
+    chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "auto", to: "" }, (res) => {
       if (!host) return;
       if (chrome.runtime.lastError) { st.textContent = "Lỗi: " + chrome.runtime.lastError.message; return; }
       renderTranslate(box, res || {}, text);
@@ -216,7 +241,7 @@
     const st = document.createElement("div"); st.className = "st";
     st.textContent = "Đang tra “" + text + "”…";
     box.appendChild(st);
-    chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "envi" }, (res) => {
+    chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "auto" }, (res) => {
       if (!host) return;
       if (chrome.runtime.lastError) { st.textContent = "Lỗi: " + chrome.runtime.lastError.message; return; }
       render(box, res || {}, text);
