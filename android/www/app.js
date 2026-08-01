@@ -46,45 +46,66 @@ async function httpPostJson(url, bodyObj, contentType) {
   return r.json();
 }
 
-async function httpGetJson(url) {
+async function httpGetJson(url, headers) {
+  const h = headers || {};
   const native = getNativeHttp();
+  // 1) Thử HTTP native (bỏ qua CORS). Nếu lỗi/không có -> rơi xuống fetch.
   if (native && native.get) {
-    const r = await native.get({ url, headers: {} });
-    if (r && typeof r.status === "number" && (r.status < 200 || r.status >= 300)) throw new Error("HTTP " + r.status);
-    const d = r && r.data;
-    if (typeof d === "string") { try { return JSON.parse(d); } catch (e) { throw new Error("Dữ liệu không đọc được"); } }
-    return d;
+    try {
+      const r = await native.get({ url, headers: h });
+      if (r && typeof r.status === "number" && (r.status < 200 || r.status >= 300)) throw new Error("HTTP " + r.status);
+      const d = r && r.data;
+      if (typeof d === "string") return JSON.parse(d);
+      if (d != null) return d;
+    } catch (e) { /* thử fetch bên dưới */ }
   }
-  const r = await fetch(url);
+  const r = await fetch(url, { headers: h });
   if (!r.ok) throw new Error("HTTP " + r.status);
   return r.json();
 }
 
 // Gọi thẳng Google Dịch (nhanh, không cần Apps Script).
-async function gtxTranslate(text, f, t) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
-    + "&sl=" + encodeURIComponent(f || "en") + "&tl=" + encodeURIComponent(t || "vi")
+// Google Dịch (gtx): dt=t (bản dịch) + dt=bd (từ điển nhiều nghĩa theo loại từ).
+// Kèm User-Agent trình duyệt để máy chủ Google không chặn request từ app native.
+const GTX_UA = "Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36";
+async function gtxData(from, to, text) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd"
+    + "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
     + "&q=" + encodeURIComponent(text);
-  const data = await httpGetJson(url);
-  const segs = (data && data[0]) || [];
-  const out = segs.map((s) => (s && s[0]) || "").join("").trim();
+  return await httpGetJson(url, { "User-Agent": GTX_UA });
+}
+function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
+function gtxSenses(data) {
+  const out = [];
+  for (const g of ((data && data[1]) || [])) out.push({ pos: g[0] || "", terms: (g[1] || []).slice(0, 8) });
+  return out;
+}
+// Gộp các tầng nghĩa thành danh sách hiển thị: "(loại từ) nghĩa 1, nghĩa 2, …"
+function meansFromSenses(main, senses) {
+  const out = [];
+  if (main) out.push(main);          // nghĩa chính (thông dụng nhất) lên đầu
+  for (const s of (senses || [])) {
+    if (s.terms && s.terms.length) out.push((s.pos ? "(" + s.pos + ") " : "") + s.terms.join(", "));
+  }
+  return out.slice(0, 6);
+}
+async function gtxTranslate(text, f, t) {
+  const out = gtxMain(await gtxData(f || "en", t || "vi", text));
   if (!out) throw new Error("gtx rỗng");
   return out;
+}
+async function gtxTranslateDetect(text, to) {
+  const data = await gtxData("auto", to || "vi", text);
+  return { text: gtxMain(data), src: (data && data[2]) || "" };
+}
+async function gtxDict(text, from, to) {
+  const data = await gtxData(from, to, text);
+  return { main: gtxMain(data), senses: gtxSenses(data) };
 }
 
 // Có phải tiếng Việt (có dấu) không — nhận diện nhanh trước khi gọi mạng.
 function looksVietnamese(s) {
   return /[ăâđêôơưàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i.test(s || "");
-}
-// Google Dịch có nhận diện nguồn (sl=auto) -> { text, src }.
-async function gtxTranslateDetect(text, to) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
-    + "&sl=auto&tl=" + encodeURIComponent(to || "vi") + "&q=" + encodeURIComponent(text);
-  const data = await httpGetJson(url);
-  const segs = (data && data[0]) || [];
-  const out = segs.map((s) => (s && s[0]) || "").join("").trim();
-  const src = (data && data[2]) || "";
-  return { text: out, src };
 }
 
 // Giữ sẵn audio để bấm loa phát ngay.
@@ -197,19 +218,33 @@ async function lookup(word, dict) {
   }
   try {
     if (dict === "vien") {
-      let en = "";
-      try { en = await gtxTranslate(w, "vi", "en"); } catch (e) { en = ""; }
-      const dd = en ? await fetchDictionary(en) : null;
-      const entry = { word: en || w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means: [w], pos: dd ? posFrom(dd) : [], dict: "vien" };
-      return entry.word ? [entry] : [];
+      // Việt -> Anh: lấy từ tiếng Anh (nhiều lựa chọn) rồi làm giàu IPA/định nghĩa.
+      let gv = null;
+      try { gv = await gtxDict(w, "vi", "en"); } catch (e) { gv = null; }
+      const en = gv ? gv.main : "";
+      if (!en) { lastLookupError = "Chưa dịch được sang tiếng Anh (kiểm tra mạng)."; return []; }
+      const dd = await fetchDictionary(en);
+      const synonyms = (gv.senses || []).map((s) => ({ p: s.pos, defs: [], syn: s.terms }));   // các từ Anh khác
+      const entry = {
+        word: en, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "",
+        means: [w], pos: (dd ? posFrom(dd) : []).concat(synonyms.filter((s) => s.syn.length)).slice(0, 8), dict: "vien"
+      };
+      return [entry];
     }
-    const [dd, vi] = await Promise.all([ fetchDictionary(w), gtxTranslate(w, "en", "vi").catch(() => "") ]);
+    // Anh -> Việt: nghĩa tiếng Việt NHIỀU TẦNG (dt=bd) + IPA/định nghĩa Anh ở tab Chi tiết.
+    const [dd, gv] = await Promise.all([
+      fetchDictionary(w),
+      gtxDict(w, "en", "vi").catch(() => null)
+    ]);
     const pos = dd ? posFrom(dd) : [];
-    const means = [];
-    if (vi && vi.trim().toLowerCase() !== w.toLowerCase()) means.push(vi.trim());
-    if (!means.length) { const fd = firstDefOf(pos); if (fd) means.push(fd); }
+    const means = gv ? meansFromSenses(gv.main, gv.senses) : [];
+    if (!means.length && !dd) { lastLookupError = "Không tìm thấy từ này"; return []; }
+    if (!means.length) {
+      const fd = firstDefOf(pos);
+      if (fd) means.push("(EN) " + fd);   // dự phòng có nhãn khi chưa lấy được nghĩa Việt
+      lastLookupError = "Chưa lấy được nghĩa tiếng Việt (kiểm tra mạng).";
+    }
     const entry = { word: w, reading: dd ? ipaFrom(dd) : "", audio: dd ? audioFrom(dd) : "", means, pos, dict: "envi" };
-    if (!entry.means.length && !entry.pos.length && !entry.reading) { lastLookupError = "Không tìm thấy từ này"; return []; }
     return [entry];
   } catch (e) { lastLookupError = (e && e.message) || String(e); return []; }
 }

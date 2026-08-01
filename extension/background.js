@@ -83,17 +83,37 @@ function scheduleSync() {
 }
 
 // ==== Google Dịch (endpoint công khai gtx) ====
-async function gtxTranslate(text, f, t) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
-    + "&sl=" + encodeURIComponent(f || "en") + "&tl=" + encodeURIComponent(t || "vi")
+// dt=t (bản dịch) + dt=bd (từ điển nhiều nghĩa theo loại từ).
+async function gtxData(from, to, text) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd"
+    + "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
     + "&q=" + encodeURIComponent(text);
   const r = await fetch(url);
   if (!r.ok) throw new Error("gtx HTTP " + r.status);
-  const data = await r.json();
-  const segs = (data && data[0]) || [];
-  const out = segs.map((s) => (s && s[0]) || "").join("").trim();
+  return r.json();
+}
+function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
+function gtxSenses(data) {
+  const out = [];
+  for (const g of ((data && data[1]) || [])) out.push({ pos: g[0] || "", terms: (g[1] || []).slice(0, 8) });
+  return out;
+}
+function meansFromSenses(main, senses) {
+  const out = [];
+  if (main) out.push(main);          // nghĩa chính (thông dụng nhất) lên đầu
+  for (const s of (senses || [])) {
+    if (s.terms && s.terms.length) out.push((s.pos ? "(" + s.pos + ") " : "") + s.terms.join(", "));
+  }
+  return out.slice(0, 6);
+}
+async function gtxTranslate(text, f, t) {
+  const out = gtxMain(await gtxData(f || "en", t || "vi", text));
   if (!out) throw new Error("gtx rỗng");
   return out;
+}
+async function gtxDict(text, from, to) {
+  const data = await gtxData(from, to, text);
+  return { main: gtxMain(data), senses: gtxSenses(data) };
 }
 
 // ==== Free Dictionary API (IPA, phát âm, định nghĩa, ví dụ) ====
@@ -158,30 +178,32 @@ async function lookupEntry(rawWord, dict) {
   if (!word) return [];
 
   if (dict === "vien") {
-    // Việt -> Anh: dịch sang tiếng Anh rồi làm giàu bằng IPA/định nghĩa
-    let en = "";
-    try { en = await gtxTranslate(word, "vi", "en"); } catch (e) { en = ""; }
-    const dictData = en ? await fetchDictionary(en) : null;
+    // Việt -> Anh: lấy từ tiếng Anh (nhiều lựa chọn) rồi làm giàu IPA/định nghĩa
+    let gv = null;
+    try { gv = await gtxDict(word, "vi", "en"); } catch (e) { gv = null; }
+    const en = gv ? gv.main : "";
+    if (!en) return [];
+    const dictData = await fetchDictionary(en);
+    const synonyms = (gv.senses || []).map((s) => ({ p: s.pos, defs: [], syn: s.terms })).filter((s) => s.syn.length);
     const entry = {
-      word: en || word,
+      word: en,
       reading: dictData ? ipaFrom(dictData) : "",   // phiên âm IPA chuẩn
       audio: dictData ? audioFrom(dictData) : "",
       means: [word],                 // đầu vào tiếng Việt chính là nghĩa
-      pos: dictData ? posFrom(dictData) : [],
+      pos: (dictData ? posFrom(dictData) : []).concat(synonyms).slice(0, 8),
       dict: "vien"
     };
-    return (entry.word ? [entry] : []);
+    return [entry];
   }
 
-  // Anh -> Việt (mặc định)
-  const [dictData, vi] = await Promise.all([
+  // Anh -> Việt (mặc định): nghĩa tiếng Việt NHIỀU TẦNG (dt=bd)
+  const [dictData, gv] = await Promise.all([
     fetchDictionary(word),
-    gtxTranslate(word, "en", "vi").catch(() => "")
+    gtxDict(word, "en", "vi").catch(() => null)
   ]);
   const pos = dictData ? posFrom(dictData) : [];
-  const means = [];
-  if (vi && vi.trim().toLowerCase() !== word.toLowerCase()) means.push(vi.trim());
-  if (!means.length) { const fd = firstDefOf(pos); if (fd) means.push(fd); }
+  const means = gv ? meansFromSenses(gv.main, gv.senses) : [];
+  if (!means.length) { const fd = firstDefOf(pos); if (fd) means.push("(EN) " + fd); }
 
   const entry = {
     word: word,
