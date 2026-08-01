@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Hướng dẫn đọc IPA — NeutronDict</title>
+  <style>
+    :root { --brand:#7c3aed; --brand2:#c026d3; --ink:#1c2430; --sub:#6b7684; --line:#e6e9ef; --bg:#f6f8fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink);
+      font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 22px 16px 60px; }
+    .head { background: linear-gradient(135deg,#7c3aed,#c026d3); color:#fff; border-radius:16px; padding:18px 20px; margin-bottom:18px; }
+    .head h1 { font-size: 22px; margin: 0 0 4px; }
+    .head p { margin: 0; opacity: .92; font-size: 13.5px; }
+    h2 { font-size: 16px; margin: 22px 0 10px; color: var(--brand); }
+    .note { color: var(--sub); font-size: 13px; margin: 0 0 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+    .cell { background:#fff; border:1px solid var(--line); border-radius: 12px; padding: 11px 13px; display:flex; gap:10px; align-items:flex-start; }
+    .sym { font-size: 22px; font-weight: 800; color: var(--brand); min-width: 40px; text-align:center; line-height:1.3; }
+    .info { min-width: 0; }
+    .ex { font-weight: 700; }
+    .exipa { color: var(--sub); font-size: 12.5px; margin-left: 4px; font-weight: 400; }
+    .vi { font-size: 13.5px; margin-top: 2px; }
+    .spk { border:none; background:none; font-size: 15px; cursor:pointer; padding:0 2px; }
+    .spk:hover { transform: scale(1.15); }
+    .back { display:inline-block; margin-bottom:14px; color: var(--brand); text-decoration:none; font-weight:600; font-size:13.5px; }
+    .tip { background:#f6f1ff; border:1px solid #e4d4ff; border-radius:12px; padding:11px 14px; font-size:13.5px; color:#4b3b73; margin: 6px 0 4px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1>🔤 Hướng dẫn đọc IPA tiếng Anh</h1>
+      <p>Bảng ký hiệu phiên âm quốc tế (IPA) kèm từ ví dụ và gợi ý đọc gần đúng bằng tiếng Việt. Bấm 🔊 để nghe ví dụ.</p>
+    </div>
+
+    <div class="tip">
+      <b>Mẹo:</b> gợi ý tiếng Việt chỉ là “gần đúng” để dễ hình dung — âm tiếng Anh không trùng khớp hoàn toàn với âm tiếng Việt.
+      Dấu <b>ˈ</b> đứng trước âm tiết được <b>nhấn mạnh</b> (đọc to & cao hơn), ví dụ <i>record</i> danh từ /ˈrɛkɔːd/ khác động từ /rɪˈkɔːd/.
+    </div>
+
+    <h2>Nguyên âm (Vowels)</h2>
+    <div class="grid" id="gVowels"></div>
+
+    <h2>Nguyên âm đôi (Diphthongs)</h2>
+    <div class="grid" id="gDiph"></div>
+
+    <h2>Phụ âm (Consonants)</h2>
+    <div class="grid" id="gCons"></div>
+
+    <h2>Dấu nhấn & độ dài</h2>
+    <div class="grid" id="gMarks"></div>
+  </div>
+
+  <script src="ipa-guide.js"></script>
+  <script>
+    function speak(text) {
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-US"; u.rate = 0.85;
+        const v = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith("en"));
+        if (v) u.voice = v;
+        speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+    function fill(id, list) {
+      const box = document.getElementById(id);
+      list.forEach((it) => {
+        const cell = document.createElement("div"); cell.className = "cell";
+        const sym = document.createElement("div"); sym.className = "sym"; sym.textContent = it.s; cell.appendChild(sym);
+        const info = document.createElement("div"); info.className = "info";
+        const ex = document.createElement("div"); ex.className = "ex";
+        ex.textContent = it.ex;
+        const ei = document.createElement("span"); ei.className = "exipa"; ei.textContent = it.ipa; ex.appendChild(ei);
+        const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊";
+        spk.title = "Nghe ví dụ"; spk.addEventListener("click", () => speak(it.ex)); ex.appendChild(spk);
+        info.appendChild(ex);
+        const vi = document.createElement("div"); vi.className = "vi"; vi.textContent = it.vi; info.appendChild(vi);
+        cell.appendChild(info);
+        box.appendChild(cell);
+      });
+    }
+    const G = window.IPA_GUIDE;
+    fill("gVowels", G.VOWELS);
+    fill("gDiph", G.DIPH);
+    fill("gCons", G.CONS);
+    fill("gMarks", G.MARKS);
+  </script>
+</body>
+</html>

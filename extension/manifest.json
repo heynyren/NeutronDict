@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "NeutronDict",
+  "version": "1.0",
+  "description": "Bôi đen từ tiếng Anh trên web hoặc PDF để tra ngay: nghĩa tiếng Việt, phiên âm IPA, phát âm, ví dụ, sổ tay và ôn tập SRS.",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "storage",
+    "scripting",
+    "activeTab",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "https://api.dictionaryapi.dev/*",
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*",
+    "https://translate.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "NeutronDict — tra từ tiếng Anh"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Mở popup NeutronDict (đọc từ đang bôi đen hoặc vừa Ctrl+C)"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

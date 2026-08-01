@@ -1,0 +1,17 @@
+{
+  "appId": "com.neutrondict.app",
+  "appName": "NeutronDict",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#7c3aed"
+    }
+  }
+}

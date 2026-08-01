@@ -1,0 +1,101 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeutronDict">
+  <defs>
+    <!-- Nebula background -->
+    <radialGradient id="bg" cx="38%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="42%" stop-color="#7c3aed"/>
+      <stop offset="78%" stop-color="#5b21b6"/>
+      <stop offset="100%" stop-color="#2e1065"/>
+    </radialGradient>
+    <!-- warm nebula bloom -->
+    <radialGradient id="bloom" cx="72%" cy="76%" r="55%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.75"/>
+      <stop offset="55%" stop-color="#db2777" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#db2777" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f9a8d4" stop-opacity="0.9"/>
+    </linearGradient>
+    <radialGradient id="soma" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f5d0fe"/>
+      <stop offset="100%" stop-color="#e879f9"/>
+    </radialGradient>
+    <radialGradient id="star" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <!-- Panel -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bloom)"/>
+
+  <!-- Cosmos orbit ring -->
+  <g transform="rotate(-26 256 256)" opacity="0.55">
+    <ellipse cx="256" cy="256" rx="196" ry="88" fill="none" stroke="url(#edge)" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+    <circle cx="452" cy="256" r="7" fill="url(#star)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Star field -->
+  <g fill="#ffffff">
+    <circle cx="96" cy="104" r="3" opacity="0.9"/>
+    <circle cx="404" cy="88" r="2.4" opacity="0.8"/>
+    <circle cx="440" cy="360" r="2.6" opacity="0.75"/>
+    <circle cx="120" cy="418" r="2.2" opacity="0.7"/>
+    <circle cx="70" cy="300" r="2" opacity="0.6"/>
+    <circle cx="360" cy="470" r="2" opacity="0.55"/>
+    <circle cx="300" cy="52" r="1.8" opacity="0.7"/>
+    <circle cx="470" cy="150" r="1.8" opacity="0.6"/>
+    <circle cx="180" cy="70" r="1.6" opacity="0.55"/>
+    <circle cx="240" cy="462" r="1.6" opacity="0.5"/>
+  </g>
+
+  <!-- Neuron: dendrites (synapse = stars) -->
+  <g stroke="url(#edge)" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.92">
+    <path d="M256 256 L256 108"/>
+    <path d="M256 256 L388 150"/>
+    <path d="M256 256 L446 262"/>
+    <path d="M256 256 L372 388"/>
+    <path d="M256 256 L150 396"/>
+    <path d="M256 256 L84 262"/>
+    <path d="M256 256 L138 138"/>
+    <!-- second-order branches -->
+    <path d="M388 150 L436 96" stroke-width="3"/>
+    <path d="M446 262 L474 200" stroke-width="3"/>
+    <path d="M150 396 L96 446" stroke-width="3"/>
+    <path d="M138 138 L88 100" stroke-width="3"/>
+    <path d="M372 388 L426 430" stroke-width="3"/>
+  </g>
+
+  <!-- synapse star nodes -->
+  <g>
+    <circle cx="256" cy="108" r="12" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="388" cy="150" r="11" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="446" cy="262" r="12" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="372" cy="388" r="11" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="150" cy="396" r="12" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="84" cy="262" r="10" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="138" cy="138" r="11" fill="url(#star)" filter="url(#glow)"/>
+    <!-- tip stars -->
+    <circle cx="436" cy="96" r="6" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="474" cy="200" r="6" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="96" cy="446" r="6" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="88" cy="100" r="6" fill="url(#star)" filter="url(#glow)"/>
+    <circle cx="426" cy="430" r="6" fill="url(#star)" filter="url(#glow)"/>
+  </g>
+
+  <!-- Soma (neuron core) -->
+  <circle cx="256" cy="256" r="52" fill="#a855f7" opacity="0.5" filter="url(#softglow)"/>
+  <circle cx="256" cy="256" r="38" fill="url(#soma)" filter="url(#glow)"/>
+  <circle cx="244" cy="244" r="12" fill="#ffffff" opacity="0.85"/>
+</svg>

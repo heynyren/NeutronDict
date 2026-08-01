@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Sổ tay NeutronDict</title>
+  <style>
+    :root { --brand:#7c3aed; --brand2:#c026d3; --ink:#1c2430; --sub:#6b7684; --line:#e6e9ef; --red:#d33; --green:#1a9d5a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6f8fb; color: var(--ink);
+      font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 22px 16px 60px; }
+    h1 { font-size: 20px; margin: 4px 0 2px; }
+    .muted { color: var(--sub); font-size: 13px; margin: 0 0 16px; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+    #filter { flex: 1; min-width: 160px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; font-size: 14px; outline: none; background: #fff; }
+    #filter:focus { border-color: var(--brand); }
+    button { font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 9px; padding: 9px 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+    button:hover { background: #f1f3f6; }
+    .primary { background: linear-gradient(135deg,#7c3aed,#c026d3); color: #fff; border-color: var(--brand); }
+    .primary:hover { filter: brightness(1.05); background: linear-gradient(135deg,#7c3aed,#c026d3); }
+    .danger { color: var(--red); border-color: #f0c9c9; background: #fff; }
+    .danger:hover { background: #fdecec; }
+    details.sync { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; margin-bottom: 14px; }
+    details.sync summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
+    .syncbody { padding: 6px 0 12px; display: flex; flex-direction: column; gap: 8px; }
+    .syncbody input { padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; font-size: 13.5px; outline: none; }
+    .syncbody input:focus { border-color: var(--brand); }
+    .row2 { display: flex; gap: 8px; }
+    .row2 button { flex: 1; }
+    .hint { color: var(--sub); font-size: 12px; }
+    .deckbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
+    .chip { padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .chip:hover { background: #f1f3f6; }
+    .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+    .chip.add { border-style: dashed; color: var(--brand); }
+    .deckactions { display: flex; gap: 8px; margin-bottom: 12px; }
+    .deckactions button { padding: 7px 10px; font-size: 12.5px; }
+    .list { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .row { display: flex; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .row:last-child { border-bottom: none; }
+    .row .w { font-size: 21px; font-weight: 700; }
+    .row.sent .w { font-size: 15.5px; font-weight: 600; line-height: 1.5; }
+    .row .r { color: var(--brand); font-size: 13.5px; font-weight: 600; margin-left: 6px; }
+    .row .m { font-size: 15.5px; color: #2b333d; margin-top: 3px; }
+    .row .meta { color: var(--sub); font-size: 12px; margin-top: 4px; }
+    .row .main { flex: 1; min-width: 0; }
+    .rowctl { flex: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .movesel { font: inherit; font-size: 12px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 7px; background: #fff; max-width: 150px; }
+    .del { padding: 5px 9px; font-size: 12px; }
+    .srcbtn { padding: 5px 9px; font-size: 12px; color: var(--brand); border-color: #e4d4ff; background: #f9f6ff; white-space: nowrap; }
+    .srcbtn:hover { background: #f2eaff; }
+    .srcline { color: var(--sub); font-size: 12px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    .tag { display: inline-block; font-size: 10.5px; color: var(--sub); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
+    .empty { text-align: center; color: var(--sub); padding: 40px 12px; }
+    .count { color: var(--sub); font-size: 13px; margin-left: auto; }
+    .spk { border: none; background: none; font-size: 15px; cursor: pointer; padding: 0 3px; }
+    .spk:hover { transform: scale(1.15); }
+    .due { display:inline-block; font-size: 10.5px; color: #b26a00; border: 1px solid #f0ddb0; background:#fff8e6; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
+    #studyOverlay { position: fixed; inset: 0; background: rgba(20,26,36,.55); display: none; align-items: center; justify-content: center; z-index: 50; }
+    #studyOverlay.show { display: flex; }
+    .card { width: min(430px, 92vw); background: #fff; border-radius: 16px; padding: 22px 20px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.25); text-align: center; }
+    .card .prog { color: var(--sub); font-size: 12px; margin-bottom: 10px; }
+    .card .cw { font-size: 40px; font-weight: 700; line-height: 1.25; }
+    .card .cr { color: var(--sub); font-size: 16px; margin-top: 6px; min-height: 22px; }
+    .card .cm { font-size: 15px; margin-top: 10px; min-height: 44px; text-align: left; }
+    .card .cm ul { margin: 0; padding-left: 20px; }
+    .grade { display: flex; gap: 10px; margin-top: 16px; }
+    .grade button { flex: 1; padding: 12px; font-size: 14.5px; border-radius: 10px; }
+    .gforgot { border-color: #f0c9c9; color: var(--red); }
+    .gforgot:hover { background: #fdecec; }
+    .gknow { background: var(--green); border-color: var(--green); color: #fff; }
+    .gknow:hover { background: #158a4e; }
+    .reveal { margin-top: 16px; width: 100%; padding: 12px; font-size: 14.5px; border-radius: 10px; background: var(--brand); color:#fff; border-color: var(--brand); }
+    .delrow { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 30px; }
+    .delbtn { border: 1px solid #f0c9c9; color: var(--red); background: #fff; border-radius: 8px;
+      font-size: 12.5px; font-weight: 600; padding: 6px 12px; cursor: pointer; }
+    .delbtn:hover { background: #fdecec; }
+    .undo { font-size: 12.5px; color: var(--sub); }
+    .undo button { border: none; background: none; color: var(--brand); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0 2px; }
+    .card .close { margin-top: 10px; border: none; background: none; color: var(--sub); font-size: 12.5px; cursor: pointer; }
+    .card .done { font-size: 17px; font-weight: 700; padding: 18px 0 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📒 Sổ tay NeutronDict</h1>
+    <p class="muted">Các từ bạn đã lưu. Tạo sổ con để phân loại theo bài, đồng bộ qua Google Drive.</p>
+
+    <details class="sync" id="syncBox">
+      <summary>☁ Đồng bộ Google Drive</summary>
+      <div class="syncbody">
+        <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
+        <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt, không phải mật khẩu Google)" autocomplete="off">
+        <div class="row2">
+          <button id="saveCfg">Lưu cấu hình</button>
+          <button id="syncNow" class="primary">⇅ Đồng bộ ngay</button>
+        </div>
+        <span id="syncStatus" class="hint"></span>
+      </div>
+    </details>
+
+    <details class="sync" id="setBox">
+      <summary>⚙ Cài đặt tra nhanh</summary>
+      <div class="syncbody">
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="setInline" style="width:auto;margin-top:4px">
+          <span>Bôi đen là hiện popup ngay tại con trỏ (chỉ trên trang web, không áp dụng cho PDF)</span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="setCtrl" style="width:auto;margin-top:4px">
+          <span>Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn copy)</span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" id="setTrans" style="width:auto;margin-top:4px">
+          <span>Bôi đen đoạn dài thì <b>dịch cả câu</b> bằng Google Dịch</span>
+        </label>
+        <label class="hint" style="display:block">Không tra khi bôi đen dài hơn
+          <input type="number" id="setLen" min="5" max="200" style="width:80px;padding:6px 8px;margin-left:6px"> ký tự
+        </label>
+        <div class="row2">
+          <button id="saveSet">Lưu cài đặt</button>
+          <button id="clearCache">Xoá bộ nhớ đệm</button>
+        </div>
+        <span id="setStatus" class="hint"></span>
+        <span class="hint">Tắt tuỳ chọn trên thì vẫn dùng được Ctrl+Shift+E (popup góc phải) và chuột phải như cũ.</span>
+      </div>
+    </details>
+
+    <div id="deckBar" class="deckbar"></div>
+    <div id="deckActions" class="deckactions" style="display:none">
+      <button id="renameDeck">✏ Đổi tên sổ</button>
+      <button id="deleteDeck" class="danger">🗑 Xoá sổ này</button>
+    </div>
+
+    <div class="tools">
+      <input id="filter" type="text" placeholder="Lọc theo từ hoặc nghĩa…" autocomplete="off">
+      <button id="study" class="primary">🎓 Học (<span id="dueCount">0</span>)</button>
+      <button id="ipaGuide">🔤 Hướng dẫn IPA</button>
+      <button id="exAnki">Xuất Anki (TSV)</button>
+      <button id="exCsv">Xuất CSV</button>
+      <button id="backup">Sao lưu (.json)</button>
+      <button id="restore">Nạp (.json)</button>
+      <button id="clear" class="danger">Xoá hết</button>
+      <input id="restoreFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div class="tools" style="margin-top:-4px"><span id="count" class="count"></span></div>
+    <div id="list" class="list"></div>
+  </div>
+
+  <div id="studyOverlay">
+    <div class="card">
+      <div class="prog" id="stProg"></div>
+      <div id="stBody">
+        <div class="cw"><span id="stWord"></span><button class="spk" id="stSpk" title="Phát âm">🔊</button></div>
+        <div style="text-align:center"><button class="srcbtn" id="stSrc" style="display:none;margin-top:2px">🔗 Mở nguồn</button></div>
+        <div class="cr" id="stRead"></div>
+        <div class="cm" id="stMean"></div>
+        <button class="reveal" id="stReveal">Hiện nghĩa</button>
+        <div class="grade" id="stGrade" style="display:none">
+          <button class="gforgot" id="gForgot">✗ Quên</button>
+          <button class="gknow" id="gKnow">✓ Nhớ</button>
+        </div>
+        <div class="delrow">
+          <button class="delbtn" id="stDel" title="Xoá hẳn từ này khỏi sổ tay (phím 0)">🗑 Đã thuộc hẳn — xoá</button>
+          <span class="undo" id="stUndo" style="display:none">Đã xoá <b id="stUndoWord"></b> · <button id="stUndoBtn">↩ Hoàn tác</button></span>
+        </div>
+      </div>
+      <div id="stDone" style="display:none">
+        <div class="done">🎉 Xong! Hôm nay không còn từ đến hạn.</div>
+        <div class="prog" id="stSummary"></div>
+      </div>
+      <button class="close" id="stClose">Đóng (Esc)</button>
+    </div>
+  </div>
+  <script src="notebook.js"></script>
+</body>
+</html>

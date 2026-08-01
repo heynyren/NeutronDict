@@ -1,0 +1,58 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeutronDict mark">
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#f9a8d4"/>
+    </linearGradient>
+    <radialGradient id="soma" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f5d0fe"/>
+      <stop offset="100%" stop-color="#e879f9"/>
+    </radialGradient>
+    <radialGradient id="star" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f0abfc"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- scaled to the adaptive-icon safe zone (~62%) -->
+  <g transform="translate(256 256) scale(0.62) translate(-256 -256)">
+    <g transform="rotate(-26 256 256)" opacity="0.6">
+      <ellipse cx="256" cy="256" rx="196" ry="88" fill="none" stroke="url(#edge)" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/>
+    </g>
+    <g stroke="url(#edge)" stroke-width="5" stroke-linecap="round" fill="none">
+      <path d="M256 256 L256 108"/>
+      <path d="M256 256 L388 150"/>
+      <path d="M256 256 L446 262"/>
+      <path d="M256 256 L372 388"/>
+      <path d="M256 256 L150 396"/>
+      <path d="M256 256 L84 262"/>
+      <path d="M256 256 L138 138"/>
+      <path d="M388 150 L436 96" stroke-width="3.5"/>
+      <path d="M446 262 L474 200" stroke-width="3.5"/>
+      <path d="M150 396 L96 446" stroke-width="3.5"/>
+      <path d="M138 138 L88 100" stroke-width="3.5"/>
+      <path d="M372 388 L426 430" stroke-width="3.5"/>
+    </g>
+    <g>
+      <circle cx="256" cy="108" r="13" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="388" cy="150" r="12" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="446" cy="262" r="13" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="372" cy="388" r="12" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="150" cy="396" r="13" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="84" cy="262" r="11" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="138" cy="138" r="12" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="436" cy="96" r="7" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="474" cy="200" r="7" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="96" cy="446" r="7" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="88" cy="100" r="7" fill="url(#star)" filter="url(#glow)"/>
+      <circle cx="426" cy="430" r="7" fill="url(#star)" filter="url(#glow)"/>
+    </g>
+    <circle cx="256" cy="256" r="40" fill="url(#soma)" filter="url(#glow)"/>
+    <circle cx="244" cy="244" r="12" fill="#ffffff" opacity="0.85"/>
+  </g>
+</svg>

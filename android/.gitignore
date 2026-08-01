@@ -1,0 +1,41 @@
+# ===== Node =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ===== Capacitor =====
+.capacitor/
+
+# ===== Android / Gradle (generated) =====
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# Capacitor copies www into here on sync
+android/app/src/main/assets/public/
+
+# Capacitor tự sinh mỗi lần "cap sync" — đường dẫn node_modules theo máy, không commit
+android/capacitor.settings.gradle
+android/app/capacitor.build.gradle
+
+# ===== Signing / secrets (NEVER commit) =====
+*.keystore
+*.jks
+keystore.properties
+google-services.json
+*.env
+.env*
+
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.zip

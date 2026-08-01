@@ -1,0 +1,12 @@
+# ===== Node =====
+node_modules/
+npm-debug.log*
+
+# ===== Build / temp =====
+*.zip
+
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
