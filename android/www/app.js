@@ -81,11 +81,20 @@ function gtxSenses(data) {
   return out;
 }
 // Gộp các tầng nghĩa thành danh sách hiển thị: "(loại từ) nghĩa 1, nghĩa 2, …"
+// Việt hoá nhãn loại từ do Google trả về (verb/noun/…).
+const POS_VI = {
+  noun: "danh từ", verb: "động từ", adjective: "tính từ", adverb: "trạng từ",
+  pronoun: "đại từ", preposition: "giới từ", conjunction: "liên từ", interjection: "thán từ",
+  exclamation: "thán từ", determiner: "từ hạn định", article: "mạo từ", numeral: "số từ",
+  "proper noun": "danh từ riêng", "auxiliary verb": "trợ động từ", particle: "tiểu từ",
+  prefix: "tiền tố", suffix: "hậu tố", abbreviation: "viết tắt", phrase: "cụm từ"
+};
+function posVi(p) { return POS_VI[(p || "").toLowerCase()] || p; }
 function meansFromSenses(main, senses) {
   const out = [];
   if (main) out.push(main);          // nghĩa chính (thông dụng nhất) lên đầu
   for (const s of (senses || [])) {
-    if (s.terms && s.terms.length) out.push((s.pos ? "(" + s.pos + ") " : "") + s.terms.join(", "));
+    if (s.terms && s.terms.length) out.push((s.pos ? "(" + posVi(s.pos) + ") " : "") + s.terms.join(", "));
   }
   return out.slice(0, 6);
 }

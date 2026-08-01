@@ -160,24 +160,11 @@
       }
       hd.appendChild(sv);
       wrap.appendChild(hd);
+      // Nghĩa tiếng Việt nhiều tầng (định nghĩa tiếng Anh chỉ để ở tab Chi tiết của popup).
       if (en.means && en.means.length) {
         const ul = document.createElement("ul");
-        en.means.slice(0, 4).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
+        en.means.slice(0, 6).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
         wrap.appendChild(ul);
-      }
-      // Định nghĩa & ví dụ tiếng Anh (gọn: 2 nhóm đầu, mỗi nhóm 1 nghĩa)
-      if (en.pos && en.pos.length) {
-        const dv = document.createElement("div"); dv.className = "defs";
-        en.pos.slice(0, 2).forEach((g) => {
-          const d = g.defs && g.defs[0];
-          if (!d) return;
-          const line = document.createElement("div");
-          const p = document.createElement("span"); p.className = "pos"; p.textContent = g.p; line.appendChild(p);
-          line.appendChild(document.createTextNode(d.def));
-          dv.appendChild(line);
-          if (d.ex) { const ex = document.createElement("div"); ex.className = "ex"; ex.textContent = "“" + d.ex + "”"; dv.appendChild(ex); }
-        });
-        if (dv.childNodes.length) wrap.appendChild(dv);
       }
       box.appendChild(wrap);
     });
