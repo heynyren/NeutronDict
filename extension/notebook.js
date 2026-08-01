@@ -574,3 +574,54 @@ document.getElementById("syncNow").addEventListener("click", syncNow);
   if (cfg.syncUrl) { document.getElementById("syncBox").open = false; syncNow(); }
   else { document.getElementById("syncBox").open = true; }
 })();
+
+// ================= Ghi công tác giả =================
+(function () {
+  const ACCENT = "#7c3aed", ACCENT2 = "#c026d3", BRAND = "NeutronDict";
+  const st = document.createElement("style");
+  st.textContent =
+    ".credit-foot{text-align:center;color:#9aa2ad;font-size:12.5px;margin:28px 0 6px}" +
+    ".credit-foot button{border:none;background:none;color:#9aa2ad;cursor:pointer;font:inherit}" +
+    ".credit-foot button:hover{color:" + ACCENT + "}.credit-foot .hb{color:#e0679a}" +
+    ".cabout{position:fixed;inset:0;background:rgba(20,26,36,.55);display:none;align-items:center;justify-content:center;z-index:80;padding:16px}" +
+    ".cabout.show{display:flex}" +
+    ".ccard{width:min(430px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:cpop .25s ease}" +
+    "@keyframes cpop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}" +
+    ".ccard .top{background:linear-gradient(135deg," + ACCENT + "," + ACCENT2 + ");color:#fff;padding:20px 22px}" +
+    ".ccard .top .h{font-size:19px;font-weight:800}.ccard .top .s{opacity:.9;font-size:13px;margin-top:2px}" +
+    ".ccard .bd{padding:18px 22px 6px;color:#2b333d;font-size:14.5px;line-height:1.6}.ccard .bd b{color:" + ACCENT + "}" +
+    ".ccard .meta{color:#6b7684;font-size:13.5px;margin:10px 0}" +
+    ".ccard .motto{text-align:center;font-style:italic;font-size:15.5px;color:" + ACCENT + ";margin:14px 0 4px}" +
+    ".ccard .ft{padding:8px 18px 18px}.ccard .ft button{width:100%;padding:11px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;border:none;background:linear-gradient(135deg," + ACCENT + "," + ACCENT2 + ");color:#fff}";
+  document.head.appendChild(st);
+
+  const foot = document.createElement("div");
+  foot.className = "credit-foot";
+  foot.innerHTML = 'Ra đời bởi <button id="creditBtn" title="Về tác giả">Nyren Phạm <span class="hb">♥</span></button>';
+  (document.querySelector(".wrap") || document.body).appendChild(foot);
+
+  const FLAG = '<svg width="36" height="24" viewBox="0 0 30 20" style="flex:none;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.3)"><rect width="30" height="20" fill="#da251d"/><polygon points="15,3.5 16.5,7.94 21.18,8 17.43,10.79 18.82,15.26 15,12.55 11.18,15.26 12.57,10.79 8.82,8 13.5,7.94" fill="#ffff00"/></svg>';
+  const ov = document.createElement("div");
+  ov.className = "cabout";
+  ov.innerHTML =
+    '<div class="ccard">' +
+      '<div class="top"><div style="display:flex;align-items:center;gap:11px">' + FLAG +
+      '<div><div class="h">' + BRAND + ' · Về tác giả</div>' +
+      '<div class="s">Một món quà nhỏ gửi tặng cộng đồng học tập</div></div></div></div>' +
+      '<div class="bd">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành ' +
+      '<b>Tự động hóa, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê <b>nghiên cứu công nghệ</b>.' +
+      '<div class="meta">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập — ' +
+      'một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Anh &amp; tiếng Nhật. ' +
+      'Nếu nó giúp ích cho việc học của bạn, thì mình đã hạnh phúc rồi.</div>' +
+      '<div class="motto">“Cho đi là còn mãi.”</div></div>' +
+      '<div class="ft"><button id="creditClose">Cảm ơn ♥</button></div>' +
+    '</div>';
+  document.body.appendChild(ov);
+
+  const open = () => ov.classList.add("show");
+  const close = () => ov.classList.remove("show");
+  document.getElementById("creditBtn").addEventListener("click", open);
+  document.getElementById("creditClose").addEventListener("click", close);
+  ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+})();
