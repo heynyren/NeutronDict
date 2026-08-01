@@ -773,6 +773,11 @@ function showCard() {
   if (!it) { finishStudy(); return; }
   $("stProg").textContent = "Còn " + session.queue.length + " từ • đã xong " + session.done;
   $("stWord").textContent = it.word;
+  const src = $("stSrc");
+  if (src) {
+    if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
+    else { src.style.display = "none"; src.onclick = null; }
+  }
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
   $("stReveal").style.display = "";
