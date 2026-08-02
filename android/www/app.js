@@ -157,6 +157,12 @@ function mergeByTs(a, b) {
 // ================= SRS (giống hệt extension) =================
 const SRS_STEPS = [1, 3, 7, 14, 30, 60, 120];
 const DAY = 86400000;
+// Đến hạn vào ĐẦU NGÀY mục tiêu (00:00), không phải đúng N×24 giờ sau.
+function dueInDays(days) {
+  const d = new Date(Date.now() + days * DAY);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
 function isDue(it, now) {
   if (it.del) return false;
   if (!it.srs || !it.srs.due) return true;
@@ -168,7 +174,7 @@ async function gradeWord(key, remembered) {
   const now = Date.now();
   const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
   let lv, due;
-  if (remembered) { lv = Math.min(cur + 1, SRS_STEPS.length - 1); due = now + SRS_STEPS[lv] * DAY; }
+  if (remembered) { lv = Math.min(cur + 1, SRS_STEPS.length - 1); due = dueInDays(SRS_STEPS[lv]); }
   else { lv = -1; due = now; }
   nb[key] = Object.assign({}, e, { srs: { lv, due }, ts: now });
   await setNB(nb);
