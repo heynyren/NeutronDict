@@ -136,8 +136,13 @@ async function moveWord(key, deckId) {
 }
 
 // ---- Phát âm tiếng Anh (ưu tiên file audio thật, không có thì giọng máy) ----
-function speak(text, audio) {
-  if (audio) { try { const a = new Audio(audio); a.play(); return; } catch (e) { /* rơi xuống TTS */ } }
+const _audioCache = new Map();
+function getAudio(url) {
+  let a = _audioCache.get(url);
+  if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
+  return a;
+}
+function ttsSpeak(text) {
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
@@ -147,6 +152,20 @@ function speak(text, audio) {
     speechSynthesis.speak(u);
   } catch (e) { /* máy không có giọng Anh */ }
 }
+function speak(text, audio) {
+  if (audio) {
+    try {
+      const a = getAudio(audio);
+      a.onerror = () => ttsSpeak(text);      // link mp3 hỏng (vd 'embark') -> đọc bằng giọng máy
+      a.currentTime = 0;
+      const p = a.play();
+      if (p && p.catch) p.catch(() => ttsSpeak(text));
+      return;
+    } catch (e) { /* rơi xuống TTS */ }
+  }
+  ttsSpeak(text);
+}
+try { speechSynthesis.getVoices(); } catch (e) {}
 
 // ---- Sóng học tập (lặp lại ngắt quãng) ----
 const SRS_STEPS = [1, 3, 7, 14, 30, 60, 120];
@@ -313,13 +332,33 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
 });
 
-// ---- Mở lại trang nguồn và tô sáng từ/câu đã lưu ----
+// ---- Mở lại trang nguồn, tô sáng đúng vị trí bằng Text Fragment của Chrome ----
+// Text Fragment (#:~:text=đầu,cuối) khớp được cả đoạn dài trải trên nhiều thẻ,
+// điều mà bộ tô sáng tự viết (chỉ khớp trong 1 node) không làm được.
+function withTextFragment(baseUrl, sel) {
+  const s = (sel || "").replace(/\s+/g, " ").trim();
+  if (!s) return baseUrl;
+  let frag;
+  if (s.length <= 60) {
+    frag = encodeURIComponent(s);
+  } else {
+    const w = s.split(" ");
+    let start, end;
+    if (w.length >= 4) {                    // ngôn ngữ có dấu cách -> cắt theo từ
+      start = w.slice(0, 6).join(" ");
+      end = w.slice(-6).join(" ");
+    } else {                                 // ít dấu cách (tiếng Nhật…) -> cắt theo ký tự
+      start = s.slice(0, 12);
+      end = s.slice(-12);
+    }
+    frag = encodeURIComponent(start) + "," + encodeURIComponent(end);
+  }
+  return baseUrl + (baseUrl.indexOf("#") >= 0 ? ":~:text=" : "#:~:text=") + frag;
+}
 function openSource(it) {
   if (!it.src || !it.src.url) return;
-  const text = (it.src.sel || it.word || "").slice(0, 400);
-  chrome.storage.local.set({ pendingHighlight: { url: it.src.url, text: text, ts: Date.now() } }, () => {
-    chrome.tabs.create({ url: it.src.url });
-  });
+  const sel = (it.src.sel || it.word || "").slice(0, 400);
+  chrome.tabs.create({ url: withTextFragment(it.src.url, sel) });
 }
 
 // ---- Danh sách ----
