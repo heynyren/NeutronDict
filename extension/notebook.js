@@ -332,29 +332,52 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
 });
 
-// ---- Mở lại trang nguồn rồi tô sáng ĐÚNG đoạn đã lưu ----
-// Ghi "việc cần tô sáng" vào storage; content script trên trang đích sẽ dựng chỉ mục
-// văn bản, tìm lại đoạn (kể cả đoạn dài trải nhiều thẻ, dùng prefix/suffix chọn đúng chỗ)
-// rồi bọc <mark> và cuộn tới. Bền vững, không phụ thuộc Text Fragment của trình duyệt.
+// ---- Mở lại trang nguồn và tô sáng ĐÚNG đoạn đã lưu (kiểu Neuron Note: 2 lớp bổ trợ) ----
+//  1) Text Fragment (#:~:text=): trình duyệt tự cuộn + tô sáng. Chạy được cả trên trang
+//     web thường LẪN trình xem PDF tích hợp của Chrome (nên PDF cũng nhảy đúng chỗ).
+//  2) pendingHighlight: content script bọc <mark> bền vững, đa-node trên trang web thường
+//     (đoạn dài trải nhiều thẻ, dùng prefix/suffix chọn đúng chỗ khi có đoạn trùng).
+function buildTextFragment(src) {
+  const s = (src.sel || "").replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  // Escape dấu '-' trong chữ để không lẫn với dấu phân cách prefix "-," / suffix ",-".
+  const enc = (x) => encodeURIComponent(x).replace(/-/g, "%2D");
+  let core;
+  if (s.length <= 60) core = enc(s);
+  else {
+    const w = s.split(" ");
+    if (w.length >= 4) core = enc(w.slice(0, 6).join(" ")) + "," + enc(w.slice(-6).join(" "));
+    else core = enc(s.slice(0, 12)) + "," + enc(s.slice(-12));
+  }
+  let frag = core;
+  const pre = (src.prefix || "").split(" ").filter(Boolean).slice(-4).join(" ");
+  const suf = (src.suffix || "").split(" ").filter(Boolean).slice(0, 4).join(" ");
+  if (pre) frag = enc(pre) + "-," + frag;
+  if (suf) frag = frag + ",-" + enc(suf);
+  return frag;
+}
+function fragUrl(src) {
+  const frag = buildTextFragment(src);
+  if (!frag) return src.url;
+  return src.url + (src.url.indexOf("#") >= 0 ? ":~:text=" : "#:~:text=") + frag;
+}
 function openSource(it) {
   const src = it.src;
   if (!src || !src.url) return;
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
+  const url = fragUrl(src);
+  if (src.pdf) {
+    // PDF: chỉ dựa vào Text Fragment (content script không chạy trong trình xem PDF).
+    // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì bạn Ctrl+F dán tìm nhanh.
+    const q = text.split(" ").slice(0, 10).join(" ");
+    try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
+    chrome.tabs.create({ url });
+    return;
+  }
+  // Trang thường: nhờ content script tô <mark> bền vững + Text Fragment cuộn tới.
   chrome.storage.local.set({
-    pendingHighlight: {
-      url: src.url, text: text,
-      prefix: src.prefix || "", suffix: src.suffix || "",
-      ts: Date.now()
-    }
-  }, () => {
-    if (src.pdf) {
-      // Trình xem PDF tích hợp của Chrome giấu lớp chữ khỏi content script nên có thể
-      // không tô sáng được — chép sẵn đoạn vào bộ nhớ tạm để bạn Ctrl+F dán tìm nhanh.
-      const q = text.split(" ").slice(0, 10).join(" ");
-      try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
-    }
-    chrome.tabs.create({ url: src.url });
-  });
+    pendingHighlight: { url: src.url, text: text, prefix: src.prefix || "", suffix: src.suffix || "", ts: Date.now() }
+  }, () => { chrome.tabs.create({ url }); });
 }
 
 // ---- Danh sách ----
