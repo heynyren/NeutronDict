@@ -333,32 +333,41 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- Mở lại trang nguồn, tô sáng đúng vị trí bằng Text Fragment của Chrome ----
-// Text Fragment (#:~:text=đầu,cuối) khớp được cả đoạn dài trải trên nhiều thẻ,
-// điều mà bộ tô sáng tự viết (chỉ khớp trong 1 node) không làm được.
-function withTextFragment(baseUrl, sel) {
-  const s = (sel || "").replace(/\s+/g, " ").trim();
-  if (!s) return baseUrl;
-  let frag;
+// Dùng prefix/suffix (mấy từ trước/sau) để khớp ĐÚNG đoạn đã lưu, không nhầm với
+// chỗ khác giống hệt trên trang. Text Fragment khớp được cả đoạn dài trải nhiều thẻ.
+function buildTextFragment(src) {
+  const s = (src.sel || "").replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  const enc = encodeURIComponent;
+  let core;
   if (s.length <= 60) {
-    frag = encodeURIComponent(s);
+    core = enc(s);
   } else {
     const w = s.split(" ");
-    let start, end;
-    if (w.length >= 4) {                    // ngôn ngữ có dấu cách -> cắt theo từ
-      start = w.slice(0, 6).join(" ");
-      end = w.slice(-6).join(" ");
-    } else {                                 // ít dấu cách (tiếng Nhật…) -> cắt theo ký tự
-      start = s.slice(0, 12);
-      end = s.slice(-12);
-    }
-    frag = encodeURIComponent(start) + "," + encodeURIComponent(end);
+    if (w.length >= 4) core = enc(w.slice(0, 6).join(" ")) + "," + enc(w.slice(-6).join(" "));
+    else core = enc(s.slice(0, 12)) + "," + enc(s.slice(-12));
   }
-  return baseUrl + (baseUrl.indexOf("#") >= 0 ? ":~:text=" : "#:~:text=") + frag;
+  let frag = core;
+  const pre = (src.prefix || "").split(" ").filter(Boolean).slice(-4).join(" ");
+  const suf = (src.suffix || "").split(" ").filter(Boolean).slice(0, 4).join(" ");
+  if (pre) frag = enc(pre) + "-," + frag;        // định vị: đoạn phải nằm ngay sau prefix
+  if (suf) frag = frag + ",-" + enc(suf);        // và ngay trước suffix
+  return frag;
 }
 function openSource(it) {
-  if (!it.src || !it.src.url) return;
-  const sel = (it.src.sel || it.word || "").slice(0, 400);
-  chrome.tabs.create({ url: withTextFragment(it.src.url, sel) });
+  const src = it.src;
+  if (!src || !src.url) return;
+  if (src.pdf) {
+    // Trình xem PDF của Chrome KHÔNG hỗ trợ Text Fragment. Mở PDF + chép đoạn vào
+    // bộ nhớ tạm để bạn Ctrl+F dán tìm nhanh (giới hạn kỹ thuật của trình xem PDF).
+    const q = (src.sel || it.word || "").replace(/\s+/g, " ").trim().split(" ").slice(0, 10).join(" ");
+    try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
+    chrome.tabs.create({ url: src.url });
+    return;
+  }
+  const frag = buildTextFragment(src);
+  const url = frag ? src.url + (src.url.indexOf("#") >= 0 ? ":~:text=" : "#:~:text=") + frag : src.url;
+  chrome.tabs.create({ url });
 }
 
 // ---- Danh sách ----
