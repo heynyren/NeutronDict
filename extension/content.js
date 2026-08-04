@@ -238,8 +238,28 @@
   function pageSrc(sel) {
     try {
       if (!/^https?:/i.test(location.href)) return null;
-      return { url: location.href, title: (document.title || "").slice(0, 200), sel: (sel || "").slice(0, 400) };
+      const ctx = selContext();
+      return { url: location.href, title: (document.title || "").slice(0, 200),
+        sel: (sel || "").slice(0, 400), prefix: ctx.prefix, suffix: ctx.suffix };
     } catch (e) { return null; }
+  }
+  // Lấy vài chục ký tự ngay trước/sau vùng bôi đen (trong cùng khối) để khi quay lại
+  // biết chọn đúng đoạn nếu có nhiều chỗ giống nhau trên trang.
+  function selContext() {
+    const out = { prefix: "", suffix: "" };
+    try {
+      const s = window.getSelection();
+      if (!s || !s.rangeCount) return out;
+      const range = s.getRangeAt(0);
+      let c = range.commonAncestorContainer;
+      if (c.nodeType === 3) c = c.parentNode;
+      const block = (c && c.closest && c.closest("p,li,td,th,blockquote,h1,h2,h3,h4,h5,article,section,main,div")) || document.body;
+      const pre = range.cloneRange(); pre.collapse(true); pre.setStart(block, 0);
+      out.prefix = (pre.toString() || "").replace(/\s+/g, " ").trim().slice(-60);
+      const post = range.cloneRange(); post.collapse(false); post.setEnd(block, block.childNodes.length);
+      out.suffix = (post.toString() || "").replace(/\s+/g, " ").trim().slice(0, 60);
+    } catch (e) { /* trang lạ — bỏ qua ngữ cảnh */ }
+    return out;
   }
 
   // ===== Mở lại nguồn: tô sáng lại từ/câu đã lưu khi quay về trang gốc =====
@@ -273,69 +293,146 @@
     requestAnimationFrame(() => t.classList.add("show"));
     setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 3500);
   }
-  function findTextNode(str) {
-    if (!str || !document.body) return null;
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode(n) {
-        if (!n.nodeValue || n.nodeValue.indexOf(str) < 0) return NodeFilter.FILTER_REJECT;
-        const p = n.parentElement;
-        if (!p) return NodeFilter.FILTER_REJECT;
-        const tag = p.nodeName;
-        if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT" || tag === "TEXTAREA") return NodeFilter.FILTER_REJECT;
-        if (p.closest && p.closest("mark.__neu_hl")) return NodeFilter.FILTER_REJECT;
-        const cs = window.getComputedStyle(p);
-        if (cs && (cs.display === "none" || cs.visibility === "hidden")) return NodeFilter.FILTER_REJECT;
-        return NodeFilter.FILTER_ACCEPT;
+  // ===== Bộ tô sáng bền vững, bám theo NỘI DUNG (đa-node) =====
+  // Dựng chỉ mục văn bản chuẩn hoá của cả trang rồi tìm lại ĐÚNG đoạn đã lưu — kể cả
+  // đoạn dài trải nhiều thẻ — và bọc <mark>. Kỹ thuật tham khảo từ Neuron Note.
+  const squash = (s) => String(s || "").replace(/[\s\u200b]+/g, " ").trim();
+  const HL_BLOCK = { P:1,DIV:1,LI:1,TD:1,TH:1,TR:1,BLOCKQUOTE:1,PRE:1,H1:1,H2:1,H3:1,H4:1,H5:1,H6:1,
+    ARTICLE:1,SECTION:1,MAIN:1,HEADER:1,FOOTER:1,ASIDE:1,UL:1,OL:1,DL:1,DT:1,DD:1,FIGURE:1,
+    FIGCAPTION:1,BR:1,HR:1,TABLE:1,NAV:1 };
+  function nearestBlock(el) {
+    let e = el;
+    while (e && e !== document.body) { if (HL_BLOCK[e.tagName]) return e; e = e.parentElement; }
+    return document.body;
+  }
+  function acceptTextNode(n) {
+    const p = n.parentElement;
+    if (!p) return NodeFilter.FILTER_REJECT;
+    const tag = p.nodeName;
+    if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT" || tag === "TEXTAREA" || tag === "TITLE")
+      return NodeFilter.FILTER_REJECT;
+    if (p.closest && p.closest("mark.__neu_hl")) return NodeFilter.FILTER_REJECT;
+    if (!n.nodeValue) return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT;
+  }
+  // map[i] = {node, off} cho từng ký tự; chèn dấu cách ở ranh giới khối như khi trình duyệt nối chuỗi.
+  function makeIndex(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: acceptTextNode });
+    let norm = ""; const map = [];
+    let prevBlock = null, first = true, needSpace = false, spaceSrc = null, n;
+    while ((n = walker.nextNode())) {
+      const block = nearestBlock(n.parentElement);
+      if (!first && block !== prevBlock) needSpace = true;
+      prevBlock = block; first = false;
+      const s = n.nodeValue;
+      for (let k = 0; k < s.length; k++) {
+        const ch = s[k];
+        if (/[\s\u200b]/.test(ch)) { needSpace = true; if (!spaceSrc) spaceSrc = { node: n, off: k }; continue; }
+        if (needSpace && norm.length) { norm += " "; map.push(spaceSrc); }
+        needSpace = false; spaceSrc = null;
+        norm += ch; map.push({ node: n, off: k });
       }
-    });
-    const n = walker.nextNode();
-    if (!n) return null;
-    return { node: n, index: n.nodeValue.indexOf(str), len: str.length };
-  }
-  function hlVariants(target) {
-    const t = (target || "").trim();
-    const out = [];
-    if (!t) return out;
-    out.push(t);
-    const collapsed = t.replace(/\s+/g, " ");
-    if (collapsed !== t) out.push(collapsed);
-    if (t.length > 12) {
-      const head = t.slice(0, 24).replace(/\s+\S*$/, "");
-      if (head.length >= 4) out.push(head);
-      out.push(t.slice(0, 8));
     }
-    return out;
+    return { norm, map };
   }
-  function doHighlight(target) {
-    for (const v of hlVariants(target)) {
-      const hit = findTextNode(v);
-      if (!hit) continue;
-      hlStyle();
+  function rangesFromNorm(idx, start, end) {
+    const segs = []; let cur = null;
+    for (let i = start; i < end; i++) {
+      const e = idx.map[i];
+      if (!e) continue;                       // dấu cách ranh giới — bỏ qua
+      if (cur && cur.node === e.node) cur.end = e.off + 1;
+      else { if (cur) segs.push(cur); cur = { node: e.node, start: e.off, end: e.off + 1 }; }
+    }
+    if (cur) segs.push(cur);
+    return segs;
+  }
+  function tailMatch(a, b){ let i=0; while(i<a.length&&i<b.length&&a[a.length-1-i]===b[b.length-1-i])i++; return i; }
+  function headMatch(a, b){ let i=0; while(i<a.length&&i<b.length&&a[i]===b[i])i++; return i; }
+  function firstWords(s,n){ return squash(s).split(" ").filter(Boolean).slice(0,n).join(" "); }
+  function lastWords(s,n){ return squash(s).split(" ").filter(Boolean).slice(-n).join(" "); }
+  // Tìm lại đoạn đã lưu → trả {start,end} theo chỉ số norm, hoặc null.
+  function findAnchor(idx, note) {
+    const target = squash(note.text); if (!target) return null;
+    const hay = idx.norm;
+    let hits = []; let p = hay.indexOf(target);
+    while (p !== -1 && hits.length < 80) { hits.push(p); p = hay.indexOf(target, p + 1); }
+    if (!hits.length) {
+      const lowHay = hay.toLowerCase(), lowT = target.toLowerCase();
+      p = lowHay.indexOf(lowT);
+      while (p !== -1 && hits.length < 80) { hits.push(p); p = lowHay.indexOf(lowT, p + 1); }
+    }
+    if (hits.length) {
+      let pos = hits[0];
+      if (hits.length > 1) {                  // trùng nhiều chỗ → dùng prefix/suffix chọn đúng
+        const pfx = squash(note.prefix || "").slice(-40);
+        const sfx = squash(note.suffix || "").slice(0, 40);
+        let best = -1;
+        hits.forEach((h) => {
+          const before = squash(hay.slice(Math.max(0, h - 60), h));   // squash: bỏ dấu cách ranh giới
+          const after = squash(hay.slice(h + target.length, h + target.length + 60));
+          const score = (pfx ? tailMatch(before, pfx) : 0) + (sfx ? headMatch(after, sfx) : 0);
+          if (score > best) { best = score; pos = h; }
+        });
+      }
+      return { start: pos, end: pos + target.length };
+    }
+    // Đoạn dài: khớp vài từ đầu + vài từ cuối, lấy cả khoảng ở giữa.
+    const words = target.split(" ");
+    if (words.length >= 8) {
+      const head = firstWords(target, 6), tail = lastWords(target, 6);
+      const lowHay = hay.toLowerCase();
+      let hp = hay.indexOf(head); if (hp === -1) hp = lowHay.indexOf(head.toLowerCase());
+      if (hp !== -1) {
+        let tp = hay.indexOf(tail, hp + head.length);
+        if (tp === -1) tp = lowHay.indexOf(tail.toLowerCase(), hp + head.length);
+        if (tp !== -1) { const end = tp + tail.length; if (end - hp <= target.length * 1.8 + 40) return { start: hp, end }; }
+      }
+    }
+    return null;
+  }
+  function paintAnchor(note) {
+    const idx = makeIndex(document.body);
+    const anchor = findAnchor(idx, note);
+    if (!anchor) return false;
+    const segs = rangesFromNorm(idx, anchor.start, anchor.end);
+    if (!segs.length) return false;
+    // bọc từ đoạn CUỐI về đầu: splitText chỉ dịch offset của chính node đó
+    for (let i = segs.length - 1; i >= 0; i--) {
+      const seg = segs[i]; let node = seg.node;
       try {
-        const range = document.createRange();
-        range.setStart(hit.node, hit.index);
-        range.setEnd(hit.node, hit.index + hit.len);
-        const mark = document.createElement("mark");
-        mark.className = "__neu_hl";
-        range.surroundContents(mark);
-        mark.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-        const clean = () => {
-          if (!mark.parentNode) return;
-          const tx = document.createTextNode(mark.textContent);
-          const parent = mark.parentNode;
-          parent.replaceChild(tx, mark);
-          parent.normalize();
-        };
-        mark.addEventListener("click", clean);
-        setTimeout(clean, 12000);
-        return true;
-      } catch (e) { /* thử biến thể tiếp theo */ }
+        const len = node.nodeValue.length;
+        const end = Math.min(seg.end, len);
+        const start = Math.min(seg.start, end);
+        if (end < len) node.splitText(end);
+        if (start > 0) node = node.splitText(start);
+        const m = document.createElement("mark");
+        m.className = "__neu_hl";
+        node.parentNode.insertBefore(m, node);
+        m.appendChild(node);
+      } catch (e) { /* bỏ qua đoạn không tách được */ }
     }
-    return false;
+    return document.querySelectorAll("mark.__neu_hl").length > 0;
   }
-  function tryHighlight(target, tries) {
-    if (doHighlight(target)) return;
-    if (tries > 0) { setTimeout(() => tryHighlight(target, tries - 1), 400); return; }
+  function doHighlight(note) {
+    hlStyle();
+    if (!paintAnchor(note)) return false;
+    const marks = document.querySelectorAll("mark.__neu_hl");
+    if (!marks.length) return false;
+    try { marks[0].scrollIntoView({ behavior: "smooth", block: "center", inline: "center" }); } catch (e) {}
+    const clean = () => {
+      document.querySelectorAll("mark.__neu_hl").forEach((m) => {
+        const parent = m.parentNode; if (!parent) return;
+        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+        parent.removeChild(m); parent.normalize();
+      });
+    };
+    marks.forEach((m) => m.addEventListener("click", clean));
+    setTimeout(clean, 15000);
+    return true;
+  }
+  function tryHighlight(note, tries) {
+    if (doHighlight(note)) return;
+    if (tries > 0) { setTimeout(() => tryHighlight(note, tries - 1), 400); return; }
     neuToast("NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi).");
   }
   (function checkPendingHighlight() {
@@ -347,7 +444,7 @@
         if (Date.now() - (ph.ts || 0) > 60000) { chrome.storage.local.remove("pendingHighlight"); return; }
         if (!sameDoc(ph.url, location.href)) return;
         chrome.storage.local.remove("pendingHighlight");
-        const run = () => tryHighlight(ph.text, 15);
+        const run = () => tryHighlight({ text: ph.text, prefix: ph.prefix || "", suffix: ph.suffix || "" }, 15);
         if (document.readyState === "complete") setTimeout(run, 300);
         else window.addEventListener("load", () => setTimeout(run, 300), { once: true });
       });

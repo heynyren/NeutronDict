@@ -561,11 +561,32 @@ const ALL = "__all__", NONE = "__none__";
 let curDeck = ALL;
 function deckName(decks, id) { const d = decks[id]; return d && !d.del ? d.name : null; }
 
+// Mở nguồn trên trình duyệt hệ thống + tô sáng bằng Text Fragment của Chrome.
+// Dùng prefix/suffix (mấy từ trước/sau) để khớp ĐÚNG đoạn, không nhầm chỗ giống nhau;
+// đoạn dài thì neo "6 từ đầu … 6 từ cuối" nên vẫn tô sáng được cả câu dài.
+function buildTextFragment(src) {
+  const s = (src.sel || "").replace(/\s+/g, " ").trim();
+  if (!s) return "";
+  const enc = encodeURIComponent;
+  let core;
+  if (s.length <= 60) core = enc(s);
+  else {
+    const w = s.split(" ");
+    if (w.length >= 4) core = enc(w.slice(0, 6).join(" ")) + "," + enc(w.slice(-6).join(" "));
+    else core = enc(s.slice(0, 12)) + "," + enc(s.slice(-12));
+  }
+  let frag = core;
+  const pre = (src.prefix || "").split(" ").filter(Boolean).slice(-4).join(" ");
+  const suf = (src.suffix || "").split(" ").filter(Boolean).slice(0, 4).join(" ");
+  if (pre) frag = enc(pre) + "-," + frag;
+  if (suf) frag = frag + ",-" + enc(suf);
+  return frag;
+}
 function openSourceExt(it) {
   if (!it.src || !it.src.url) return;
   const base = it.src.url;
-  const enc = encodeURIComponent((it.src.sel || it.word || "").slice(0, 60));
-  const url = base.indexOf("#") >= 0 ? base + ":~:text=" + enc : base + "#:~:text=" + enc;
+  const frag = buildTextFragment(it.src) || encodeURIComponent((it.word || "").slice(0, 60));
+  const url = base.indexOf("#") >= 0 ? base + ":~:text=" + frag : base + "#:~:text=" + frag;
   try { window.open(url, "_system"); }
   catch (e) { try { window.open(url, "_blank"); } catch (e2) { location.href = url; } }
 }
