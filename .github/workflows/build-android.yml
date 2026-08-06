@@ -17,6 +17,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30      # nếu runner treo thì dừng sớm thay vì chờ vô tận
     defaults:
       run:
         working-directory: android
