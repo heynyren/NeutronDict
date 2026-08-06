@@ -9,6 +9,7 @@ const syncStatusEl = document.getElementById("syncStatus");
 const restoreFileEl = document.getElementById("restoreFile");
 
 const ALL = "__all__", NONE = "__none__";
+const LIKE = "__like__", DISLIKE = "__dislike__";   // 2 nhãn cố định: Thích / Không thích
 let items = [];   // từ (gồm cả tombstone)
 let decks = {};   // { id: {id,name,ts,del?} }
 let current = ALL;
@@ -40,7 +41,7 @@ async function load() {
   decks = s.decks;
   items = Object.entries(s.nb).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-  if (current !== ALL && current !== NONE && !deckName(current)) current = ALL;
+  if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && !deckName(current)) current = ALL;
   drawDecks();
   draw();
 }
@@ -50,6 +51,8 @@ function countIn(id) {
   const a = active(items);
   if (id === ALL) return a.length;
   if (id === NONE) return a.filter((it) => !it.deck).length;
+  if (id === LIKE) return a.filter((it) => it.fav === 1).length;
+  if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
   return a.filter((it) => it.deck === id).length;
 }
 function drawDecks() {
@@ -63,6 +66,8 @@ function drawDecks() {
   };
   mk(ALL, "Tất cả");
   mk(NONE, "Chưa phân loại");
+  mk(LIKE, "❤️ Thích");
+  mk(DISLIKE, "👎 Không thích");
   activeDecks().forEach((d) => mk(d.id, d.name));
 
   const add = document.createElement("button");
@@ -73,7 +78,8 @@ function drawDecks() {
   updateDeckActions();
 }
 function updateDeckActions() {
-  const real = current !== ALL && current !== NONE;
+  // 2 nhãn cố định (Thích/Không thích) không cho đổi tên hay xoá.
+  const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE;
   deckActionsEl.style.display = real ? "" : "none";
 }
 
@@ -385,7 +391,38 @@ function currentActiveSet() {
   const a = active(items);
   if (current === ALL) return a;
   if (current === NONE) return a.filter((it) => !it.deck);
+  if (current === LIKE) return a.filter((it) => it.fav === 1);
+  if (current === DISLIKE) return a.filter((it) => it.fav === -1);
   return a.filter((it) => it.deck === current);
+}
+// Gắn/bỏ nhãn Thích(1)/Không thích(-1). Bấm lại nút đang bật -> về bình thường.
+// Chỉ đổi trường fav + ts (đồng bộ tự chạy qua mergeByTs), KHÔNG đụng tiến độ học.
+async function setFav(key, val) {
+  const s = await getStore();
+  const e = s.nb[key];
+  if (!e || e.del) return;
+  const next = (e.fav === val) ? 0 : val;
+  const ne = Object.assign({}, e, { ts: Date.now() });
+  if (next) ne.fav = next; else delete ne.fav;
+  s.nb[key] = ne;
+  await setNotebook(s.nb);
+  await load();
+  syncSoon();
+}
+function favButtons(it) {
+  const wrap = document.createElement("span"); wrap.className = "favctl";
+  const like = document.createElement("button");
+  like.className = "favbtn like" + (it.fav === 1 ? " on" : "");
+  like.textContent = it.fav === 1 ? "❤️" : "🤍";
+  like.title = it.fav === 1 ? "Bỏ khỏi Thích" : "Thích";
+  like.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, 1); });
+  const dis = document.createElement("button");
+  dis.className = "favbtn dislike" + (it.fav === -1 ? " on" : "");
+  dis.textContent = "👎";
+  dis.title = it.fav === -1 ? "Bỏ khỏi Không thích" : "Không thích";
+  dis.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, -1); });
+  wrap.appendChild(like); wrap.appendChild(dis);
+  return wrap;
 }
 function draw() {
   const kw = filterEl.value.trim().toLowerCase();
@@ -420,6 +457,7 @@ function draw() {
     const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Phát âm";
     spk.addEventListener("click", () => speak(it.word, it.audio)); head.appendChild(spk);
     const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = dirLabel(it.dict); head.appendChild(tag);
+    head.appendChild(favButtons(it));
     if (isDue(it, Date.now())) { const du = document.createElement("span"); du.className = "due"; du.textContent = "đến hạn"; head.appendChild(du); }
     if (it.deck && deckName(it.deck) && current === ALL) {
       const dt = document.createElement("span"); dt.className = "tag"; dt.textContent = "📁 " + deckName(it.deck); head.appendChild(dt);
@@ -489,6 +527,8 @@ function safe(s) { return String(s == null ? "" : s).replace(/[\t\r\n]+/g, " ").
 function fileTag() {
   if (current === ALL) return "tatca";
   if (current === NONE) return "chuaphanloai";
+  if (current === LIKE) return "thich";
+  if (current === DISLIKE) return "khongthich";
   return (deckName(current) || "so").replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase();
 }
 function exportAnki() {

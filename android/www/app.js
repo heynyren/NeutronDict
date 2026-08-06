@@ -558,7 +558,34 @@ async function showTranslate(text) {
 
 // ================= View: Sổ tay =================
 const ALL = "__all__", NONE = "__none__";
+const LIKE = "__like__", DISLIKE = "__dislike__";   // 2 nhãn cố định: Thích / Không thích
 let curDeck = ALL;
+
+// Gắn/bỏ nhãn Thích(1)/Không thích(-1). Bấm lại nút đang bật -> về bình thường.
+// Chỉ đổi fav + ts (đồng bộ tự chạy qua mergeByTs), KHÔNG đụng tiến độ học.
+async function setFav(key, val) {
+  const nb = await getNB(); const e = nb[key];
+  if (!e || e.del) return;
+  const next = (e.fav === val) ? 0 : val;
+  const ne = Object.assign({}, e, { ts: Date.now() });
+  if (next) ne.fav = next; else delete ne.fav;
+  nb[key] = ne; await setNB(nb); drawNotebook(); syncSoon();
+}
+function favButtons(it) {
+  const wrap = document.createElement("span"); wrap.className = "favctl";
+  const like = document.createElement("button");
+  like.className = "favbtn like" + (it.fav === 1 ? " on" : "");
+  like.textContent = it.fav === 1 ? "❤️" : "🤍";
+  like.title = it.fav === 1 ? "Bỏ khỏi Thích" : "Thích";
+  like.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, 1); });
+  const dis = document.createElement("button");
+  dis.className = "favbtn dislike" + (it.fav === -1 ? " on" : "");
+  dis.textContent = "👎";
+  dis.title = it.fav === -1 ? "Bỏ khỏi Không thích" : "Không thích";
+  dis.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, -1); });
+  wrap.appendChild(like); wrap.appendChild(dis);
+  return wrap;
+}
 function deckName(decks, id) { const d = decks[id]; return d && !d.del ? d.name : null; }
 
 // Mở nguồn trên trình duyệt hệ thống + tô sáng bằng Text Fragment của Chrome.
@@ -624,11 +651,15 @@ async function drawNotebook() {
   const nb = await getNB(), decks = await getDecks();
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
-  if (curDeck !== ALL && curDeck !== NONE && !deckName(decks, curDeck)) curDeck = ALL;
+  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && !deckName(decks, curDeck)) curDeck = ALL;
 
   const bar = $("deckBar"); bar.innerHTML = "";
   const activeDecks = Object.values(decks).filter((d) => !d.del).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  const countIn = (id) => id === ALL ? activeItems.length : id === NONE ? activeItems.filter((i) => !i.deck).length : activeItems.filter((i) => i.deck === id).length;
+  const countIn = (id) => id === ALL ? activeItems.length
+    : id === NONE ? activeItems.filter((i) => !i.deck).length
+    : id === LIKE ? activeItems.filter((i) => i.fav === 1).length
+    : id === DISLIKE ? activeItems.filter((i) => i.fav === -1).length
+    : activeItems.filter((i) => i.deck === id).length;
   const mk = (id, label) => {
     const b = document.createElement("button"); b.className = "chip" + (curDeck === id ? " active" : "");
     b.textContent = label + " (" + countIn(id) + ")";
@@ -636,6 +667,7 @@ async function drawNotebook() {
     bar.appendChild(b);
   };
   mk(ALL, "Tất cả"); mk(NONE, "Chưa phân loại");
+  mk(LIKE, "❤️ Thích"); mk(DISLIKE, "👎 Không thích");
   activeDecks.forEach((d) => mk(d.id, d.name));
   const add = document.createElement("button"); add.className = "chip add"; add.textContent = "＋ Sổ mới";
   add.addEventListener("click", async () => {
@@ -646,11 +678,13 @@ async function drawNotebook() {
     await setDecks(d); curDeck = id; drawNotebook(); syncSoon();
   });
   bar.appendChild(add);
-  $("deckActions").style.display = (curDeck !== ALL && curDeck !== NONE) ? "" : "none";
+  $("deckActions").style.display = (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE) ? "" : "none";
 
   const kw = $("filter").value.trim().toLowerCase();
   let rows = activeItems;
   if (curDeck === NONE) rows = rows.filter((i) => !i.deck);
+  else if (curDeck === LIKE) rows = rows.filter((i) => i.fav === 1);
+  else if (curDeck === DISLIKE) rows = rows.filter((i) => i.fav === -1);
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) rows = rows.filter((it) => (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ")).toLowerCase().includes(kw));
   $("nbCount").textContent = "Hiện: " + rows.length + " từ";
@@ -670,6 +704,7 @@ async function drawNotebook() {
     const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊";
     spk.addEventListener("click", () => speak(it.word, it.audio)); head.appendChild(spk);
     if (it.reading) { const r = document.createElement("span"); r.className = "r"; r.textContent = it.reading; head.appendChild(r); }
+    head.appendChild(favButtons(it));
     if (isDue(it, now)) { const du = document.createElement("span"); du.className = "due"; du.textContent = "đến hạn"; head.appendChild(du); }
     main.appendChild(head);
     if (it.means && it.means.length) { const m = document.createElement("div"); m.className = "m"; m.textContent = it.means.slice(0, 4).join("; "); main.appendChild(m); }
