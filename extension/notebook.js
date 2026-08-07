@@ -735,7 +735,7 @@ document.getElementById("syncNow").addEventListener("click", syncNow);
   const foot = document.createElement("div");
   foot.className = "credit-foot";
   foot.innerHTML = 'Ra đời bởi <button id="creditBtn" title="Về tác giả">Nyren Phạm <span class="hb">♥</span></button>';
-  (document.querySelector(".wrap") || document.body).appendChild(foot);
+  (document.querySelector(".sidebar") || document.querySelector(".wrap") || document.body).appendChild(foot);
 
   const FLAG = '<svg width="36" height="24" viewBox="0 0 30 20" style="flex:none;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.3)"><rect width="30" height="20" fill="#da251d"/><polygon points="15,3.5 16.5,7.94 21.18,8 17.43,10.79 18.82,15.26 15,12.55 11.18,15.26 12.57,10.79 8.82,8 13.5,7.94" fill="#ffff00"/></svg>';
   const ov = document.createElement("div");
