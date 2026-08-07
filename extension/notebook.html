@@ -59,6 +59,9 @@
     .favbtn { border: none; background: none; font-size: 13.5px; line-height: 1; cursor: pointer; padding: 2px 3px; border-radius: 6px; opacity: .5; }
     .favbtn:hover { opacity: 1; background: #f3eefb; }
     .favbtn.on { opacity: 1; }
+    .stfav { display: flex; gap: 10px; justify-content: center; margin: 6px 0 2px; }
+    .stfav .favbtn { font-size: 19px; padding: 5px 9px; border: 1px solid #e6e9ef; border-radius: 9px; }
+    .stfav .favbtn.on { border-color: #7c3aed; background: #f6f1ff; }
     .due { display:inline-block; font-size: 10.5px; color: #b26a00; border: 1px solid #f0ddb0; background:#fff8e6; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
     #studyOverlay { position: fixed; inset: 0; background: rgba(20,26,36,.55); display: none; align-items: center; justify-content: center; z-index: 50; }
     #studyOverlay.show { display: flex; }
@@ -157,6 +160,7 @@
       <div id="stBody">
         <div class="cw"><span id="stWord"></span><button class="spk" id="stSpk" title="Phát âm">🔊</button></div>
         <div style="text-align:center"><button class="srcbtn" id="stSrc" style="display:none;margin-top:2px">🔗 Mở nguồn</button></div>
+        <div class="stfav" id="stFav"></div>
         <div class="cr" id="stRead"></div>
         <div class="cm" id="stMean"></div>
         <button class="reveal" id="stReveal">Hiện nghĩa</button>

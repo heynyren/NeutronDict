@@ -222,9 +222,40 @@ const stProg = document.getElementById("stProg");
 const stGrade = document.getElementById("stGrade");
 const stReveal = document.getElementById("stReveal");
 const stSrc = document.getElementById("stSrc");
+const stFav = document.getElementById("stFav");
 const stBody = document.getElementById("stBody");
 const stDone = document.getElementById("stDone");
 const stSummary = document.getElementById("stSummary");
+
+// Nút Thích/Không thích ngay trên thẻ học — bật/tắt ngay, không rời buổi học.
+function renderStudyFav(it) {
+  if (!stFav) return;
+  stFav.innerHTML = "";
+  const mk = (val, onTxt, offTxt) => {
+    const on = it.fav === val;
+    const b = document.createElement("button");
+    b.className = "favbtn " + (val === 1 ? "like" : "dislike") + (on ? " on" : "");
+    b.textContent = on ? onTxt : offTxt;
+    b.title = val === 1 ? (on ? "Bỏ khỏi Thích" : "Thích") : (on ? "Bỏ khỏi Không thích" : "Không thích");
+    b.addEventListener("click", () => setFavStudy(it, val));
+    return b;
+  };
+  stFav.appendChild(mk(1, "❤️", "🤍"));
+  stFav.appendChild(mk(-1, "👎", "👎"));
+}
+async function setFavStudy(it, val) {
+  const s = await getStore();
+  const e = s.nb[it.key];
+  if (!e || e.del) return;
+  const next = (e.fav === val) ? 0 : val;
+  const ne = Object.assign({}, e, { ts: Date.now() });
+  if (next) ne.fav = next; else delete ne.fav;
+  s.nb[it.key] = ne;
+  await setNotebook(s.nb);
+  it.fav = next;
+  renderStudyFav(it);
+  syncSoon();
+}
 
 function startStudy() {
   const due = dueList(currentActiveSet());
@@ -243,6 +274,7 @@ function showCard() {
   stBody.style.display = ""; stDone.style.display = "none";
   stProg.textContent = "Còn " + session.queue.length + " từ • đã xong " + session.done;
   stWord.textContent = it.word;
+  renderStudyFav(it);
   if (stSrc) {
     if (it.src && it.src.url) { stSrc.style.display = ""; stSrc.onclick = () => openSource(it); }
     else { stSrc.style.display = "none"; stSrc.onclick = null; }

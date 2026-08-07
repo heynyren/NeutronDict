@@ -839,11 +839,36 @@ $("stStart").addEventListener("click", async () => {
   $("stEmpty").style.display = "none"; $("stBody").style.display = "";
   showCard();
 });
+// Nút Thích/Không thích ngay trên thẻ học — bật/tắt ngay, không rời buổi học.
+function renderStudyFav(it) {
+  const stFav = $("stFav"); if (!stFav) return;
+  stFav.innerHTML = "";
+  const mk = (val, onTxt, offTxt) => {
+    const on = it.fav === val;
+    const b = document.createElement("button");
+    b.className = "favbtn " + (val === 1 ? "like" : "dislike") + (on ? " on" : "");
+    b.textContent = on ? onTxt : offTxt;
+    b.addEventListener("click", () => setFavStudy(it, val));
+    return b;
+  };
+  stFav.appendChild(mk(1, "❤️", "🤍"));
+  stFav.appendChild(mk(-1, "👎", "👎"));
+}
+async function setFavStudy(it, val) {
+  const nb = await getNB(); const e = nb[it.key];
+  if (!e || e.del) return;
+  const next = (e.fav === val) ? 0 : val;
+  const ne = Object.assign({}, e, { ts: Date.now() });
+  if (next) ne.fav = next; else delete ne.fav;
+  nb[it.key] = ne; await setNB(nb);
+  it.fav = next; renderStudyFav(it); syncSoon();
+}
 function showCard() {
   const it = session.queue[0];
   if (!it) { finishStudy(); return; }
   $("stProg").textContent = "Còn " + session.queue.length + " từ • đã xong " + session.done;
   $("stWord").textContent = it.word;
+  renderStudyFav(it);
   const src = $("stSrc");
   if (src) {
     if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }

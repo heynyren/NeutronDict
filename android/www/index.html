@@ -47,6 +47,9 @@
     .favctl { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: 1px; }
     .favbtn { border: none; background: none; font-size: 16px; line-height: 1; padding: 3px 5px; border-radius: 7px; opacity: .5; }
     .favbtn.on { opacity: 1; }
+    .stfav { display: flex; gap: 12px; justify-content: center; margin: 8px 0 2px; }
+    .stfav .favbtn { font-size: 22px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; }
+    .stfav .favbtn.on { border-color: var(--brand); background: #f6f1ff; opacity: 1; }
     .mean { margin: 6px 0 0; padding-left: 20px; font-size: 15.5px; }
     .save { padding: 8px 12px; border: 1.5px solid var(--brand); color: var(--brand); background: #fff; border-radius: 9px; font-size: 13.5px; font-weight: 700; white-space: nowrap; }
     .save.saved { border-color: var(--green); color: var(--green); background: #f0faf4; }
@@ -194,6 +197,7 @@
         <div id="stBody">
           <div class="cw"><span id="stWord"></span><button class="spk" id="stSpk">🔊</button></div>
           <div style="margin-top:6px"><button class="mini" id="stSrc" style="display:none;color:var(--brand)">🔗 Mở nguồn</button></div>
+          <div class="stfav" id="stFav"></div>
           <div class="cr" id="stRead"></div>
           <div class="cm" id="stMean"></div>
           <button class="reveal" id="stReveal">Hiện nghĩa</button>
