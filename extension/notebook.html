@@ -3,196 +3,310 @@
 <head>
   <meta charset="utf-8">
   <title>Sổ tay NeutronDict</title>
+  <link rel="stylesheet" href="ui.css">
   <style>
-    :root { --brand:#7c3aed; --brand2:#c026d3; --ink:#1c2430; --sub:#6b7684; --line:#e6e9ef; --red:#d33; --green:#1a9d5a; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f6f8fb; color: var(--ink);
-      font: 15px/1.55 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      display: flex; height: 100vh; overflow: hidden; }
-    /* Cột trái cố định: mọi điều khiển; cột phải: chỉ danh sách từ cuộn. */
-    .sidebar { width: 320px; flex: none; height: 100vh; overflow-y: auto;
-      padding: 20px 16px 28px; border-right: 1px solid var(--line); background: #fbfcfe; }
-    .content { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; padding: 16px 20px 48px; }
-    .countbar { position: sticky; top: 0; background: #f6f8fb; padding: 0 2px 10px; text-align: right; z-index: 1; }
-    @media (max-width: 620px) {
-      body { flex-direction: column; height: auto; overflow: visible; }
-      .sidebar { width: auto; height: auto; overflow: visible; border-right: none; border-bottom: 1px solid var(--line); }
-      .content { height: auto; overflow: visible; }
+    /* ----------------------------------------------------------------------
+       Bố cục riêng của trang Sổ tay: cột trái cố định, cột phải cuộn.
+       Mọi thứ về màu/nút/thẻ nằm hết trong ui.css — ở đây chỉ có khung.
+       ---------------------------------------------------------------------- */
+    html, body { height: 100%; }
+    body { display: flex; overflow: hidden; }
+
+    .side {
+      width: 328px;
+      flex: none;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 18px 16px 24px;
+      background: var(--surface);
+      box-shadow: 1px 0 0 var(--line-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
-    h1 { font-size: 20px; margin: 4px 0 2px; }
-    .muted { color: var(--sub); font-size: 13px; margin: 0 0 16px; }
-    .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-    .sidebar .tools #filter { flex: 1 0 100%; }   /* ô lọc chiếm trọn một hàng, nút xuống dưới */
-    #filter { flex: 1; min-width: 160px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; font-size: 14px; outline: none; background: #fff; }
-    #filter:focus { border-color: var(--brand); }
-    button { font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 9px; padding: 9px 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
-    button:hover { background: #f1f3f6; }
-    .primary { background: linear-gradient(135deg,#7c3aed,#c026d3); color: #fff; border-color: var(--brand); }
-    .primary:hover { filter: brightness(1.05); background: linear-gradient(135deg,#7c3aed,#c026d3); }
-    .danger { color: var(--red); border-color: #f0c9c9; background: #fff; }
-    .danger:hover { background: #fdecec; }
-    details.sync { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px; margin-bottom: 14px; }
-    details.sync summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
-    .syncbody { padding: 6px 0 12px; display: flex; flex-direction: column; gap: 8px; }
-    .syncbody input { padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; font-size: 13.5px; outline: none; }
-    .syncbody input:focus { border-color: var(--brand); }
-    .row2 { display: flex; gap: 8px; }
-    .row2 button { flex: 1; }
-    .hint { color: var(--sub); font-size: 12px; }
-    .deckbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
-    .chip { padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; }
-    .chip:hover { background: #f1f3f6; }
-    .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
-    .chip.add { border-style: dashed; color: var(--brand); }
-    .deckactions { display: flex; gap: 8px; margin-bottom: 12px; }
-    .deckactions button { padding: 7px 10px; font-size: 12.5px; }
-    .list { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-    .row { display: flex; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-    .row:last-child { border-bottom: none; }
-    .row .w { font-size: 21px; font-weight: 700; }
-    .row.sent .w { font-size: 15.5px; font-weight: 600; line-height: 1.5; }
-    .row .r { color: var(--brand); font-size: 13.5px; font-weight: 600; margin-left: 6px; }
-    .row .m { font-size: 15.5px; color: #2b333d; margin-top: 3px; }
-    .row .meta { color: var(--sub); font-size: 12px; margin-top: 4px; }
-    .row .main { flex: 1; min-width: 0; }
-    .rowctl { flex: none; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-    .movesel { font: inherit; font-size: 12px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 7px; background: #fff; max-width: 150px; }
-    .del { padding: 5px 9px; font-size: 12px; }
-    .srcbtn { padding: 5px 9px; font-size: 12px; color: var(--brand); border-color: #e4d4ff; background: #f9f6ff; white-space: nowrap; }
-    .srcbtn:hover { background: #f2eaff; }
-    .srcline { color: var(--sub); font-size: 12px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-    .tag { display: inline-block; font-size: 10.5px; color: var(--sub); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
-    .empty { text-align: center; color: var(--sub); padding: 40px 12px; }
-    .count { color: var(--sub); font-size: 13px; margin-left: auto; }
-    .spk { border: none; background: none; font-size: 15px; cursor: pointer; padding: 0 3px; }
-    .spk:hover { transform: scale(1.15); }
-    .favctl { display: inline-flex; gap: 1px; margin-left: 4px; vertical-align: 1px; }
-    .favbtn { border: none; background: none; font-size: 13.5px; line-height: 1; cursor: pointer; padding: 2px 3px; border-radius: 6px; opacity: .5; }
-    .favbtn:hover { opacity: 1; background: #f3eefb; }
-    .favbtn.on { opacity: 1; }
-    .stfav { display: flex; gap: 10px; justify-content: center; margin: 6px 0 2px; }
-    .stfav .favbtn { font-size: 19px; padding: 5px 9px; border: 1px solid #e6e9ef; border-radius: 9px; }
-    .stfav .favbtn.on { border-color: #7c3aed; background: #f6f1ff; }
-    .due { display:inline-block; font-size: 10.5px; color: #b26a00; border: 1px solid #f0ddb0; background:#fff8e6; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
-    #studyOverlay { position: fixed; inset: 0; background: rgba(20,26,36,.55); display: none; align-items: center; justify-content: center; z-index: 50; }
-    #studyOverlay.show { display: flex; }
-    .card { width: min(430px, 92vw); background: #fff; border-radius: 16px; padding: 22px 20px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.25); text-align: center; }
-    .card .prog { color: var(--sub); font-size: 12px; margin-bottom: 10px; }
-    .card .cw { font-size: 40px; font-weight: 700; line-height: 1.25; }
-    .card .cr { color: var(--sub); font-size: 16px; margin-top: 6px; min-height: 22px; }
-    .card .cm { font-size: 15px; margin-top: 10px; min-height: 44px; text-align: left; }
-    .card .cm ul { margin: 0; padding-left: 20px; }
-    .grade { display: flex; gap: 10px; margin-top: 16px; }
-    .grade button { flex: 1; padding: 12px; font-size: 14.5px; border-radius: 10px; }
-    .gforgot { border-color: #f0c9c9; color: var(--red); }
-    .gforgot:hover { background: #fdecec; }
-    .gknow { background: var(--green); border-color: var(--green); color: #fff; }
-    .gknow:hover { background: #158a4e; }
-    .reveal { margin-top: 16px; width: 100%; padding: 12px; font-size: 14.5px; border-radius: 10px; background: var(--brand); color:#fff; border-color: var(--brand); }
-    .delrow { margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 30px; }
-    .delbtn { border: 1px solid #f0c9c9; color: var(--red); background: #fff; border-radius: 8px;
-      font-size: 12.5px; font-weight: 600; padding: 6px 12px; cursor: pointer; }
-    .delbtn:hover { background: #fdecec; }
-    .undo { font-size: 12.5px; color: var(--sub); }
-    .undo button { border: none; background: none; color: var(--brand); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0 2px; }
-    .card .close { margin-top: 10px; border: none; background: none; color: var(--sub); font-size: 12.5px; cursor: pointer; }
-    .card .done { font-size: 17px; font-weight: 700; padding: 18px 0 6px; }
+
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand .mark {
+      width: 38px; height: 38px; border-radius: 12px; flex: none;
+      display: grid; place-items: center;
+      background: var(--grad); color: #fff;
+      box-shadow: var(--sh-accent);
+    }
+    .brand .nm { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; line-height: 1.2; }
+    .brand .sb { font-size: 12px; color: var(--ink-3); }
+
+    /* Hai màn của trang: danh sách từ và tiến độ học. */
+    .pagenav { display: flex; gap: 4px; background: var(--surface-2); border-radius: var(--r-pill); padding: 4px; }
+    .pagenav button {
+      flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border: none; background: none; border-radius: var(--r-pill);
+      padding: 9px 8px; font-size: 13.5px; font-weight: 650; color: var(--ink-2); cursor: pointer;
+      transition: background .16s, color .16s, box-shadow .16s;
+    }
+    .pagenav button.active { background: var(--surface); color: var(--accent); box-shadow: var(--sh-1); }
+
+    .sec { display: flex; flex-direction: column; gap: 9px; }
+    .sec > .eyebrow { margin: 0; }
+
+    .decklist { display: flex; flex-direction: column; gap: 4px; }
+    .decklist .chip { justify-content: flex-start; border-radius: var(--r-sm); border-color: transparent; background: transparent; padding: 8px 11px; }
+    .decklist .chip:hover { background: var(--surface-2); }
+    .decklist .chip.active { background: var(--accent-soft); color: var(--accent); }
+    .decklist .chip .grow { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .main { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; padding: 18px 22px 56px; }
+    .main .inner { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+    .topbar {
+      position: sticky; top: -18px; z-index: 5;
+      margin: -18px -22px 0; padding: 14px 22px;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .credit { margin-top: auto; padding-top: 12px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
+    .credit button { border: none; background: none; color: var(--ink-3); font: inherit; cursor: pointer; padding: 5px; border-radius: var(--r-xs); }
+    .credit button:hover { color: var(--accent); background: var(--surface-2); }
+    .credit .hb { color: #e4405f; }
+
+    /* Màn hẹp (cửa sổ extension bị kéo nhỏ): xếp dọc lại. */
+    @media (max-width: 760px) {
+      body { flex-direction: column; height: auto; overflow: visible; }
+      .side { width: auto; height: auto; overflow: visible; box-shadow: 0 1px 0 var(--line-soft); }
+      .main { height: auto; overflow: visible; padding: 14px; }
+      .topbar { position: static; margin: 0; padding: 0; background: none; backdrop-filter: none; }
+    }
+
+    /* Buổi học chiếm trọn màn, không phải hộp thoại con — lúc học thì chỉ nên
+       thấy đúng cái thẻ đang học. */
+    #studyOverlay { position: fixed; inset: 0; z-index: 260; background: var(--bg); display: none; }
+    #studyOverlay.show { display: flex; flex-direction: column; }
+    #studyOverlay .stwrap { flex: 1; overflow-y: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    #studyOverlay .stcol { width: min(560px, 100%); }
+    #studyOverlay .sttop { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
   </style>
 </head>
 <body>
-  <aside class="sidebar">
-    <h1>📒 Sổ tay NeutronDict</h1>
-    <p class="muted">Các từ bạn đã lưu. Tạo sổ con để phân loại theo bài, đồng bộ qua Google Drive.</p>
 
-    <details class="sync" id="syncBox">
-      <summary>☁ Đồng bộ Google Drive</summary>
-      <div class="syncbody">
-        <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
-        <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt, không phải mật khẩu Google)" autocomplete="off">
-        <div class="row2">
-          <button id="saveCfg">Lưu cấu hình</button>
-          <button id="syncNow" class="primary">⇅ Đồng bộ ngay</button>
-        </div>
-        <span id="syncStatus" class="hint"></span>
-      </div>
-    </details>
-
-    <details class="sync" id="setBox">
-      <summary>⚙ Cài đặt tra nhanh</summary>
-      <div class="syncbody">
-        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="setInline" style="width:auto;margin-top:4px">
-          <span>Bôi đen là hiện popup ngay tại con trỏ (chỉ trên trang web, không áp dụng cho PDF)</span>
-        </label>
-        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="setCtrl" style="width:auto;margin-top:4px">
-          <span>Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn copy)</span>
-        </label>
-        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
-          <input type="checkbox" id="setTrans" style="width:auto;margin-top:4px">
-          <span>Bôi đen đoạn dài thì <b>dịch cả câu</b> bằng Google Dịch</span>
-        </label>
-        <label class="hint" style="display:block">Không tra khi bôi đen dài hơn
-          <input type="number" id="setLen" min="5" max="200" style="width:80px;padding:6px 8px;margin-left:6px"> ký tự
-        </label>
-        <div class="row2">
-          <button id="saveSet">Lưu cài đặt</button>
-          <button id="clearCache">Xoá bộ nhớ đệm</button>
-        </div>
-        <span id="setStatus" class="hint"></span>
-        <span class="hint">Tắt tuỳ chọn trên thì vẫn dùng được Ctrl+Shift+E (popup góc phải) và chuột phải như cũ.</span>
-      </div>
-    </details>
-
-    <div id="deckBar" class="deckbar"></div>
-    <div id="deckActions" class="deckactions" style="display:none">
-      <button id="renameDeck">✏ Đổi tên sổ</button>
-      <button id="deleteDeck" class="danger">🗑 Xoá sổ này</button>
-    </div>
-
-    <div class="tools">
-      <input id="filter" type="text" placeholder="Lọc theo từ hoặc nghĩa…" autocomplete="off">
-      <button id="study" class="primary">🎓 Học (<span id="dueCount">0</span>)</button>
-      <button id="ipaGuide">🔤 Hướng dẫn IPA</button>
-      <button id="exAnki">Xuất Anki (TSV)</button>
-      <button id="exCsv">Xuất CSV</button>
-      <button id="backup">Sao lưu (.json)</button>
-      <button id="restore">Nạp (.json)</button>
-      <button id="clear" class="danger">Xoá hết</button>
-      <input id="restoreFile" type="file" accept=".json,application/json" hidden>
-    </div>
-  </aside>
-  <main class="content">
-    <div class="countbar"><span id="count" class="count"></span></div>
-    <div id="list" class="list"></div>
-  </main>
-
-  <div id="studyOverlay">
-    <div class="card">
-      <div class="prog" id="stProg"></div>
-      <div id="stBody">
-        <div class="cw"><span id="stWord"></span><button class="spk" id="stSpk" title="Phát âm">🔊</button></div>
-        <div style="text-align:center"><button class="srcbtn" id="stSrc" style="display:none;margin-top:2px">🔗 Mở nguồn</button></div>
-        <div class="stfav" id="stFav"></div>
-        <div class="cr" id="stRead"></div>
-        <div class="cm" id="stMean"></div>
-        <button class="reveal" id="stReveal">Hiện nghĩa</button>
-        <div class="grade" id="stGrade" style="display:none">
-          <button class="gforgot" id="gForgot">✗ Quên</button>
-          <button class="gknow" id="gKnow">✓ Nhớ</button>
-        </div>
-        <div class="delrow">
-          <button class="delbtn" id="stDel" title="Xoá hẳn từ này khỏi sổ tay (phím 0)">🗑 Đã thuộc hẳn — xoá</button>
-          <span class="undo" id="stUndo" style="display:none">Đã xoá <b id="stUndoWord"></b> · <button id="stUndoBtn">↩ Hoàn tác</button></span>
-        </div>
-      </div>
-      <div id="stDone" style="display:none">
-        <div class="done">🎉 Xong! Hôm nay không còn từ đến hạn.</div>
-        <div class="prog" id="stSummary"></div>
-      </div>
-      <button class="close" id="stClose">Đóng (Esc)</button>
+<aside class="side">
+  <div class="brand">
+    <span class="mark" id="brandMark"></span>
+    <div>
+      <div class="nm">Sổ tay NeutronDict</div>
+      <div class="sb">Anh – Việt · sóng học tập</div>
     </div>
   </div>
-  <script src="notebook.js"></script>
+
+  <div class="pagenav">
+    <button id="pageList" class="active" type="button">Sổ tay</button>
+    <button id="pageProgress" type="button">Tiến độ</button>
+  </div>
+
+  <button id="study" class="btn primary block lg" type="button">
+    Học ngay <span id="dueCount" class="tag" style="background:rgba(255,255,255,.22);color:#fff">0</span>
+  </button>
+
+  <div class="searchfield">
+    <input id="filter" type="text" placeholder="Lọc theo từ, nghĩa hoặc ghi chú…" autocomplete="off">
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow" id="ebDecks">Sổ con</div>
+    <div id="deckBar" class="decklist"></div>
+    <div id="deckActions" class="rowx" style="display:none;gap:6px">
+      <button id="renameDeck" class="btn sm grow" type="button">Đổi tên</button>
+      <button id="deleteDeck" class="btn sm danger grow" type="button">Xoá sổ</button>
+    </div>
+  </div>
+
+  <details class="box" id="toolBox">
+    <summary><span id="icTool"></span> Xuất &amp; sao lưu <span class="caret" id="cr1"></span></summary>
+    <div class="boxbody">
+      <div class="rowx" style="gap:8px">
+        <button id="exAnki" class="btn sm grow" type="button">Anki (TSV)</button>
+        <button id="exCsv" class="btn sm grow" type="button">CSV</button>
+      </div>
+      <div class="rowx" style="gap:8px">
+        <button id="backup" class="btn sm grow" type="button">Sao lưu .json</button>
+        <button id="restore" class="btn sm grow" type="button">Nạp .json</button>
+      </div>
+      <button id="clear" class="btn sm danger block" type="button">Xoá hết mục đang hiện</button>
+      <button id="ipaGuide" class="btn sm block" type="button">Hướng dẫn đọc IPA</button>
+      <input id="restoreFile" type="file" accept=".json,application/json" hidden>
+    </div>
+  </details>
+
+  <details class="box" id="syncBox">
+    <summary><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr2"></span></summary>
+    <div class="boxbody">
+      <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
+      <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt)" autocomplete="off">
+      <div class="rowx" style="gap:8px">
+        <button id="saveCfg" class="btn sm grow" type="button">Lưu cấu hình</button>
+        <button id="syncNow" class="btn sm primary grow" type="button">Đồng bộ ngay</button>
+      </div>
+      <span id="syncStatus" class="t-tiny faint"></span>
+    </div>
+  </details>
+
+  <details class="box" id="setBox">
+    <summary><span id="icSet"></span> Cài đặt tra nhanh <span class="caret" id="cr3"></span></summary>
+    <div class="boxbody">
+      <label class="check">
+        <input type="checkbox" id="setInline">
+        <span>Bôi đen là hiện popup ngay tại con trỏ (chỉ trên trang web, không áp dụng cho PDF)</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="setCtrl">
+        <span>Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="setTrans">
+        <span>Bôi đen đoạn dài thì <b>dịch cả câu</b> bằng Google Dịch</span>
+      </label>
+      <label class="field-label" style="margin-top:4px">Không tra khi bôi đen dài hơn</label>
+      <div class="rowx" style="gap:8px">
+        <input type="number" id="setLen" min="5" max="200" style="max-width:110px">
+        <span class="t-small muted">ký tự</span>
+      </div>
+      <div class="rowx" style="gap:8px">
+        <button id="saveSet" class="btn sm grow" type="button">Lưu cài đặt</button>
+        <button id="clearCache" class="btn sm grow" type="button">Xoá bộ nhớ đệm</button>
+      </div>
+      <span id="setStatus" class="t-tiny faint"></span>
+      <span class="t-tiny faint">Tắt tuỳ chọn trên thì vẫn dùng được Ctrl+Shift+Z và chuột phải như cũ.</span>
+    </div>
+  </details>
+
+  <div class="credit">
+    Ra đời bởi <button id="creditBtn" type="button">Nyren Phạm <span class="hb">♥</span></button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="inner">
+    <section id="viewList" class="view show">
+      <div class="topbar">
+        <span id="count" class="t-small muted grow"></span>
+        <span id="dueChip" class="tag due" style="display:none"></span>
+      </div>
+      <div class="card pad-0">
+        <div id="list" class="list"></div>
+      </div>
+    </section>
+
+    <section id="viewProgress" class="view">
+      <div class="topbar">
+        <span class="t-title grow">Tiến độ học tập</span>
+      </div>
+      <div id="progressBody" class="stack"></div>
+    </section>
+  </div>
+</main>
+
+<!-- ====================== Buổi học ====================== -->
+<div id="studyOverlay">
+  <div class="sttop">
+    <button id="stClose" class="btn sm ghost" type="button">Đóng</button>
+    <span id="stProg" class="t-small muted grow" style="text-align:center"></span>
+    <button id="stDel" class="btn sm ghost danger" type="button">Đã thuộc hẳn — xoá</button>
+  </div>
+  <div class="stwrap">
+    <div class="stcol">
+      <div id="stBody">
+        <div class="studycard" id="stCard">
+          <div class="rowx" style="justify-content:center;gap:6px">
+            <span class="cw" id="stWord"></span>
+            <button class="iconbtn" id="stSpk" type="button" title="Phát âm"></button>
+          </div>
+          <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px">
+            <button class="btn xs" id="stSrc" type="button" style="display:none">Mở nguồn</button>
+            <button class="btn xs" id="stEdit" type="button">Sửa bản dịch</button>
+            <button class="btn xs" id="stNote" type="button">Ghi chú</button>
+          </div>
+          <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
+          <div class="cr" id="stRead"></div>
+          <div class="cm" id="stMean"></div>
+          <div id="stMyNote"></div>
+          <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px">Hiện nghĩa</button>
+          <div class="grade" id="stGrade" style="display:none">
+            <button class="btn no" id="gForgot" type="button">Quên</button>
+            <button class="btn yes" id="gKnow" type="button">Nhớ</button>
+          </div>
+        </div>
+        <div class="rowx" style="justify-content:center;margin-top:12px;min-height:28px">
+          <span class="t-small muted" id="stUndo" style="display:none">
+            Đã xoá <b id="stUndoWord"></b>
+            <button id="stUndoBtn" class="btn xs ghost" type="button">Hoàn tác</button>
+          </span>
+        </div>
+      </div>
+      <div id="stDone" class="card" style="display:none;text-align:center;padding:34px 20px">
+        <div id="stDoneIcon" style="color:var(--spark)"></div>
+        <div class="t-title" style="margin-top:10px">Xong buổi học!</div>
+        <div class="t-small muted" id="stSummary" style="margin-top:6px"></div>
+        <button class="btn primary lg" id="stDoneClose" type="button" style="margin-top:18px">Về sổ tay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== Sửa bản dịch / ghi chú ====================== -->
+<div id="editSheet" class="sheet">
+  <div class="panel">
+    <h3><span id="edIcon"></span><span id="edTitle">Sửa bản dịch</span></h3>
+    <div class="sub" id="edSub">Chỉnh lại cho đúng cách nói của chuyên ngành bạn.</div>
+
+    <div id="edOrigWrap">
+      <label class="field-label">Nội dung gốc</label>
+      <div class="original" id="edOrig"></div>
+    </div>
+
+    <div id="edTransWrap">
+      <label class="field-label" for="edTrans">Bản dịch / nghĩa <span class="faint">— mỗi dòng một nghĩa</span></label>
+      <textarea id="edTrans" placeholder="Nhập nghĩa cho sát chuyên ngành…"></textarea>
+      <div class="t-tiny faint" style="margin-top:6px" id="edOrigHint"></div>
+    </div>
+
+    <div id="edNoteWrap" style="margin-top:14px">
+      <label class="field-label" for="edNote">Ghi chú riêng <span class="faint">— ngữ cảnh, thuật ngữ, cách dùng…</span></label>
+      <textarea id="edNote" placeholder="Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn grow" id="edCancel" type="button">Huỷ</button>
+      <button class="btn primary grow" id="edSave" type="button">Lưu</button>
+    </div>
+    <button class="btn ghost block sm" id="edRestore" type="button" style="margin-top:8px;display:none">
+      Khôi phục bản dịch gốc
+    </button>
+  </div>
+</div>
+
+<!-- ====================== Về tác giả ====================== -->
+<div id="aboutSheet" class="sheet">
+  <div class="panel" style="max-width:430px">
+    <h3><span id="abFlag"></span> NeutronDict · Về tác giả</h3>
+    <div class="sub">Một món quà nhỏ gửi tặng cộng đồng học tập</div>
+    <p class="t-body">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
+      <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
+      <b>nghiên cứu công nghệ</b>.</p>
+    <p class="t-small muted">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
+      một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
+      &amp; tiếng Anh. Nếu nó giúp ích cho việc học của bạn, thì mình đã hạnh phúc rồi.</p>
+    <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px">“Cho đi là còn mãi.”</p>
+    <div class="actions">
+      <button class="btn primary block" id="abClose" type="button">Cảm ơn ♥</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="ipa-guide.js"></script>
+<script src="icons.js"></script>
+<script src="tien-do.js"></script>
+<script src="notebook.js"></script>
 </body>
 </html>

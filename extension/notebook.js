@@ -1,26 +1,58 @@
-const listEl = document.getElementById("list");
-const filterEl = document.getElementById("filter");
-const countEl = document.getElementById("count");
-const deckBarEl = document.getElementById("deckBar");
-const deckActionsEl = document.getElementById("deckActions");
-const syncUrlEl = document.getElementById("syncUrl");
-const syncTokenEl = document.getElementById("syncToken");
-const syncStatusEl = document.getElementById("syncStatus");
-const restoreFileEl = document.getElementById("restoreFile");
+/**
+ * Trang Sổ tay NeutronDict.
+ *
+ * Hai màn dùng chung một cột điều khiển bên trái:
+ *   · Sổ tay  — danh sách mục đã lưu, sửa bản dịch, ghi chú, phân sổ con
+ *   · Tiến độ — mục tiêu ngày, chuỗi ngày, lịch nhiệt, huy hiệu (xem tien-do.js)
+ *
+ * Giao diện dựng bằng hệ thiết kế trong ui.css và bộ icon Phosphor trong
+ * icons.js. Không còn emoji ở bất cứ đâu: emoji do phông chữ của máy vẽ nên mỗi
+ * hệ điều hành ra một kiểu, không chỉnh được nét cũng không chỉnh được màu.
+ */
+"use strict";
 
-const ALL = "__all__", NONE = "__none__";
-const LIKE = "__like__", DISLIKE = "__dislike__";   // 2 nhãn cố định: Thích / Không thích
-let items = [];   // từ (gồm cả tombstone)
-let decks = {};   // { id: {id,name,ts,del?} }
-let current = ALL;
+/* ==================================================================== */
+/* Tiện ích chung                                                       */
+/* ==================================================================== */
 
-// ---- Lưu trữ ----
-async function getStore() {
-  const s = await chrome.storage.local.get(["notebook", "decks"]);
-  return { nb: s.notebook || {}, decks: s.decks || {} };
+const $ = (id) => document.getElementById(id);
+
+/** Tạo phần tử: el("div", "card", "chữ"). */
+function el(tag, cls, chu) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (chu != null) e.textContent = chu;
+  return e;
 }
-async function setNotebook(nb) { await chrome.storage.local.set({ notebook: nb }); }
-async function setDecks(d) { await chrome.storage.local.set({ decks: d }); }
+
+/** Icon dạng phần tử DOM. */
+function ic(ten, opt) {
+  const s = document.createElement("span");
+  s.className = "icwrap";
+  s.innerHTML = window.Icon(ten, opt);
+  return s.firstChild || s;
+}
+
+/** Nút chỉ có icon. */
+function nutIcon(iconTen, title, cls, size) {
+  const b = el("button", "iconbtn" + (cls ? " " + cls : ""));
+  b.type = "button";
+  b.title = title || "";
+  b.appendChild(ic(iconTen, { size: size || 18 }));
+  return b;
+}
+
+let toastTimer = null;
+function toast(chu, kieu) {
+  const t = $("toast");
+  t.className = "toast" + (kieu ? " " + kieu : "");
+  t.textContent = "";
+  t.appendChild(ic(kieu === "bad" ? "warning-circle" : "check-circle", { size: 18, weight: "solid" }));
+  t.appendChild(el("span", null, chu));
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
 
 function fmtDate(ts) {
   try {
@@ -29,24 +61,154 @@ function fmtDate(ts) {
   } catch (e) { return ""; }
 }
 function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
+
+/* ==================================================================== */
+/* Lưu trữ                                                              */
+/* ==================================================================== */
+
+const ALL = "__all__", NONE = "__none__";
+const LIKE = "__like__", DISLIKE = "__dislike__";
+
+let items = [];   // mục trong sổ (gồm cả bia mộ đã xoá)
+let decks = {};
+let current = ALL;
+
+async function getStore() {
+  const s = await chrome.storage.local.get(["notebook", "decks"]);
+  return { nb: s.notebook || {}, decks: s.decks || {} };
+}
+async function setNotebook(nb) { await chrome.storage.local.set({ notebook: nb }); }
+async function setDecks(d) { await chrome.storage.local.set({ decks: d }); }
+
 function active(list) { return list.filter((it) => !it.del); }
 function activeDecks() {
   return Object.values(decks).filter((d) => !d.del).sort((a, b) => (a.ts || 0) - (b.ts || 0));
 }
 function deckName(id) { const d = decks[id]; return d && !d.del ? d.name : null; }
 
-// ---- Tải dữ liệu ----
+// Nghĩa có thể bị lưu nhầm thành object (lỗi cũ) -> lấy lại phần chữ.
+function meanToStr(m) {
+  if (typeof m === "string") return m;
+  if (m && typeof m === "object") return m.text || m.mean || m.means || m.v || "";
+  return m == null ? "" : String(m);
+}
+
+/* ==================================================================== */
+/* Sóng học tập (lặp lại ngắt quãng)                                    */
+/* ==================================================================== */
+
+const SRS_STEPS = [1, 3, 7, 14, 30, 60, 120];
+const DAY = 24 * 60 * 60 * 1000;
+/** Cấp này trở lên (chu kỳ ≥ 14 ngày) coi như đã vào trí nhớ dài hạn. */
+const CAP_NHO_LAU = 3;
+
+// Đến hạn vào ĐẦU NGÀY mục tiêu (00:00), không phải đúng N×24 giờ sau — để hôm
+// sau mở app lúc nào cũng thấy mục, không bị "sáng ít, tối mới đủ".
+function dueInDays(days) {
+  const d = new Date(Date.now() + days * DAY);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+function isDue(it, now) {
+  if (it.del) return false;
+  const srs = it.srs;
+  if (!srs || !srs.due) return true;        // mục mới: đến hạn ngay
+  return srs.due <= now;
+}
+function dueList(scopeList) {
+  const now = Date.now();
+  return scopeList.filter((it) => isDue(it, now));
+}
+async function gradeWord(key, remembered) {
+  const s = await getStore();
+  const e = s.nb[key];
+  if (!e) return;
+  const now = Date.now();
+  const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
+  let lv, due;
+  if (remembered) {
+    lv = Math.min(cur + 1, SRS_STEPS.length - 1);
+    due = dueInDays(SRS_STEPS[lv]);
+  } else {
+    lv = -1;                 // rơi về đầu
+    due = now;               // học lại ngay trong buổi
+  }
+  s.nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
+  await setNotebook(s.nb);
+}
+
+/* ==================================================================== */
+/* Theo dõi tiến độ & huy hiệu                                          */
+/* ==================================================================== */
+
+/**
+ * Số liệu lấy từ sổ tay để xét huy hiệu.
+ * Tính từ mảng `items` đang có trong bộ nhớ nên không tốn thêm lượt đọc đĩa.
+ */
+function soLieuSoTay() {
+  const a = active(items);
+  const now = Date.now();
+  let nhoLau = 0, daSua = 0, coGhiChu = 0, thich = 0, denHan = 0, trongChuKy = 0;
+  for (const it of a) {
+    if (it.srs && typeof it.srs.lv === "number" && it.srs.lv >= CAP_NHO_LAU) nhoLau += 1;
+    if (it.mEdit) daSua += 1;
+    if (it.note && it.note.trim()) coGhiChu += 1;
+    if (it.fav === 1) thich += 1;
+    if (isDue(it, now)) denHan += 1;
+    if (it.srs && it.srs.due) trongChuKy += 1;
+  }
+  const dungSo = new Set(a.map((it) => it.deck).filter((d) => d && deckName(d)));
+  return { tong: a.length, nhoLau, daSua, coGhiChu, thich, denHan, trongChuKy, soCon: dungSo.size };
+}
+
+const theoDoi = window.TienDo.tao({
+  doc: async () => (await chrome.storage.local.get("hoc")).hoc,
+  ghi: async (d) => { await chrome.storage.local.set({ hoc: d }); },
+  soLieu: async () => soLieuSoTay(),
+  sauKhiGhi: () => syncSoon()
+});
+
+/** Hiện chúc mừng nếu vừa mở khoá huy hiệu, rồi vẽ lại màn tiến độ. */
+function mung(ids) {
+  if (!ids || !ids.length) return;
+  window.TienDo.anMung(ids, () => {
+    if ($("viewProgress").classList.contains("show")) veTienDo();
+  });
+}
+
+async function veTienDo() {
+  await window.TienDo.veBang($("progressBody"), theoDoi);
+}
+
+/* ==================================================================== */
+/* Tải dữ liệu                                                          */
+/* ==================================================================== */
+
 async function load() {
   const s = await getStore();
   decks = s.decks;
+  // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
+  let fixed = false;
+  for (const k in s.nb) {
+    const e = s.nb[k];
+    if (e && Array.isArray(e.means)) {
+      const nm = e.means.map(meanToStr);
+      if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; fixed = true; }
+    }
+  }
+  if (fixed) { await setNotebook(s.nb); syncSoon(); }
   items = Object.entries(s.nb).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  // Sổ đang chọn đã bị xoá -> quay về Tất cả.
   if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && !deckName(current)) current = ALL;
   drawDecks();
   draw();
 }
 
-// ---- Thanh sổ con ----
+/* ==================================================================== */
+/* Cột trái: sổ con                                                     */
+/* ==================================================================== */
+
 function countIn(id) {
   const a = active(items);
   if (id === ALL) return a.length;
@@ -55,61 +217,65 @@ function countIn(id) {
   if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
   return a.filter((it) => it.deck === id).length;
 }
+
 function drawDecks() {
-  deckBarEl.innerHTML = "";
-  const mk = (id, label) => {
-    const b = document.createElement("button");
-    b.className = "chip" + (current === id ? " active" : "");
-    b.textContent = label + " (" + countIn(id) + ")";
-    b.addEventListener("click", () => { current = id; drawDecks(); draw(); updateDeckActions(); });
-    deckBarEl.appendChild(b);
+  const bar = $("deckBar");
+  bar.innerHTML = "";
+  const mk = (id, label, iconTen) => {
+    const b = el("button", "chip" + (current === id ? " active" : ""));
+    b.type = "button";
+    b.appendChild(ic(iconTen, { size: 16, weight: current === id ? "solid" : "line" }));
+    b.appendChild(el("span", "grow", label));
+    b.appendChild(el("span", "n", String(countIn(id))));
+    b.addEventListener("click", () => { current = id; drawDecks(); draw(); });
+    bar.appendChild(b);
   };
-  mk(ALL, "Tất cả");
-  mk(NONE, "Chưa phân loại");
-  mk(LIKE, "❤️ Thích");
-  mk(DISLIKE, "👎 Không thích");
-  activeDecks().forEach((d) => mk(d.id, d.name));
+  mk(ALL, "Tất cả", "list-bullets");
+  mk(NONE, "Chưa phân loại", "funnel");
+  mk(LIKE, "Thích", "heart");
+  mk(DISLIKE, "Không thích", "thumbs-down");
+  activeDecks().forEach((d) => mk(d.id, d.name, "folder-simple"));
 
-  const add = document.createElement("button");
-  add.className = "chip add";
-  add.textContent = "＋ Sổ mới";
+  const add = el("button", "chip add");
+  add.type = "button";
+  add.appendChild(ic("folder-plus", { size: 16 }));
+  add.appendChild(el("span", "grow", "Sổ mới"));
   add.addEventListener("click", createDeck);
-  deckBarEl.appendChild(add);
-  updateDeckActions();
-}
-function updateDeckActions() {
-  // 2 nhãn cố định (Thích/Không thích) không cho đổi tên hay xoá.
+  bar.appendChild(add);
+
+  // Hai nhãn cố định (Thích / Không thích) không cho đổi tên hay xoá.
   const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE;
-  deckActionsEl.style.display = real ? "" : "none";
+  $("deckActions").style.display = real ? "" : "none";
 }
 
-// ---- Tạo / đổi tên / xoá sổ ----
 async function createDeck() {
-  const name = (prompt("Tên sổ con mới (ví dụ: Unit 5 - Verbs):") || "").trim();
+  const name = (prompt("Tên sổ con mới (ví dụ: Bài 5 - Kanji):") || "").trim();
   if (!name) return;
   const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const d = await (await getStore()).decks;
+  const d = (await getStore()).decks;
   d[id] = { id, name, ts: Date.now() };
   await setDecks(d);
   current = id;
   await load();
   syncSoon();
 }
+
 async function renameDeck() {
   if (current === ALL || current === NONE) return;
   const cur = deckName(current) || "";
   const name = (prompt("Đổi tên sổ:", cur) || "").trim();
   if (!name || name === cur) return;
   const d = (await getStore()).decks;
-  if (d[current]) { d[current] = Object.assign({}, d[current], { name, ts: Date.now() }); }
+  if (d[current]) d[current] = Object.assign({}, d[current], { name, ts: Date.now() });
   await setDecks(d);
   await load();
   syncSoon();
 }
+
 async function deleteDeck() {
   if (current === ALL || current === NONE) return;
   const nm = deckName(current);
-  if (!confirm('Xoá sổ "' + nm + '"? Các từ trong sổ sẽ chuyển về "Chưa phân loại", không bị mất.')) return;
+  if (!confirm('Xoá sổ "' + nm + '"? Các mục trong sổ sẽ chuyển về "Chưa phân loại", không bị mất.')) return;
   const s = await getStore();
   const now = Date.now();
   for (const key in s.nb) {
@@ -119,7 +285,7 @@ async function deleteDeck() {
       s.nb[key] = e;
     }
   }
-  s.decks[current] = { id: current, name: nm, del: true, ts: now };
+  s.decks[current] = { id: current, name: nm, del: true, ts: now };   // bia mộ
   await setNotebook(s.nb);
   await setDecks(s.decks);
   current = ALL;
@@ -127,7 +293,6 @@ async function deleteDeck() {
   syncSoon();
 }
 
-// ---- Chuyển từ vào sổ ----
 async function moveWord(key, deckId) {
   const s = await getStore();
   const e = s.nb[key];
@@ -141,7 +306,15 @@ async function moveWord(key, deckId) {
   syncSoon();
 }
 
-// ---- Phát âm tiếng Anh (ưu tiên file audio thật, không có thì giọng máy) ----
+/* ==================================================================== */
+/* Phát âm tiếng Anh                                                    */
+/* ==================================================================== */
+
+/**
+ * Ưu tiên file audio thật do từ điển trả về; không có (hoặc link hỏng) thì
+ * mới đọc bằng giọng máy. Giọng máy đọc tiếng Anh nghe được, nhưng trọng âm
+ * thì thường sai — mà trọng âm mới là thứ người Việt hay nhớ nhầm.
+ */
 const _audioCache = new Map();
 function getAudio(url) {
   let a = _audioCache.get(url);
@@ -162,219 +335,161 @@ function speak(text, audio) {
   if (audio) {
     try {
       const a = getAudio(audio);
-      a.onerror = () => ttsSpeak(text);      // link mp3 hỏng (vd 'embark') -> đọc bằng giọng máy
+      a.onerror = () => ttsSpeak(text);      // link mp3 hỏng -> đọc bằng giọng máy
       a.currentTime = 0;
       const p = a.play();
       if (p && p.catch) p.catch(() => ttsSpeak(text));
       return;
-    } catch (e) { /* rơi xuống TTS */ }
+    } catch (e) { /* rơi xuống giọng máy */ }
   }
   ttsSpeak(text);
 }
+// Gọi sớm một lần để trình duyệt nạp danh sách giọng, tránh lần đọc đầu bị câm.
 try { speechSynthesis.getVoices(); } catch (e) {}
 
-// ---- Sóng học tập (lặp lại ngắt quãng) ----
-const SRS_STEPS = [1, 3, 7, 14, 30, 60, 120];
-const DAY = 24 * 60 * 60 * 1000;
-// Đến hạn vào ĐẦU NGÀY mục tiêu (00:00), không phải đúng N×24 giờ sau —
-// để hôm sau mở app lúc nào cũng thấy từ, không bị "sáng ít, tối mới đủ".
-function dueInDays(days) {
-  const d = new Date(Date.now() + days * DAY);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
+/* ==================================================================== */
+/* Sửa bản dịch / ghi chú                                               */
+/* ==================================================================== */
+
+/**
+ * Vì sao cần sửa bản dịch
+ * -----------------------
+ * Nghĩa trong sổ đến từ máy dịch, mà máy dịch không biết bạn đang đọc tài liệu
+ * ngành nào. 開閉器 ra "công tắc" thì không sai với người thường, nhưng người
+ * làm điện phải gọi là "thiết bị đóng cắt". Bản dịch sai chuyên ngành mà cứ ôn
+ * đi ôn lại thì càng ôn càng nhớ sai.
+ *
+ * Nên mỗi mục có hai chỗ chỉnh được:
+ *   means  — bản dịch, sửa thẳng, mỗi dòng một nghĩa
+ *   note   — ghi chú riêng: ngữ cảnh, thuật ngữ tương đương, cách dùng
+ *
+ * Bản gốc của máy được cất vào `mOrig` chứ không xoá, để lúc nào muốn so lại
+ * hoặc thấy mình sửa hỏng thì còn đường quay về.
+ */
+let dangSua = null;   // { key, tab: "trans" | "note" }
+
+function moSua(it, tab) {
+  dangSua = { key: it.key, tab: tab || "trans" };
+
+  const laGhiChu = tab === "note";
+  $("edTitle").textContent = laGhiChu ? "Ghi chú cho mục này" : "Sửa bản dịch";
+  $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
+  $("edSub").textContent = laGhiChu
+    ? "Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói."
+    : "Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.";
+
+  $("edOrig").textContent = it.word || "";
+  $("edTrans").value = (it.means || []).join("\n");
+  $("edNote").value = it.note || "";
+
+  // Nhắc bản gốc của máy, và cho đường quay về nếu đã từng sửa.
+  const goc = it.mOrig && it.mOrig.length ? it.mOrig.join("; ") : "";
+  $("edOrigHint").textContent = goc ? "Bản máy dịch ban đầu: " + goc : "";
+  $("edRestore").style.display = goc ? "" : "none";
+
+  $("editSheet").classList.add("show");
+  setTimeout(() => $(laGhiChu ? "edNote" : "edTrans").focus(), 40);
 }
 
-function isDue(it, now) {
-  if (it.del) return false;
-  const srs = it.srs;
-  if (!srs || !srs.due) return true;
-  return srs.due <= now;
+function dongSua() {
+  $("editSheet").classList.remove("show");
+  dangSua = null;
 }
-function dueList(scopeList) {
-  const now = Date.now();
-  return scopeList.filter((it) => isDue(it, now));
-}
-async function gradeWord(key, remembered) {
+
+async function luuSua() {
+  if (!dangSua) return;
+  const key = dangSua.key;
   const s = await getStore();
   const e = s.nb[key];
-  if (!e) return;
-  const now = Date.now();
-  const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
-  let lv, due;
-  if (remembered) {
-    lv = Math.min(cur + 1, SRS_STEPS.length - 1);
-    due = dueInDays(SRS_STEPS[lv]);
-  } else {
-    lv = -1;
-    due = now;
+  if (!e || e.del) { dongSua(); return; }
+
+  const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
+  const ghiChu = $("edNote").value.trim();
+  const cu = (e.means || []).map(meanToStr);
+  const doiNghia = dong.join("\n") !== cu.join("\n");
+
+  const ne = Object.assign({}, e, { ts: Date.now() });
+  if (doiNghia) {
+    // Cất bản gốc lại đúng MỘT lần: lần sửa thứ hai không được đè bản gốc bằng
+    // chính bản sửa lần trước, nếu không thì nút khôi phục thành vô nghĩa.
+    if (!ne.mOrig) ne.mOrig = cu;
+    ne.means = dong;
+    ne.mEdit = 1;
   }
-  s.nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
+  if (ghiChu) ne.note = ghiChu; else delete ne.note;
+
+  s.nb[key] = ne;
   await setNotebook(s.nb);
+  dongSua();
+  await load();
+  syncSoon();
+  mung(await theoDoi.xetHuyHieu());
+  toast(doiNghia ? "Đã lưu bản dịch của bạn" : "Đã lưu ghi chú");
 }
 
-// ---- Buổi học ----
-let session = { queue: [], done: 0, again: 0 };
-const ovl = document.getElementById("studyOverlay");
-const stWord = document.getElementById("stWord");
-const stRead = document.getElementById("stRead");
-const stMean = document.getElementById("stMean");
-const stProg = document.getElementById("stProg");
-const stGrade = document.getElementById("stGrade");
-const stReveal = document.getElementById("stReveal");
-const stSrc = document.getElementById("stSrc");
-const stFav = document.getElementById("stFav");
-const stBody = document.getElementById("stBody");
-const stDone = document.getElementById("stDone");
-const stSummary = document.getElementById("stSummary");
-
-// Nút Thích/Không thích ngay trên thẻ học — bật/tắt ngay, không rời buổi học.
-function renderStudyFav(it) {
-  if (!stFav) return;
-  stFav.innerHTML = "";
-  const mk = (val, onTxt, offTxt) => {
-    const on = it.fav === val;
-    const b = document.createElement("button");
-    b.className = "favbtn " + (val === 1 ? "like" : "dislike") + (on ? " on" : "");
-    b.textContent = on ? onTxt : offTxt;
-    b.title = val === 1 ? (on ? "Bỏ khỏi Thích" : "Thích") : (on ? "Bỏ khỏi Không thích" : "Không thích");
-    b.addEventListener("click", () => setFavStudy(it, val));
-    return b;
-  };
-  stFav.appendChild(mk(1, "❤️", "🤍"));
-  stFav.appendChild(mk(-1, "👎", "👎"));
-}
-async function setFavStudy(it, val) {
+async function khoiPhucGoc() {
+  if (!dangSua) return;
   const s = await getStore();
-  const e = s.nb[it.key];
-  if (!e || e.del) return;
+  const e = s.nb[dangSua.key];
+  if (!e || !e.mOrig) return;
+  $("edTrans").value = e.mOrig.join("\n");
+}
+
+$("edSave").addEventListener("click", luuSua);
+$("edCancel").addEventListener("click", dongSua);
+$("edRestore").addEventListener("click", khoiPhucGoc);
+$("editSheet").addEventListener("click", (e) => { if (e.target.id === "editSheet") dongSua(); });
+
+/* ==================================================================== */
+/* Nhãn Thích / Không thích                                             */
+/* ==================================================================== */
+
+async function setFav(key, val, sauDo) {
+  const s = await getStore();
+  const e = s.nb[key];
+  if (!e || e.del) return 0;
   const next = (e.fav === val) ? 0 : val;
   const ne = Object.assign({}, e, { ts: Date.now() });
   if (next) ne.fav = next; else delete ne.fav;
-  s.nb[it.key] = ne;
+  s.nb[key] = ne;
   await setNotebook(s.nb);
-  it.fav = next;
-  renderStudyFav(it);
   syncSoon();
+  if (sauDo) sauDo(next);
+  return next;
 }
 
-function startStudy() {
-  const due = dueList(currentActiveSet());
-  if (!due.length) { alert("Không có từ nào đến hạn trong mục này. Quay lại sau nhé!"); return; }
-  session = { queue: due.slice().sort(() => Math.random() - 0.5), done: 0, again: 0, deleted: 0 };
-  lastDeleted = null;
-  document.getElementById("stUndo").style.display = "none";
-  ovl.classList.add("show");
-  showCard();
-}
-function showCard() {
-  const it = session.queue[0];
-  if (!it) { finishStudy(); return; }
-  const dr = document.querySelector(".delrow");
-  if (dr) dr.style.display = "";
-  stBody.style.display = ""; stDone.style.display = "none";
-  stProg.textContent = "Còn " + session.queue.length + " từ • đã xong " + session.done;
-  stWord.textContent = it.word;
-  renderStudyFav(it);
-  if (stSrc) {
-    if (it.src && it.src.url) { stSrc.style.display = ""; stSrc.onclick = () => openSource(it); }
-    else { stSrc.style.display = "none"; stSrc.onclick = null; }
-  }
-  stRead.textContent = "";
-  stMean.innerHTML = "";
-  stReveal.style.display = "";
-  stGrade.style.display = "none";
-}
-function revealCard() {
-  const it = session.queue[0];
-  if (!it) return;
-  stRead.textContent = it.reading || "";
-  if (it.means && it.means.length) {
-    const ul = document.createElement("ul");
-    it.means.slice(0, 5).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
-    stMean.innerHTML = ""; stMean.appendChild(ul);
-  }
-  stReveal.style.display = "none";
-  stGrade.style.display = "";
-}
-async function grade(remembered) {
-  const it = session.queue.shift();
-  if (!it) return;
-  await gradeWord(it.key, remembered);
-  if (remembered) session.done++;
-  else { session.again++; session.queue.push(Object.assign({}, it)); }
-  syncSoon();
-  showCard();
-}
-async function finishStudy() {
-  stBody.style.display = "none"; stDone.style.display = "";
-  stProg.textContent = "";
-  stSummary.textContent = "Đã thuộc " + session.done + " từ"
-    + (session.again ? " • phải học lại " + session.again + " lượt" : "")
-    + (session.deleted ? " • đã xoá " + session.deleted + " từ" : "");
-  const dr2 = document.querySelector(".delrow");
-  if (dr2) dr2.style.display = "none";
-  await load();
-  syncSoon();
-}
-function closeStudy() { ovl.classList.remove("show"); load(); }
-
-// ---- Xoá nhanh ngay trong buổi học ----
-let lastDeleted = null;
-
-async function deleteCurrentCard() {
-  const it = session.queue[0];
-  if (!it) return;
-  const store = await getStore();
-  const original = store.nb[it.key];
-  lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-
-  store.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
-  await setNotebook(store.nb);
-
-  session.queue = session.queue.filter((x) => x.key !== it.key);
-  session.deleted = (session.deleted || 0) + 1;
-
-  const u = document.getElementById("stUndo");
-  document.getElementById("stUndoWord").textContent = it.word;
-  u.style.display = "";
-  syncSoon();
-  showCard();
+function favButtons(it, sauDo) {
+  const wrap = el("span", "rowx");
+  wrap.style.gap = "0";
+  const mk = (val, iconTen, cls, ten) => {
+    const on = it.fav === val;
+    const b = el("button", "iconbtn " + cls + (on ? " on" : ""));
+    b.type = "button";
+    b.title = on ? "Bỏ khỏi " + ten : ten;
+    // Đang bật thì dùng icon đặc, tắt thì icon nét — nhìn là biết ngay trạng
+    // thái mà không cần đọc màu, hợp cả với người khó phân biệt màu.
+    b.innerHTML = window.Icon(iconTen, { size: 17, weight: on ? "solid" : "line" });
+    b.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      it.fav = await setFav(it.key, val);
+      if (sauDo) sauDo(); else await load();
+    });
+    return b;
+  };
+  wrap.appendChild(mk(1, "heart", "like", "Thích"));
+  wrap.appendChild(mk(-1, "thumbs-down", "dislike", "Không thích"));
+  return wrap;
 }
 
-async function undoDelete() {
-  if (!lastDeleted) return;
-  const store = await getStore();
-  store.nb[lastDeleted.key] = Object.assign({}, lastDeleted.entry, { ts: Date.now() });
-  await setNotebook(store.nb);
-  lastDeleted = null;
-  document.getElementById("stUndo").style.display = "none";
-  await load();
-  syncSoon();
-}
+/* ==================================================================== */
+/* Mở lại trang nguồn, tô sáng đúng đoạn đã lưu                          */
+/* ==================================================================== */
 
-document.getElementById("stDel").addEventListener("click", deleteCurrentCard);
-document.getElementById("stUndoBtn").addEventListener("click", undoDelete);
-
-document.getElementById("study").addEventListener("click", startStudy);
-stReveal.addEventListener("click", revealCard);
-document.getElementById("gKnow").addEventListener("click", () => grade(true));
-document.getElementById("gForgot").addEventListener("click", () => grade(false));
-document.getElementById("stSpk").addEventListener("click", () => { const it = session.queue[0]; if (it) speak(it.word, it.audio); });
-document.getElementById("stClose").addEventListener("click", closeStudy);
-document.addEventListener("keydown", (e) => {
-  if (!ovl.classList.contains("show")) return;
-  if (e.key === "Escape") closeStudy();
-  else if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (stReveal.style.display !== "none") revealCard(); }
-  else if (e.key === "1" && stGrade.style.display !== "none") grade(false);
-  else if (e.key === "2" && stGrade.style.display !== "none") grade(true);
-  else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
-});
-
-// ---- Mở lại trang nguồn và tô sáng ĐÚNG đoạn đã lưu (kiểu Neuron Note: 2 lớp bổ trợ) ----
-//  1) Text Fragment (#:~:text=): trình duyệt tự cuộn + tô sáng. Chạy được cả trên trang
-//     web thường LẪN trình xem PDF tích hợp của Chrome (nên PDF cũng nhảy đúng chỗ).
-//  2) pendingHighlight: content script bọc <mark> bền vững, đa-node trên trang web thường
-//     (đoạn dài trải nhiều thẻ, dùng prefix/suffix chọn đúng chỗ khi có đoạn trùng).
+// Hai lớp bổ trợ nhau:
+//  1) Text Fragment (#:~:text=): trình duyệt tự cuộn + tô sáng. Chạy được cả
+//     trên trang web thường LẪN trình xem PDF tích hợp của Chrome.
+//  2) pendingHighlight: content script bọc <mark> bền vững, đa-node trên trang
+//     web thường (đoạn dài trải nhiều thẻ, dùng prefix/suffix chọn đúng chỗ).
 function buildTextFragment(src) {
   const s = (src.sel || "").replace(/\s+/g, " ").trim();
   if (!s) return "";
@@ -406,19 +521,21 @@ function openSource(it) {
   const url = fragUrl(src);
   if (src.pdf) {
     // PDF: chỉ dựa vào Text Fragment (content script không chạy trong trình xem PDF).
-    // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì bạn Ctrl+F dán tìm nhanh.
+    // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì Ctrl+F dán tìm nhanh.
     const q = text.split(" ").slice(0, 10).join(" ");
     try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
     chrome.tabs.create({ url });
     return;
   }
-  // Trang thường: nhờ content script tô <mark> bền vững + Text Fragment cuộn tới.
   chrome.storage.local.set({
     pendingHighlight: { url: src.url, text: text, prefix: src.prefix || "", suffix: src.suffix || "", ts: Date.now() }
   }, () => { chrome.tabs.create({ url }); });
 }
 
-// ---- Danh sách ----
+/* ==================================================================== */
+/* Danh sách                                                            */
+/* ==================================================================== */
+
 function currentActiveSet() {
   const a = active(items);
   if (current === ALL) return a;
@@ -427,126 +544,357 @@ function currentActiveSet() {
   if (current === DISLIKE) return a.filter((it) => it.fav === -1);
   return a.filter((it) => it.deck === current);
 }
-// Gắn/bỏ nhãn Thích(1)/Không thích(-1). Bấm lại nút đang bật -> về bình thường.
-// Chỉ đổi trường fav + ts (đồng bộ tự chạy qua mergeByTs), KHÔNG đụng tiến độ học.
-async function setFav(key, val) {
-  const s = await getStore();
-  const e = s.nb[key];
-  if (!e || e.del) return;
-  const next = (e.fav === val) ? 0 : val;
-  const ne = Object.assign({}, e, { ts: Date.now() });
-  if (next) ne.fav = next; else delete ne.fav;
-  s.nb[key] = ne;
-  await setNotebook(s.nb);
-  await load();
-  syncSoon();
+
+/** Khối ghi chú riêng, hiện dưới phần nghĩa. */
+function khoiGhiChu(chu) {
+  const box = el("div", "mynote");
+  const h = el("div", "nh");
+  h.appendChild(ic("note-pencil", { size: 13 }));
+  h.appendChild(el("span", null, "Ghi chú của bạn"));
+  box.appendChild(h);
+  box.appendChild(el("div", null, chu));
+  return box;
 }
-function favButtons(it) {
-  const wrap = document.createElement("span"); wrap.className = "favctl";
-  const like = document.createElement("button");
-  like.className = "favbtn like" + (it.fav === 1 ? " on" : "");
-  like.textContent = it.fav === 1 ? "❤️" : "🤍";
-  like.title = it.fav === 1 ? "Bỏ khỏi Thích" : "Thích";
-  like.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, 1); });
-  const dis = document.createElement("button");
-  dis.className = "favbtn dislike" + (it.fav === -1 ? " on" : "");
-  dis.textContent = "👎";
-  dis.title = it.fav === -1 ? "Bỏ khỏi Không thích" : "Không thích";
-  dis.addEventListener("click", (e) => { e.stopPropagation(); setFav(it.key, -1); });
-  wrap.appendChild(like); wrap.appendChild(dis);
-  return wrap;
-}
+
 function draw() {
-  const kw = filterEl.value.trim().toLowerCase();
+  const kw = $("filter").value.trim().toLowerCase();
   const base = currentActiveSet();
   const rows = base.filter((it) => {
     if (!kw) return true;
-    const hay = (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ")).toLowerCase();
+    const hay = (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ") + " " + (it.note || "")).toLowerCase();
     return hay.includes(kw);
   });
-  countEl.textContent = "Hiện: " + rows.length + " từ";
-  const dc = document.getElementById("dueCount"); if (dc) dc.textContent = dueList(base).length;
+
+  $("count").textContent = "Đang hiện " + rows.length + " mục"
+    + (rows.length !== base.length ? " trong " + base.length : "");
+
+  const den = dueList(base).length;
+  $("dueCount").textContent = String(den);
+  const chip = $("dueChip");
+  if (den) { chip.style.display = ""; chip.textContent = den + " mục đến hạn"; }
+  else chip.style.display = "none";
+
+  const listEl = $("list");
+  listEl.innerHTML = "";
 
   if (!rows.length) {
-    listEl.innerHTML = "";
-    const d = document.createElement("div");
-    d.className = "empty";
-    d.textContent = active(items).length ? "Không có từ trong mục này." : "Chưa có từ nào. Tra một từ rồi bấm “＋ Lưu”.";
+    const d = el("div", "empty");
+    d.appendChild(ic("notebook", { size: 40 }));
+    d.appendChild(el("div", null, active(items).length
+      ? "Không có mục nào ở đây."
+      : "Chưa có mục nào. Tra một từ rồi bấm “Lưu”."));
     listEl.appendChild(d);
     return;
   }
+
   const dks = activeDecks();
-  listEl.innerHTML = "";
+  const now = Date.now();
+
   for (const it of rows) {
-    const row = document.createElement("div");
-    row.className = "row" + (it.kind === "sent" ? " sent" : "");
-    const main = document.createElement("div");
-    main.className = "main";
-    const head = document.createElement("div");
-    const w = document.createElement("span"); w.className = "w"; w.textContent = it.word;
-    head.appendChild(w);
-    if (it.reading) { const r = document.createElement("span"); r.className = "r"; r.textContent = it.reading; head.appendChild(r); }
-    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Phát âm";
-    spk.addEventListener("click", () => speak(it.word, it.audio)); head.appendChild(spk);
-    const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = dirLabel(it.dict); head.appendChild(tag);
+    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : ""));
+    const body = el("div", "body");
+
+    /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
+    const head = el("div", "head");
+    head.appendChild(el("span", "w", it.word));
+    if (it.reading) head.appendChild(el("span", "r", it.reading));
+
+    const spk = nutIcon("speaker-high", "Phát âm", "", 17);
+    spk.addEventListener("click", () => speak(it.word, it.audio));
+    head.appendChild(spk);
+
     head.appendChild(favButtons(it));
-    if (isDue(it, Date.now())) { const du = document.createElement("span"); du.className = "due"; du.textContent = "đến hạn"; head.appendChild(du); }
+    head.appendChild(el("span", "tag", dirLabel(it.dict)));
+    if (it.mEdit) {
+      const t = el("span", "tag edited");
+      t.appendChild(ic("pencil-simple", { size: 12 }));
+      t.appendChild(el("span", null, "đã sửa"));
+      head.appendChild(t);
+    }
+    if (isDue(it, now)) {
+      const t = el("span", "tag due");
+      t.appendChild(ic("alarm", { size: 12 }));
+      t.appendChild(el("span", null, "đến hạn"));
+      head.appendChild(t);
+    }
     if (it.deck && deckName(it.deck) && current === ALL) {
-      const dt = document.createElement("span"); dt.className = "tag"; dt.textContent = "📁 " + deckName(it.deck); head.appendChild(dt);
+      const t = el("span", "tag");
+      t.appendChild(ic("folder-simple", { size: 12 }));
+      t.appendChild(el("span", null, deckName(it.deck)));
+      head.appendChild(t);
     }
-    main.appendChild(head);
+    body.appendChild(head);
+
+    /* --- nghĩa và ghi chú --- */
     if (it.means && it.means.length) {
-      const m = document.createElement("div"); m.className = "m"; m.textContent = it.means.slice(0, 4).join("; ");
-      main.appendChild(m);
+      body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
+    if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
+
+    /* --- dòng chân: nguồn + thời gian --- */
+    const meta = el("div", "meta");
     if (it.src && it.src.url) {
-      const sEl = document.createElement("div"); sEl.className = "srcline";
-      let hostn = it.src.url; try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
-      sEl.textContent = "🔗 " + hostn;
-      sEl.title = "Lưu từ: " + (it.src.title || it.src.url);
-      main.appendChild(sEl);
+      const s = el("span", "srcline");
+      let hostn = it.src.url;
+      try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
+      s.appendChild(ic("link-simple", { size: 13 }));
+      s.appendChild(el("span", null, hostn));
+      s.title = "Lưu từ: " + (it.src.title || it.src.url);
+      meta.appendChild(s);
     }
-    const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = fmtDate(it.ts);
-    main.appendChild(meta);
-    row.appendChild(main);
+    meta.appendChild(el("span", null, fmtDate(it.ts)));
+    body.appendChild(meta);
 
-    const ctl = document.createElement("div");
-    ctl.className = "rowctl";
-    const sel = document.createElement("select");
-    sel.className = "movesel";
-    sel.title = "Chuyển vào sổ";
-    const optNone = document.createElement("option");
-    optNone.value = NONE; optNone.textContent = "Chưa phân loại";
-    sel.appendChild(optNone);
-    dks.forEach((d) => { const o = document.createElement("option"); o.value = d.id; o.textContent = d.name; sel.appendChild(o); });
-    sel.value = it.deck && deckName(it.deck) ? it.deck : NONE;
-    sel.addEventListener("change", () => moveWord(it.key, sel.value));
-    ctl.appendChild(sel);
+    row.appendChild(body);
+
+    /* --- cột điều khiển bên phải --- */
+    const ctl = el("div", "ctl");
+
+    const hang = el("div", "rowx");
+    hang.style.gap = "2px";
+
+    const sua = nutIcon("translate", "Sửa bản dịch cho đúng chuyên ngành", "", 17);
+    sua.addEventListener("click", () => moSua(it, "trans"));
+    hang.appendChild(sua);
+
+    const gc = nutIcon("note-pencil", it.note ? "Sửa ghi chú" : "Thêm ghi chú", it.note ? "on" : "", 17);
+    gc.addEventListener("click", () => moSua(it, "note"));
+    hang.appendChild(gc);
 
     if (it.src && it.src.url) {
-      const open = document.createElement("button");
-      open.className = "srcbtn"; open.textContent = "🔗 Nguồn";
-      open.title = "Mở lại trang nguồn và tô sáng vị trí đã lưu";
+      const open = nutIcon("link-simple", "Mở lại trang nguồn và tô sáng vị trí đã lưu", "", 17);
       open.addEventListener("click", () => openSource(it));
-      ctl.appendChild(open);
+      hang.appendChild(open);
     }
 
-    const del = document.createElement("button");
-    del.className = "danger del"; del.textContent = "Xoá";
+    const del = nutIcon("trash", "Xoá khỏi sổ tay", "danger", 17);
     del.addEventListener("click", async () => {
       const s = await getStore();
       s.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
       await setNotebook(s.nb);
       await load();
       syncSoon();
+      toast("Đã xoá “" + it.word.slice(0, 24) + "”");
     });
-    ctl.appendChild(del);
+    hang.appendChild(del);
+    ctl.appendChild(hang);
+
+    const sel = document.createElement("select");
+    sel.title = "Chuyển vào sổ";
+    sel.style.cssText = "font-size:12.5px;padding:6px 8px;max-width:150px;border-radius:var(--r-xs)";
+    const optNone = document.createElement("option");
+    optNone.value = NONE; optNone.textContent = "Chưa phân loại";
+    sel.appendChild(optNone);
+    dks.forEach((d) => {
+      const o = document.createElement("option");
+      o.value = d.id; o.textContent = d.name;
+      sel.appendChild(o);
+    });
+    sel.value = it.deck && deckName(it.deck) ? it.deck : NONE;
+    sel.addEventListener("change", () => moveWord(it.key, sel.value));
+    ctl.appendChild(sel);
+
     row.appendChild(ctl);
     listEl.appendChild(row);
   }
 }
 
-// ---- Xuất file (theo sổ đang chọn) ----
+/* ==================================================================== */
+/* Buổi học                                                             */
+/* ==================================================================== */
+
+let session = { queue: [], done: 0, again: 0, deleted: 0 };
+let lastDeleted = null;
+const ovl = $("studyOverlay");
+
+function theCardHienTai() { return session.queue[0]; }
+
+function renderStudyFav(it) {
+  const box = $("stFav");
+  box.innerHTML = "";
+  const mk = (val, iconTen) => {
+    const on = it.fav === val;
+    const b = el("button", "btn sm" + (on ? " tinted" : ""));
+    b.type = "button";
+    b.innerHTML = window.Icon(iconTen, { size: 17, weight: on ? "solid" : "line" });
+    b.appendChild(el("span", "lb", val === 1 ? "Thích" : "Không thích"));
+    b.addEventListener("click", async () => {
+      const next = await setFav(it.key, val);
+      it.fav = next;
+      renderStudyFav(it);
+    });
+    return b;
+  };
+  box.appendChild(mk(1, "heart"));
+  box.appendChild(mk(-1, "thumbs-down"));
+}
+
+function startStudy() {
+  const due = dueList(currentActiveSet());
+  if (!due.length) {
+    toast("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!", "bad");
+    return;
+  }
+  session = { queue: due.slice().sort(() => Math.random() - 0.5), done: 0, again: 0, deleted: 0 };
+  lastDeleted = null;
+  $("stUndo").style.display = "none";
+  $("stBody").style.display = "";
+  $("stDone").style.display = "none";
+  ovl.classList.add("show");
+  showCard();
+}
+
+function showCard() {
+  const it = theCardHienTai();
+  if (!it) { finishStudy(); return; }
+
+  $("stBody").style.display = "";
+  $("stDone").style.display = "none";
+  $("stProg").textContent = "Còn " + session.queue.length + " mục · đã xong " + session.done;
+
+  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "");
+  $("stWord").textContent = it.word;
+  $("stWord").className = "cw";
+  renderStudyFav(it);
+
+  const src = $("stSrc");
+  if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSource(it); }
+  else { src.style.display = "none"; src.onclick = null; }
+
+  $("stRead").textContent = "";
+  $("stMean").innerHTML = "";
+  $("stMyNote").innerHTML = "";
+  $("stReveal").style.display = "";
+  $("stGrade").style.display = "none";
+}
+
+function revealCard() {
+  const it = theCardHienTai();
+  if (!it) return;
+  $("stRead").textContent = it.reading || "";
+  if (it.means && it.means.length) {
+    const ul = document.createElement("ul");
+    it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
+    $("stMean").innerHTML = "";
+    $("stMean").appendChild(ul);
+  }
+  // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
+  if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
+  $("stReveal").style.display = "none";
+  $("stGrade").style.display = "";
+}
+
+async function grade(remembered) {
+  const it = session.queue.shift();
+  if (!it) return;
+  await gradeWord(it.key, remembered);
+  if (remembered) session.done++;
+  else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
+
+  // Mọi lượt chấm đều được ghi vào tiến độ, kể cả lượt "quên": công sức bỏ ra là
+  // như nhau, mà đếm cả lượt quên mới khuyến khích người ta dám chấm thật.
+  await load();
+  const moi = await theoDoi.ghiLuotOn(remembered);
+  syncSoon();
+
+  if (moi.length) {
+    // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che
+    // mất thẻ mới và người dùng bấm nhầm.
+    window.TienDo.anMung(moi, showCard);
+  } else {
+    showCard();
+  }
+}
+
+async function deleteCurrentCard() {
+  const it = theCardHienTai();
+  if (!it) return;
+  const store = await getStore();
+  const original = store.nb[it.key];
+  lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
+
+  store.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+  await setNotebook(store.nb);
+
+  // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
+  session.queue = session.queue.filter((x) => x.key !== it.key);
+  session.deleted += 1;
+
+  $("stUndoWord").textContent = it.word;
+  $("stUndo").style.display = "";
+  syncSoon();
+  showCard();
+}
+
+async function undoDelete() {
+  if (!lastDeleted) return;
+  const store = await getStore();
+  store.nb[lastDeleted.key] = Object.assign({}, lastDeleted.entry, { ts: Date.now() });
+  await setNotebook(store.nb);
+  lastDeleted = null;
+  $("stUndo").style.display = "none";
+  await load();
+  syncSoon();
+}
+
+async function finishStudy() {
+  $("stBody").style.display = "none";
+  $("stDone").style.display = "";
+  $("stProg").textContent = "";
+  $("stDoneIcon").innerHTML = window.Icon("confetti", { size: 56, weight: "duo" });
+
+  const view = await theoDoi.xem();
+  const phan = ["Đã thuộc " + session.done + " mục"];
+  if (session.again) phan.push("học lại " + session.again + " lượt");
+  if (session.deleted) phan.push("đã xoá " + session.deleted + " mục");
+  phan.push(view.homNay.dat
+    ? "Hôm nay đạt mục tiêu rồi — chuỗi " + Math.max(1, view.chuoi.hienTai) + " ngày."
+    : "Còn " + view.homNay.conLai + " lượt nữa là đạt mục tiêu hôm nay.");
+  $("stSummary").textContent = phan.join(" · ");
+
+  await load();
+  syncSoon();
+}
+
+function closeStudy() {
+  ovl.classList.remove("show");
+  load();
+  if ($("viewProgress").classList.contains("show")) veTienDo();
+}
+
+$("study").addEventListener("click", startStudy);
+$("stReveal").addEventListener("click", revealCard);
+$("gKnow").addEventListener("click", () => grade(true));
+$("gForgot").addEventListener("click", () => grade(false));
+$("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
+$("stClose").addEventListener("click", closeStudy);
+$("stDoneClose").addEventListener("click", closeStudy);
+$("stDel").addEventListener("click", deleteCurrentCard);
+$("stUndoBtn").addEventListener("click", undoDelete);
+$("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
+$("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
+
+document.addEventListener("keydown", (e) => {
+  if ($("editSheet").classList.contains("show")) {
+    if (e.key === "Escape") dongSua();
+    // Ctrl+Enter lưu: trong ô nhiều dòng, Enter phải là xuống dòng.
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); luuSua(); }
+    return;
+  }
+  if (!ovl.classList.contains("show")) return;
+  if (e.key === "Escape") closeStudy();
+  else if (e.key === " " || e.key === "Enter") {
+    e.preventDefault();
+    if ($("stReveal").style.display !== "none") revealCard();
+  } else if (e.key === "1" && $("stGrade").style.display !== "none") grade(false);
+  else if (e.key === "2" && $("stGrade").style.display !== "none") grade(true);
+  else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
+});
+
+/* ==================================================================== */
+/* Xuất file (theo mục đang chọn)                                       */
+/* ==================================================================== */
+
 function download(name, text, mime) {
   const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -568,10 +916,11 @@ function exportAnki() {
   if (!list.length) return;
   const lines = list.map((it) => {
     const front = safe(it.word);
-    const read = it.reading ? "【" + safe(it.reading) + "】 " : "";
-    const back = read + safe((it.means || []).join("; "));
-    const deck = safe(deckName(it.deck) || "");
-    return front + "\t" + back + "\t" + deck;
+    const read = it.reading ? "/" + safe(it.reading) + "/ " : "";
+    // Ghi chú đi kèm mặt sau: đó thường là phần đắt nhất của thẻ.
+    const note = it.note ? "<br><i>" + safe(it.note) + "</i>" : "";
+    const back = read + safe((it.means || []).join("; ")) + note;
+    return front + "\t" + back + "\t" + safe(deckName(it.deck) || "");
   });
   download("neutrondict-anki-" + fileTag() + ".tsv", lines.join("\n"), "text/tab-separated-values;charset=utf-8");
 }
@@ -579,42 +928,64 @@ function csvCell(s) { s = String(s == null ? "" : s); return /[",\n]/.test(s) ? 
 function exportCsv() {
   const list = currentActiveSet();
   if (!list.length) return;
-  const header = ["Từ", "Phiên âm (IPA)", "Nghĩa", "Sổ", "Hướng", "Ngày lưu"];
-  const rows = list.map((it) => [it.word, it.reading || "", (it.means || []).join("; "), deckName(it.deck) || "", dirLabel(it.dict), fmtDate(it.ts)].map(csvCell).join(","));
-  const csv = "\uFEFF" + header.map(csvCell).join(",") + "\n" + rows.join("\n");
-  download("neutrondict-sotay-" + fileTag() + ".csv", csv, "text/csv;charset=utf-8");
+  const header = ["Từ", "Phiên âm (IPA)", "Nghĩa", "Ghi chú", "Đã sửa", "Sổ", "Hướng", "Ngày lưu"];
+  const rows = list.map((it) => [
+    it.word, it.reading || "", (it.means || []).join("; "), it.note || "",
+    it.mEdit ? "x" : "", deckName(it.deck) || "", dirLabel(it.dict), fmtDate(it.ts)
+  ].map(csvCell).join(","));
+  download("neutrondict-sotay-" + fileTag() + ".csv",
+    "﻿" + header.map(csvCell).join(",") + "\n" + rows.join("\n"), "text/csv;charset=utf-8");
 }
 
-// ---- Sao lưu / Nạp (.json) ----
+/* ==================================================================== */
+/* Sao lưu / nạp                                                        */
+/* ==================================================================== */
+
 async function backupJson() {
   const s = await getStore();
-  download("neutrondict-sotay-backup.json", JSON.stringify({ notebook: s.nb, decks: s.decks }), "application/json;charset=utf-8");
+  const { hoc } = await chrome.storage.local.get("hoc");
+  download("neutrondict-sotay-backup.json",
+    JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null }),
+    "application/json;charset=utf-8");
 }
 function mergeLocal(a, b) {
   const out = {};
-  [a || {}, b || {}].forEach((src) => { for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; } });
+  [a || {}, b || {}].forEach((src) => {
+    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
+  });
   return out;
 }
 async function restoreJson(file) {
   try {
-    const text = await file.text();
-    const imp = JSON.parse(text);
+    const imp = JSON.parse(await file.text());
     const s = await getStore();
+    // Hỗ trợ cả file cũ (chỉ là object notebook) lẫn file mới {notebook,decks,hoc}.
     const impNb = (imp && imp.notebook !== undefined) ? (imp.notebook || {}) : (imp || {});
     const impDecks = (imp && imp.decks) || {};
     await setNotebook(mergeLocal(s.nb, impNb));
     await setDecks(mergeLocal(s.decks, impDecks));
+    if (imp && imp.hoc) {
+      const cur = (await chrome.storage.local.get("hoc")).hoc;
+      const gop = window.TienDo.tron(cur, imp.hoc);
+      await chrome.storage.local.set({ hoc: gop });
+      theoDoi.dat(gop);
+    }
     await load();
     syncSoon();
     setStatus("Đã nạp file và trộn vào sổ tay.");
-  } catch (e) { setStatus("File không hợp lệ."); }
+    toast("Đã nạp file sao lưu");
+  } catch (e) {
+    setStatus("File không hợp lệ.");
+    toast("File không hợp lệ", "bad");
+  }
 }
 
 async function clearAll() {
   const list = currentActiveSet();
   if (!list.length) return;
-  const where = current === ALL ? "toàn bộ sổ tay" : ('mục "' + (current === NONE ? "Chưa phân loại" : deckName(current)) + '"');
-  if (!confirm("Xoá " + list.length + " từ trong " + where + "? Việc xoá cũng đồng bộ sang máy khác.")) return;
+  const where = current === ALL ? "toàn bộ sổ tay"
+    : ('mục "' + (current === NONE ? "Chưa phân loại" : (deckName(current) || "đang chọn")) + '"');
+  if (!confirm("Xoá " + list.length + " mục trong " + where + "? Việc xoá cũng đồng bộ sang máy khác.")) return;
   const s = await getStore();
   const now = Date.now();
   for (const it of list) s.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: now };
@@ -623,17 +994,21 @@ async function clearAll() {
   syncSoon();
 }
 
-// ---- Đồng bộ ----
-function setStatus(t) { syncStatusEl.textContent = t; }
+/* ==================================================================== */
+/* Đồng bộ                                                              */
+/* ==================================================================== */
+
+function setStatus(t) { $("syncStatus").textContent = t; }
+
 async function loadConfig() {
   const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
-  if (syncUrl) syncUrlEl.value = syncUrl;
-  if (syncToken) syncTokenEl.value = syncToken;
+  if (syncUrl) $("syncUrl").value = syncUrl;
+  if (syncToken) $("syncToken").value = syncToken;
   return { syncUrl, syncToken };
 }
 async function saveConfig() {
-  const syncUrl = syncUrlEl.value.trim();
-  const syncToken = syncTokenEl.value.trim();
+  const syncUrl = $("syncUrl").value.trim();
+  const syncToken = $("syncToken").value.trim();
   await chrome.storage.local.set({ syncUrl, syncToken });
   setStatus(syncUrl ? "Đã lưu cấu hình đồng bộ." : "Đã xoá cấu hình.");
 }
@@ -642,8 +1017,10 @@ function syncNow() {
   chrome.runtime.sendMessage({ type: "SYNC_NOW" }, async (res) => {
     if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); return; }
     if (res && res.ok) {
+      await theoDoi.nap(true);
       await load();
-      setStatus("Đã đồng bộ • " + res.count + " từ • " + new Date().toLocaleTimeString("vi-VN"));
+      if ($("viewProgress").classList.contains("show")) veTienDo();
+      setStatus("Đã đồng bộ · " + res.count + " mục · " + new Date().toLocaleTimeString("vi-VN"));
     } else {
       setStatus("Không đồng bộ được: " + ((res && res.error) || "lỗi không rõ"));
     }
@@ -651,114 +1028,147 @@ function syncNow() {
 }
 function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON" }); } catch (e) {} }
 
+// Quay lại tab Sổ tay -> kéo dữ liệu mới (nếu đã cấu hình đồng bộ).
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden) return;
   const { syncUrl } = await chrome.storage.local.get("syncUrl");
   if (syncUrl) syncNow();
 });
 
-// ---- Cài đặt tra nhanh ----
-const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400 };
+/* ==================================================================== */
+/* Cài đặt tra nhanh                                                    */
+/* ==================================================================== */
+
+const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400 };
+
 async function loadSettings() {
   const { settings } = await chrome.storage.local.get("settings");
   const S = Object.assign({}, SET_DEFAULTS, settings || {});
-  const a = document.getElementById("setInline"), b = document.getElementById("setCtrl"), c = document.getElementById("setLen");
-  const t = document.getElementById("setTrans");
-  if (a) a.checked = !!S.inline;
-  if (b) b.checked = !!S.requireCtrl;
-  if (c) c.value = S.maxLen || 40;
-  if (t) t.checked = S.translate !== false;
+  $("setInline").checked = !!S.inline;
+  $("setCtrl").checked = !!S.requireCtrl;
+  $("setLen").value = S.maxLen || 30;
+  $("setTrans").checked = S.translate !== false;
 }
 async function saveSettings() {
-  const S = {
-    inline: document.getElementById("setInline").checked,
-    requireCtrl: document.getElementById("setCtrl").checked,
-    maxLen: Math.max(5, Math.min(200, parseInt(document.getElementById("setLen").value, 10) || 40)),
-    translate: document.getElementById("setTrans").checked,
-    maxSent: 400
-  };
-  await chrome.storage.local.set({ settings: S });
-  document.getElementById("setStatus").textContent = "Đã lưu. Tải lại trang web đang mở để áp dụng ngay.";
+  await chrome.storage.local.set({
+    settings: {
+      inline: $("setInline").checked,
+      requireCtrl: $("setCtrl").checked,
+      maxLen: Math.max(5, Math.min(200, parseInt($("setLen").value, 10) || 30)),
+      translate: $("setTrans").checked,
+      maxSent: 400
+    }
+  });
+  $("setStatus").textContent = "Đã lưu. Tải lại trang web đang mở để áp dụng ngay.";
 }
 async function clearCache() {
   await chrome.storage.local.set({ cache: {}, trCache: {} });
-  document.getElementById("setStatus").textContent = "Đã xoá bộ nhớ đệm tra từ.";
-}
-if (document.getElementById("saveSet")) {
-  document.getElementById("saveSet").addEventListener("click", saveSettings);
-  document.getElementById("clearCache").addEventListener("click", clearCache);
+  $("setStatus").textContent = "Đã xoá bộ nhớ đệm tra từ.";
 }
 
-// ---- Sự kiện ----
-filterEl.addEventListener("input", draw);
-document.getElementById("ipaGuide").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") }));
-document.getElementById("exAnki").addEventListener("click", exportAnki);
-document.getElementById("exCsv").addEventListener("click", exportCsv);
-document.getElementById("backup").addEventListener("click", backupJson);
-document.getElementById("restore").addEventListener("click", () => restoreFileEl.click());
-restoreFileEl.addEventListener("change", (e) => { if (e.target.files[0]) restoreJson(e.target.files[0]); e.target.value = ""; });
-document.getElementById("clear").addEventListener("click", clearAll);
-document.getElementById("renameDeck").addEventListener("click", renameDeck);
-document.getElementById("deleteDeck").addEventListener("click", deleteDeck);
-document.getElementById("saveCfg").addEventListener("click", saveConfig);
-document.getElementById("syncNow").addEventListener("click", syncNow);
+/* ==================================================================== */
+/* Chuyển màn Sổ tay / Tiến độ                                          */
+/* ==================================================================== */
 
-// ---- Khởi động ----
+function moMan(ten) {
+  const laDs = ten === "list";
+  $("viewList").classList.toggle("show", laDs);
+  $("viewProgress").classList.toggle("show", !laDs);
+  $("pageList").classList.toggle("active", laDs);
+  $("pageProgress").classList.toggle("active", !laDs);
+  if (!laDs) veTienDo();
+}
+$("pageList").addEventListener("click", () => moMan("list"));
+$("pageProgress").addEventListener("click", () => moMan("progress"));
+
+/* ==================================================================== */
+/* Gắn icon vào phần khung tĩnh của HTML                                */
+/* ==================================================================== */
+
+function gaiIcon() {
+  $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
+  $("icTool").innerHTML = window.Icon("export", { size: 18 });
+  $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
+  ["cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
+
+  $("ebDecks").innerHTML = window.Icon("folder-simple", { size: 15 }) + "<span>Sổ con</span>";
+  $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb">Sổ tay</span>';
+  $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb">Tiến độ</span>';
+
+  const st = $("study");
+  const den = st.querySelector(".tag");
+  st.innerHTML = window.Icon("graduation-cap", { size: 20 }) + '<span class="lb">Học ngay</span>';
+  st.appendChild(den);
+
+  $("filter").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("filter"));
+
+  $("stSpk").innerHTML = window.Icon("speaker-high", { size: 22 });
+  const gan = (id, ten, chu) => {
+    const b = $(id);
+    b.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb">' + chu + "</span>";
+  };
+  gan("stSrc", "link-simple", "Mở nguồn");
+  gan("stEdit", "translate", "Sửa bản dịch");
+  gan("stNote", "note-pencil", "Ghi chú");
+  gan("gForgot", "arrow-counter-clockwise", "Quên");
+  gan("gKnow", "check", "Nhớ");
+  gan("stReveal", "eye", "Hiện nghĩa");
+  gan("stDel", "trash", "Đã thuộc hẳn — xoá");
+  gan("stClose", "arrow-left", "Đóng");
+  gan("ipaGuide", "text-aa", "Hướng dẫn đọc IPA");
+
+  // Lá cờ trong hộp "Về tác giả" — vẽ tay, không phải emoji.
+  $("abFlag").innerHTML =
+    '<svg width="30" height="20" viewBox="0 0 30 20" style="border-radius:3px;box-shadow:var(--sh-1)">' +
+    '<rect width="30" height="20" fill="#da251d"/>' +
+    '<polygon points="15,3.5 16.5,7.94 21.18,8 17.43,10.79 18.82,15.26 15,12.55 11.18,15.26 12.57,10.79 8.82,8 13.5,7.94" fill="#ffff00"/></svg>';
+}
+
+/* ==================================================================== */
+/* Sự kiện                                                              */
+/* ==================================================================== */
+
+$("filter").addEventListener("input", draw);
+$("exAnki").addEventListener("click", exportAnki);
+$("exCsv").addEventListener("click", exportCsv);
+$("backup").addEventListener("click", backupJson);
+$("restore").addEventListener("click", () => $("restoreFile").click());
+$("restoreFile").addEventListener("change", (e) => {
+  if (e.target.files[0]) restoreJson(e.target.files[0]);
+  e.target.value = "";
+});
+$("clear").addEventListener("click", clearAll);
+$("renameDeck").addEventListener("click", renameDeck);
+$("deleteDeck").addEventListener("click", deleteDeck);
+$("saveCfg").addEventListener("click", saveConfig);
+$("syncNow").addEventListener("click", syncNow);
+$("saveSet").addEventListener("click", saveSettings);
+$("clearCache").addEventListener("click", clearCache);
+
+$("ipaGuide").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") });
+});
+
+$("creditBtn").addEventListener("click", () => $("aboutSheet").classList.add("show"));
+$("abClose").addEventListener("click", () => $("aboutSheet").classList.remove("show"));
+$("aboutSheet").addEventListener("click", (e) => {
+  if (e.target.id === "aboutSheet") e.target.classList.remove("show");
+});
+
+/* ==================================================================== */
+/* Khởi động                                                            */
+/* ==================================================================== */
+
 (async () => {
+  gaiIcon();
+  await theoDoi.nap();
   await load();
   await loadSettings();
   const cfg = await loadConfig();
-  if (cfg.syncUrl) { document.getElementById("syncBox").open = false; syncNow(); }
-  else { document.getElementById("syncBox").open = true; }
-})();
-
-// ================= Ghi công tác giả =================
-(function () {
-  const ACCENT = "#7c3aed", ACCENT2 = "#c026d3", BRAND = "NeutronDict";
-  const st = document.createElement("style");
-  st.textContent =
-    ".credit-foot{text-align:center;color:#9aa2ad;font-size:12.5px;margin:28px 0 6px}" +
-    ".credit-foot button{border:none;background:none;color:#9aa2ad;cursor:pointer;font:inherit}" +
-    ".credit-foot button:hover{color:" + ACCENT + "}.credit-foot .hb{color:#e0679a}" +
-    ".cabout{position:fixed;inset:0;background:rgba(20,26,36,.55);display:none;align-items:center;justify-content:center;z-index:80;padding:16px}" +
-    ".cabout.show{display:flex}" +
-    ".ccard{width:min(430px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:cpop .25s ease}" +
-    "@keyframes cpop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}" +
-    ".ccard .top{background:linear-gradient(135deg," + ACCENT + "," + ACCENT2 + ");color:#fff;padding:20px 22px}" +
-    ".ccard .top .h{font-size:19px;font-weight:800}.ccard .top .s{opacity:.9;font-size:13px;margin-top:2px}" +
-    ".ccard .bd{padding:18px 22px 6px;color:#2b333d;font-size:14.5px;line-height:1.6}.ccard .bd b{color:" + ACCENT + "}" +
-    ".ccard .meta{color:#6b7684;font-size:13.5px;margin:10px 0}" +
-    ".ccard .motto{text-align:center;font-style:italic;font-size:15.5px;color:" + ACCENT + ";margin:14px 0 4px}" +
-    ".ccard .ft{padding:8px 18px 18px}.ccard .ft button{width:100%;padding:11px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;border:none;background:linear-gradient(135deg," + ACCENT + "," + ACCENT2 + ");color:#fff}";
-  document.head.appendChild(st);
-
-  const foot = document.createElement("div");
-  foot.className = "credit-foot";
-  foot.innerHTML = 'Ra đời bởi <button id="creditBtn" title="Về tác giả">Nyren Phạm <span class="hb">♥</span></button>';
-  (document.querySelector(".sidebar") || document.querySelector(".wrap") || document.body).appendChild(foot);
-
-  const FLAG = '<svg width="36" height="24" viewBox="0 0 30 20" style="flex:none;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.3)"><rect width="30" height="20" fill="#da251d"/><polygon points="15,3.5 16.5,7.94 21.18,8 17.43,10.79 18.82,15.26 15,12.55 11.18,15.26 12.57,10.79 8.82,8 13.5,7.94" fill="#ffff00"/></svg>';
-  const ov = document.createElement("div");
-  ov.className = "cabout";
-  ov.innerHTML =
-    '<div class="ccard">' +
-      '<div class="top"><div style="display:flex;align-items:center;gap:11px">' + FLAG +
-      '<div><div class="h">' + BRAND + ' · Về tác giả</div>' +
-      '<div class="s">Một món quà nhỏ gửi tặng cộng đồng học tập</div></div></div></div>' +
-      '<div class="bd">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành ' +
-      '<b>Tự động hóa, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê <b>nghiên cứu công nghệ</b>.' +
-      '<div class="meta">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập — ' +
-      'một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Anh &amp; tiếng Nhật. ' +
-      'Nếu nó giúp ích cho việc học của bạn, thì mình đã hạnh phúc rồi.</div>' +
-      '<div class="motto">“Cho đi là còn mãi.”</div></div>' +
-      '<div class="ft"><button id="creditClose">Cảm ơn ♥</button></div>' +
-    '</div>';
-  document.body.appendChild(ov);
-
-  const open = () => ov.classList.add("show");
-  const close = () => ov.classList.remove("show");
-  document.getElementById("creditBtn").addEventListener("click", open);
-  document.getElementById("creditClose").addEventListener("click", close);
-  ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  if (cfg.syncUrl) { $("syncBox").open = false; syncNow(); }
+  else { $("syncBox").open = true; }
+  // Xét lại huy hiệu lúc mở app: có mốc chỉ phụ thuộc số mục trong sổ (lưu từ
+  // điện thoại, hoặc lưu bằng chuột phải) nên không đi qua đường chấm bài.
+  mung(await theoDoi.xetHuyHieu());
 })();

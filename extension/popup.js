@@ -1,3 +1,9 @@
+/**
+ * Popup tra nhanh của NeutronDict.
+ *
+ * Dùng chung hệ thiết kế trong ui.css và bộ icon Phosphor trong icons.js với
+ * trang Sổ tay, nên hai chỗ nhìn là cùng một app.
+ */
 const qEl = document.getElementById("q");
 const dirEl = document.getElementById("dir");
 const goEl = document.getElementById("go");
@@ -11,6 +17,56 @@ const transEl = document.getElementById("trans");
 const IS_CTX_WINDOW = new URLSearchParams(location.search).get("ctx") === "1";
 let initialSrc = null;   // nguồn của từ ban đầu (URL + tiêu đề + đoạn chọn)
 let lastEntry = null;    // mục hiện tại để dựng tab Chi tiết
+
+/** Icon dạng phần tử DOM. */
+function ic(ten, opt) {
+  const s = document.createElement("span");
+  s.innerHTML = window.Icon(ten, opt);
+  return s.firstChild;
+}
+
+/** Ô trạng thái giữa thân popup (đang tra, không có kết quả…). */
+function trangThai(box, iconTen, chu) {
+  box.className = "state";
+  box.innerHTML = "";
+  box.appendChild(ic(iconTen, { size: 34, cls: iconTen === "spinner-gap" ? "spin" : "" }));
+  box.appendChild(document.createElement("div")).textContent = chu;
+}
+
+/** Nút loa nhỏ, chìm vào nền. */
+function nutLoa(text, audio, size) {
+  const b = document.createElement("button");
+  b.className = "iconbtn"; b.type = "button"; b.title = "Phát âm";
+  b.appendChild(ic("speaker-high", { size: size || 17 }));
+  b.addEventListener("click", () => speak(text, audio));
+  return b;
+}
+
+/**
+ * Chuỗi ngày hiện lên ngay trong popup.
+ *
+ * Popup là chỗ mở nhiều nhất trong ngày — mỗi lần bôi đen một từ là nó bật ra.
+ * Nhét con số chuỗi ngày vào đây nghĩa là bạn thấy nó vài chục lần một ngày mà
+ * không phải mở app, đó chính là lúc nó có tác dụng nhắc.
+ */
+async function veChuoiNgay() {
+  try {
+    const { hoc } = await chrome.storage.local.get("hoc");
+    const view = window.TienDo.tongQuan(window.TienDo.chuanHoa(hoc), {});
+    const chip = document.getElementById("streakChip");
+    if (!view.chuoi.hienTai && !view.homNay.on) return;   // chưa học buổi nào -> không khoe gì cả
+    chip.innerHTML = window.Icon("fire", { size: 14, weight: "solid" });
+    const s = document.createElement("span");
+    s.textContent = view.chuoi.hienTai
+      ? view.chuoi.hienTai + " ngày · " + view.homNay.on + "/" + view.goal
+      : view.homNay.on + "/" + view.goal + " hôm nay";
+    chip.appendChild(s);
+    chip.title = view.homNay.dat
+      ? "Hôm nay đã đạt mục tiêu"
+      : "Còn " + view.homNay.conLai + " lượt nữa là đạt mục tiêu hôm nay";
+    chip.style.display = "";
+  } catch (e) { /* không có dữ liệu tiến độ thì thôi */ }
+}
 
 // ---- Lấy từ đang bôi đen (web) hoặc vừa Ctrl+C (PDF) ----
 async function getInitialWord() {
@@ -126,8 +182,7 @@ async function renderWord(res) {
   resEl.innerHTML = "";
   lastEntry = entries[0] || null;
   if (!entries.length) {
-    resEl.className = "state";
-    resEl.textContent = "Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại.";
+    trangThai(resEl, "warning-circle", "Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại.");
     tabDetailEl.disabled = true;
     return;
   }
@@ -137,30 +192,34 @@ async function renderWord(res) {
     const box = document.createElement("div");
     box.className = "entry";
     const head = document.createElement("div");
-    head.className = "ehead";
+    head.className = "rowx between";
+    head.style.alignItems = "flex-start";
     const left = document.createElement("div");
     const w = document.createElement("span");
-    w.className = "word"; w.textContent = en.word;
+    w.style.cssText = "font-size:21px;font-weight:750;letter-spacing:-.01em";
+    w.textContent = en.word;
     left.appendChild(w);
-    const spk = document.createElement("button");
-    spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Phát âm";
-    spk.addEventListener("click", () => speak(en.word, en.audio));
-    left.appendChild(spk);
+    left.appendChild(nutLoa(en.word, en.audio));
     if (en.reading) {
       const r = document.createElement("span");
-      r.className = "read"; r.textContent = en.reading;
+      r.style.cssText = "color:var(--accent);font-size:13.5px;font-weight:600;margin-left:4px";
+      r.textContent = en.reading;
       left.appendChild(r);
     }
     head.appendChild(left);
 
     const btn = document.createElement("button");
-    btn.className = "save";
-    if (saved[en.word]) { btn.textContent = "✓ Đã lưu"; btn.classList.add("saved"); }
+    btn.className = "btn xs save"; btn.type = "button";
+    const danhDauDaLuu = () => {
+      btn.classList.add("saved");
+      btn.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb">Đã lưu</span>';
+    };
+    if (saved[en.word]) danhDauDaLuu();
     else {
-      btn.textContent = "＋ Lưu";
+      btn.innerHTML = window.Icon("plus", { size: 15 }) + '<span class="lb">Lưu</span>';
       btn.addEventListener("click", async () => {
         await saveEntry(dirEl.value, en);
-        btn.textContent = "✓ Đã lưu"; btn.classList.add("saved");
+        danhDauDaLuu();
       });
     }
     head.appendChild(btn);
@@ -168,7 +227,7 @@ async function renderWord(res) {
 
     if (en.means && en.means.length) {
       const ul = document.createElement("ul");
-      ul.className = "mean";
+      ul.className = "m";
       en.means.slice(0, 6).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
       box.appendChild(ul);
     }
@@ -181,16 +240,14 @@ function renderDetail() {
   detailEl.innerHTML = "";
   const en = lastEntry;
   if (!en || (!(en.pos && en.pos.length) && !en.reading)) {
-    detailEl.className = "state"; detailEl.textContent = "Không có chi tiết cho từ này."; return;
+    trangThai(detailEl, "article", "Không có chi tiết cho từ này."); return;
   }
   detailEl.className = "detail";
   if (en.reading) {
     const ipa = document.createElement("div"); ipa.className = "ipa";
     ipa.innerHTML = "IPA: <b></b>";
     ipa.querySelector("b").textContent = en.reading;
-    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊";
-    spk.addEventListener("click", () => speak(en.word, en.audio));
-    ipa.appendChild(spk);
+    ipa.appendChild(nutLoa(en.word, en.audio));
     detailEl.appendChild(ipa);
 
     // Chú giải cách đọc từng ký hiệu IPA có trong từ này
@@ -199,7 +256,7 @@ function renderDetail() {
       const box = document.createElement("div"); box.className = "legend";
       const lh = document.createElement("div"); lh.className = "lh";
       const t = document.createElement("span"); t.textContent = "Cách đọc các ký hiệu:"; lh.appendChild(t);
-      const a = document.createElement("a"); a.href = "#"; a.textContent = "Xem đầy đủ →";
+      const a = document.createElement("a"); a.href = "#"; a.textContent = "Xem đầy đủ";
       a.addEventListener("click", (e) => { e.preventDefault(); openGuide(); });
       lh.appendChild(a);
       box.appendChild(lh);
@@ -236,6 +293,7 @@ function renderDetail() {
 
 // ---- Chuyển tab ----
 function switchTab(name) {
+  if (name === "detail" && tabDetailEl.disabled) name = "word";
   tabWordEl.classList.toggle("active", name === "word");
   tabDetailEl.classList.toggle("active", name === "detail");
   tabTransEl.classList.toggle("active", name === "trans");
@@ -250,34 +308,38 @@ function switchTab(name) {
 let lastTranslated = "";
 function doTranslate(raw) {
   const text = (raw || "").trim();
-  if (!text) { transEl.className = "state"; transEl.textContent = "Nhập hoặc dán đoạn cần dịch."; return; }
+  if (!text) { trangThai(transEl, "translate", "Nhập hoặc dán đoạn cần dịch."); return; }
   const dir = dirEl.value;
   const from = dir === "auto" ? "auto" : (dir === "vien" ? "vi" : "en");
   const to = dir === "auto" ? "" : (dir === "vien" ? "en" : "vi");
   const tkey = dir + ":" + text;
   if (lastTranslated === tkey && transEl.querySelector(".tr")) return;
-  transEl.className = "state"; transEl.textContent = "Đang dịch…";
+  trangThai(transEl, "spinner-gap", "Đang dịch…");
   chrome.runtime.sendMessage({ type: "TRANSLATE", text, from, to }, (res) => {
-    if (chrome.runtime.lastError) { transEl.textContent = "Lỗi: " + chrome.runtime.lastError.message; return; }
-    if (!res || !res.ok) { transEl.className = "state"; transEl.textContent = (res && res.error) || "Không dịch được."; return; }
+    if (chrome.runtime.lastError) { trangThai(transEl, "warning-circle", "Lỗi: " + chrome.runtime.lastError.message); return; }
+    if (!res || !res.ok) { trangThai(transEl, "warning-circle", (res && res.error) || "Không dịch được."); return; }
     lastTranslated = tkey;
     transEl.className = "trbox";
     transEl.innerHTML = "";
     // Phần tiếng Anh để phát âm: nếu bản dịch là tiếng Anh thì đọc bản dịch, ngược lại đọc câu gốc.
     const engText = res.target === "en" ? res.text : text;
-    const hd = document.createElement("div"); hd.className = "hd";
-    const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = res.text;
+    const hd = document.createElement("div"); hd.className = "rowx between";
+    hd.style.alignItems = "flex-start"; hd.style.gap = "10px";
+    const tr = document.createElement("div"); tr.className = "tr grow"; tr.textContent = res.text;
     hd.appendChild(tr);
     const right = document.createElement("div"); right.style.cssText = "display:flex;gap:4px;align-items:flex-start;flex:none";
-    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Nghe câu tiếng Anh";
-    spk.addEventListener("click", () => speak(engText));
+    const spk = nutLoa(engText, null);
+    spk.title = "Nghe câu tiếng Anh";
     right.appendChild(spk);
-    const sv = document.createElement("button"); sv.className = "save"; sv.textContent = "＋ Lưu";
+    const sv = document.createElement("button"); sv.className = "btn xs save"; sv.type = "button";
+    sv.innerHTML = window.Icon("plus", { size: 15 }) + '<span class="lb">Lưu</span>';
+    sv.title = "Lưu bản dịch vào sổ tay — sau đó có thể sửa lại cho đúng chuyên ngành";
     sv.addEventListener("click", () => {
       const entry = { word: text, reading: "", means: [res.text], kind: "sent" };
       if (initialSrc && initialSrc.url) entry.src = { url: initialSrc.url, title: initialSrc.title, sel: text };
       chrome.runtime.sendMessage({ type: "SAVE_WORD", entry, dict: "envi" }, () => {
-        sv.textContent = "✓ Đã lưu"; sv.classList.add("saved");
+        sv.classList.add("saved");
+        sv.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb">Đã lưu</span>';
         try { chrome.runtime.sendMessage({ type: "SYNC_SOON" }); } catch (e) {}
       });
     });
@@ -296,14 +358,12 @@ async function run(word) {
   // Câu dài / có dấu câu -> dịch thẳng
   if (w.length > 40 || /[.!?;\n]/.test(w)) { switchTab("trans"); return; }
   if (!w) {
-    resEl.className = "state";
-    resEl.textContent = "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.";
+    trangThai(resEl, "magnifying-glass", "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.");
     tabDetailEl.disabled = true;
     return;
   }
   switchTab("word");
-  resEl.className = "state";
-  resEl.textContent = "Đang tra “" + w + "”…";
+  trangThai(resEl, "spinner-gap", "Đang tra “" + w + "”…");
   const res = await lookup(w, dict);
   res.dict = dict;
   await renderWord(res);
@@ -320,8 +380,26 @@ bookEl.addEventListener("click", () => { chrome.tabs.create({ url: chrome.runtim
 function openGuide() { chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") }); }
 document.getElementById("ipaGuide").addEventListener("click", openGuide);
 
+/** Gắn icon vào khung tĩnh của HTML. */
+function gaiIcon() {
+  document.getElementById("brandMark").innerHTML = window.Icon("translate", { size: 17, weight: "solid" });
+  goEl.innerHTML = window.Icon("magnifying-glass", { size: 15 }) + '<span class="lb">Tra</span>';
+  bookEl.innerHTML = window.Icon("notebook", { size: 16 }) + '<span class="lb">Sổ tay &amp; tiến độ</span>';
+  document.getElementById("ipaGuide").innerHTML =
+    window.Icon("text-aa", { size: 16 }) + '<span class="lb">Hướng dẫn IPA</span>';
+  const gan = (el, ten, chu) => {
+    el.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb">' + chu + "</span>";
+  };
+  gan(tabWordEl, "book-open-text", "Từ vựng");
+  gan(tabDetailEl, "article", "Chi tiết");
+  gan(tabTransEl, "translate", "Dịch");
+  qEl.parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), qEl);
+}
+
 // ---- Khởi động ----
 (async () => {
+  gaiIcon();
+  veChuoiNgay();
   const word = await getInitialWord();
   if (word) qEl.value = word;
   run(word);

@@ -8,8 +8,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 
 | Thư mục | Phần | Phiên bản |
 |---------|------|-----------|
-| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v1.0 |
-| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, thông báo | v1.0.0 |
+| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v2.0 |
+| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, tiến độ, thông báo | v2.0.0 |
 | [`brand/`](brand/) | Logo (nơ-ron – vũ trụ) và script xuất icon PNG | — |
 
 ## Tính năng chính
@@ -21,6 +21,15 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Sổ tay + sổ con phân loại**, **ôn tập SRS** (1→3→7→14→30→60→120 ngày), xuất **Anki/CSV**, sao lưu JSON.
 - **Đồng bộ Google Drive** giữa máy tính và điện thoại (qua Apps Script của bạn).
 - **Android:** nhắc học hằng ngày, nhận chữ từ menu bôi đen (PROCESS_TEXT) và bảng Chia sẻ (kèm link nguồn).
+- **Theo dõi quá trình học & phần thưởng:** mục tiêu mỗi ngày, chuỗi ngày liên tiếp,
+  lịch nhiệt 17 tuần, **24 huy hiệu** — cùng cơ chế với app Denken 3 Shuu, đồng bộ
+  giữa máy tính và điện thoại. Xem `tien-do.js`.
+- **Sửa bản dịch & ghi chú:** mỗi mục trong sổ tay đều sửa lại được nghĩa cho đúng
+  chuyên ngành, kèm một ô ghi chú riêng. Bản máy dịch ban đầu được giữ lại để khôi
+  phục, và tra lại cùng một từ **không** làm mất công hiệu đính.
+- **Giao diện:** hệ thiết kế riêng (`ui.css`), sáng/tối tự động theo máy, icon
+  [Phosphor](https://phosphoricons.com) thay cho emoji; trên Android có vuốt ngang
+  đổi tab, nút Quay lại lùi từng bước và kéo xuống để làm mới (`cham-vuot.js`).
 
 ## Nguồn dữ liệu
 
@@ -34,6 +43,13 @@ NeutronDict là dự án cộng đồng, không liên kết chính thức với 
 - **Extension:** xem [extension/README.md](extension/README.md) — `chrome://extensions` → Developer mode → Load unpacked thư mục `extension/`.
 - **Android:** xem [android/README.md](android/README.md) — `npm install` → `npx cap add android` → `npx cap sync android` → `node patch-android.js` → mở Android Studio build APK.
 - **Logo:** xem [brand/README.md](brand/README.md).
+
+## Bộ icon
+
+Giao diện dùng [Phosphor Icons](https://phosphoricons.com) v2.1.1 (giấy phép MIT,
+© 2023 Phosphor Icons). Các đường vẽ SVG cần dùng được trích sẵn vào `icons.js`
+của từng phần — extension Chrome không nạp được tài nguyên từ mạng, còn app
+Android thì phải chạy được khi mất mạng.
 
 ## Giấy phép
 
