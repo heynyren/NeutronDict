@@ -352,15 +352,39 @@ function trimCache(c) {
   for (let i = 0; i < drop; i++) delete c[keys[i]];
 }
 
+/**
+ * Tóm tắt một mục đã có trong sổ tay, để popup biết mà hiện sẵn BẢN CỦA BẠN.
+ *
+ * Trả về object (vẫn "thật" khi kiểm tra truthy như bản cũ trả `true`), nhưng
+ * kèm theo ghi chú và bản nghĩa bạn đã sửa tay. Nhờ vậy tra lại một từ đã hiệu
+ * đính thì popup hiện đúng nghĩa bạn chốt, chứ không hiện lại nghĩa của từ điển
+ * rồi bắt bạn nhớ là mình đã sửa rồi.
+ */
+function tomTat(en) {
+  if (!en || en.del) return null;
+  const o = { saved: true };
+  if (en.note) o.note = en.note;
+  if (en.mEdit) { o.mEdit = 1; o.means = en.means || []; }
+  return o;
+}
+
 async function savedKeys(entries, dict) {
   const { notebook } = await chrome.storage.local.get("notebook");
   const nb = notebook || {};
   const out = {};
   (entries || []).forEach((e) => {
-    const k = (e.dict || dict) + ":" + e.word;
-    if (nb[k] && !nb[k].del) out[e.word] = true;
+    const t = tomTat(nb[(e.dict || dict) + ":" + e.word]);
+    if (t) out[e.word] = t;
   });
   return out;
+}
+
+/** Câu này đã lưu vào sổ tay chưa — và bạn đã sửa lại bản dịch của nó chưa. */
+async function daLuuCau(text) {
+  try {
+    const { notebook } = await chrome.storage.local.get("notebook");
+    return tomTat((notebook || {})["envi:" + text]);
+  } catch (e) { return null; }
 }
 
 // ==== Lưu từ vào sổ tay ====
@@ -378,17 +402,26 @@ async function saveWord(entry, dict) {
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
   if (entry.kind) e.kind = entry.kind;                        // "sent" = câu đã dịch
   if (entry.src && entry.src.url) e.src = entry.src;          // nguồn: {url, title, sel}
+  // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
+  if (entry.note != null) e.note = String(entry.note);
+  if (entry.mEdit) { e.mEdit = 1; if (entry.mOrig) e.mOrig = entry.mOrig; }
   if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ mọi thứ bạn đã tự làm
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.fav) e.fav = old.fav;
-    if (old.note) e.note = old.note;
+    if (e.note == null && old.note) e.note = old.note;
     // Bản dịch bạn đã sửa tay thì KHÔNG được để máy dịch đè lên. Tra lại cùng
     // một từ là chuyện thường xuyên; mỗi lần tra lại mà mất công hiệu đính thì
-    // chẳng ai buồn sửa nữa.
-    if (old.mEdit) { e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig; }
+    // chẳng ai buồn sửa nữa. Ngoại lệ duy nhất: chính lần lưu này là một bản
+    // sửa mới — lúc đó cái mới mới là ý bạn, bản cũ phải nhường.
+    if (!entry.mEdit && old.mEdit) {
+      e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig;
+    }
+    // Bản gốc của máy chỉ ghi một lần, ở lần sửa đầu tiên; sửa tiếp lần hai
+    // thì "gốc" vẫn phải là bản máy dịch chứ không phải bản sửa lần trước.
+    if (e.mEdit && !e.mOrig && old.mOrig) e.mOrig = old.mOrig;
   }
   nb[key] = e;
   await chrome.storage.local.set({ notebook: nb });
@@ -440,13 +473,13 @@ async function handleTranslate(rawText, from, to) {
     else {
       const ak = "auto>en:" + text;
       const ah = fresh(ak);
-      if (ah) return { ok: true, text: ah.v, target: ah.target || "en", cached: true };
+      if (ah) return { ok: true, text: ah.v, target: ah.target || "en", cached: true, saved: await daLuuCau(text) };
       let detected = null;
       try { detected = await gtxTranslateDetect(text, "en"); } catch (e) {}
       if (detected && detected.text && detected.src && !detected.src.startsWith("en")) {
         store(ak, detected.text, "en");
         await chrome.storage.local.set({ trCache: c });
-        return { ok: true, text: detected.text, target: "en" };
+        return { ok: true, text: detected.text, target: "en", saved: await daLuuCau(text) };
       }
       f = "en"; t = "vi";   // nguồn là tiếng Anh -> dịch sang tiếng Việt
     }
@@ -454,7 +487,7 @@ async function handleTranslate(rawText, from, to) {
 
   const key = f + ">" + t + ":" + text;
   const hit = fresh(key);
-  if (hit) return { ok: true, text: hit.v, target: t, cached: true };
+  if (hit) return { ok: true, text: hit.v, target: t, cached: true, saved: await daLuuCau(text) };
 
   // 1) Nhanh: gọi thẳng Google Dịch.  2) Dự phòng: Apps Script.
   let out = "";
@@ -475,7 +508,7 @@ async function handleTranslate(rawText, from, to) {
 
   store(key, out, t);
   await chrome.storage.local.set({ trCache: c });
-  return { ok: true, text: out, target: t };
+  return { ok: true, text: out, target: t, saved: await daLuuCau(text) };
 }
 
 // ==== Đồng bộ Google Drive qua Apps Script ====

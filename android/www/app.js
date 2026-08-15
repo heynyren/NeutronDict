@@ -691,6 +691,55 @@ function nutLuu(daLuu, khiLuu) {
   return b;
 }
 
+/**
+ * Nút "Sửa" đứng cạnh nút Lưu ở mọi thẻ kết quả tra.
+ *
+ * Máy dịch sai với ngữ cảnh là chuyện gặp hằng ngày, nhất là với từ chuyên
+ * ngành. Trước đây muốn chữa thì phải lưu → sang Sổ tay → tìm lại mục → sửa;
+ * bốn bước cho một việc năm giây, nên rốt cuộc chẳng ai sửa. Nay bấm một cái
+ * là mở thẳng bảng sửa quen thuộc, ngay tại chỗ vừa thấy nó sai.
+ *
+ * SỬA LÀ LƯU: mục chưa có trong sổ tay thì được tạo trước rồi mới mở bảng sửa
+ * — bảng sửa chỉ làm việc với mục đã tồn tại.
+ *
+ * @param {string} key      khoá của mục trong sổ tay
+ * @param {Function} taoMuc hàm lưu mục (dùng chung với nút Lưu)
+ * @param {Function} veLai  vẽ lại thẻ sau khi sửa xong
+ */
+function nutSuaNhanh(key, taoMuc, veLai) {
+  const b = el("button", "btn xs");
+  b.type = "button";
+  b.innerHTML = window.Icon("pencil-simple", { size: 15 }) + '<span class="lb">Sửa</span>';
+  b.addEventListener("click", async () => {
+    b.disabled = true;
+    try {
+      let nb = await getNB();
+      if (!nb[key] || nb[key].del) { await taoMuc(); nb = await getNB(); }
+      const it = nb[key];
+      if (!it) return;
+      moSua(Object.assign({ key: key }, it), "trans", veLai);
+    } finally { b.disabled = false; }
+  });
+  return b;
+}
+
+/** Hàng nút Lưu + Sửa ở góc phải mỗi thẻ. */
+function hangHanhDong(daLuu, luu, key, veLai) {
+  const acts = el("div");
+  acts.style.cssText = "display:flex;gap:6px;flex:none;align-items:flex-start";
+  acts.appendChild(nutLuu(daLuu, luu));
+  acts.appendChild(nutSuaNhanh(key, luu, veLai));
+  return acts;
+}
+
+/** Nhãn nhỏ "bản của bạn" cho mục đã hiệu đính. */
+function nhanDaSua() {
+  const t = el("span", "tag edited");
+  t.style.marginLeft = "6px";
+  t.innerHTML = window.Icon("pencil-simple", { size: 12 }) + "<span>bản của bạn</span>";
+  return t;
+}
+
 async function renderWord(entries) {
   const box = $("result");
   const nb = await getNB();
@@ -710,6 +759,17 @@ async function renderWord(entries) {
     const head = el("div", "rowx between");
     head.style.alignItems = "flex-start";
 
+    // Lưu theo hướng THẬT của mục (lookup có thể tự đổi khi chọn "Tự động"),
+    // chứ không theo giá trị đang chọn trong ô — nếu không, cùng một từ lưu hai
+    // lần ở hai hướng sẽ thành hai mục riêng.
+    const huong = en.dict || ($("dir").value === "auto" ? "envi" : $("dir").value);
+    const key = huong + ":" + en.word;
+    const daCo = (nb[key] && !nb[key].del) ? nb[key] : null;
+    // Đã sửa lần trước thì hiện thẳng bản của bạn, không hiện lại bản máy rồi
+    // bắt bạn tự nhớ là mình đã hiệu đính.
+    const nghia = ((daCo && daCo.mEdit) ? (daCo.means || []) : (en.means || []))
+      .slice(0, 6).map(meanToStr);
+
     const left = el("div");
     const w = el("span", "w", en.word);
     left.appendChild(w);
@@ -722,14 +782,10 @@ async function renderWord(entries) {
       r.style.marginLeft = "4px";
       left.appendChild(r);
     }
+    if (daCo && daCo.mEdit) left.appendChild(nhanDaSua());
     head.appendChild(left);
 
-    // Lưu theo hướng THẬT của mục (lookup có thể tự đổi khi chọn "Tự động"),
-    // chứ không theo giá trị đang chọn trong ô — nếu không, cùng một từ lưu hai
-    // lần ở hai hướng sẽ thành hai mục riêng.
-    const huong = en.dict || ($("dir").value === "auto" ? "envi" : $("dir").value);
-    const key = huong + ":" + en.word;
-    head.appendChild(nutLuu(nb[key] && !nb[key].del, async () => {
+    const luuTu = async () => {
       const laMoi = await capNhat((nb) => {
         const old2 = nb[key];
         const ne2 = { word: en.word, reading: en.reading || "", means: en.means || [], dict: huong, ts: Date.now() };
@@ -753,14 +809,16 @@ async function renderWord(entries) {
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
       syncSoon(); refreshNotifications();
-    }));
+    };
+    head.appendChild(hangHanhDong(!!daCo, luuTu, key, () => renderWord(entries)));
 
     div.appendChild(head);
-    if (en.means.length) {
+    if (nghia.length) {
       const ul = document.createElement("ul");
-      en.means.slice(0, 6).forEach((m) => ul.appendChild(el("li", null, m)));
+      nghia.forEach((m) => ul.appendChild(el("li", null, m)));
       div.appendChild(ul);
     }
+    if (daCo && daCo.note) div.appendChild(khoiGhiChu(daCo.note));
     box.appendChild(div);
   }
 }
@@ -883,9 +941,17 @@ async function showTranslate(text) {
     box.className = "trbox";
     box.innerHTML = "";
 
+    const key = "envi:" + text;
+    const nb0 = await getNB();
+    const daCo = (nb0[key] && !nb0[key].del) ? nb0[key] : null;
+    const banDich = ((daCo && daCo.mEdit) ? (daCo.means || []) : [out]).map(meanToStr);
+
     const hd = el("div", "rowx between");
     hd.style.alignItems = "flex-start";
-    hd.appendChild(el("div", "tr grow", out));
+    const traiTr = el("div", "grow");
+    traiTr.appendChild(el("div", "tr", banDich.join(" / ")));
+    if (daCo && daCo.mEdit) traiTr.appendChild(nhanDaSua());
+    hd.appendChild(traiTr);
 
     const phai = el("div", "rowx");
     phai.style.gap = "2px";
@@ -893,9 +959,7 @@ async function showTranslate(text) {
     spk.addEventListener("click", () => speak(engText));
     phai.appendChild(spk);
 
-    const key = "envi:" + text;
-    const nb0 = await getNB();
-    phai.appendChild(nutLuu(nb0[key] && !nb0[key].del, async () => {
+    const luuCau = async () => {
       const laMoi = await capNhat((nb) => {
         const oldS = nb[key];
         const neS = { word: text, reading: "", means: [out], dict: "envi", kind: "sent", ts: Date.now() };
@@ -913,10 +977,12 @@ async function showTranslate(text) {
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
       syncSoon(); refreshNotifications();
-      toast("Đã lưu — sang Sổ tay để sửa bản dịch cho đúng chuyên ngành");
-    }));
+      toast("Đã lưu — bấm Sửa nếu bản dịch chưa đúng chuyên ngành");
+    };
+    phai.appendChild(hangHanhDong(!!daCo, luuCau, key, () => showTranslate(text)));
     hd.appendChild(phai);
     box.appendChild(hd);
+    if (daCo && daCo.note) box.appendChild(khoiGhiChu(daCo.note));
     box.appendChild(el("div", "src", text));
   } catch (e) {
     trangThai(box, "warning-circle", (e && e.message) || "Không dịch được.");
@@ -940,8 +1006,14 @@ async function showTranslate(text) {
  */
 let dangSua = null;
 
-function moSua(it, tab) {
-  dangSua = { key: it.key };
+/**
+ * @param {object} it   mục sổ tay (kèm .key)
+ * @param {string} tab  "trans" (sửa nghĩa) hay "note" (ghi chú)
+ * @param {Function} [veLai] gọi lại sau khi lưu — dùng khi mở từ thẻ kết quả
+ *        tra, để thẻ đó hiện ngay bản vừa sửa thay vì phải tra lại.
+ */
+function moSua(it, tab, veLai) {
+  dangSua = { key: it.key, veLai: veLai || null };
   const laGhiChu = tab === "note";
   $("edTitle").textContent = laGhiChu ? "Ghi chú cho mục này" : "Sửa bản dịch";
   $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
@@ -983,10 +1055,12 @@ async function luuSua() {
     nb[key] = ne;
     return { doi, ne };
   });
+  const veLai = dangSua.veLai;
   if (!kq) { dongSua(); return; }
   const doiNghia = kq.doi;
   dongSua();
   drawNotebook();
+  if (veLai) { try { veLai(); } catch (e) { /* thẻ đã biến mất thì thôi */ } }
   if (session.queue.length && session.queue[0] && session.queue[0].key === key) {
     Object.assign(session.queue[0], kq.ne);
     showCard(true);

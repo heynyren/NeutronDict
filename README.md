@@ -29,6 +29,9 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Sửa bản dịch & ghi chú:** mỗi mục trong sổ tay đều sửa lại được nghĩa cho đúng
   chuyên ngành, kèm một ô ghi chú riêng. Bản máy dịch ban đầu được giữ lại để khôi
   phục, và tra lại cùng một từ **không** làm mất công hiệu đính.
+- **Sửa nghĩa ngay trong popup:** thấy máy dịch sai ngữ cảnh thì chữa tại chỗ, không
+  phải mở Sổ tay tìm lại — sửa được cả nghĩa của từ lẫn bản dịch câu, sửa là lưu
+  luôn, ô ghi chú nằm ngay cạnh. Bản Android mở thẳng bảng sửa từ thẻ kết quả.
 - **Giao diện:** hệ thiết kế riêng (`ui.css`), sáng/tối tự động theo máy, icon
   [Phosphor](https://phosphoricons.com) thay cho emoji; trên Android có vuốt ngang
   đổi tab, nút Quay lại lùi từng bước và kéo xuống để làm mới (`cham-vuot.js`).
