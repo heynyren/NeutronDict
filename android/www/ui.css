@@ -663,7 +663,12 @@ select { cursor: pointer; }
 .sheet {
   position: fixed;
   inset: 0;
-  z-index: 240;
+  /* Phải nằm TRÊN lớp phủ của buổi học (z-index 260 trong notebook.html), nếu
+     không thì bấm "Sửa bản dịch" / "Ghi chú" giữa buổi học sẽ mở bảng ra ở phía
+     sau tấm phủ kín — bảng có mở thật, chỉ là không ai thấy gì. Mà giữa buổi ôn
+     mới đúng là lúc hay nhận ra nghĩa dịch sai nhất.
+     Thứ tự các lớp: phiếu 280 < chúc mừng 300 < toast 400. */
+  z-index: 280;
   display: none;
   align-items: center;
   justify-content: center;

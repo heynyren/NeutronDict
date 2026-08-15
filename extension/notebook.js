@@ -459,6 +459,14 @@ async function luuSua() {
   if (doiNghia === null) { dongSua(); return; }
   dongSua();
   await load();
+  // Sửa ngay giữa buổi học thì thẻ đang mở phải đổi theo luôn: `session.queue`
+  // giữ một bản chụp của mục, `load()` không đụng tới nó, nên không cập nhật ở
+  // đây thì thẻ vẫn nằm đó với nghĩa cũ — đúng cái nghĩa vừa sửa vì nó sai.
+  const dangHoc = session.queue[0];
+  if (dangHoc && dangHoc.key === key) {
+    const s2 = await getStore();
+    if (s2.nb[key]) { Object.assign(dangHoc, s2.nb[key]); showCard(true); }
+  }
   syncSoon();
   mung(await theoDoi.xetHuyHieu());
   toast(doiNghia ? "Đã lưu bản dịch của bạn" : "Đã lưu ghi chú");
@@ -782,9 +790,15 @@ function startStudy() {
   showCard();
 }
 
-function showCard() {
+/**
+ * @param {boolean} [giuLat] thẻ đang lật rồi thì vẽ lại luôn ở trạng thái đã
+ *   lật. Dùng khi sửa nghĩa ngay giữa buổi học: úp thẻ lại lúc đó chẳng khác
+ *   gì bắt đoán lại một câu vừa mới đọc đáp án.
+ */
+function showCard(giuLat) {
   const it = theCardHienTai();
   if (!it) { finishStudy(); return; }
+  const daLat = giuLat && $("stGrade").style.display !== "none";
 
   $("stBody").style.display = "";
   $("stDone").style.display = "none";
@@ -804,6 +818,7 @@ function showCard() {
   $("stMyNote").innerHTML = "";
   $("stReveal").style.display = "";
   $("stGrade").style.display = "none";
+  if (daLat) revealCard();
 }
 
 function revealCard() {
