@@ -8,8 +8,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 
 | Thư mục | Phần | Phiên bản |
 |---------|------|-----------|
-| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v2.0 |
-| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, tiến độ, thông báo | v2.0.0 |
+| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v2.1 |
+| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, tiến độ, thông báo | v2.0.1 |
 | [`brand/`](brand/) | Logo (nơ-ron – vũ trụ) và script xuất icon PNG | — |
 
 ## Tính năng chính

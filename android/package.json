@@ -1,6 +1,6 @@
 {
   "name": "neutrondict-app",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "NeutronDict — tra từ tiếng Anh, phiên âm IPA, sổ tay và học SRS trên Android",
   "private": true,
   "scripts": {

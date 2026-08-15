@@ -94,6 +94,39 @@ function meanToStr(m) {
 }
 
 /* ==================================================================== */
+/* Một lượt ghi tại một thời điểm                                       */
+/* ==================================================================== */
+
+/**
+ * Mọi thao tác sửa sổ tay đều là "đọc cả sổ → sửa một mục → ghi cả sổ". Chạy
+ * hai lượt như thế chồng nhau — đúng cái xảy ra khi bấm "Nhớ" dồn dập — thì
+ * lượt sau đọc trước khi lượt trước kịp ghi, nên nó ghi đè lại bản CŨ của mục
+ * kia. Lượt chấm biến mất ngay lúc đó, và chỉ lộ ra vài giây sau khi màn hình
+ * đọc lại từ đĩa: số mục đến hạn tụt xuống rồi vọt lên như cũ.
+ *
+ * Nên tất cả các lượt sửa xếp hàng đi qua đây, lượt sau chờ lượt trước xong.
+ * Các lượt CHỈ ĐỌC không đi qua hàng đợi: chậm vài mili giây không sao, mà cho
+ * chúng chen vào thì có ngày chúng làm nghẽn cả hàng.
+ */
+let hangDoiGhi = Promise.resolve();
+function suaSoTay(fn) {
+  // .then(fn, fn) để một lượt ghi hỏng không làm kẹt mọi lượt ghi sau nó.
+  const chay = hangDoiGhi.then(fn, fn);
+  hangDoiGhi = chay.then(() => {}, () => {});
+  return chay;
+}
+
+/** Đọc sổ tay, đưa cho fn sửa, rồi ghi lại — trọn vẹn trong một lượt. */
+function capNhat(fn) {
+  return suaSoTay(async () => {
+    const s = await getStore();
+    const kq = await fn(s.nb, s.decks);
+    await chrome.storage.local.set({ notebook: s.nb, decks: s.decks });
+    return kq;
+  });
+}
+
+/* ==================================================================== */
 /* Sóng học tập (lặp lại ngắt quãng)                                    */
 /* ==================================================================== */
 
@@ -120,21 +153,21 @@ function dueList(scopeList) {
   return scopeList.filter((it) => isDue(it, now));
 }
 async function gradeWord(key, remembered) {
-  const s = await getStore();
-  const e = s.nb[key];
-  if (!e) return;
-  const now = Date.now();
-  const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
-  let lv, due;
-  if (remembered) {
-    lv = Math.min(cur + 1, SRS_STEPS.length - 1);
-    due = dueInDays(SRS_STEPS[lv]);
-  } else {
-    lv = -1;                 // rơi về đầu
-    due = now;               // học lại ngay trong buổi
-  }
-  s.nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
-  await setNotebook(s.nb);
+  await capNhat((nb) => {
+    const e = nb[key];
+    if (!e) return;
+    const now = Date.now();
+    const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
+    let lv, due;
+    if (remembered) {
+      lv = Math.min(cur + 1, SRS_STEPS.length - 1);
+      due = dueInDays(SRS_STEPS[lv]);
+    } else {
+      lv = -1;                 // rơi về đầu
+      due = now;               // học lại ngay trong buổi
+    }
+    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
+  });
 }
 
 /* ==================================================================== */
@@ -185,18 +218,22 @@ async function veTienDo() {
 /* ==================================================================== */
 
 async function load() {
+  // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
+  // Đi qua hàng đợi vì đây cũng là một lượt ghi, và load() hay chạy ngay sau
+  // một lượt chấm bài.
+  let daSuaCu = false;
+  await capNhat((nb) => {
+    for (const k in nb) {
+      const e = nb[k];
+      if (e && Array.isArray(e.means)) {
+        const nm = e.means.map(meanToStr);
+        if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+      }
+    }
+  });
+  if (daSuaCu) syncSoon();
   const s = await getStore();
   decks = s.decks;
-  // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
-  let fixed = false;
-  for (const k in s.nb) {
-    const e = s.nb[k];
-    if (e && Array.isArray(e.means)) {
-      const nm = e.means.map(meanToStr);
-      if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; fixed = true; }
-    }
-  }
-  if (fixed) { await setNotebook(s.nb); syncSoon(); }
   items = Object.entries(s.nb).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   // Sổ đang chọn đã bị xoá -> quay về Tất cả.
@@ -276,32 +313,32 @@ async function deleteDeck() {
   if (current === ALL || current === NONE) return;
   const nm = deckName(current);
   if (!confirm('Xoá sổ "' + nm + '"? Các mục trong sổ sẽ chuyển về "Chưa phân loại", không bị mất.')) return;
-  const s = await getStore();
-  const now = Date.now();
-  for (const key in s.nb) {
-    if (s.nb[key].deck === current) {
-      const e = Object.assign({}, s.nb[key], { ts: now });
-      delete e.deck;
-      s.nb[key] = e;
+  const cu = current;
+  await capNhat((nb, dks) => {
+    const now = Date.now();
+    for (const key in nb) {
+      if (nb[key].deck === cu) {
+        const e = Object.assign({}, nb[key], { ts: now });
+        delete e.deck;
+        nb[key] = e;
+      }
     }
-  }
-  s.decks[current] = { id: current, name: nm, del: true, ts: now };   // bia mộ
-  await setNotebook(s.nb);
-  await setDecks(s.decks);
+    dks[cu] = { id: cu, name: nm, del: true, ts: now };   // bia mộ
+  });
   current = ALL;
   await load();
   syncSoon();
 }
 
 async function moveWord(key, deckId) {
-  const s = await getStore();
-  const e = s.nb[key];
-  if (!e) return;
-  const ne = Object.assign({}, e, { ts: Date.now() });
-  if (deckId === NONE) delete ne.deck;
-  else ne.deck = deckId;
-  s.nb[key] = ne;
-  await setNotebook(s.nb);
+  await capNhat((nb) => {
+    const e = nb[key];
+    if (!e) return;
+    const ne = Object.assign({}, e, { ts: Date.now() });
+    if (deckId === NONE) delete ne.deck;
+    else ne.deck = deckId;
+    nb[key] = ne;
+  });
   await load();
   syncSoon();
 }
@@ -399,27 +436,27 @@ function dongSua() {
 async function luuSua() {
   if (!dangSua) return;
   const key = dangSua.key;
-  const s = await getStore();
-  const e = s.nb[key];
-  if (!e || e.del) { dongSua(); return; }
-
   const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
   const ghiChu = $("edNote").value.trim();
-  const cu = (e.means || []).map(meanToStr);
-  const doiNghia = dong.join("\n") !== cu.join("\n");
 
-  const ne = Object.assign({}, e, { ts: Date.now() });
-  if (doiNghia) {
-    // Cất bản gốc lại đúng MỘT lần: lần sửa thứ hai không được đè bản gốc bằng
-    // chính bản sửa lần trước, nếu không thì nút khôi phục thành vô nghĩa.
-    if (!ne.mOrig) ne.mOrig = cu;
-    ne.means = dong;
-    ne.mEdit = 1;
-  }
-  if (ghiChu) ne.note = ghiChu; else delete ne.note;
-
-  s.nb[key] = ne;
-  await setNotebook(s.nb);
+  const doiNghia = await capNhat((nb) => {
+    const e = nb[key];
+    if (!e || e.del) return null;
+    const cu = (e.means || []).map(meanToStr);
+    const doi = dong.join("\n") !== cu.join("\n");
+    const ne = Object.assign({}, e, { ts: Date.now() });
+    if (doi) {
+      // Cất bản gốc lại đúng MỘT lần: lần sửa thứ hai không được đè bản gốc bằng
+      // chính bản sửa lần trước, nếu không thì nút khôi phục thành vô nghĩa.
+      if (!ne.mOrig) ne.mOrig = cu;
+      ne.means = dong;
+      ne.mEdit = 1;
+    }
+    if (ghiChu) ne.note = ghiChu; else delete ne.note;
+    nb[key] = ne;
+    return doi;
+  });
+  if (doiNghia === null) { dongSua(); return; }
   dongSua();
   await load();
   syncSoon();
@@ -445,14 +482,15 @@ $("editSheet").addEventListener("click", (e) => { if (e.target.id === "editSheet
 /* ==================================================================== */
 
 async function setFav(key, val, sauDo) {
-  const s = await getStore();
-  const e = s.nb[key];
-  if (!e || e.del) return 0;
-  const next = (e.fav === val) ? 0 : val;
-  const ne = Object.assign({}, e, { ts: Date.now() });
-  if (next) ne.fav = next; else delete ne.fav;
-  s.nb[key] = ne;
-  await setNotebook(s.nb);
+  const next = await capNhat((nb) => {
+    const e = nb[key];
+    if (!e || e.del) return 0;
+    const moi = (e.fav === val) ? 0 : val;
+    const ne = Object.assign({}, e, { ts: Date.now() });
+    if (moi) ne.fav = moi; else delete ne.fav;
+    nb[key] = ne;
+    return moi;
+  });
   syncSoon();
   if (sauDo) sauDo(next);
   return next;
@@ -669,9 +707,9 @@ function draw() {
 
     const del = nutIcon("trash", "Xoá khỏi sổ tay", "danger", 17);
     del.addEventListener("click", async () => {
-      const s = await getStore();
-      s.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
-      await setNotebook(s.nb);
+      await capNhat((nb) => {
+        nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+      });
       await load();
       syncSoon();
       toast("Đã xoá “" + it.word.slice(0, 24) + "”");
@@ -809,12 +847,11 @@ async function grade(remembered) {
 async function deleteCurrentCard() {
   const it = theCardHienTai();
   if (!it) return;
-  const store = await getStore();
-  const original = store.nb[it.key];
-  lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-
-  store.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
-  await setNotebook(store.nb);
+  await capNhat((nb) => {
+    const original = nb[it.key];
+    lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
+    nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+  });
 
   // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
   session.queue = session.queue.filter((x) => x.key !== it.key);
@@ -828,9 +865,10 @@ async function deleteCurrentCard() {
 
 async function undoDelete() {
   if (!lastDeleted) return;
-  const store = await getStore();
-  store.nb[lastDeleted.key] = Object.assign({}, lastDeleted.entry, { ts: Date.now() });
-  await setNotebook(store.nb);
+  const cu = lastDeleted;
+  await capNhat((nb) => {
+    nb[cu.key] = Object.assign({}, cu.entry, { ts: Date.now() });
+  });
   lastDeleted = null;
   $("stUndo").style.display = "none";
   await load();
@@ -958,12 +996,13 @@ function mergeLocal(a, b) {
 async function restoreJson(file) {
   try {
     const imp = JSON.parse(await file.text());
-    const s = await getStore();
     // Hỗ trợ cả file cũ (chỉ là object notebook) lẫn file mới {notebook,decks,hoc}.
     const impNb = (imp && imp.notebook !== undefined) ? (imp.notebook || {}) : (imp || {});
     const impDecks = (imp && imp.decks) || {};
-    await setNotebook(mergeLocal(s.nb, impNb));
-    await setDecks(mergeLocal(s.decks, impDecks));
+    await capNhat((nb, dks) => {
+      Object.assign(nb, mergeLocal(nb, impNb));
+      Object.assign(dks, mergeLocal(dks, impDecks));
+    });
     if (imp && imp.hoc) {
       const cur = (await chrome.storage.local.get("hoc")).hoc;
       const gop = window.TienDo.tron(cur, imp.hoc);
@@ -986,10 +1025,10 @@ async function clearAll() {
   const where = current === ALL ? "toàn bộ sổ tay"
     : ('mục "' + (current === NONE ? "Chưa phân loại" : (deckName(current) || "đang chọn")) + '"');
   if (!confirm("Xoá " + list.length + " mục trong " + where + "? Việc xoá cũng đồng bộ sang máy khác.")) return;
-  const s = await getStore();
-  const now = Date.now();
-  for (const it of list) s.nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: now };
-  await setNotebook(s.nb);
+  await capNhat((nb) => {
+    const now = Date.now();
+    for (const it of list) nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: now };
+  });
   await load();
   syncSoon();
 }
