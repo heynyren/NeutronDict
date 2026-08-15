@@ -1,6 +1,6 @@
 {
   "name": "neutrondict-app",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "NeutronDict — tra từ tiếng Anh, phiên âm IPA, sổ tay và học SRS trên Android",
   "private": true,
   "scripts": {
@@ -8,11 +8,12 @@
     "open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor-community/text-to-speech": "^4.0.0",
     "@capacitor/android": "^6.0.0",
+    "@capacitor/app": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/local-notifications": "^6.0.0",
-    "@capacitor/preferences": "^6.0.0",
-    "@capacitor-community/text-to-speech": "^4.0.0"
+    "@capacitor/preferences": "^6.0.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0"

@@ -1,5 +1,15 @@
-/* Popup tra nhanh hiện ngay tại chỗ bôi đen (chỉ trên trang web thường).
-   Bấm chuột ra ngoài là tắt. Tắt tuỳ chọn trong trang Sổ tay -> ⚙ Cài đặt. */
+/**
+ * Popup tra nhanh hiện ngay tại chỗ bôi đen (chỉ trên trang web thường).
+ * Bấm chuột ra ngoài là tắt. Tắt tuỳ chọn trong trang Sổ tay → Cài đặt tra nhanh.
+ *
+ * Popup này sống trong shadow DOM nên KHÔNG nạp được ui.css của app — trang web
+ * bên dưới không có file đó. Vì vậy thẻ màu và kiểu dáng phải chép lại vào đây,
+ * nhưng chép đúng con số của ui.css để hai chỗ nhìn vẫn là một app. Đổi màu ở
+ * ui.css thì nhớ đổi cả ở đây.
+ *
+ * Cũng vì nằm đè lên trang của người ta nên popup này phải tự quyết sáng/tối
+ * theo cài đặt hệ điều hành, không ăn theo trang bên dưới được.
+ */
 (() => {
   const DEFAULTS = { inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400 };
   let S = Object.assign({}, DEFAULTS);
@@ -24,29 +34,57 @@
     const style = document.createElement("style");
     style.textContent = `
       :host { all: initial; }
-      .box { width: 340px; max-height: 360px; overflow-y: auto; background:#fff; color:#1c2430;
-        font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        border:1px solid #e6e9ef; border-radius:12px; box-shadow:0 8px 28px rgba(124,58,237,.28); padding:10px 12px; }
-      .st { color:#6b7684; font-size:13px; padding:6px 2px; }
-      .en { padding:7px 0; border-bottom:1px solid #eef1f5; }
-      .en:last-child { border-bottom:none; }
-      .hd { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
-      .w { font-size:19px; font-weight:700; }
-      .rd { color:#7c3aed; font-size:12.5px; margin-left:5px; font-weight:600; }
-      .spk { border:none; background:none; font-size:14px; cursor:pointer; padding:0 3px; }
-      ul { margin:4px 0 0; padding-left:18px; font-size:13.5px; }
-      li { margin:1px 0; }
-      .sv { flex:none; border:1px solid #7c3aed; color:#7c3aed; background:#fff; border-radius:7px;
-        font-size:12px; font-weight:700; padding:4px 8px; cursor:pointer; white-space:nowrap; }
-      .sv.on { border-color:#1a9d5a; color:#1a9d5a; background:#f0faf4; cursor:default; }
-      .tr { font-size:14.5px; line-height:1.55; }
-      .src { color:#6b7684; font-size:12.5px; margin-top:7px; padding-top:6px; border-top:1px dashed #e6e9ef;
-        max-height:70px; overflow:hidden; }
-      .lbl { display:inline-block; font-size:10.5px; font-weight:700; color:#7c3aed; border:1px solid #e4d4ff;
-        background:#f6f1ff; border-radius:5px; padding:0 6px; margin-bottom:6px; }
-      .defs { margin-top:7px; padding-top:6px; border-top:1px dashed #e6e9ef; font-size:12.5px; color:#3b3350; }
-      .pos { display:inline-block; font-size:11px; font-weight:700; color:#9333ea; margin-right:4px; text-transform:lowercase; }
-      .ex { color:#6b7684; font-style:italic; }
+      * { box-sizing: border-box; }
+      .box {
+        --surface: #fff; --surface-2: #f4f1fb; --ink: #1a1430;
+        --ink-2: rgba(26,20,48,.68); --ink-3: rgba(26,20,48,.45);
+        --line: rgba(26,20,48,.09); --accent: #6d3fd4; --accent-2: #a855f7;
+        --accent-soft: rgba(109,63,212,.10);
+        --good: #12855b; --good-soft: rgba(18,133,91,.12);
+        width: 348px; max-height: 360px; overflow-y: auto;
+        background: var(--surface); color: var(--ink);
+        font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        border-radius: 18px;
+        box-shadow: 0 2px 4px rgba(16,24,40,.06), 0 14px 40px rgba(109,63,212,.24);
+        padding: 12px 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .box {
+          --surface: #191428; --surface-2: #221b35; --ink: #f2f4f8;
+          --ink-2: rgba(238,242,250,.72); --ink-3: rgba(238,242,250,.44);
+          --line: rgba(255,255,255,.09); --accent: #b48cff; --accent-2: #d9a6ff;
+          --accent-soft: rgba(180,140,255,.16);
+          --good: #2fd18a; --good-soft: rgba(47,209,138,.14);
+          box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 16px 44px rgba(0,0,0,.6);
+        }
+      }
+      svg { display: inline-block; vertical-align: -.18em; flex: none; fill: currentColor; }
+      .st { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 13px; padding: 8px 2px; }
+      .en { padding: 9px 0; border-bottom: 1px solid var(--line); }
+      .en:last-child { border-bottom: none; }
+      .hd { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+      .w { font-size: 20px; font-weight: 750; letter-spacing: -.01em; }
+      .rd { color: var(--accent); font-size: 13px; font-weight: 600; margin-left: 4px; }
+      .spk { border: none; background: none; color: var(--ink-3); cursor: pointer;
+        padding: 4px; border-radius: 8px; display: inline-flex; }
+      .spk:hover { color: var(--ink); background: var(--surface-2); }
+      ul { margin: 5px 0 0; padding-left: 19px; font-size: 13.5px; }
+      li { margin: 2px 0; }
+      .sv { flex: none; display: inline-flex; align-items: center; gap: 5px;
+        border: 1px solid var(--line); color: var(--accent); background: var(--surface);
+        border-radius: 999px; font-size: 12px; font-weight: 650; padding: 5px 11px;
+        cursor: pointer; white-space: nowrap; font-family: inherit; }
+      .sv:hover { background: var(--accent-soft); }
+      .sv.on { border-color: transparent; color: var(--good); background: var(--good-soft); cursor: default; }
+      .tr { font-size: 15px; line-height: 1.55; }
+      .src { color: var(--ink-2); font-size: 12.5px; margin-top: 9px; padding: 9px 11px;
+        background: var(--surface-2); border-radius: 12px; max-height: 76px; overflow: hidden; }
+      .lbl { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
+        color: var(--accent); background: var(--accent-soft); border-radius: 8px;
+        padding: 3px 8px; margin-bottom: 8px; }
+      .defs { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
+      .pos { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent-2); margin-right: 5px; text-transform: lowercase; }
+      .ex { color: var(--ink-3); font-style: italic; }
     `;
     const box = document.createElement("div");
     box.className = "box";
@@ -86,9 +124,9 @@
   function place() {
     if (!host || !boxEl || !host.isConnected) return;
     boxEl.style.maxHeight = "none";
-    boxEl.style.width = Math.min(340, innerWidth - 16) + "px";
+    boxEl.style.width = Math.min(348, innerWidth - 16) + "px";
     const natural = boxEl.offsetHeight || boxEl.scrollHeight || 0;
-    const p = computePos({ ax: anchor.x, ay: anchor.y, w: 340, h: natural, vw: innerWidth, vh: innerHeight });
+    const p = computePos({ ax: anchor.x, ay: anchor.y, w: 348, h: natural, vw: innerWidth, vh: innerHeight });
     boxEl.style.width = p.w + "px";
     boxEl.style.maxHeight = Math.min(360, p.maxH) + "px";
     host.style.left = p.x + "px";
@@ -97,6 +135,39 @@
 
   // Phát âm: ưu tiên file audio thật của từ điển, không có thì dùng giọng máy (en-US).
   // Giữ sẵn (preload) audio để bấm loa là phát ngay.
+  /** Icon Phosphor (icons.js được nạp cùng content script này). */
+  function ic(ten, size, weight) {
+    const sp = document.createElement("span");
+    sp.style.display = "inline-flex";
+    sp.innerHTML = (window.Icon ? window.Icon(ten, { size: size || 16, weight: weight }) : "");
+    return sp.firstChild || sp;
+  }
+
+  /** Dòng trạng thái có icon: "đang tra…", "không tìm thấy…". */
+  function trangThai(chu, iconTen) {
+    const d = document.createElement("div");
+    d.className = "st";
+    const i = ic(iconTen || "spinner-gap", 16);
+    if (i && !iconTen) i.animate(
+      [{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }],
+      { duration: 900, iterations: Infinity }
+    );
+    d.appendChild(i);
+    const s2 = document.createElement("span");
+    s2.textContent = chu;
+    d.appendChild(s2);
+    return d;
+  }
+
+  /** Nút loa nhỏ. */
+  function nutLoa(text, audio) {
+    const b = document.createElement("button");
+    b.className = "spk"; b.type = "button"; b.title = "Phát âm";
+    b.appendChild(ic("speaker-high", 16));
+    b.addEventListener("click", (e) => { e.stopPropagation(); speak(text, audio); });
+    return b;
+  }
+
   const _audioCache = new Map();
   function getAudio(url) {
     let a = _audioCache.get(url);
@@ -130,10 +201,8 @@
     box.textContent = "";
     const entries = (res && res.entries) || [];
     if (!entries.length) {
-      const d = document.createElement("div");
-      d.className = "st";
-      d.textContent = res && res.error ? ("Lỗi: " + res.error) : "Không tìm thấy nghĩa.";
-      box.appendChild(d);
+      box.appendChild(trangThai(
+        res && res.error ? ("Lỗi: " + res.error) : "Không tìm thấy nghĩa.", "warning-circle"));
       place(); requestAnimationFrame(place);
       return;
     }
@@ -143,19 +212,22 @@
       const hd = document.createElement("div"); hd.className = "hd";
       const left = document.createElement("div");
       const w = document.createElement("span"); w.className = "w"; w.textContent = en.word; left.appendChild(w);
-      const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊";
-      spk.addEventListener("click", (e) => { e.stopPropagation(); speak(en.word, en.audio); }); left.appendChild(spk);
+      left.appendChild(nutLoa(en.word, en.audio));
       if (en.reading) { const r = document.createElement("span"); r.className = "rd"; r.textContent = en.reading; left.appendChild(r); }
       hd.appendChild(left);
-      const sv = document.createElement("button"); sv.className = "sv";
-      if (res.saved && res.saved[en.word]) { sv.textContent = "✓ Đã lưu"; sv.classList.add("on"); }
+      const sv = document.createElement("button"); sv.className = "sv"; sv.type = "button";
+      const daLuu = () => {
+        sv.classList.add("on"); sv.textContent = "";
+        sv.appendChild(ic("check", 14));
+        const t = document.createElement("span"); t.textContent = "Đã lưu"; sv.appendChild(t);
+      };
+      if (res.saved && res.saved[en.word]) daLuu();
       else {
-        sv.textContent = "＋ Lưu";
+        sv.appendChild(ic("plus", 14));
+        const t = document.createElement("span"); t.textContent = "Lưu"; sv.appendChild(t);
         sv.addEventListener("click", (e) => {
           e.stopPropagation();
-          chrome.runtime.sendMessage({ type: "SAVE_WORD", entry: Object.assign({}, en, { src: pageSrc(word) }), dict: res.dict || "envi" }, () => {
-            sv.textContent = "✓ Đã lưu"; sv.classList.add("on");
-          });
+          chrome.runtime.sendMessage({ type: "SAVE_WORD", entry: Object.assign({}, en, { src: pageSrc(word) }), dict: res.dict || "envi" }, daLuu);
         });
       }
       hd.appendChild(sv);
@@ -175,13 +247,12 @@
   function renderTranslate(box, res, text) {
     box.textContent = "";
     if (!res || !res.ok) {
-      const d = document.createElement("div");
-      d.className = "st";
-      d.textContent = (res && res.error) || "Không dịch được.";
-      box.appendChild(d);
+      box.appendChild(trangThai((res && res.error) || "Không dịch được.", "warning-circle"));
       return;
     }
-    const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.textContent = "DỊCH CÂU";
+    const lbl = document.createElement("div"); lbl.className = "lbl";
+    lbl.appendChild(ic("translate", 13));
+    const lt = document.createElement("span"); lt.textContent = "Dịch câu"; lbl.appendChild(lt);
     box.appendChild(lbl);
 
     const engText = res.target === "en" ? res.text : text;   // phần tiếng Anh để đọc
@@ -189,17 +260,24 @@
     const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = res.text;
     hd.appendChild(tr);
     const right = document.createElement("div"); right.style.cssText = "display:flex;gap:3px;align-items:flex-start;flex:none";
-    const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊"; spk.title = "Nghe câu tiếng Anh";
-    spk.addEventListener("click", (e) => { e.stopPropagation(); speak(engText); });
+    const spk = nutLoa(engText, null);
+    spk.title = "Nghe câu tiếng Anh";
     right.appendChild(spk);
-    const sv = document.createElement("button"); sv.className = "sv"; sv.textContent = "＋ Lưu";
+    const sv = document.createElement("button"); sv.className = "sv"; sv.type = "button";
+    sv.appendChild(ic("plus", 14));
+    const svt = document.createElement("span"); svt.textContent = "Lưu"; sv.appendChild(svt);
+    sv.title = "Lưu vào sổ tay — sau đó sửa lại bản dịch cho đúng chuyên ngành ngay trong Sổ tay";
     sv.addEventListener("click", (e) => {
       e.stopPropagation();
       chrome.runtime.sendMessage({
         type: "SAVE_WORD",
         entry: { word: text, reading: "", means: [res.text], kind: "sent", src: pageSrc(text) },
         dict: "envi"
-      }, () => { sv.textContent = "✓ Đã lưu"; sv.classList.add("on"); });
+      }, () => {
+        sv.classList.add("on"); sv.textContent = "";
+        sv.appendChild(ic("check", 14));
+        const t = document.createElement("span"); t.textContent = "Đã lưu"; sv.appendChild(t);
+      });
     });
     right.appendChild(sv);
     hd.appendChild(right);
@@ -213,24 +291,22 @@
 
   function triggerTranslate(x, y, text) {
     const box = ensureHost(x, y);
-    const st = document.createElement("div"); st.className = "st";
-    st.textContent = "Đang dịch…";
+    const st = trangThai("Đang dịch…");
     box.appendChild(st);
     chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "auto", to: "" }, (res) => {
       if (!host) return;
-      if (chrome.runtime.lastError) { st.textContent = "Lỗi: " + chrome.runtime.lastError.message; return; }
+      if (chrome.runtime.lastError) { st.replaceWith(trangThai("Lỗi: " + chrome.runtime.lastError.message, "warning-circle")); return; }
       renderTranslate(box, res || {}, text);
     });
   }
 
   function trigger(x, y, text) {
     const box = ensureHost(x, y);
-    const st = document.createElement("div"); st.className = "st";
-    st.textContent = "Đang tra “" + text + "”…";
+    const st = trangThai("Đang tra “" + text + "”…");
     box.appendChild(st);
     chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "auto" }, (res) => {
       if (!host) return;
-      if (chrome.runtime.lastError) { st.textContent = "Lỗi: " + chrome.runtime.lastError.message; return; }
+      if (chrome.runtime.lastError) { st.replaceWith(trangThai("Lỗi: " + chrome.runtime.lastError.message, "warning-circle")); return; }
       render(box, res || {}, text);
     });
   }

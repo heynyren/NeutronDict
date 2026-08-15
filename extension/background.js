@@ -1,3 +1,5 @@
+importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
+
 // NeutronDict — service worker (nền).
 // Tra từ tiếng Anh: nghĩa tiếng Việt (Google Dịch) + phiên âm IPA, phát âm, định nghĩa &
 // ví dụ tiếng Anh (Free Dictionary API). Không dùng dữ liệu Hán tự.
@@ -376,14 +378,41 @@ async function saveWord(entry, dict) {
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
   if (entry.kind) e.kind = entry.kind;                        // "sent" = câu đã dịch
   if (entry.src && entry.src.url) e.src = entry.src;          // nguồn: {url, title, sel}
-  if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ phân loại & tiến độ học
+  if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ mọi thứ bạn đã tự làm
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
+    if (old.fav) e.fav = old.fav;
+    if (old.note) e.note = old.note;
+    // Bản dịch bạn đã sửa tay thì KHÔNG được để máy dịch đè lên. Tra lại cùng
+    // một từ là chuyện thường xuyên; mỗi lần tra lại mà mất công hiệu đính thì
+    // chẳng ai buồn sửa nữa.
+    if (old.mEdit) { e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig; }
   }
   nb[key] = e;
   await chrome.storage.local.set({ notebook: nb });
+  // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
+  // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
+  if (!old || old.del) await ghiNhanLuu();
+}
+
+/**
+ * Cộng một mục vào nhật ký học của hôm nay.
+ *
+ * Service worker không dùng được bộ theo dõi trong tien-do.js (nó cần DOM để vẽ),
+ * nên chỗ này ghi thẳng vào cùng cấu trúc dữ liệu — vẫn qua TienDo.chuanHoa để
+ * không bao giờ ghi ra hình dạng lạ.
+ */
+async function ghiNhanLuu() {
+  try {
+    const { hoc } = await chrome.storage.local.get("hoc");
+    const d = self.TienDo.chuanHoa(hoc);
+    const iso = self.TienDo.homNay();
+    if (!d.log[iso]) d.log[iso] = { r: 0, y: 0, n: 0, s: 0, sm: 0, km: 0 };
+    d.log[iso].s += 1;
+    await chrome.storage.local.set({ hoc: d });
+  } catch (e) { /* không ghi được nhật ký thì cũng không được làm hỏng việc lưu từ */ }
 }
 
 // ==== Dịch câu: gọi thẳng Google Dịch (nhanh), Apps Script làm dự phòng ====
@@ -483,23 +512,39 @@ function syncNow() {
 async function doSync() {
   const resp = await driveRequest({ action: "load" });
   const data = (resp && resp.data) || {};
-  let remoteNb, remoteDecks;
-  if (data && typeof data === "object" && data.notebook !== undefined) { remoteNb = data.notebook || {}; remoteDecks = data.decks || {}; }
-  else { remoteNb = data || {}; remoteDecks = {}; }
+  let remoteNb, remoteDecks, remoteHoc;
+  if (data && typeof data === "object" && data.notebook !== undefined) {
+    remoteNb = data.notebook || {};
+    remoteDecks = data.decks || {};
+    remoteHoc = data.hoc || null;
+  } else {
+    remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
+  }
 
-  const store = await chrome.storage.local.get(["notebook", "decks"]);
+  const store = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
   const mergedNb = mergeByTs(store.notebook || {}, remoteNb);
   const mergedDecks = mergeByTs(store.decks || {}, remoteDecks);
+  // Tiến độ học KHÔNG trộn theo kiểu "bản mới hơn thắng" như sổ tay — xem
+  // TienDo.tron() để biết vì sao (tóm tắt: 8 lượt trên điện thoại và 5 lượt
+  // trên máy tính đều là lượt thật, không bên nào được xoá bên nào).
+  const mergedHoc = self.TienDo.tron(store.hoc, remoteHoc);
 
-  await driveRequest({ action: "save", data: { notebook: mergedNb, decks: mergedDecks } });
+  await driveRequest({
+    action: "save",
+    data: { notebook: mergedNb, decks: mergedDecks, hoc: mergedHoc }
+  });
 
-  const fresh = await chrome.storage.local.get(["notebook", "decks"]);
+  // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa
+  // (phân loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
+  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
   const finalNb = mergeByTs(fresh.notebook || {}, mergedNb);
   const finalDecks = mergeByTs(fresh.decks || {}, mergedDecks);
-  await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks });
+  const finalHoc = self.TienDo.tron(fresh.hoc, mergedHoc);
+  await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc });
 
   if (JSON.stringify(finalNb) !== JSON.stringify(mergedNb) ||
-      JSON.stringify(finalDecks) !== JSON.stringify(mergedDecks)) {
+      JSON.stringify(finalDecks) !== JSON.stringify(mergedDecks) ||
+      JSON.stringify(finalHoc) !== JSON.stringify(mergedHoc)) {
     scheduleSync();
   }
   return countActive(finalNb);

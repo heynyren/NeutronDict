@@ -3,226 +3,330 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#6d3fd4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#100c1c" media="(prefers-color-scheme: dark)">
   <title>NeutronDict</title>
+  <link rel="stylesheet" href="ui.css">
   <style>
-    :root { --brand:#7c3aed; --brand2:#c026d3; --ink:#1c2430; --sub:#6b7684; --line:#e6e9ef; --red:#d33; --green:#1a9d5a; --bg:#f6f8fb; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; }
-    body { margin: 0; background: var(--bg); color: var(--ink);
-      font: 16px/1.55 -apple-system, Roboto, "Segoe UI", Arial, sans-serif;
-      display: flex; flex-direction: column; }
-    header { background: linear-gradient(135deg,#7c3aed,#c026d3); color: #fff; padding: calc(env(safe-area-inset-top) + 12px) 16px 12px; font-size: 18px; font-weight: 700; }
-    main { flex: 1; overflow-y: auto; padding: 12px 12px calc(env(safe-area-inset-bottom) + 76px); }
-    nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: #fff; border-top: 1px solid var(--line);
-      padding-bottom: env(safe-area-inset-bottom); }
-    nav button { flex: 1; border: none; background: none; font: inherit; font-size: 12.5px; font-weight: 600;
-      color: var(--sub); padding: 8px 0 10px; cursor: pointer; }
-    nav button .ic { display: block; font-size: 21px; margin-bottom: 1px; }
-    nav button.active { color: var(--brand); }
-    .view { display: none; }
-    .view.show { display: block; }
-    button { font-family: inherit; }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-    input, select { font: inherit; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; background: #fff; width: 100%; }
-    input:focus { border-color: var(--brand); }
-    .btn { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); font-weight: 700; font-size: 14.5px; }
-    .btn.primary { background: linear-gradient(135deg,#7c3aed,#c026d3); border-color: var(--brand); color: #fff; }
-    .btn.danger { color: var(--red); border-color: #f0c9c9; }
-    .row2 { display: flex; gap: 8px; }
-    .row2 > * { flex: 1; }
-    .hint { color: var(--sub); font-size: 12.5px; }
-    .state { text-align: center; color: var(--sub); padding: 26px 8px; }
-    .searchbar { display: flex; gap: 8px; }
-    .searchbar input { flex: 1; }
-    .searchbar select { width: auto; }
-    .subtabs { display: flex; gap: 6px; margin: 12px 0 10px; }
-    .subtabs button { flex: 1; padding: 9px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-weight: 700; font-size: 13.5px; color: var(--sub); }
-    .subtabs button.active { background: var(--brand); border-color: var(--brand); color: #fff; }
-    .entry { padding: 12px 2px; border-bottom: 1px solid var(--line); }
-    .entry:last-child { border-bottom: none; }
-    .ehead { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-    .word { font-size: 24px; font-weight: 800; }
-    .read { color: var(--brand); font-size: 15px; font-weight: 600; margin-left: 6px; }
-    .spk { border: none; background: none; font-size: 19px; padding: 2px 6px; }
-    .favctl { display: inline-flex; gap: 2px; margin-left: 4px; vertical-align: 1px; }
-    .favbtn { border: none; background: none; font-size: 16px; line-height: 1; padding: 3px 5px; border-radius: 7px; opacity: .5; }
-    .favbtn.on { opacity: 1; }
-    .stfav { display: flex; gap: 12px; justify-content: center; margin: 8px 0 2px; }
-    .stfav .favbtn { font-size: 22px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; }
-    .stfav .favbtn.on { border-color: var(--brand); background: #f6f1ff; opacity: 1; }
-    .mean { margin: 6px 0 0; padding-left: 20px; font-size: 15.5px; }
-    .save { padding: 8px 12px; border: 1.5px solid var(--brand); color: var(--brand); background: #fff; border-radius: 9px; font-size: 13.5px; font-weight: 700; white-space: nowrap; }
-    .save.saved { border-color: var(--green); color: var(--green); background: #f0faf4; }
-    .trbox .tr { font-size: 16.5px; line-height: 1.6; }
-    .trbox .src { color: var(--sub); font-size: 13px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
-    .trbox .hd { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-    .nrow.sent .w { font-size: 15.5px; font-weight: 600; line-height: 1.5; }
-    /* Chi tiết */
-    .detail .ipa { color: var(--sub); font-size: 14px; margin: 2px 0 10px; }
-    .detail .ipa b { color: var(--brand); }
-    .pgroup { padding: 10px 2px; border-bottom: 1px solid var(--line); }
+    /* ----------------------------------------------------------------------
+       Khung của app điện thoại: đầu cố định, thân cuộn, thanh tab dưới đáy.
+       Mọi thứ về màu/nút/thẻ nằm trong ui.css — đây chỉ là khung.
+       ---------------------------------------------------------------------- */
+    html, body { height: 100%; overscroll-behavior-y: none; }
+    body { display: flex; flex-direction: column; }
+
+    /* Thanh đầu: chừa đúng chỗ cho thanh trạng thái của máy (tai thỏ, đục lỗ). */
+    header {
+      flex: none;
+      padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
+      background: var(--grad);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header .mark {
+      width: 30px; height: 30px; border-radius: 10px; flex: none;
+      display: grid; place-items: center; background: rgba(255,255,255,.2);
+    }
+    header .nm { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; }
+    header .streak {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.2); border-radius: var(--r-pill);
+      padding: 5px 11px; font-size: 12.5px; font-weight: 700;
+    }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px 12px calc(env(safe-area-inset-bottom) + 84px);
+    }
+
+    /* Thanh tab dưới đáy — ngón cái với tới được, đúng chuẩn app Android. */
+    nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      display: flex;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 -1px 0 var(--line-soft);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    nav button {
+      flex: 1; border: none; background: none; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 9px 0 8px; color: var(--ink-3);
+      font-size: 11px; font-weight: 650; font-family: inherit;
+      transition: color .16s;
+      position: relative;
+    }
+    nav button.active { color: var(--accent); }
+    /* Vạch ngắn phía trên tab đang mở — chỉ dấu duy nhất cần thiết, không cần
+       nền hay viền gì thêm. */
+    nav button.active::before {
+      content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 26px; height: 3px; border-radius: 0 0 3px 3px; background: var(--grad);
+    }
+    nav .dot {
+      position: absolute; top: 6px; left: 50%; margin-left: 6px;
+      min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-pill);
+      background: var(--spark); color: #fff; font-size: 10px; font-weight: 750;
+      line-height: 16px; text-align: center;
+    }
+
+    /* Vùng kết quả tra từ */
+    .entrylist .item { padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+    .entrylist .item:first-child { padding-top: 2px; }
+    .entrylist .item:last-child { border-bottom: none; }
+    .entrylist .w { font-size: 23px; font-weight: 750; letter-spacing: -0.01em; }
+    .entrylist .r { color: var(--accent); font-size: 14px; font-weight: 600; }
+    .entrylist ul { margin: 7px 0 0; padding-left: 21px; font-size: 15px; }
+    .entrylist li { margin: 3px 0; }
+
+    /* Chi tiết: định nghĩa, ví dụ, từ đồng nghĩa tiếng Anh */
+    .detail .ipa { display: flex; align-items: center; gap: 7px; color: var(--ink-2); font-size: 15px; margin-bottom: 12px; }
+    .detail .ipa b { color: var(--accent); font-weight: 700; font-size: 17px; }
+    .pgroup { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
     .pgroup:last-child { border-bottom: none; }
-    .pos { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--brand2); border-radius: 6px; padding: 1px 8px; text-transform: lowercase; margin-bottom: 5px; }
-    .pgroup ol { margin: 3px 0 0; padding-left: 22px; font-size: 15px; }
-    .pgroup li { margin: 3px 0; }
-    .ex { color: var(--sub); font-style: italic; margin-top: 1px; }
-    .syn { color: var(--brand); font-size: 13.5px; margin-top: 5px; }
-    .legend { margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--line); }
-    .legend .lh { font-size: 13px; font-weight: 700; color: var(--sub); margin-bottom: 6px; }
-    .legrow { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; font-size: 14px; }
-    .legrow .ls { font-size: 17px; font-weight: 800; color: var(--brand); min-width: 30px; }
-    .legrow .le { color: var(--sub); }
-    /* Sổ tay */
-    .deckbar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; }
-    .chip { flex: none; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 13.5px; font-weight: 700; color: var(--ink); }
-    .chip.active { background: var(--brand); color: #fff; border-color: var(--brand); }
-    .chip.add { border-style: dashed; color: var(--brand); }
-    .nrow { display: flex; gap: 10px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
-    .nrow:last-child { border-bottom: none; }
-    .nrow .main { flex: 1; min-width: 0; }
-    .nrow .w { font-size: 21px; font-weight: 800; }
-    .nrow .r { color: var(--brand); font-size: 14px; font-weight: 600; margin-left: 6px; }
-    .nrow .m { font-size: 15px; color: #2b333d; margin-top: 2px; }
-    .nrow .meta { color: var(--sub); font-size: 12px; margin-top: 3px; }
-    .due { display: inline-block; font-size: 11px; color: #b26a00; border: 1px solid #f0ddb0; background: #fff8e6; border-radius: 6px; padding: 0 6px; margin-left: 6px; vertical-align: 2px; }
-    .rowctl { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-    .movesel { font-size: 12.5px; padding: 6px; width: auto; max-width: 130px; }
-    .mini { padding: 6px 10px; font-size: 12.5px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
-    .nrow .srcline { color: var(--sub); font-size: 12px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #njToast { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); max-width: 88vw;
-      background: #1c2430; color: #fff; font-size: 13px; line-height: 1.4; padding: 10px 14px; border-radius: 10px;
-      box-shadow: 0 8px 28px rgba(0,0,0,.3); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 999; }
-    #njToast.show { opacity: 1; }
-    /* Học */
-    .stcard { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 26px 18px 18px; text-align: center; }
-    .cw { font-size: 40px; font-weight: 800; line-height: 1.25; }
-    .cr { color: var(--sub); font-size: 17px; margin-top: 8px; min-height: 24px; }
-    .cm { font-size: 16px; margin-top: 12px; min-height: 48px; text-align: left; }
-    .cm ul { margin: 0; padding-left: 22px; }
-    .grade { display: flex; gap: 10px; margin-top: 18px; }
-    .grade button { flex: 1; padding: 15px; font-size: 16px; border-radius: 12px; font-weight: 800; }
-    .gforgot { border: 1.5px solid #f0c9c9; color: var(--red); background: #fff; }
-    .gknow { background: var(--green); border: 1.5px solid var(--green); color: #fff; }
-    .reveal { margin-top: 18px; width: 100%; padding: 15px; font-size: 16px; border-radius: 12px; background: var(--brand); color: #fff; border: none; font-weight: 800; }
-    .prog { color: var(--sub); font-size: 13px; margin-bottom: 8px; text-align: center; }
-    .delrow { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .delbtn { width: 100%; padding: 13px; border: 1.5px solid #f0c9c9; color: var(--red); background: #fff; border-radius: 12px; font-size: 14.5px; font-weight: 700; }
-    .undo { font-size: 13.5px; color: var(--sub); }
-    .undo button { border: none; background: none; color: var(--brand); font-weight: 800; font-size: 14px; padding: 4px 6px; }
-    details { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px; margin-bottom: 12px; }
-    details summary { font-weight: 800; padding: 10px 0; font-size: 15px; }
-    .dbody { padding: 4px 0 12px; display: flex; flex-direction: column; gap: 8px; }
-    label.small { font-size: 13px; color: var(--sub); font-weight: 700; }
-    /* Hướng dẫn IPA */
-    .ipacell { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line); }
-    .ipacell:last-child { border-bottom: none; }
-    .ipacell .s { font-size: 20px; font-weight: 800; color: var(--brand); min-width: 40px; }
-    .ipacell .ex { color: var(--sub); font-style: normal; }
-    .ipasec { font-weight: 800; color: var(--brand); margin: 12px 2px 2px; }
+    .pos {
+      display: inline-block; font-size: 12px; font-weight: 700; color: #fff;
+      background: var(--accent-2); border-radius: var(--r-xs);
+      padding: 2px 10px; text-transform: lowercase; margin-bottom: 7px;
+    }
+    .pgroup ol { margin: 5px 0 0; padding-left: 22px; font-size: 15px; }
+    .pgroup li { margin: 5px 0; }
+    .ex { color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .syn { color: var(--accent); font-size: 14px; margin-top: 7px; }
+    .legend { margin-top: 4px; padding: 12px 13px; background: var(--surface-2); border-radius: var(--r-sm); }
+    .legend .lh { font-size: 12px; font-weight: 700; color: var(--ink-3); margin-bottom: 7px; }
+    .legrow { display: flex; gap: 10px; align-items: baseline; padding: 4px 0; font-size: 14px; }
+    .legrow .ls { font-size: 17px; font-weight: 750; color: var(--accent); min-width: 30px; }
+    .legrow .lv { color: var(--ink); }
+    .legrow .le { color: var(--ink-3); }
+
+    /* Dịch câu */
+    .trbox .tr { font-size: 17px; line-height: 1.6; }
+    .trbox .furi { display: flex; align-items: center; gap: 6px; color: var(--accent); font-size: 13.5px; margin-top: 9px; }
+    .trbox .src {
+      color: var(--ink-2); font-size: 13.5px; margin-top: 12px; padding: 11px 13px;
+      background: var(--surface-2); border-radius: var(--r-sm); word-break: break-word;
+    }
+
+    /* Hàng trong sổ tay: trên điện thoại xếp dọc, nút điều khiển thành một hàng
+       ngang phía dưới — cột dọc bên phải như bản máy tính là quá chật. */
+    .entry { padding: 14px 0; }
+    .entry:first-child { padding-top: 2px; }
+    .entry .ctl { flex-direction: row; align-items: center; margin-top: 10px; gap: 4px; }
+    .entry .ctl select { flex: 1; min-width: 0; }
   </style>
 </head>
 <body>
-  <header>NeutronDict</header>
-  <main>
-    <!-- ============ TRA TỪ ============ -->
-    <section id="viewLookup" class="view show">
-      <div class="card">
-        <div class="searchbar">
+
+<header>
+  <span class="mark" id="brandMark"></span>
+  <span class="nm">NeutronDict</span>
+  <span class="streak" id="streakChip" style="display:none"></span>
+</header>
+
+<main id="scroller">
+
+  <!-- ======================= TRA TỪ ======================= -->
+  <section id="viewLookup" class="view show">
+    <div class="card">
+      <div class="rowx" style="gap:8px">
+        <div class="searchfield grow">
           <input id="q" type="text" placeholder="Nhập từ cần tra…" autocomplete="off">
-          <select id="dir"><option value="auto" selected>Tự động</option><option value="envi">Anh→Việt</option><option value="vien">Việt→Anh</option></select>
         </div>
-        <div class="row2" style="margin-top:8px">
-          <button id="go" class="btn primary">Tra</button>
-          <button id="paste" class="btn">📋 Dán & tra</button>
-        </div>
+        <select id="dir" style="width:auto;flex:none">
+          <option value="auto" selected>Tự động</option>
+          <option value="envi">Anh→Việt</option>
+          <option value="vien">Việt→Anh</option>
+        </select>
       </div>
-      <div class="subtabs">
-        <button id="tabWord" class="active">Từ vựng</button>
-        <button id="tabDetail">Chi tiết</button>
-        <button id="tabTrans">Dịch</button>
+      <div class="rowx" style="gap:8px;margin-top:10px">
+        <button id="go" class="btn primary grow" type="button">Tra</button>
+        <button id="paste" class="btn grow" type="button">Dán &amp; tra</button>
       </div>
-      <div class="card">
-        <div id="result" class="state">Nhập một từ để tra, hoặc bấm “Dán & tra”.</div>
-        <div id="detail" class="detail" style="display:none"></div>
-        <div id="trans" style="display:none"></div>
-      </div>
-    </section>
+    </div>
 
-    <!-- ============ SỔ TAY ============ -->
-    <section id="viewNotebook" class="view">
-      <details id="syncBox">
-        <summary>☁ Đồng bộ Google Drive</summary>
-        <div class="dbody">
-          <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)">
-          <input id="syncToken" type="text" placeholder="Mã bí mật (token)">
-          <div class="row2">
-            <button id="saveCfg" class="btn">Lưu cấu hình</button>
-            <button id="syncNow" class="btn primary">⇅ Đồng bộ ngay</button>
-          </div>
-          <span id="syncStatus" class="hint"></span>
-        </div>
-      </details>
-      <details id="notifBox">
-        <summary>🔔 Nhắc học hằng ngày</summary>
-        <div class="dbody">
-          <label class="small">Giờ nhắc mỗi ngày</label>
-          <input id="notifTime" type="time" value="20:00">
-          <div class="row2">
-            <button id="notifOn" class="btn primary">Bật nhắc nhở</button>
-            <button id="notifOff" class="btn">Tắt</button>
-          </div>
-          <span id="notifStatus" class="hint"></span>
-        </div>
-      </details>
-      <details id="ipaBox">
-        <summary>🔤 Hướng dẫn đọc IPA</summary>
-        <div class="dbody" id="ipaGuideBody"></div>
-      </details>
-      <div class="deckbar" id="deckBar"></div>
-      <div class="row2" id="deckActions" style="display:none;margin-bottom:8px">
-        <button id="renameDeck" class="btn">✏ Đổi tên sổ</button>
-        <button id="deleteDeck" class="btn danger">🗑 Xoá sổ</button>
-      </div>
-      <div class="card">
-        <input id="filter" type="text" placeholder="Lọc theo từ hoặc nghĩa…">
-        <div id="nbCount" class="hint" style="margin-top:8px"></div>
-        <div id="nbList"></div>
-      </div>
-    </section>
+    <div class="segmented" style="margin-bottom:12px">
+      <button id="tabWord" class="active" type="button">Từ vựng</button>
+      <button id="tabDetail" type="button">Chi tiết</button>
+      <button id="tabTrans" type="button">Dịch</button>
+    </div>
 
-    <!-- ============ HỌC ============ -->
-    <section id="viewStudy" class="view">
-      <div class="prog" id="stProg"></div>
-      <div class="stcard" id="stCard">
-        <div id="stBody">
-          <div class="cw"><span id="stWord"></span><button class="spk" id="stSpk">🔊</button></div>
-          <div style="margin-top:6px"><button class="mini" id="stSrc" style="display:none;color:var(--brand)">🔗 Mở nguồn</button></div>
-          <div class="stfav" id="stFav"></div>
-          <div class="cr" id="stRead"></div>
-          <div class="cm" id="stMean"></div>
-          <button class="reveal" id="stReveal">Hiện nghĩa</button>
-          <div class="grade" id="stGrade" style="display:none">
-            <button class="gforgot" id="gForgot">✗ Quên</button>
-            <button class="gknow" id="gKnow">✓ Nhớ</button>
-          </div>
-          <div class="delrow" id="stDelRow">
-            <button class="delbtn" id="stDel">🗑 Đã thuộc hẳn — xoá từ này</button>
-            <span class="undo" id="stUndo" style="display:none">Đã xoá <b id="stUndoWord"></b> · <button id="stUndoBtn">↩ Hoàn tác</button></span>
-          </div>
-        </div>
-        <div id="stEmpty" class="state">Bấm “Bắt đầu học” để ôn các từ đến hạn hôm nay.</div>
+    <div class="card">
+      <div id="result" class="empty">Nhập một từ để tra, hoặc bấm “Dán &amp; tra”.</div>
+      <div id="detail" class="detail" style="display:none"></div>
+      <div id="trans" style="display:none"></div>
+    </div>
+  </section>
+
+  <!-- ======================= SỔ TAY ======================= -->
+  <section id="viewNotebook" class="view">
+    <div class="chiprow scroll" id="deckBar" style="margin-bottom:10px"></div>
+    <div class="rowx" id="deckActions" style="display:none;gap:8px;margin-bottom:10px">
+      <button id="renameDeck" class="btn sm grow" type="button">Đổi tên sổ</button>
+      <button id="deleteDeck" class="btn sm danger grow" type="button">Xoá sổ</button>
+    </div>
+
+    <div class="card">
+      <div class="searchfield">
+        <input id="filter" type="text" placeholder="Lọc theo từ, nghĩa hoặc ghi chú…">
       </div>
-      <button id="stStart" class="reveal" style="margin-top:14px">🎓 Bắt đầu học (<span id="dueCount">0</span> từ đến hạn)</button>
-    </section>
-  </main>
+      <div id="nbCount" class="t-tiny faint" style="margin:10px 0 2px"></div>
+      <div id="nbList" class="list"></div>
+    </div>
 
-  <nav>
-    <button id="navLookup" class="active"><span class="ic">🔍</span>Tra từ</button>
-    <button id="navNotebook"><span class="ic">📒</span>Sổ tay</button>
-    <button id="navStudy"><span class="ic">🎓</span>Học</button>
-  </nav>
+    <details class="box" id="syncBox">
+      <summary><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr1"></span></summary>
+      <div class="boxbody">
+        <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)">
+        <input id="syncToken" type="text" placeholder="Mã bí mật (token)">
+        <div class="rowx" style="gap:8px">
+          <button id="saveCfg" class="btn sm grow" type="button">Lưu cấu hình</button>
+          <button id="syncNow" class="btn sm primary grow" type="button">Đồng bộ ngay</button>
+        </div>
+        <span id="syncStatus" class="t-tiny faint"></span>
+      </div>
+    </details>
 
-  <script src="ipa-guide.js"></script>
-  <script src="app.js"></script>
+    <details class="box" id="notifBox">
+      <summary><span id="icBell"></span> Nhắc học hằng ngày <span class="caret" id="cr2"></span></summary>
+      <div class="boxbody">
+        <label class="field-label">Giờ nhắc mỗi ngày</label>
+        <input id="notifTime" type="time" value="20:00">
+        <div class="rowx" style="gap:8px">
+          <button id="notifOn" class="btn sm primary grow" type="button">Bật nhắc nhở</button>
+          <button id="notifOff" class="btn sm grow" type="button">Tắt</button>
+        </div>
+        <span id="notifStatus" class="t-tiny faint"></span>
+      </div>
+    </details>
+
+    <details class="box" id="ipaBox">
+      <summary><span id="icIpa"></span> Hướng dẫn đọc IPA <span class="caret" id="cr3"></span></summary>
+      <div class="boxbody" id="ipaGuideBody"></div>
+    </details>
+
+    <div style="text-align:center;margin-top:18px;color:var(--ink-3);font-size:12.5px">
+      Ra đời bởi
+      <button id="creditBtn" class="btn xs ghost" type="button" style="color:var(--ink-3)">Nyren Phạm ♥</button>
+    </div>
+  </section>
+
+  <!-- ======================= HỌC ======================= -->
+  <section id="viewStudy" class="view">
+    <div id="stProg" class="t-small muted" style="text-align:center;margin-bottom:10px"></div>
+
+    <div id="stBody" style="display:none">
+      <div class="studycard" id="stCard">
+        <div class="rowx" style="justify-content:center;gap:4px">
+          <span class="cw ja" id="stWord"></span>
+          <button class="iconbtn" id="stSpk" type="button"></button>
+        </div>
+        <div class="rowx wrap" style="justify-content:center;gap:6px;margin-top:10px">
+          <button class="btn xs" id="stSrc" type="button" style="display:none">Mở nguồn</button>
+          <button class="btn xs" id="stEdit" type="button">Sửa bản dịch</button>
+          <button class="btn xs" id="stNote" type="button">Ghi chú</button>
+        </div>
+        <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
+        <div class="cr" id="stRead"></div>
+        <div class="cm" id="stMean"></div>
+        <div id="stMyNote"></div>
+        <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px">Hiện nghĩa</button>
+        <div class="grade" id="stGrade" style="display:none">
+          <button class="btn no" id="gForgot" type="button">Quên</button>
+          <button class="btn yes" id="gKnow" type="button">Nhớ</button>
+        </div>
+      </div>
+
+      <button class="btn danger block" id="stDel" type="button" style="margin-top:14px">Đã thuộc hẳn — xoá mục này</button>
+      <div class="rowx" style="justify-content:center;margin-top:10px;min-height:26px">
+        <span class="t-small muted" id="stUndo" style="display:none">
+          Đã xoá <b id="stUndoWord"></b>
+          <button id="stUndoBtn" class="btn xs ghost" type="button">Hoàn tác</button>
+        </span>
+      </div>
+    </div>
+
+    <div class="card" id="stIdle" style="text-align:center;padding:34px 20px">
+      <div id="stIdleIcon" style="color:var(--accent)"></div>
+      <div class="t-lead" id="stIdleTitle" style="margin-top:10px">Sẵn sàng ôn bài</div>
+      <div class="t-small muted" id="stIdleSub" style="margin-top:6px">Bấm nút bên dưới để ôn các mục đến hạn hôm nay.</div>
+    </div>
+
+    <button id="stStart" class="btn primary block lg" style="margin-top:14px" type="button">
+      Bắt đầu học <span class="tag" id="dueCount" style="background:rgba(255,255,255,.22);color:#fff">0</span>
+    </button>
+  </section>
+
+  <!-- ======================= TIẾN ĐỘ ======================= -->
+  <section id="viewProgress" class="view">
+    <div id="progressBody" class="stack"></div>
+  </section>
+
+</main>
+
+<nav>
+  <button id="navLookup" class="active" type="button"><span class="i"></span><span class="t">Tra từ</span></button>
+  <button id="navNotebook" type="button"><span class="i"></span><span class="t">Sổ tay</span></button>
+  <button id="navStudy" type="button"><span class="i"></span><span class="t">Học</span></button>
+  <button id="navProgress" type="button"><span class="i"></span><span class="t">Tiến độ</span></button>
+</nav>
+
+<!-- ====================== Sửa bản dịch / ghi chú ====================== -->
+<div id="editSheet" class="sheet">
+  <div class="panel">
+    <h3><span id="edIcon"></span><span id="edTitle">Sửa bản dịch</span></h3>
+    <div class="sub" id="edSub">Chỉnh lại cho đúng cách nói của chuyên ngành bạn.</div>
+
+    <label class="field-label">Nội dung gốc</label>
+    <div class="original" id="edOrig"></div>
+
+    <label class="field-label" for="edTrans">Bản dịch / nghĩa <span class="faint">— mỗi dòng một nghĩa</span></label>
+    <textarea id="edTrans" placeholder="Nhập nghĩa cho sát chuyên ngành…"></textarea>
+    <div class="t-tiny faint" style="margin-top:6px" id="edOrigHint"></div>
+
+    <div style="margin-top:14px">
+      <label class="field-label" for="edNote">Ghi chú riêng <span class="faint">— ngữ cảnh, thuật ngữ, cách dùng…</span></label>
+      <textarea id="edNote" placeholder="Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn grow" id="edCancel" type="button">Huỷ</button>
+      <button class="btn primary grow" id="edSave" type="button">Lưu</button>
+    </div>
+    <button class="btn ghost block sm" id="edRestore" type="button" style="margin-top:8px;display:none">
+      Khôi phục bản dịch gốc
+    </button>
+  </div>
+</div>
+
+<!-- ====================== Về tác giả ====================== -->
+<div id="aboutSheet" class="sheet">
+  <div class="panel">
+    <h3><span id="abFlag"></span> NeutronDict · Về tác giả</h3>
+    <div class="sub">Một món quà nhỏ gửi tặng cộng đồng học tập</div>
+    <p class="t-body">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
+      <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
+      <b>nghiên cứu công nghệ</b>.</p>
+    <p class="t-small muted">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
+      một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
+      &amp; tiếng Anh.</p>
+    <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px">“Cho đi là còn mãi.”</p>
+    <div class="actions">
+      <button class="btn primary block" id="abClose" type="button">Cảm ơn ♥</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="ipa-guide.js"></script>
+<script src="icons.js"></script>
+<script src="tien-do.js"></script>
+<script src="cham-vuot.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
