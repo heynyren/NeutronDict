@@ -1,4 +1,5 @@
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
+importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
 // NeutronDict — service worker (nền).
 // Tra từ tiếng Anh: nghĩa tiếng Việt (Google Dịch) + phiên âm IPA, phát âm, định nghĩa &
@@ -353,20 +354,12 @@ function trimCache(c) {
 }
 
 /**
- * Tóm tắt một mục đã có trong sổ tay, để popup biết mà hiện sẵn BẢN CỦA BẠN.
+ * Tóm tắt một mục trong sổ tay cho các màn tra cứu.
  *
- * Trả về object (vẫn "thật" khi kiểm tra truthy như bản cũ trả `true`), nhưng
- * kèm theo ghi chú và bản nghĩa bạn đã sửa tay. Nhờ vậy tra lại một từ đã hiệu
- * đính thì popup hiện đúng nghĩa bạn chốt, chứ không hiện lại nghĩa của từ điển
- * rồi bắt bạn nhớ là mình đã sửa rồi.
+ * Bao gồm cả mục ĐÃ XOÁ mà bạn từng sửa tay: xem muc.js để biết vì sao bản dịch
+ * của bạn phải sống lâu hơn mục đã xoá.
  */
-function tomTat(en) {
-  if (!en || en.del) return null;
-  const o = { saved: true };
-  if (en.note) o.note = en.note;
-  if (en.mEdit) { o.mEdit = 1; o.means = en.means || []; }
-  return o;
-}
+function tomTat(en) { return self.Muc.banCuaBan(en); }
 
 async function savedKeys(entries, dict) {
   const { notebook } = await chrome.storage.local.get("notebook");
@@ -405,6 +398,15 @@ async function saveWord(entry, dict) {
   // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
   if (entry.note != null) e.note = String(entry.note);
   if (entry.mEdit) { e.mEdit = 1; if (entry.mOrig) e.mOrig = entry.mOrig; }
+  // Lưu lại một mục ĐÃ XOÁ: chỉ nhặt lại phần bạn tự viết, không nhặt lại tiến
+  // độ ôn hay sổ con — bạn xoá nó vì đã thuộc, không phải vì viết nhầm.
+  if (old && old.del) {
+    if (e.note == null && old.note) e.note = old.note;
+    if (!entry.mEdit && old.mEdit) {
+      e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig;
+    }
+    if (e.mEdit && !e.mOrig && old.mOrig) e.mOrig = old.mOrig;
+  }
   if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ mọi thứ bạn đã tự làm
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;

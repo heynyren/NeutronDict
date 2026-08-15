@@ -347,7 +347,7 @@ async function renderWord(res) {
       dl: {
         means: (daCo && daCo.mEdit ? (daCo.means || []) : goc).slice(0, 6),
         note: (daCo && daCo.note) || "",
-        saved: !!daCo,
+        saved: !!(daCo && daCo.saved),
         mEdit: daCo && daCo.mEdit ? 1 : 0
       },
       dau: (el) => {
@@ -471,7 +471,7 @@ function doTranslate(raw) {
       dl: {
         means: (daCo && daCo.mEdit ? (daCo.means || goc) : goc),
         note: (daCo && daCo.note) || "",
-        saved: !!daCo,
+        saved: !!(daCo && daCo.saved),
         mEdit: daCo && daCo.mEdit ? 1 : 0
       },
       // Bản dịch chính LÀ phần sửa được, nên phần đầu thẻ chỉ có nút nghe.

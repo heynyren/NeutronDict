@@ -764,7 +764,7 @@ async function renderWord(entries) {
     // lần ở hai hướng sẽ thành hai mục riêng.
     const huong = en.dict || ($("dir").value === "auto" ? "envi" : $("dir").value);
     const key = huong + ":" + en.word;
-    const daCo = (nb[key] && !nb[key].del) ? nb[key] : null;
+    const daCo = window.Muc.banCuaBan(nb[key]);
     // Đã sửa lần trước thì hiện thẳng bản của bạn, không hiện lại bản máy rồi
     // bắt bạn tự nhớ là mình đã hiệu đính.
     const nghia = ((daCo && daCo.mEdit) ? (daCo.means || []) : (en.means || []))
@@ -804,13 +804,15 @@ async function renderWord(entries) {
           if (old2.audio && !ne2.audio) ne2.audio = old2.audio;
           if (old2.mEdit) { ne2.mEdit = 1; ne2.means = old2.means; ne2.mOrig = old2.mOrig; }
         }
+        // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
+        window.Muc.nhatLaiBanSua(ne2, old2);
         nb[key] = ne2;
         return !old2 || old2.del;
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
       syncSoon(); refreshNotifications();
     };
-    head.appendChild(hangHanhDong(!!daCo, luuTu, key, () => renderWord(entries)));
+    head.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuTu, key, () => renderWord(entries)));
 
     div.appendChild(head);
     if (nghia.length) {
@@ -943,7 +945,7 @@ async function showTranslate(text) {
 
     const key = "envi:" + text;
     const nb0 = await getNB();
-    const daCo = (nb0[key] && !nb0[key].del) ? nb0[key] : null;
+    const daCo = window.Muc.banCuaBan(nb0[key]);
     const banDich = ((daCo && daCo.mEdit) ? (daCo.means || []) : [out]).map(meanToStr);
 
     const hd = el("div", "rowx between");
@@ -972,6 +974,8 @@ async function showTranslate(text) {
           if (oldS.src && !neS.src) neS.src = oldS.src;
           if (oldS.mEdit) { neS.mEdit = 1; neS.means = oldS.means; neS.mOrig = oldS.mOrig; }
         }
+        // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
+        window.Muc.nhatLaiBanSua(neS, oldS);
         nb[key] = neS;
         return !oldS || oldS.del;
       });
@@ -979,7 +983,7 @@ async function showTranslate(text) {
       syncSoon(); refreshNotifications();
       toast("Đã lưu — bấm Sửa nếu bản dịch chưa đúng chuyên ngành");
     };
-    phai.appendChild(hangHanhDong(!!daCo, luuCau, key, () => showTranslate(text)));
+    phai.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuCau, key, () => showTranslate(text)));
     hd.appendChild(phai);
     box.appendChild(hd);
     if (daCo && daCo.note) box.appendChild(khoiGhiChu(daCo.note));
@@ -1368,7 +1372,7 @@ async function drawNotebook() {
     del.addEventListener("click", async () => {
       if (!confirm("Xoá “" + it.word.slice(0, 40) + "”?")) return;
       await capNhat((nb) => {
-        nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+        nb[it.key] = window.Muc.biaMo(it);
       });
       drawNotebook(); syncSoon(); refreshNotifications();
       toast("Đã xoá khỏi sổ tay");
@@ -1601,7 +1605,7 @@ async function deleteCurrentCard() {
   await capNhat((nb) => {
     const original = nb[it.key];
     lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-    nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+    nb[it.key] = window.Muc.biaMo(it);
   });
   // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
   session.queue = session.queue.filter((x) => x.key !== it.key);

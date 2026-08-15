@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NeutronDict",
-  "version": "2.3.1",
+  "version": "2.4",
   "description": "Bôi đen từ tiếng Anh trên web hoặc PDF để tra ngay: nghĩa tiếng Việt, phiên âm IPA, phát âm, ví dụ, sổ tay và ôn tập SRS.",
   "permissions": [
     "contextMenus",
@@ -31,6 +31,7 @@
       ],
       "js": [
         "icons.js",
+        "muc.js",
         "content.js"
       ],
       "run_at": "document_idle"

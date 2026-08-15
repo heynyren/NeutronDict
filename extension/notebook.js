@@ -716,7 +716,7 @@ function draw() {
     const del = nutIcon("trash", "Xoá khỏi sổ tay", "danger", 17);
     del.addEventListener("click", async () => {
       await capNhat((nb) => {
-        nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+        nb[it.key] = window.Muc.biaMo(it);
       });
       await load();
       syncSoon();
@@ -865,7 +865,7 @@ async function deleteCurrentCard() {
   await capNhat((nb) => {
     const original = nb[it.key];
     lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-    nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+    nb[it.key] = window.Muc.biaMo(it);
   });
 
   // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
@@ -1042,7 +1042,7 @@ async function clearAll() {
   if (!confirm("Xoá " + list.length + " mục trong " + where + "? Việc xoá cũng đồng bộ sang máy khác.")) return;
   await capNhat((nb) => {
     const now = Date.now();
-    for (const it of list) nb[it.key] = { word: it.word, dict: it.dict, del: true, ts: now };
+    for (const it of list) nb[it.key] = window.Muc.biaMo(it);
   });
   await load();
   syncSoon();
