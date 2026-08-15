@@ -25,11 +25,28 @@
     .searchrow select { width: auto; flex: none; font-size: 13px; padding: 10px 8px; border-radius: var(--r-pill); }
     .body { max-height: 400px; overflow-y: auto; padding: 12px; }
     .foot { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -1px 0 var(--line-soft); background: var(--surface); }
-    .entry { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    /* ui.css dựng .entry theo kiểu danh sách Sổ tay: display:flex, [thân][nút].
+       Trong popup thì mỗi mục phải XẾP DỌC — từ, rồi cách đọc, rồi nghĩa. Không
+       ghi đè chỗ này thì phần nghĩa bị hất sang thành một cột hẹp bên phải và
+       hai nút Lưu/Sửa kẹt vào giữa chữ. */
+    .entry { display: block; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
     .entry:first-child { padding-top: 2px; }
     .entry:last-child { border-bottom: none; }
-    .entry .m { margin: 6px 0 0; padding-left: 20px; font-size: 14px; }
-    .entry .m li { margin: 2px 0; }
+    .entry .m { margin: 8px 0 0; padding-left: 20px; font-size: 14px; }
+    .entry .m li { margin: 3px 0; }
+
+    /* Hàng đầu của mỗi thẻ: chữ bên trái được phép xuống dòng trong phần của
+       nó, nút bên phải đứng yên một khối — chứ không trôi vào giữa từ. */
+    .hdrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .hdrow .lft { flex: 1; min-width: 0; }
+    .wja { font-size: 21px; font-weight: 750; letter-spacing: -0.01em;
+      line-height: 1.3; overflow-wrap: anywhere; }
+    /* Phiên âm IPA xuống hẳn dòng dưới: nhét cạnh từ thì từ dài là vỡ dòng
+       xen kẽ giữa chữ và phiên âm, đọc rất mệt. */
+    .rdline {
+      display: block; margin-top: 3px; color: var(--accent);
+      font-size: 13px; font-weight: 600; overflow-wrap: anywhere;
+    }
     /* Tab Chi tiết: định nghĩa, ví dụ, từ đồng nghĩa tiếng Anh */
     .detail .ipa { display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13.5px; margin: 0 0 12px; }
     .detail .ipa b { color: var(--accent); font-weight: 700; }
