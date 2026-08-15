@@ -631,15 +631,35 @@ async function runLookup(word, src) {
   const w = (word || "").trim();
   if (!w) return;
   $("q").value = w;
-  // Câu dài hoặc có dấu câu -> dịch thẳng, không tra từ điển.
-  if (w.length > 40 || /[.!?;\n]/.test(w)) { switchSub("trans"); return; }
-  switchSub("word");
+  // Mở sẵn tab hợp lý nhất, nhưng cả ba tab đều có dữ liệu — xem ghi chú ở
+  // trongNhuCau() về việc thôi đoán ý người dùng.
+  switchSub(trongNhuCau(w) ? "trans" : "word");
+
+  // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ lượt gọi mạng
+  // đó đi, nhưng nói rõ vì sao tab Từ vựng trống.
+  if (w.length > 40) {
+    lastEntries = [];
+    $("tabDetail").disabled = true;
+    trangThai($("result"), "article",
+      "Đoạn này dài quá để tra như một từ.", "Xem tab Dịch, hoặc gõ riêng từ cần tra.");
+    return;
+  }
   trangThai($("result"), "spinner-gap", "Đang tra “" + w + "”…");
   const entries = await lookup(w, $("dir").value);
   lastEntries = entries;
   $("tabDetail").disabled = !(entries[0] && ((entries[0].pos && entries[0].pos.length) || entries[0].reading));
   await renderWord(entries);
 }
+/**
+ * Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì.
+ *
+ * Bản cũ dùng chính phép thử này để chọn CHỈ tra từ hay CHỈ dịch, và đoán sai
+ * suốt. Nay cả ba tab đều có dữ liệu, đoán sai thì chỉ mất một cú chạm.
+ */
+function trongNhuCau(w) {
+  return w.length > 40 || /[.!?;\n]/.test(w);
+}
+
 $("go").addEventListener("click", () => runLookup($("q").value));
 $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") runLookup($("q").value); });
 $("dir").addEventListener("change", () => runLookup($("q").value));

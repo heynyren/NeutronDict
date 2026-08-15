@@ -8,8 +8,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 
 | Thư mục | Phần | Phiên bản |
 |---------|------|-----------|
-| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v2.1 |
-| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, tiến độ, thông báo | v2.0.1 |
+| [`extension/`](extension/) | Extension Chrome/Edge — bôi đen tra từ trên web/PDF | v2.2 |
+| [`android/`](android/) | App Android (Capacitor) — tra từ, sổ tay, học SRS, tiến độ, thông báo | v2.1.0 |
 | [`brand/`](brand/) | Logo (nơ-ron – vũ trụ) và script xuất icon PNG | — |
 
 ## Tính năng chính
@@ -18,6 +18,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Hướng dẫn đọc IPA:** bảng ký hiệu IPA kèm từ ví dụ và gợi ý đọc tiếng Việt; trong tab **Chi tiết** còn chú giải ngay các ký hiệu có trong từ đang tra.
 - **Dịch câu dài** mạnh như Google Dịch (Anh↔Việt), có nút lưu bản dịch.
 - **Bôi đen là hiện popup ngay tại con trỏ** (web), hoặc `Ctrl+C` + phím tắt (PDF), hoặc chuột phải.
+  Popup chạy đồng thời **tra từ, chi tiết và dịch cả câu**, xếp vào ba tab — không còn tự
+  đoán bạn muốn tra từ hay dịch câu.
 - **Sổ tay + sổ con phân loại**, **ôn tập SRS** (1→3→7→14→30→60→120 ngày), xuất **Anki/CSV**, sao lưu JSON.
 - **Đồng bộ Google Drive** giữa máy tính và điện thoại (qua Apps Script của bạn).
 - **Android:** nhắc học hằng ngày, nhận chữ từ menu bôi đen (PROCESS_TEXT) và bảng Chia sẻ (kèm link nguồn).
