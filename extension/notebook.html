@@ -163,9 +163,9 @@
       </label>
       <label class="check">
         <input type="checkbox" id="setTrans">
-        <span>Bôi đen đoạn dài thì <b>dịch cả câu</b> bằng Google Dịch</span>
+        <span>Hiện tab <b>Dịch</b> trong popup (dịch cả câu bằng Google Dịch)</span>
       </label>
-      <label class="field-label" style="margin-top:4px">Không tra khi bôi đen dài hơn</label>
+      <label class="field-label" style="margin-top:4px">Bỏ qua tra từ điển khi bôi đen dài hơn</label>
       <div class="rowx" style="gap:8px">
         <input type="number" id="setLen" min="5" max="200" style="max-width:110px">
         <span class="t-small muted">ký tự</span>
@@ -175,7 +175,9 @@
         <button id="clearCache" class="btn sm grow" type="button">Xoá bộ nhớ đệm</button>
       </div>
       <span id="setStatus" class="t-tiny faint"></span>
-      <span class="t-tiny faint">Tắt tuỳ chọn trên thì vẫn dùng được Ctrl+Shift+Z và chuột phải như cũ.</span>
+      <span class="t-tiny faint">Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab —
+        chỉ đoạn dài hơn số trên mới bỏ qua phần từ điển, vì tra nguyên đoạn như một từ thì chắc chắn rỗng.
+        Tắt popup thì vẫn dùng được Ctrl+Shift+Z và chuột phải như cũ.</span>
     </div>
   </details>
 

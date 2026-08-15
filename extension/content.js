@@ -85,6 +85,28 @@
       .defs { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
       .pos { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent-2); margin-right: 5px; text-transform: lowercase; }
       .ex { color: var(--ink-3); font-style: italic; }
+
+      /* Thanh tab — cùng kiểu với popup trên thanh công cụ, để bôi đen trên
+         trang hay bấm biểu tượng cũng ra một thứ quen mắt. */
+      .tabs { display: flex; gap: 2px; background: var(--surface-2); border-radius: 999px;
+        padding: 3px; margin-bottom: 10px; }
+      .tabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+        border: none; background: none; border-radius: 999px; padding: 6px 8px;
+        font: 650 12px/1 inherit; font-family: inherit; color: var(--ink-2); cursor: pointer; }
+      .tabs button.on { background: var(--surface); color: var(--accent);
+        box-shadow: 0 1px 2px rgba(16,24,40,.10); }
+      .tabs button .n { opacity: .6; font-weight: 600; }
+      .pane { display: none; }
+      .pane.on { display: block; }
+
+      /* Tab Chi tiết: định nghĩa và ví dụ tiếng Anh */
+      .pg { padding: 8px 0; border-bottom: 1px solid var(--line); }
+      .pg:last-child { border-bottom: none; }
+      .pg ol { margin: 4px 0 0; padding-left: 19px; font-size: 12.5px; }
+      .pg li { margin: 3px 0; }
+      .syn { color: var(--accent); font-size: 12px; margin-top: 5px; }
+      .ipa { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
+      .ipa b { color: var(--accent); }
     `;
     const box = document.createElement("div");
     box.className = "box";
@@ -197,13 +219,102 @@
   }
   try { speechSynthesis.getVoices(); } catch (e) {}
 
-  function render(box, res, word) {
+  /* ================================================================== */
+  /* Popup ba tab: Từ vựng · Chi tiết · Dịch                            */
+  /* ================================================================== */
+
+  /**
+   * Bôi đen phát nào cũng chạy CẢ HAI: tra từ điển và dịch cả câu.
+   *
+   * Bản cũ tự đoán ý bằng độ dài và dấu câu — ngắn thì tra từ, dài thì dịch —
+   * và đoán sai suốt: một cụm danh từ dài vẫn là thứ cần tra, còn một câu ngắn
+   * cụt lủn vẫn là câu cần dịch. Đoán sai thì người dùng phải bôi đen lại lần
+   * nữa. Nên thôi không đoán nữa: chạy cả hai, xếp vào các tab, và chỉ *đoán
+   * mỗi việc mở sẵn tab nào* — đoán sai chỗ đó thì chỉ mất một cú bấm.
+   */
+
+  /** Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì. */
+  function trongNhuCau(text) {
+    return text.length > 40 || /[.!?;\n]/.test(text);
+  }
+
+  /** Dựng khung tab. Trả về { o, nut, moTab } — `o` là các ô nội dung. */
+  function dungKhung(box, coDich) {
     box.textContent = "";
+    const panes = {};
+    const nut = {};
+
+    const tabs = document.createElement("div");
+    tabs.className = "tabs";
+
+    const them = (id, ten, iconTen) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.appendChild(ic(iconTen, 14));
+      const t = document.createElement("span");
+      t.textContent = ten;
+      b.appendChild(t);
+      b.addEventListener("click", (e) => { e.stopPropagation(); moTab(id); });
+      tabs.appendChild(b);
+      nut[id] = b;
+      const pane = document.createElement("div");
+      pane.className = "pane";
+      panes[id] = pane;
+    };
+
+    them("word", "Từ vựng", "book-open-text");
+    them("detail", "Chi tiết", "article");
+    if (coDich) them("trans", "Dịch", "translate");
+
+    function moTab(id) {
+      if (!panes[id]) return;
+      Object.keys(panes).forEach((k) => {
+        panes[k].classList.toggle("on", k === id);
+        nut[k].classList.toggle("on", k === id);
+      });
+      place();
+      requestAnimationFrame(place);
+    }
+
+    box.appendChild(tabs);
+    Object.keys(panes).forEach((k) => box.appendChild(panes[k]));
+    return { o: panes, nut: nut, moTab: moTab };
+  }
+
+  /** Nút "＋ Lưu" đổi thành "✓ Đã lưu" sau khi bấm. */
+  function nutLuu(daLuu, khiBam) {
+    const sv = document.createElement("button");
+    sv.className = "sv";
+    sv.type = "button";
+    const danhDau = () => {
+      sv.classList.add("on");
+      sv.textContent = "";
+      sv.appendChild(ic("check", 14));
+      const t = document.createElement("span");
+      t.textContent = "Đã lưu";
+      sv.appendChild(t);
+    };
+    if (daLuu) danhDau();
+    else {
+      sv.appendChild(ic("plus", 14));
+      const t = document.createElement("span");
+      t.textContent = "Lưu";
+      sv.appendChild(t);
+      sv.addEventListener("click", (e) => { e.stopPropagation(); khiBam(danhDau); });
+    }
+    return sv;
+  }
+
+  /* ---------- tab Từ vựng ---------- */
+  function veTuVung(pane, res, word) {
+    pane.textContent = "";
     const entries = (res && res.entries) || [];
     if (!entries.length) {
-      box.appendChild(trangThai(
-        res && res.error ? ("Lỗi: " + res.error) : "Không tìm thấy nghĩa.", "warning-circle"));
-      place(); requestAnimationFrame(place);
+      pane.appendChild(trangThai(
+        (res && res.error) ? ("Lỗi: " + res.error)
+          : (res && res.quaDai) ? "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra."
+          : "Không tìm thấy từ này trong từ điển.",
+        "warning-circle"));
       return;
     }
     entries.slice(0, 3).forEach((en) => {
@@ -215,102 +326,130 @@
       left.appendChild(nutLoa(en.word, en.audio));
       if (en.reading) { const r = document.createElement("span"); r.className = "rd"; r.textContent = en.reading; left.appendChild(r); }
       hd.appendChild(left);
-      const sv = document.createElement("button"); sv.className = "sv"; sv.type = "button";
-      const daLuu = () => {
-        sv.classList.add("on"); sv.textContent = "";
-        sv.appendChild(ic("check", 14));
-        const t = document.createElement("span"); t.textContent = "Đã lưu"; sv.appendChild(t);
-      };
-      if (res.saved && res.saved[en.word]) daLuu();
-      else {
-        sv.appendChild(ic("plus", 14));
-        const t = document.createElement("span"); t.textContent = "Lưu"; sv.appendChild(t);
-        sv.addEventListener("click", (e) => {
-          e.stopPropagation();
-          chrome.runtime.sendMessage({ type: "SAVE_WORD", entry: Object.assign({}, en, { src: pageSrc(word) }), dict: res.dict || "envi" }, daLuu);
-        });
-      }
-      hd.appendChild(sv);
+      hd.appendChild(nutLuu(res.saved && res.saved[en.word], (xong) => {
+        chrome.runtime.sendMessage({
+          type: "SAVE_WORD",
+          entry: Object.assign({}, en, { src: pageSrc(word) }),
+          dict: (res && res.dict) || "envi"
+        }, xong);
+      }));
       wrap.appendChild(hd);
-      // Nghĩa tiếng Việt nhiều tầng (định nghĩa tiếng Anh chỉ để ở tab Chi tiết của popup).
       if (en.means && en.means.length) {
         const ul = document.createElement("ul");
-        en.means.slice(0, 6).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
+        en.means.slice(0, 5).forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
         wrap.appendChild(ul);
       }
-      box.appendChild(wrap);
+      pane.appendChild(wrap);
     });
-    place();
-    requestAnimationFrame(place);
   }
 
-  function renderTranslate(box, res, text) {
-    box.textContent = "";
-    if (!res || !res.ok) {
-      box.appendChild(trangThai((res && res.error) || "Không dịch được.", "warning-circle"));
+  /* ---------- tab Chi tiết: IPA, định nghĩa và ví dụ tiếng Anh ---------- */
+  function veChiTiet(pane, res) {
+    pane.textContent = "";
+    const en = ((res && res.entries) || [])[0];
+    if (!en || (!(en.pos && en.pos.length) && !en.reading)) {
+      pane.appendChild(trangThai("Không có chi tiết cho đoạn này.", "article"));
       return;
     }
-    const lbl = document.createElement("div"); lbl.className = "lbl";
-    lbl.appendChild(ic("translate", 13));
-    const lt = document.createElement("span"); lt.textContent = "Dịch câu"; lbl.appendChild(lt);
-    box.appendChild(lbl);
+    if (en.reading) {
+      const ipa = document.createElement("div"); ipa.className = "ipa";
+      const lb = document.createElement("span"); lb.textContent = "IPA:"; ipa.appendChild(lb);
+      const b = document.createElement("b"); b.textContent = en.reading; ipa.appendChild(b);
+      ipa.appendChild(nutLoa(en.word, en.audio));
+      pane.appendChild(ipa);
+    }
+    (en.pos || []).forEach((g) => {
+      const grp = document.createElement("div"); grp.className = "pg";
+      if (g.p) { const p2 = document.createElement("span"); p2.className = "pos"; p2.textContent = g.p; grp.appendChild(p2); }
+      if (g.defs && g.defs.length) {
+        const ol = document.createElement("ol");
+        g.defs.forEach((d) => {
+          const li = document.createElement("li");
+          li.appendChild(document.createTextNode(d.def));
+          if (d.ex) { const ex = document.createElement("div"); ex.className = "ex"; ex.textContent = "“" + d.ex + "”"; li.appendChild(ex); }
+          ol.appendChild(li);
+        });
+        grp.appendChild(ol);
+      }
+      if (g.syn && g.syn.length) {
+        const sy = document.createElement("div"); sy.className = "syn"; sy.textContent = "≈ " + g.syn.join(", ");
+        grp.appendChild(sy);
+      }
+      pane.appendChild(grp);
+    });
+  }
 
+  /* ---------- tab Dịch ---------- */
+  function veDich(pane, res, text) {
+    pane.textContent = "";
+    if (!res || !res.ok) {
+      pane.appendChild(trangThai((res && res.error) || "Không dịch được.", "warning-circle"));
+      return;
+    }
     const engText = res.target === "en" ? res.text : text;   // phần tiếng Anh để đọc
     const hd = document.createElement("div"); hd.className = "hd";
     const tr = document.createElement("div"); tr.className = "tr"; tr.textContent = res.text;
     hd.appendChild(tr);
-    const right = document.createElement("div"); right.style.cssText = "display:flex;gap:3px;align-items:flex-start;flex:none";
+    const phai = document.createElement("div");
+    phai.style.cssText = "display:flex;gap:3px;align-items:flex-start;flex:none";
     const spk = nutLoa(engText, null);
     spk.title = "Nghe câu tiếng Anh";
-    right.appendChild(spk);
-    const sv = document.createElement("button"); sv.className = "sv"; sv.type = "button";
-    sv.appendChild(ic("plus", 14));
-    const svt = document.createElement("span"); svt.textContent = "Lưu"; sv.appendChild(svt);
-    sv.title = "Lưu vào sổ tay — sau đó sửa lại bản dịch cho đúng chuyên ngành ngay trong Sổ tay";
-    sv.addEventListener("click", (e) => {
-      e.stopPropagation();
+    phai.appendChild(spk);
+    phai.appendChild(nutLuu(false, (xong) => {
       chrome.runtime.sendMessage({
         type: "SAVE_WORD",
         entry: { word: text, reading: "", means: [res.text], kind: "sent", src: pageSrc(text) },
         dict: "envi"
-      }, () => {
-        sv.classList.add("on"); sv.textContent = "";
-        sv.appendChild(ic("check", 14));
-        const t = document.createElement("span"); t.textContent = "Đã lưu"; sv.appendChild(t);
-      });
-    });
-    right.appendChild(sv);
-    hd.appendChild(right);
-    box.appendChild(hd);
-
+      }, xong);
+    }));
+    hd.appendChild(phai);
+    pane.appendChild(hd);
     const src = document.createElement("div"); src.className = "src"; src.textContent = text;
-    box.appendChild(src);
-    place();
-    requestAnimationFrame(place);
+    pane.appendChild(src);
   }
 
-  function triggerTranslate(x, y, text) {
+  /* ---------- mở popup ---------- */
+  function moPopup(x, y, text) {
     const box = ensureHost(x, y);
-    const st = trangThai("Đang dịch…");
-    box.appendChild(st);
-    chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "auto", to: "" }, (res) => {
-      if (!host) return;
-      if (chrome.runtime.lastError) { st.replaceWith(trangThai("Lỗi: " + chrome.runtime.lastError.message, "warning-circle")); return; }
-      renderTranslate(box, res || {}, text);
-    });
+    const coDich = S.translate !== false && text.length <= (S.maxSent || 400);
+    const kh = dungKhung(box, coDich);
+    const cuaToi = host;   // popup có thể bị đóng và mở lại trước khi mạng trả về
+
+    kh.o.word.appendChild(trangThai("Đang tra “" + text.slice(0, 24) + "”…"));
+    kh.o.detail.appendChild(trangThai("Đang lấy chi tiết…"));
+    if (coDich) kh.o.trans.appendChild(trangThai("Đang dịch…"));
+    kh.moTab(trongNhuCau(text) && coDich ? "trans" : "word");
+
+    const quaDai = text.length > (S.maxLen || 40);
+    if (quaDai) {
+      veTuVung(kh.o.word, { quaDai: true }, text);
+      veChiTiet(kh.o.detail, null);
+      place(); requestAnimationFrame(place);
+    } else {
+      chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "auto" }, (res) => {
+        if (host !== cuaToi) return;
+        const r = (chrome.runtime.lastError || !res)
+          ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không tra được" }
+          : res;
+        veTuVung(kh.o.word, r, text);
+        veChiTiet(kh.o.detail, r);
+        place(); requestAnimationFrame(place);
+      });
+    }
+
+    if (coDich) {
+      chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "auto", to: "" }, (res) => {
+        if (host !== cuaToi) return;
+        veDich(kh.o.trans, (chrome.runtime.lastError || !res)
+          ? { ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không dịch được" }
+          : res, text);
+        place(); requestAnimationFrame(place);
+      });
+    }
   }
 
-  function trigger(x, y, text) {
-    const box = ensureHost(x, y);
-    const st = trangThai("Đang tra “" + text + "”…");
-    box.appendChild(st);
-    chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "auto" }, (res) => {
-      if (!host) return;
-      if (chrome.runtime.lastError) { st.replaceWith(trangThai("Lỗi: " + chrome.runtime.lastError.message, "warning-circle")); return; }
-      render(box, res || {}, text);
-    });
-  }
-
+  // Ghi lại nguồn của từ/câu khi lưu: URL + tiêu đề + đúng đoạn đang bôi đen.
+  // Chỉ dùng cho trang web thường (http/https) — PDF hay trang nội bộ không tô sáng lại được.
   function pageSrc(sel) {
     try {
       if (!/^https?:/i.test(location.href)) return null;
@@ -540,12 +679,9 @@
       const sel = window.getSelection();
       const text = sel ? sel.toString().trim() : "";
       if (!text) return;
-      const x = e.clientX + 12, y = e.clientY + 16;
-      const lim = S.maxLen || 40;
-      // Là CÂU nếu dài hơn giới hạn hoặc có dấu câu / xuống dòng -> dịch, không tra từ điển.
-      const isSentence = text.length > lim || /[.!?;:\n]/.test(text);
-      if (!isSentence) { trigger(x, y, text); return; }
-      if (S.translate !== false && text.length <= (S.maxSent || 400)) triggerTranslate(x, y, text);
+      // Quá dài thì thôi hẳn — thường là lỡ tay Ctrl+A chứ không ai định tra.
+      if (text.length > (S.maxSent || 400)) return;
+      moPopup(e.clientX + 12, e.clientY + 16, text);
     }, 10);
   });
 

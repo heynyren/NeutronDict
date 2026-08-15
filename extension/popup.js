@@ -351,22 +351,45 @@ function doTranslate(raw) {
   });
 }
 
+/**
+ * Bôi đen phát nào cũng chạy CẢ HAI: tra từ điển và dịch cả câu.
+ *
+ * Bản cũ tự đoán ý bằng độ dài và dấu câu, và đoán sai suốt: cụm danh từ dài
+ * vẫn là thứ cần tra, câu ngắn cụt lủn vẫn là câu cần dịch. Nay chỉ còn đoán
+ * mỗi việc *mở sẵn tab nào* — đoán sai chỗ đó thì chỉ mất một cú bấm.
+ */
 async function run(word) {
   const w = (word || "").trim();
   const dict = dirEl.value;
   lastTranslated = "";
-  // Câu dài / có dấu câu -> dịch thẳng
-  if (w.length > 40 || /[.!?;\n]/.test(w)) { switchTab("trans"); return; }
+
   if (!w) {
     trangThai(resEl, "magnifying-glass", "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.");
     tabDetailEl.disabled = true;
+    switchTab("word");
     return;
   }
-  switchTab("word");
+
+  // Mở sẵn tab hợp lý nhất, nhưng cả ba tab đều có dữ liệu.
+  switchTab(trongNhuCau(w) ? "trans" : "word");
+
+  // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ qua lượt gọi
+  // mạng đó, nhưng nói rõ vì sao tab Từ vựng trống.
+  if (w.length > 40) {
+    lastEntry = null;
+    tabDetailEl.disabled = true;
+    trangThai(resEl, "article", "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra.");
+    return;
+  }
   trangThai(resEl, "spinner-gap", "Đang tra “" + w + "”…");
   const res = await lookup(w, dict);
   res.dict = dict;
   await renderWord(res);
+}
+
+/** Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì. */
+function trongNhuCau(w) {
+  return w.length > 40 || /[.!?;\n]/.test(w);
 }
 
 // ---- Sự kiện ----
