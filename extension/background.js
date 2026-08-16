@@ -147,6 +147,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
+  if (msg.type === "TRANSLATE_MANY") {
+    handleTranslateMany(msg.texts, msg.from, msg.to)
+      .then((r) => sendResponse(r))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
   if (msg.type === "TRANSLATE") {
     handleTranslate(msg.text, msg.from, msg.to)
       .then((r) => sendResponse(r))
@@ -372,6 +378,73 @@ async function savedKeys(entries, dict) {
   return out;
 }
 
+/**
+ * Dịch NHIỀU câu trong một lượt.
+ *
+ * Vì sao cần hàm riêng thay vì gọi handleTranslate nhiều lần: mỗi lượt dịch lẻ
+ * phải ĐỌC cả bộ đệm rồi GHI lại cả bộ đệm (tối đa 300 mục) vào chrome.storage.
+ * Dịch một câu thì không thấy gì, nhưng bảng lời thoại có gần trăm câu — thành
+ * gần trăm vòng đọc-ghi cả bộ đệm, và đó mới là thứ làm giao diện khựng, chứ
+ * không phải mạng. Ở đây: đọc MỘT lần, ghi MỘT lần.
+ *
+ * Tiện thể sửa luôn một lỗi âm thầm của cách cũ: các lượt lẻ chạy song song đều
+ * đọc-sửa-ghi cùng một object, nên lượt ghi sau xoá mất bản dịch của lượt trước
+ * — bộ đệm gần như không giữ được gì, lần sau mở lại vẫn phải dịch lại từ đầu.
+ */
+async function handleTranslateMany(rawTexts, from, to) {
+  const texts = (rawTexts || []).map((x) => String(x || "").trim());
+  if (!texts.length) return { ok: true, texts: [] };
+  const f = from || "en", t = to || "vi";
+
+  const { trCache } = await chrome.storage.local.get("trCache");
+  const c = trCache || {};
+  const now = Date.now();
+  const out = new Array(texts.length).fill("");
+  const can = [];
+  texts.forEach((x, i) => {
+    if (!x) return;
+    const h = c[f + ">" + t + ":" + x];
+    if (h && now - (h.ts || 0) < TR_TTL) out[i] = h.v; else can.push(i);
+  });
+
+  // Song song có giới hạn: mở hết cùng lúc thì trình duyệt cũng xếp hàng ở tầng
+  // kết nối, mà lỡ hỏng thì hỏng cả loạt.
+  //
+  // Và phải THỬ LẠI: gửi một loạt 40 câu thì bên kia hay chặn bớt vài câu giữa
+  // chừng. Bỏ luôn câu hỏng thì trên bảng nó nằm mãi ở dấu "—" trong khi hàng
+  // xóm hai bên đều có nghĩa — trông như mình bỏ sót, mà thật ra chỉ là một
+  // lượt gọi trượt.
+  const SONG = 6;
+  let ke = 0;
+  await Promise.all(new Array(Math.min(SONG, can.length)).fill(0).map(async () => {
+    while (ke < can.length) {
+      const i = can[ke++];
+      for (let lan = 0; lan < 3; lan++) {
+        try {
+          // gtxTranslate ở đây trả về CHUỖI (khác NJDict trả về object) — bộ đệm
+          // của handleTranslate cũng ghi theo dạng { v, target }, nên phải giữ
+          // đúng dạng ấy, kẻo hai đường ghi hai kiểu rồi đá nhau.
+          const g = await gtxTranslate(texts[i], f, t);
+          if (g) {
+            out[i] = g;
+            c[f + ">" + t + ":" + texts[i]] = { v: g, target: t, ts: now };
+            break;
+          }
+        } catch (e) { /* thử lại, đừng kéo cả loạt xuống theo */ }
+        if (lan < 2) await new Promise((r) => setTimeout(r, 250 * Math.pow(3, lan)));
+      }
+    }
+  }));
+
+  const keys = Object.keys(c);
+  if (keys.length > TR_MAX) {
+    keys.sort((a, b) => (c[a].ts || 0) - (c[b].ts || 0));
+    for (let i = 0; i < keys.length - TR_MAX; i++) delete c[keys[i]];
+  }
+  await chrome.storage.local.set({ trCache: c });
+  return { ok: true, texts: out };
+}
+
 /** Câu này đã lưu vào sổ tay chưa — và bạn đã sửa lại bản dịch của nó chưa. */
 async function daLuuCau(text) {
   try {
@@ -451,7 +524,7 @@ async function ghiNhanLuu() {
 }
 
 // ==== Dịch câu: gọi thẳng Google Dịch (nhanh), Apps Script làm dự phòng ====
-const TR_MAX = 300;
+const TR_MAX = 1200;
 const TR_TTL = 30 * 86400000;
 
 async function handleTranslate(rawText, from, to) {

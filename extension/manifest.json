@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NeutronDict",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "Bôi đen từ tiếng Anh trên web hoặc PDF để tra ngay: nghĩa tiếng Việt, phiên âm IPA, phát âm, ví dụ, sổ tay và ôn tập SRS.",
   "permissions": [
     "contextMenus",
@@ -32,9 +32,21 @@
       "js": [
         "icons.js",
         "muc.js",
-        "content.js"
+        "content.js",
+        "cat-cau.js",
+        "phu-de.js"
       ],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "phu-de-trang.js"
+      ],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ],
   "commands": {

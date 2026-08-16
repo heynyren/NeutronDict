@@ -560,9 +560,44 @@ function fragUrl(src) {
   if (!frag) return src.url;
   return src.url + (src.url.indexOf("#") >= 0 ? ":~:text=" : "#:~:text=") + frag;
 }
+/** "1:23:45" từ số giây — dùng cho nhãn nguồn YouTube. */
+function giay(t) {
+  const g = Math.max(0, Math.floor(t || 0));
+  const gio = Math.floor(g / 3600), phut = Math.floor((g % 3600) / 60), gy = g % 60;
+  const hai = (n) => (n < 10 ? "0" : "") + n;
+  return (gio ? gio + ":" + hai(phut) : phut) + ":" + hai(gy);
+}
+
+/**
+ * Quay về đúng giây trong video.
+ *
+ * Chỗ này CHẮC hơn hẳn việc dò lại một đoạn trên trang web: mốc giây là toạ độ
+ * tuyệt đối, không trôi khi trang đổi nội dung. Nếu video đang mở sẵn ở một thẻ
+ * nào đó thì nhảy sang thẻ đó rồi tua — mở thêm một thẻ nữa cho cùng một video
+ * là thừa, mà lại mất chỗ đang xem dở.
+ */
+function openYoutube(yt) {
+  const t = Math.max(0, Math.floor(yt.t || 0));
+  const url = "https://www.youtube.com/watch?v=" + encodeURIComponent(yt.v) + "&t=" + t + "s";
+  try {
+    chrome.tabs.query({ url: ["https://www.youtube.com/watch*", "https://m.youtube.com/watch*"] }, (tabs) => {
+      const hit = (tabs || []).find((tb) => (tb.url || "").indexOf("v=" + yt.v) >= 0);
+      if (!hit) { chrome.tabs.create({ url }); return; }
+      chrome.tabs.update(hit.id, { active: true });
+      if (hit.windowId != null) chrome.windows.update(hit.windowId, { focused: true });
+      chrome.tabs.sendMessage(hit.id, { type: "YT_SEEK", v: yt.v, t: t }, () => {
+        // Thẻ mở từ trước khi cài/nạp lại extension thì chưa có content script;
+        // lúc đó tải thẳng URL kèm mốc giây là xong.
+        if (chrome.runtime.lastError) chrome.tabs.update(hit.id, { url: url });
+      });
+    });
+  } catch (e) { chrome.tabs.create({ url }); }
+}
+
 function openSource(it) {
   const src = it.src;
   if (!src || !src.url) return;
+  if (src.yt && src.yt.v) { openYoutube(src.yt); return; }
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
   const url = fragUrl(src);
   if (src.pdf) {
@@ -681,11 +716,19 @@ function draw() {
     const meta = el("div", "meta");
     if (it.src && it.src.url) {
       const s = el("span", "srcline");
-      let hostn = it.src.url;
-      try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
-      s.appendChild(ic("link-simple", { size: 13 }));
-      s.appendChild(el("span", null, hostn));
-      s.title = "Lưu từ: " + (it.src.title || it.src.url);
+      const yt = it.src.yt;
+      if (yt && yt.v) {
+        // Nguồn video thì cái đáng hiện là PHÚT THỨ MẤY, không phải "youtube.com".
+        s.appendChild(ic("subtitles", { size: 13 }));
+        s.appendChild(el("span", null, "YouTube · " + giay(yt.t)));
+        s.title = "Nghe lại: " + (it.src.title || "") + (yt.kenh ? " — " + yt.kenh : "");
+      } else {
+        let hostn = it.src.url;
+        try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
+        s.appendChild(ic("link-simple", { size: 13 }));
+        s.appendChild(el("span", null, hostn));
+        s.title = "Lưu từ: " + (it.src.title || it.src.url);
+      }
       meta.appendChild(s);
     }
     meta.appendChild(el("span", null, fmtDate(it.ts)));
@@ -708,7 +751,12 @@ function draw() {
     hang.appendChild(gc);
 
     if (it.src && it.src.url) {
-      const open = nutIcon("link-simple", "Mở lại trang nguồn và tô sáng vị trí đã lưu", "", 17);
+      // Nguồn video thì việc sắp làm không phải "mở trang" mà là "nghe lại đúng
+      // chỗ đó" — nói đúng việc thì đỡ phải đoán.
+      const laYt = !!(it.src.yt && it.src.yt.v);
+      const open = nutIcon(laYt ? "subtitles" : "link-simple",
+        laYt ? "Nghe lại đúng chỗ này trong video (" + giay(it.src.yt.t) + ")"
+             : "Mở lại trang nguồn và tô sáng vị trí đã lưu", "", 17);
       open.addEventListener("click", () => openSource(it));
       hang.appendChild(open);
     }
@@ -810,8 +858,12 @@ function showCard(giuLat) {
   renderStudyFav(it);
 
   const src = $("stSrc");
-  if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSource(it); }
-  else { src.style.display = "none"; src.onclick = null; }
+  if (it.src && it.src.url) {
+    const laYt = !!(it.src.yt && it.src.yt.v);
+    src.innerHTML = window.Icon(laYt ? "subtitles" : "link-simple", { size: 15 })
+      + '<span class="lb">' + (laYt ? "Nghe lại " + giay(it.src.yt.t) : "Mở nguồn") + "</span>";
+    src.style.display = ""; src.onclick = () => openSource(it);
+  } else { src.style.display = "none"; src.onclick = null; }
 
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";

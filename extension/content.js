@@ -624,7 +624,8 @@
   }
 
   /* ---------- mở popup ---------- */
-  function moPopup(x, y, text) {
+  function moPopup(x, y, text, src) {
+    nguonNgoai = src || null;
     const box = ensureHost(x, y);
     const coDich = S.translate !== false && text.length <= (S.maxSent || 400);
     const kh = dungKhung(box, coDich);
@@ -665,8 +666,17 @@
 
   // Ghi lại nguồn của từ/câu khi lưu: URL + tiêu đề + đúng đoạn đang bôi đen.
   // Chỉ dùng cho trang web thường (http/https) — PDF hay trang nội bộ không tô sáng lại được.
+  // Khi popup được mở từ bảng lời thoại YouTube thì nguồn đã biết chính xác —
+  // kèm cả mốc giây — nên không phải đi dò lại văn cảnh trên trang làm gì.
+  let nguonNgoai = null;
+
   function pageSrc(sel) {
     try {
+      if (nguonNgoai) {
+        const s = Object.assign({}, nguonNgoai);
+        if (sel) s.sel = String(sel).slice(0, 400);
+        return s;
+      }
       if (!/^https?:/i.test(location.href)) return null;
       const ctx = selContext();
       return { url: location.href, title: (document.title || "").slice(0, 200),
@@ -890,7 +900,11 @@
   }, true);
 
   document.addEventListener("mouseup", (e) => {
-    if (host && e.composedPath().includes(host)) return;
+    const duong = e.composedPath();
+    if (host && duong.includes(host)) return;
+    // Bảng lời thoại YouTube tự gọi popup kèm mốc giây — chỗ này nhúng vào thì
+    // vừa ra popup trùng, vừa mất luôn thông tin video/giây.
+    if (duong.some((n) => n && n.dataset && n.dataset.ndictYt)) return;
     if (soOSuaDangMo) return;          // đang sửa dở: bôi đen chỗ khác cũng không cướp popup
     if (!S.inline) return;
     if (S.requireCtrl && !(lastCtrl || e.ctrlKey || e.metaKey)) return;
@@ -903,6 +917,14 @@
       moPopup(e.clientX + 12, e.clientY + 16, text);
     }, 10);
   });
+
+  // Cửa vào cho bảng lời thoại YouTube (phu-de.js): nó biết chính xác câu nào,
+  // giây thứ mấy, nên tự gọi popup kèm nguồn thay vì để chỗ này đoán lại.
+  window.__ND_popup = function (x, y, text, src) {
+    const t = (text || "").trim();
+    if (!t || t.length > (S.maxSent || 400)) return;
+    moPopup(x, y, t, src);
+  };
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !soOSuaDangMo) close(); });
   window.addEventListener("blur", () => { if (!soOSuaDangMo) close(); });
