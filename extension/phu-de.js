@@ -642,6 +642,9 @@
   /* Bảng lời thoại                                                      */
   /* ================================================================== */
 
+  /** Logo của extension, nhúng sẵn để khỏi phải mở web_accessible_resources. */
+  const LOGO = "data:image/png;base64,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";
+
   const CSS = `
     :host { all: initial; }
     * { box-sizing: border-box; }
@@ -668,7 +671,9 @@
     svg { display: inline-block; vertical-align: -.18em; flex: none; fill: currentColor; }
     button { font-family: inherit; cursor: pointer; }
     .top { display: flex; align-items: center; gap: 8px; padding: 11px 13px; }
-    .top .nm { font-size: 13.5px; font-weight: 750; letter-spacing: -.01em; flex: 1; min-width: 0; }
+    .top .lg { flex:0 0 auto; border-radius:4px; display:block }
+    .top .nm { font-size: 13.5px; font-weight: 750; letter-spacing: -.01em; flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .top .n { color: var(--ink-3); font-size: 12px; font-weight: 600; }
     .chip {
       display: inline-flex; align-items: center; gap: 4px; flex: none;
@@ -795,8 +800,19 @@
 
     /* --- thanh tiêu đề --- */
     const top = document.createElement("div"); top.className = "top";
-    top.appendChild(ic("subtitles", 17));
-    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = "Lời thoại";
+    // Logo của chính extension này, không phải một icon "phụ đề" chung chung:
+    // cài cả mấy app cùng lúc thì trên một video có mấy bảng giống hệt nhau
+    // xếp chồng, nhìn vào không biết cái nào của ai. Lấy đúng hình đang nằm
+    // trên thanh công cụ Chrome thì khỏi phải đoán.
+    //
+    // Nhúng thẳng dạng base64 chứ không dùng chrome.runtime.getURL: đường ấy
+    // đòi khai báo web_accessible_resources, tức là mở cho MỌI trang web đọc
+    // được tệp trong extension, chỉ để lấy một cái hình 48px.
+    const lg = document.createElement("img"); lg.className = "lg";
+    lg.src = LOGO; lg.alt = ""; lg.width = 18; lg.height = 18;
+    top.appendChild(lg);
+    const nm = document.createElement("span"); nm.className = "nm";
+    nm.textContent = "NeutronDict · Lời thoại";
     top.appendChild(nm);
     const demCau = document.createElement("span"); demCau.className = "n";
     top.appendChild(demCau);
