@@ -62,6 +62,40 @@ REM Co y KHONG chay "git clean": thu muc android co node_modules va
 REM phan Capacitor tu sinh, deu khong nam trong git — don di la phai
 REM cai lai tu dau.
 
+
+REM ================================================================
+REM  Don file rac cua Windows trong thu muc extension.
+REM
+REM  Windows tu tao "desktop.ini" (va doi khi "Thumbs.db") trong thu
+REM  muc — hay gap nhat khi thu muc nam trong OneDrive, hoac khi ban
+REM  doi bieu tuong cho thu muc. Chrome thi tu choi nap extension co
+REM  ten file ma no coi la bat hop le, va bao dung cau nay:
+REM
+REM     Cannot load extension with file or directory name desktop.ini.
+REM     The filename is illegal.
+REM
+REM  "git clean" KHONG don duoc chung, vi chung nam trong .gitignore
+REM  ma git clean thi mac dinh bo qua file da bi ignore. Con "del"
+REM  thuong cung khong thay, vi day la file AN + HE THONG.
+REM ================================================================
+for /r "%~dp0extension" %%f in (desktop.ini Thumbs.db) do (
+  if exist "%%f" (
+    attrib -h -s "%%f" >nul 2>nul
+    del /f /q "%%f" >nul 2>nul
+  )
+)
+
+
+REM Neu van con (file dang bi khoa, hoac OneDrive tao lai ngay) thi noi thang,
+REM kem cach xu ly — chu de Chrome bao loi kho hieu thi ban khong biet duong nao.
+if exist "%~dp0extension\desktop.ini" (
+  echo.
+  echo [CANH BAO] Van con file "desktop.ini" trong thu muc extension.
+  echo   Chrome se KHONG nap duoc extension khi con file nay.
+  echo   Cach xu ly: tam dung dong bo OneDrive cho thu muc nay, roi chay lai file nay.
+  echo.
+)
+
 set "REV="
 for /f "delims=" %%v in ('git rev-parse --short HEAD') do set "REV=%%v"
 

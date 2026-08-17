@@ -10,3 +10,9 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# --- Rac cua he dieu hanh ---
+# desktop.ini rat dang luu y: Windows tu tao no trong thu muc, va Chrome tu choi
+# nap extension co file nay ("The filename is illegal"). update.bat co buoc don.
+Thumbs.db
+desktop.ini
