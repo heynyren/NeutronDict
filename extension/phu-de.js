@@ -294,7 +294,7 @@
       // Đòi ít nhất 3 dòng: một dòng lẻ trông giống mốc giờ thì trang nào chẳng
       // có (thời lượng video, mốc chương…), ba dòng liền thì mới là bản chép lời.
       const c = quetSau(k, laDongTrongCung);
-      if (c.length >= 3) return c;
+      if (laBanChepLoi(c)) return c;
     }
     if (!sau) return [];
 
@@ -302,9 +302,59 @@
     // một lượt khi mọi cách khác đã trượt. Nhớ bỏ qua CHÍNH BẢNG NÀY — dòng của
     // nó cũng là "mốc giờ rồi tới chữ", ăn lại đầu ra của mình thì thành vòng.
     const d = quetSau(document.body, (el) =>
-      laDongTrongCung(el) && !(el.closest && el.closest("[data-ndict-yt]")));
-    return d.length >= 3 ? d : [];
+      laDongTrongCung(el) && !(el.closest && el.closest(KHONG_PHAI_BANG)));
+    return laBanChepLoi(d) ? d : [];
   }
+
+  /**
+   * Những chỗ TUYỆT ĐỐI không phải bản chép lời, dù nhìn giống hệt.
+   *
+   * Danh sách video gợi ý ở cột phải là cái bẫy chính: mỗi mục có huy hiệu thời
+   * lượng ("15:15") đứng ngay trước tiêu đề, tức là đúng khuôn "mốc giờ rồi tới
+   * chữ" mà mình đang đi tìm. Vớ phải nó thì cả bảng đầy tên video kèm
+   * "70K 4mo ago", và vệt sáng thì bám vào những mốc giờ vô nghĩa ấy.
+   */
+  const KHONG_PHAI_BANG = [
+    "[data-ndict-yt]",                            // chính bảng này
+    "#related", "#items.ytd-watch-next-secondary-results-renderer",
+    "ytd-watch-next-secondary-results-renderer",
+    "ytd-compact-video-renderer", "ytd-compact-radio-renderer",
+    "ytd-compact-playlist-renderer", "ytd-video-renderer",
+    "yt-lockup-view-model", "ytd-playlist-panel-renderer",
+    "ytd-comments", "ytd-comment-thread-renderer"
+  ].join(",");
+
+  /**
+   * Đám dòng này có thật sự là một bản chép lời không.
+   *
+   * Phép thử không phụ thuộc vào một tên lớp hay tên thẻ nào của YouTube, nên
+   * họ đổi giao diện kiểu gì nó vẫn đúng: mốc giờ của bản chép lời chạy TIẾN
+   * theo thời gian, dòng sau không bao giờ sớm hơn dòng trước. Còn thời lượng
+   * của một dãy video gợi ý thì nhảy loạn xạ.
+   */
+  function laBanChepLoi(ds) {
+    if (!ds || ds.length < 3) return false;
+    const t = [];
+    for (const el of ds) {
+      const m = chuSau(el).match(MOC_GIO);
+      if (!m) return false;
+      t.push(giayCuaMoc(m[1]));
+    }
+    let lui = 0;
+    for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) lui++;
+    // Cho phép sai vài dòng (mốc trùng, dòng dựng dở), nhưng lùi nhiều thì
+    // chắc chắn không phải bản chép lời.
+    if (lui > Math.max(1, Math.floor(t.length * 0.05))) return false;
+    // Bản chép lời bắt đầu từ đầu video, không phải từ phút thứ mười.
+    return t[0] <= 120;
+  }
+
+  /** "1:06" / "1:02:03" -> số giây. */
+  function giayCuaMoc(mc) {
+    const p = String(mc).split(":").map((x) => +x || 0);
+    return p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + p[1];
+  }
+
 
   const MOC_GIO = /^(\d{1,2}:\d{2}(?::\d{2})?)\s*([\s\S]+)$/;
 
@@ -549,6 +599,26 @@
     return document.querySelector("video.html5-main-video") || document.querySelector("#movie_player video") || document.querySelector("video");
   }
 
+  /**
+   * Đang chạy quảng cáo phải không.
+   *
+   * Đây là chỗ dễ quên nhất: YouTube dùng CHÍNH thẻ <video> đó để phát quảng
+   * cáo, nên trong lúc quảng cáo chạy thì currentTime là giờ của quảng cáo —
+   * thường vài giây — chứ không phải giờ của video. Không biết điều này thì
+   * vệt sáng tụt về đầu bảng suốt thời gian quảng cáo rồi mới quay lại, nhìn
+   * như bảng bị lỗi.
+   *
+   * Và tệ hơn: lúc ấy trình phát trả về dữ liệu của QUẢNG CÁO, không có phụ đề
+   * nào cả, nên nếu vội đi dựng bảng thì mọi đường lấy phụ đề đều trượt.
+   *
+   * Nhận biết qua lớp CSS mà chính trình phát tự gắn — thứ này YouTube giữ ổn
+   * định nhiều năm nay, và nó là dấu hiệu duy nhất nhìn thấy được từ ngoài.
+   */
+  function dangQuangCao() {
+    const mp = document.querySelector("#movie_player") || document.querySelector(".html5-video-player");
+    if (!mp || !mp.classList) return false;
+    return mp.classList.contains("ad-showing") || mp.classList.contains("ad-interrupting");
+  }
   /**
    * Chữ trong vùng bôi đen — CHỈ phần lời thoại.
    *
@@ -1135,6 +1205,9 @@
     const vd = video();
     if (!vd) return;
     const nhip = () => {
+      // Quảng cáo dùng chung thẻ <video>, nên currentTime lúc này là giờ của
+      // quảng cáo. Giữ nguyên vệt sáng ở chỗ cũ chứ đừng tin con số đó.
+      if (dangQuangCao()) return;
       const t = vd.currentTime;
       const i = timCau(t);
       if (i !== S.hien) {
@@ -1395,10 +1468,15 @@
     let lan = 0;
     const thu = async () => {
       if (maVideo() !== v) { clearInterval(dangCho); return; }
+      // Chờ hết quảng cáo. Trong lúc quảng cáo chạy, trình phát trả về dữ liệu
+      // của quảng cáo — không có phụ đề — nên dựng bảng lúc này là chắc chắn
+      // trượt hết mọi đường, rồi rơi xuống đường đọc DOM và vớ nhầm thứ khác.
+      // Đây chính là lý do vào video có quảng cáo thì phải F5 mới ra bảng đúng.
+      if (dangQuangCao() && lan < 240) { lan++; return; }
       if (choDat()) { clearInterval(dangCho); await khoiDong(v); return; }
-      if (++lan > 40) clearInterval(dangCho);
+      if (++lan > 240) clearInterval(dangCho);
     };
-    dangCho = setInterval(thu, 300);
+    dangCho = setInterval(thu, 500);
     thu();
   }
 
