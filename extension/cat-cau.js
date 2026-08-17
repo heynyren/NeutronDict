@@ -108,7 +108,11 @@
    * có mỗi một mốc thô.
    */
   const XE_DAI = 14;
+  // Dấu kết câu CJK: đứng ở đâu cũng là hết câu, xé thẳng.
   const XE_DAU = /[。．！？!?…]+/g;
+  // Dấu chấm ASCII thì phải có khoảng trắng theo sau mới tính, kẻo xé cả
+  // "200.000" hay "2.5" làm đôi.
+  const XE_DAU_LA = /[.!?]+(?=\s)/g;
   /**
    * Ranh giới VẾ nằm lọt trong một mẩu. Không phải chỗ hết câu, nên xé ra chỉ
    * để có một ranh giới mà đặt 、 vào — 「〜ますが試合は〜」 đọc liền một hơi thì
@@ -124,6 +128,8 @@
       let m;
       XE_DAU.lastIndex = 0;
       while ((m = XE_DAU.exec(s))) cho.add(m.index + m[0].length);
+      XE_DAU_LA.lastIndex = 0;
+      while ((m = XE_DAU_LA.exec(s))) cho.add(m.index + m[0].length);
       if (L.xeKet) {
         L.xeKet.lastIndex = 0;
         while ((m = L.xeKet.exec(s))) cho.add(m.index + m[0].length);
@@ -171,6 +177,30 @@
    */
 
   const HET_CAU = /[。．！？!?…]$|[.!?]["'’”)]?$/;
+
+  /**
+   * Bản chép lời này đã có sẵn dấu câu chưa?
+   *
+   * Đây là câu hỏi quan trọng nhất của cả tệp, quan trọng hơn mọi luật ngữ pháp
+   * bên dưới. Phụ đề tự sinh tiếng Việt và tiếng Anh của YouTube ĐÃ chấm câu
+   * sẵn, và chấm khá chuẩn — lúc ấy việc của mình chỉ là NỐI các mẩu vụn lại
+   * cho đúng câu, tuyệt đối không được cắt lại theo ý mình. Cắt lại là hỏng:
+   * xén ngang cụm "các nội dung ‖ liên quan", xoá dấu phẩy của người ta rồi
+   * thay bằng dấu chấm, thậm chí cắt vào giữa từ "tự ‖ nguyện".
+   *
+   * Chỉ khi nguồn KHÔNG có dấu câu nào (phụ đề tự sinh tiếng Nhật) thì bộ luật
+   * chấm điểm mới được vào cuộc.
+   *
+   * Đòi ít nhất hai dấu kết câu, và mật độ phải hợp lý — vài dấu chấm lẻ trong
+   * cả một video dài thì đó là chấm câu sót, không phải bản có chấm câu.
+   */
+  const DAU_KET = /[。．！？…]|[.!?](?=["\'’”)\s]|$)/g;
+
+  function daCoDauCau(chu) {
+    const m = chu.match(DAU_KET);
+    if (!m || m.length < 2) return false;
+    return chu.length / m.length <= 300;
+  }
   const PHAY = /[、，,]\s*$/;
 
   /* ---------------------------- tiếng Nhật ---------------------------- */
@@ -568,6 +598,7 @@
       chu = moi;
     }
 
+    const coDau = daCoDauCau(chu);
     const DAI = o.dai || L.dai;                   // ngưỡng bắt đầu ép ngắt
     const NGAN = L.ngan;
     const NG = o.nguong == null ? NGUONG : o.nguong;
@@ -580,9 +611,9 @@
     }
     const nhip = nhipNghi(lang.map((g) => (g === Infinity ? 0 : g)));
 
-    // Lượt 1: điểm tĩnh.
-    const diem = new Array(n);
-    for (let i = 0; i < n; i++) {
+    // Lượt 1: điểm tĩnh. Nguồn đã có dấu câu thì khỏi chấm điểm làm gì.
+    const diem = new Array(n).fill(0);
+    for (let i = 0; !coDau && i < n; i++) {
       diem[i] = diemTinh(
         chu.slice(Math.max(0, viTri[i].b - 24), viTri[i].b),
         cs[i + 1] ? cs[i + 1].s.trim() : null,
@@ -592,26 +623,56 @@
         L);
     }
 
-    // Lượt 2: chọn chỗ ngắt. Khi câu chạm trần mà chưa gặp chỗ nào đủ điểm thì
-    // QUAY LUI, cắt ở chỗ điểm cao nhất trong đoạn — đây là điều mà cách cắt cũ
-    // (chặt đúng ký tự thứ N) không làm được.
-    const TRAN = DAI * 3;
+    // Lượt 2: chọn chỗ ngắt.
     const moc = [];
-    let dau = 0, tot = -1, diemTot = -Infinity;
-    for (let i = 0; i < n; i++) {
-      const soChu = viTri[i].b - viTri[dau].a;
-      const d = diem[i] + apLuc(soChu, NGAN, DAI);
-      if (d > diemTot) { diemTot = d; tot = i; }
-      if (i === n - 1) { moc.push(i); break; }
-      if (d >= NG) {
-        moc.push(i);
-        dau = i + 1; tot = -1; diemTot = -Infinity;
-        continue;
+    if (coDau) {
+      /*
+       * Nguồn đã chấm câu sẵn: CHỈ NỐI, không cắt lại.
+       *
+       * Ngắt đúng ở dấu kết câu của người ta, không ở đâu khác — không theo
+       * khoảng lặng, không theo độ dài, không theo chỗ YouTube xuống dòng.
+       * Chỗ xuống dòng của họ chia theo bề rộng khung hình, nên tin vào đó là
+       * xén ngang giữa cụm từ; còn cắt theo độ dài thì có ngày cắt vào giữa
+       * một từ hai âm tiết.
+       *
+       * Chỉ giữ đúng một cái phanh: câu dài quá sức tưởng tượng thì hẳn là
+       * người ta quên chấm câu, lúc ấy mới cắt ở chỗ nghỉ lâu nhất.
+       */
+      const TRAN_CUNG = DAI * 6;
+      let dau = 0;
+      for (let i = 0; i < n; i++) {
+        if (i === n - 1) { moc.push(i); break; }
+        const duoi = chu.slice(Math.max(0, viTri[i].b - 6), viTri[i].b).replace(/\s+$/, "");
+        if (HET_CAU.test(duoi)) { moc.push(i); dau = i + 1; continue; }
+        if (viTri[i].b - viTri[dau].a >= TRAN_CUNG) {
+          let tot = dau;
+          for (let j = dau; j <= i; j++) if (lang[j] > lang[tot]) tot = j;
+          moc.push(tot);
+          dau = tot + 1; i = tot;
+        }
       }
-      if (soChu >= TRAN) {
-        const c = tot >= 0 ? tot : i;
-        moc.push(c);
-        dau = c + 1; i = c; tot = -1; diemTot = -Infinity;
+    } else {
+      // Nguồn không có lấy một dấu câu nào: giờ mới tới lượt bộ luật chấm điểm.
+      // Khi câu chạm trần mà chưa gặp chỗ nào đủ điểm thì QUAY LUI, cắt ở chỗ
+      // điểm cao nhất trong đoạn — đây là điều mà cách cắt cũ (chặt đúng ký tự
+      // thứ N) không làm được.
+      const TRAN = DAI * 3;
+      let dau = 0, tot = -1, diemTot = -Infinity;
+      for (let i = 0; i < n; i++) {
+        const soChu = viTri[i].b - viTri[dau].a;
+        const d = diem[i] + apLuc(soChu, NGAN, DAI);
+        if (d > diemTot) { diemTot = d; tot = i; }
+        if (i === n - 1) { moc.push(i); break; }
+        if (d >= NG) {
+          moc.push(i);
+          dau = i + 1; tot = -1; diemTot = -Infinity;
+          continue;
+        }
+        if (soChu >= TRAN) {
+          const c = tot >= 0 ? tot : i;
+          moc.push(c);
+          dau = c + 1; i = c; tot = -1; diemTot = -Infinity;
+        }
       }
     }
 
@@ -647,7 +708,7 @@
         const a = moi.length - cs[i].s.length;
         if (moi.length > a) manh.push({ t: cs[i].t, d: cs[i].d, a, b: moi.length });
         s = moi;
-        const nen = i < het &&
+        const nen = !coDau && i < het &&
           viTri[het].b - viTri[i].b >= DUOI_PHAY &&
           !/[、，,。．.!?！？…]\s*$/.test(s) &&
           nenPhay(s.slice(-24), cs[i + 1] ? cs[i + 1].s.trim() : null,
@@ -669,9 +730,18 @@
       for (const m of manh) { m.b = Math.min(m.b, s.length); m.a = Math.min(m.a, m.b); }
 
       if (s.trim()) {
-        // Kết câu. Dấu phẩy trót nằm cuối thì đổi thành dấu chấm, chứ để
-        // "〜が、" rồi hết câu thì máy dịch lại tưởng câu còn dở.
-        s = s.replace(/[、，,]\s*$/, "");
+        // Kết câu.
+        //
+        // Nguồn đã chấm câu sẵn thì ĐỪNG ĐỤNG VÀO: dấu phẩy cuối đoạn là dấu
+        // của người ta, xoá đi rồi thay bằng dấu chấm là bẻ gãy câu của họ
+        // ("Vâng," hoá thành "Vâng." rồi câu sau bắt đầu bằng chữ thường).
+        // Ở chế độ này gần như câu nào cũng đã có sẵn dấu kết, chỉ mẩu cuối
+        // video bị bỏ lửng mới cần thêm dấu chấm.
+        //
+        // Còn khi nguồn trần trụi thì ngược lại: dấu phẩy trót nằm cuối phải
+        // đổi thành dấu chấm, chứ để "〜が、" rồi hết câu thì máy dịch lại
+        // tưởng câu còn dở.
+        if (!coDau) s = s.replace(/[、，,]\s*$/, "");
         if (!HET_CAU.test(s)) s += CHAM;
         ra.push({ t: cs[k].t, tEnd: cs[het].t + cs[het].d, s, manh });
       }
