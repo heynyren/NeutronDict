@@ -430,6 +430,105 @@ function normMeans(e) {
   return [];
 }
 
+/* ====================================================================== */
+/* Furigana                                                               */
+/* ====================================================================== */
+/*
+ * Mazii cho cách đọc của phần lớn từ, nhưng không phải tất cả — và chỗ nó cho
+ * cũng không đồng nhất: 「金融」 ra きんゆう, còn 「奪われます」 lại ra
+ * "Ubawa remasu". Mục nằm trong sổ mà không đọc nổi thì đến buổi ôn là bỏ qua.
+ * Xem kana.js. Giống hệt bên extension, cố ý — hai bên dùng chung một sổ.
+ */
+
+/** Có phải văn bản tiếng Nhật không (hiragana/katakana/kanji)? */
+function hasJapanese(s) { return /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s || ""); }
+
+const kanaDem = new Map();
+let dangVaFurigana = false;   // khoá, kẻo vá xong vẽ lại rồi lại vá tiếp thành vòng lặp
+
+/** Phiên âm La-tinh của một chuỗi tiếng Nhật, lấy từ endpoint gtx (dt=rm). */
+async function romajiCua(text) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=rm"
+    + "&sl=ja&tl=vi&q=" + encodeURIComponent(text);
+  const data = await httpGetJson(url);
+  // Google để phiên âm nguồn ở phần tử [3] của đoạn cuối (chỗ [0] rỗng).
+  let rm = "";
+  for (const seg of ((data && data[0]) || [])) {
+    if (seg && seg[0] == null && typeof seg[3] === "string") rm += seg[3];
+  }
+  return rm.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Cách đọc bằng kana cho một từ. null = cứ để nguyên.
+ * @param {boolean} [choPhepMang] lúc tra một lượt hai chục kết quả thì không,
+ *   lúc BẤM LƯU một từ thì có.
+ */
+async function docKana(word, reading, choPhepMang) {
+  const K = window.Kana;
+  const w = (word || "").trim();
+  if (!w || !hasJapanese(w)) return null;
+  if (K.laRomaji(reading)) {
+    const k = K.tuRomajiCum(reading);
+    return k ? { doc: k, suy: true } : null;     // không đổi được thì giữ romaji còn hơn mất
+  }
+  if (reading && String(reading).trim()) return null;
+  const san = K.docSan(w);
+  if (san) return { doc: san, suy: false };
+  if (!K.canDoc(w, reading) || !choPhepMang) return null;
+  if (kanaDem.has(w)) { const c = kanaDem.get(w); return c ? { doc: c, suy: true } : null; }
+  let k = "";
+  try { k = K.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
+  kanaDem.set(w, k);
+  return k ? { doc: k, suy: true } : null;
+}
+
+/** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
+async function themDoc(entries, soDuocGoiMang) {
+  const ds = entries || [];
+  for (let i = 0; i < ds.length; i++) {
+    const r = await docKana(ds[i].word, ds[i].reading, i < (soDuocGoiMang || 0));
+    if (r) { ds[i].reading = r.doc; if (r.suy) ds[i].docSuy = 1; else delete ds[i].docSuy; }
+  }
+  return ds;
+}
+
+/**
+ * Vá furigana cho những mục ĐÃ nằm sẵn trong sổ. Chạy mỗi lần mở sổ tay: phần
+ * đổi romaji sang kana làm hết vì không tốn gì, phần phải hỏi mạng thì mỗi lượt
+ * chỉ vài chục mục — mở thêm vài lần là hết. KHÔNG đụng `ts`: cách đọc suy ra
+ * là như nhau trên mọi máy, để yên mốc thời gian thì cloud khỏi nhận một lượt
+ * tải lên "cả sổ vừa đổi".
+ */
+async function vaFurigana(toiDa) {
+  let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
+  const nb = await getNB();
+  const doi = {};
+  for (const k of Object.keys(nb)) {
+    const it = nb[k];
+    if (!it || it.del) continue;
+    if (it.dict !== "javi" && it.dict !== "vija") continue;
+    if (it.kind === "sent") continue;
+    if (it.reading && !window.Kana.laRomaji(it.reading)) continue;
+    const phaiHoi = !it.reading && window.Kana.canDoc(it.word, "");
+    if (phaiHoi && conMang <= 0) continue;
+    const r = await docKana(it.word, it.reading, phaiHoi);
+    if (phaiHoi) conMang--;
+    if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+  }
+  const keys = Object.keys(doi);
+  if (!keys.length) return 0;
+  await capNhat((moi) => {
+    for (const k of keys) {
+      const it = moi[k];
+      if (!it || it.del) continue;
+      it.reading = doi[k].doc;
+      if (doi[k].suy) it.docSuy = 1;
+    }
+  });
+  return keys.length;
+}
+
 /** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
 async function fetchMazii(word) {
   for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
@@ -455,7 +554,9 @@ async function lookup(word, dict) {
   lastLookupError = "";
   if (!w) return [];
   // Ngăn tiếng Nhật đi đường Mazii; phần dưới là đường tiếng Anh.
-  if (dict === "javi") return fetchMazii(w);
+  // Vá furigana ngay ở đây, để cái hiện trên màn và cái được lưu là một. Chỉ 4
+  // kết quả đầu được gọi mạng: đó là những cái người ta thật sự nhìn.
+  if (dict === "javi") return themDoc(await fetchMazii(w), 4);
   // Tự động nhận diện
   if (dict === "auto") {
     if (looksVietnamese(w)) dict = "vien";
@@ -998,9 +1099,19 @@ async function renderWord(entries) {
     head.appendChild(left);
 
     const luuTu = async () => {
+      // Chốt chặn cuối cho furigana: kết quả nằm sâu dưới danh sách chưa được vá
+      // lúc tra (để khỏi gọi mạng hai chục lần), nhưng lúc bấm lưu thì chỉ một
+      // từ — mà đây đúng là lúc cần cách đọc nhất.
+      if (huong === "javi" || huong === "vija") {
+        try {
+          const rr = await docKana(en.word, en.reading, en.kind !== "sent");
+          if (rr) { en.reading = rr.doc; if (rr.suy) en.docSuy = 1; }
+        } catch (e) { /* không có furigana thì vẫn lưu */ }
+      }
       const laMoi = await capNhat((nb) => {
         const old2 = nb[key];
         const ne2 = { word: en.word, reading: en.reading || "", means: en.means || [], dict: huong, ts: Date.now() };
+        if (en.docSuy) ne2.docSuy = 1;               // cách đọc suy ra, không phải từ điển cho
         if (en.audio) ne2.audio = en.audio;
         if (en.pos && en.pos.length) ne2.pos = en.pos;
         if (srcSnap) ne2.src = srcSnap;
@@ -1432,6 +1543,13 @@ async function drawNotebook() {
     }
   });
   if (daSuaCu) syncSoon();
+  // Vá furigana cho những mục cũ còn thiếu cách đọc. Chạy nền, xong tới đâu vẽ
+  // lại tới đó — mở sổ không phải chờ mạng.
+  if (laNhat() && !dangVaFurigana) {
+    dangVaFurigana = true;
+    vaFurigana(25).then((n) => { dangVaFurigana = false; if (n) drawNotebook(); },
+                        () => { dangVaFurigana = false; });
+  }
   // Chỉ phần của ngôn ngữ đang bật; dữ liệu bên kia vẫn nằm nguyên trong kho.
   const nb = await getNBNgu();
   // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó rồi ghi lại một lần.
@@ -1523,7 +1641,13 @@ async function drawNotebook() {
 
     const head = el("div", "head");
     head.appendChild(el("span", "w" + (laNhat() ? " ja" : ""), it.word));
-    if (it.reading) head.appendChild(el("span", "r", it.reading));
+    if (it.reading) {
+      const r = el("span", "r", it.reading);
+      // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
+      // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
+      if (it.docSuy) { r.classList.add("suy"); r.title = "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"; }
+      head.appendChild(r);
+    }
     const spk = nutIcon("speaker-high", "Phát âm", "", 18);
     spk.addEventListener("click", () => speak(it.word, it.audio));
     head.appendChild(spk);

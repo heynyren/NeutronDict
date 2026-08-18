@@ -1,4 +1,5 @@
 importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính âm Hán Việt ở nền
+importScripts("kana.js");      // self.Kana — suy furigana khi từ điển không cho
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
@@ -170,8 +171,59 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
              .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
+  if (msg.type === "VA_FURIGANA") {
+    vaFurigana(msg.toiDa)
+      .then((n) => sendResponse({ ok: true, count: n }))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
   if (msg.type === "SYNC_SOON") { scheduleSync(msg.ngu); return; }
 });
+
+/**
+ * Vá furigana cho những mục ĐÃ nằm sẵn trong sổ.
+ *
+ * Chạy mỗi lần mở sổ tay. Phần đổi romaji sang kana thì làm hết, vì không tốn
+ * gì; phần phải đi hỏi mạng thì mỗi lượt chỉ làm `toiDa` mục, để mở sổ không
+ * biến thành mấy trăm lượt gọi mạng — mở vài lần là hết.
+ *
+ * KHÔNG đụng vào `ts`. Cách đọc suy ra là như nhau trên mọi máy, nên để yên
+ * mốc thời gian thì máy nào tự vá của máy đó, mà cloud không phải nhận một
+ * lượt tải lên "cả sổ vừa đổi".
+ */
+async function vaFurigana(toiDa) {
+  let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  const doi = {};
+  for (const k of Object.keys(nb)) {
+    const it = nb[k];
+    if (!it || it.del) continue;
+    if (it.dict !== "javi" && it.dict !== "vija") continue;
+    if (it.kind === "sent") continue;                 // cả câu thì furigana phải làm kiểu khác
+    if (it.reading && !self.Kana.laRomaji(it.reading)) continue;   // đã có kana rồi
+
+    // Mục này có phải đi hỏi mạng không: chỉ khi trắng cách đọc và có chữ Hán.
+    const phaiHoi = !it.reading && self.Kana.canDoc(it.word, "");
+    if (phaiHoi && conMang <= 0) continue;            // để dành cho lượt mở sau
+    const r = await docKana(it.word, it.reading, phaiHoi);
+    if (phaiHoi) conMang--;                           // trừ cả lượt hỏi hụt, không thì kẹt mãi ở đây
+    if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+  }
+  const keys = Object.keys(doi);
+  if (!keys.length) return 0;
+
+  // Đọc lại ngay trước khi ghi: giữa lúc hỏi mạng có thể đã có lượt lưu khác.
+  const moi = (await chrome.storage.local.get("notebook")).notebook || {};
+  for (const k of keys) {
+    const it = moi[k];
+    if (!it || it.del) continue;
+    it.reading = doi[k].doc;
+    if (doi[k].suy) it.docSuy = 1;
+  }
+  await chrome.storage.local.set({ notebook: moi });
+  return keys.length;
+}
 
 /** Ngôn ngữ đang bật. Một khoá duy nhất, mọi màn đều đọc từ đây. */
 async function nguHienTai() {
@@ -335,13 +387,94 @@ function normMeans(e) {
 function hasJapanese(s) { return /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s || ""); }
 
 /* ====================================================================== */
+/* Furigana                                                               */
+/* ====================================================================== */
+/*
+ * Mazii cho cách đọc của phần lớn từ, nhưng không phải tất cả — và chỗ nó cho
+ * thì cũng không đồng nhất: 「金融」 ra きんゆう, còn 「奪われます」 lại ra
+ * "Ubawa remasu". Một mục nằm trong sổ mà không đọc nổi thì đến buổi ôn là bỏ
+ * qua, nên ở đây vá cả hai chỗ:
+ *
+ *   - cách đọc đang là romaji  -> đổi ngược về hiragana, không tốn một lần gọi
+ *     mạng nào;
+ *   - không có cách đọc gì cả  -> hỏi phiên âm của Google (dt=rm) rồi đổi.
+ *
+ * Cách đọc suy ra được đánh dấu `docSuy` để giao diện nói thật với người đọc:
+ * romaji đã đánh mất một phần thông tin (ō là おう hay おお?) nên chỗ nào phải
+ * đoán thì đây chọn lối phổ biến hơn, và có thể trật.
+ */
+
+/** Đệm cách đọc theo từ, để tra lại cùng một từ không gọi mạng lần nữa. */
+const kanaDem = new Map();
+
+/** Phiên âm La-tinh của một chuỗi tiếng Nhật, lấy từ endpoint gtx (dt=rm). */
+async function romajiCua(text) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=rm"
+    + "&sl=ja&tl=vi&q=" + encodeURIComponent(text);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("gtx HTTP " + r.status);
+  const data = await r.json();
+  // Google để phiên âm nguồn ở phần tử [3] của đoạn cuối (chỗ [0] rỗng).
+  let rm = "";
+  for (const seg of ((data && data[0]) || [])) {
+    if (seg && seg[0] == null && typeof seg[3] === "string") rm += seg[3];
+  }
+  return rm.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Cách đọc bằng kana cho một từ.
+ * @returns {Promise<{doc: string, suy: boolean}|null>} null = cứ để nguyên.
+ * @param {boolean} [choPhepMang] có được gọi mạng không. Lúc tra một lượt hai
+ *   chục kết quả thì không, lúc BẤM LƯU một từ thì có — chỗ đó chỉ một từ, mà
+ *   lại đúng là chỗ người dùng cần có furigana nhất.
+ */
+async function docKana(word, reading, choPhepMang) {
+  const K = self.Kana;
+  const w = (word || "").trim();
+  if (!w || !hasJapanese(w)) return null;
+
+  // Cách đọc đang là romaji: đổi tại chỗ, khỏi mạng.
+  if (K.laRomaji(reading)) {
+    const k = K.tuRomajiCum(reading);
+    return k ? { doc: k, suy: true } : null;      // không đổi được thì giữ romaji còn hơn mất
+  }
+  if (reading && String(reading).trim()) return null;   // đã có kana rồi
+
+  const san = K.docSan(w);
+  if (san) return { doc: san, suy: false };             // toàn kana: chính nó là cách đọc
+  if (!K.canDoc(w, reading) || !choPhepMang) return null;
+
+  if (kanaDem.has(w)) { const c = kanaDem.get(w); return c ? { doc: c, suy: true } : null; }
+  let k = "";
+  try { k = self.Kana.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
+  kanaDem.set(w, k);
+  return k ? { doc: k, suy: true } : null;
+}
+
+/** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
+async function themDoc(entries, soDuocGoiMang) {
+  const ds = entries || [];
+  for (let i = 0; i < ds.length; i++) {
+    const e = ds[i];
+    const r = await docKana(e.word, e.reading, i < (soDuocGoiMang || 0));
+    if (r) { e.reading = r.doc; if (r.suy) e.docSuy = 1; else delete e.docSuy; }
+  }
+  return ds;
+}
+
+/* ====================================================================== */
 
 async function lookupEntry(rawWord, dict) {
   const word = (rawWord || "").trim();
   if (!word) return [];
 
   // Ngăn tiếng Nhật đi đường Mazii; ngăn tiếng Anh đi đường bên dưới.
-  if (dict === "javi" || dict === "jvi") return fetchMazii(word, "javi");
+  if (dict === "javi" || dict === "jvi") {
+    // Vá furigana ngay ở đây, để cái hiện trên màn và cái được lưu là một.
+    // Chỉ 4 kết quả đầu được gọi mạng: đó là những cái người ta thật sự nhìn.
+    return themDoc(await fetchMazii(word, "javi"), 4);
+  }
 
   if (dict === "vien") {
     // Việt -> Anh: lấy từ tiếng Anh (nhiều lựa chọn) rồi làm giàu IPA/định nghĩa
@@ -553,6 +686,15 @@ async function saveWord(entry, dict) {
   const e = {
     word: entry.word, reading: entry.reading || "", means: entry.means || [], dict: d, ts: Date.now()
   };
+  // Chốt chặn cuối cho furigana: popup, thẻ tra trong trang và bảng lời thoại
+  // YouTube đều đi qua đây, nên vá ở đây là vá cho tất cả. Một từ thì gọi mạng
+  // được — mà đây đúng là lúc người dùng cần cách đọc nhất.
+  if (d === "javi" || d === "vija") {
+    try {
+      const r = await docKana(e.word, e.reading, entry.kind !== "sent");
+      if (r) { e.reading = r.doc; if (r.suy) e.docSuy = 1; }
+    } catch (err) { /* không có furigana thì vẫn lưu, đừng chặn việc lưu */ }
+  }
   if (entry.pos && entry.pos.length) e.pos = entry.pos;      // định nghĩa/ví dụ tiếng Anh
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
   if (entry.kanji) e.kanji = entry.kanji;                     // on/kun/số nét/JLPT/bộ thủ

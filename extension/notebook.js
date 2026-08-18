@@ -760,7 +760,13 @@ function draw() {
     /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
     const head = el("div", "head");
     head.appendChild(el("span", "w" + (NGU === "ja" ? " ja" : ""), it.word));
-    if (it.reading) head.appendChild(el("span", "r", it.reading));
+    if (it.reading) {
+      const r = el("span", "r", it.reading);
+      // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
+      // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
+      if (it.docSuy) { r.classList.add("suy"); r.title = "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"; }
+      head.appendChild(r);
+    }
 
     const spk = nutIcon("speaker-high", "Phát âm", "", 17);
     spk.addEventListener("click", () => speak(it.word, it.audio));
@@ -1389,6 +1395,22 @@ async function donHuyHieu() {
   await theoDoi.nap(true);
 }
 
+/**
+ * Nhờ nền suy cách đọc cho những mục tiếng Nhật còn thiếu furigana.
+ *
+ * Mỗi lượt mở sổ chỉ vá một nhúm — sổ vài trăm từ mà vá hết trong một lượt thì
+ * thành vài trăm lượt gọi mạng. Mở thêm vài lần là hết, mà chờ thì không phải
+ * chờ: hàm này chạy nền, xong mới vẽ lại.
+ */
+function vaFurigana() {
+  try {
+    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 25 }, (kq) => {
+      if (chrome.runtime.lastError) return;
+      if (kq && kq.ok && kq.count) load();
+    });
+  } catch (e) { /* không vá được thì thôi, sổ vẫn dùng bình thường */ }
+}
+
 /** Vẽ lại nút chuyển ngôn ngữ và mọi chỗ ăn theo nó. */
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
@@ -1413,6 +1435,7 @@ async function doiNgu(ngu) {
   await theoDoi.nap(true);
   await load();
   await loadConfig();
+  if (NGU === "ja") vaFurigana();
   if ($("viewProgress").classList.contains("show")) veTienDo();
 }
 
@@ -1430,6 +1453,10 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   // Dọn huy hiệu bị rò từ ngôn ngữ khác sang (lỗi của bản gộp đời đầu). Phải
   // dọn TRƯỚC khi đồng bộ, kẻo bản bẩn kịp đi lên cloud một lượt nữa.
   await donHuyHieu();
+
+  // Vá furigana cho những mục đã lưu từ trước mà không có cách đọc. Không chặn
+  // màn hình: xong tới đâu vẽ lại tới đó.
+  vaFurigana();
 
   const cfg = await loadConfig();
   if (cfg.syncUrl) { $("syncBox").open = false; await syncNow(); }
