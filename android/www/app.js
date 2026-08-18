@@ -211,6 +211,8 @@ function toast(chu, kieu) {
  * kho, phân biệt bằng tiền tố khoá, nên chuyển qua chuyển lại không mất gì.
  */
 let NGU = "en";
+/** Ngôn ngữ mà bản tiến độ đang giữ trong bộ nhớ thuộc về. */
+let nguDaNap = "";
 const laNhat = () => NGU === "ja";
 
 async function napNgu() {
@@ -342,10 +344,17 @@ async function soLieuSoTay() {
 const theoDoi = window.TienDo.tao({
   // Tiến độ tách theo ngôn ngữ: học tiếng Anh không làm xê dịch chuỗi ngày của
   // tiếng Nhật. Bản cũ phẳng là của tiếng Anh, Ngu.tachHoc chuyển nguyên vào.
-  doc: async () => window.Ngu.tachHoc(await Store.get("hoc"))[NGU],
+  //
+  // Ghi theo nguDaNap — ngôn ngữ mà bản đang giữ trong bộ nhớ thuộc về — chứ
+  // KHÔNG theo NGU. Ghi theo NGU thì chỉ cần một lượt ghi rơi vào lúc vừa đổi
+  // ngôn ngữ là tiến độ bên này chui sang ngăn bên kia.
+  doc: async () => {
+    nguDaNap = NGU;
+    return window.Ngu.tachHoc(await Store.get("hoc"))[NGU];
+  },
   ghi: async (d) => {
     const cu = window.Ngu.tachHoc(await Store.get("hoc"));
-    await Store.set("hoc", Object.assign({}, cu, { [NGU]: d }));
+    await Store.set("hoc", Object.assign({}, cu, { [nguDaNap || NGU]: d }));
   },
   soLieu: soLieuSoTay,
   sauKhiGhi: () => syncSoon()
@@ -542,7 +551,11 @@ async function doSync(rawNgu) {
   // lên thì lọc lại cho sạch.
   const remoteCuaToi = window.Ngu.locSo(remoteNb, ngu);
   const mergedNb = mergeByTs(window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
-  const mergedDecks = mergeByTs(await getDecks(), remoteDecks);
+  // Sổ con cũng tách theo ngôn ngữ, đúng như hồi còn là hai app.
+  const nbTatCa = await getNB();
+  const mergedDecks = mergeByTs(
+    window.Ngu.locSoCon(await getDecks(), nbTatCa, ngu),
+    window.Ngu.locSoCon(remoteDecks, remoteNb, ngu));
   // Tiến độ học trộn theo luật riêng — xem TienDo.tron().
   const hocTach = window.Ngu.tachHoc(await Store.get("hoc"));
   const mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
@@ -1299,7 +1312,12 @@ async function drawNotebook() {
   });
   if (daSuaCu) syncSoon();
   // Chỉ phần của ngôn ngữ đang bật; dữ liệu bên kia vẫn nằm nguyên trong kho.
-  const nb = await getNBNgu(), decks = await getDecks();
+  const nb = await getNBNgu();
+  // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó rồi ghi lại một lần.
+  const nbTatCa = await getNB();
+  const gan = window.Ngu.ganNguChoSo(await getDecks(), nbTatCa);
+  if (gan.doi) { await setDecks(gan.decks); syncSoon(); }
+  const decks = window.Ngu.locSoCon(gan.decks, nbTatCa, NGU);
 
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
@@ -1338,7 +1356,7 @@ async function drawNotebook() {
     if (!name) return;
     const d = await getDecks();
     const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    d[id] = { id, name, ts: Date.now() };
+    d[id] = { id, name, ngu: NGU, ts: Date.now() };
     await setDecks(d); curDeck = id; drawNotebook(); syncSoon();
   });
   bar.appendChild(add);
@@ -1941,10 +1959,18 @@ $("nguBtn").addEventListener("click", async () => {
   toast("Đã chuyển sang " + (laNhat() ? "Nhật–Việt" : "Anh–Việt"));
 });
 
+/** Xoá huy hiệu của ngôn ngữ chưa hề có hoạt động nào — xem Ngu.donHuyHieuLac. */
+async function donHuyHieu() {
+  const kq = window.Ngu.donHuyHieuLac(await Store.get("hoc"), await getNB());
+  if (!kq.doi.length) return;
+  await Store.set("hoc", kq.hoc);
+}
+
 (async () => {
   gaiIcon();
   await napNgu();
   veNgu();
+  await donHuyHieu();
   await theoDoi.nap();
   await veChuoiNgay();
 

@@ -762,7 +762,10 @@ async function doSync(rawNgu) {
   const nbCuaToi = self.Ngu.locSo(store.notebook || {}, ngu);
 
   const mergedNgu = mergeByTs(nbCuaToi, remoteCuaToi);
-  const mergedDecks = mergeByTs(store.decks || {}, remoteDecks);
+  // Sổ con cũng tách theo ngôn ngữ, đúng như hồi còn là hai extension: cloud
+  // tiếng Nhật không nhận sổ tiếng Anh và ngược lại.
+  const soCuaToi = self.Ngu.locSoCon(store.decks || {}, store.notebook || {}, ngu);
+  const mergedDecks = mergeByTs(soCuaToi, self.Ngu.locSoCon(remoteDecks, remoteNb, ngu));
   // Tiến độ học KHÔNG trộn theo kiểu "bản mới hơn thắng" như sổ tay — xem
   // TienDo.tron() để biết vì sao (tóm tắt: 8 lượt trên điện thoại và 5 lượt
   // trên máy tính đều là lượt thật, không bên nào được xoá bên nào).
@@ -786,7 +789,7 @@ async function doSync(rawNgu) {
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
   if (JSON.stringify(self.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNgu) ||
-      JSON.stringify(finalDecks) !== JSON.stringify(mergedDecks) ||
+      JSON.stringify(self.Ngu.locSoCon(finalDecks, finalNb, ngu)) !== JSON.stringify(mergedDecks) ||
       JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) {
     scheduleSync(ngu);
   }

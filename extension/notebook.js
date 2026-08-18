@@ -81,6 +81,9 @@ let current = ALL;
  */
 let NGU = "en";
 
+/** Ngôn ngữ mà bản tiến độ đang giữ trong bộ nhớ thuộc về. */
+let nguDaNap = "";
+
 async function getStore() {
   const s = await chrome.storage.local.get(["notebook", "decks"]);
   return { nb: s.notebook || {}, decks: s.decks || {} };
@@ -210,10 +213,18 @@ function soLieuSoTay() {
  * phẳng — Ngu.tachHoc chuyển nó nguyên vẹn vào ngăn "en", không mất lượt nào.
  */
 const theoDoi = window.TienDo.tao({
-  doc: async () => window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc)[NGU],
+  // Ghi theo nguDaNap — ngôn ngữ mà bản đang giữ trong bộ nhớ thuộc về — chứ
+  // KHÔNG theo NGU. Ghi theo NGU thì chỉ cần một lượt ghi rơi vào lúc vừa đổi
+  // ngôn ngữ mà bản cũ chưa kịp nạp lại, là tiến độ và huy hiệu của bên này
+  // chui sang ngăn bên kia. Đó đúng là lỗi "sang tiếng Anh cũng thấy 3 huy
+  // hiệu của tiếng Nhật".
+  doc: async () => {
+    nguDaNap = NGU;
+    return window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc)[NGU];
+  },
   ghi: async (d) => {
     const cu = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
-    await chrome.storage.local.set({ hoc: Object.assign({}, cu, { [NGU]: d }) });
+    await chrome.storage.local.set({ hoc: Object.assign({}, cu, { [nguDaNap || NGU]: d }) });
   },
   soLieu: async () => soLieuSoTay(),
   sauKhiGhi: () => syncSoon()
@@ -251,7 +262,11 @@ async function load() {
   });
   if (daSuaCu) syncSoon();
   const s = await getStore();
-  decks = s.decks;
+  // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
+  // lần cho xong — lần sau khỏi phải suy nữa.
+  const gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
+  if (gan.doi) { await chrome.storage.local.set({ decks: gan.decks }); syncSoon(); }
+  decks = window.Ngu.locSoCon(gan.decks, s.nb, NGU);
   // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
   // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
   // liệu bên kia vẫn nằm nguyên đó, không hề bị đụng tới.
@@ -311,7 +326,9 @@ async function createDeck() {
   if (!name) return;
   const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = (await getStore()).decks;
-  d[id] = { id, name, ts: Date.now() };
+  // Gắn nhãn ngôn ngữ ngay: sổ tiếng Nhật không được lẫn sang danh sách
+  // tiếng Anh, và ngược lại.
+  d[id] = { id, name, ngu: NGU, ts: Date.now() };
   await setDecks(d);
   current = id;
   await load();
@@ -1306,6 +1323,15 @@ $("aboutSheet").addEventListener("click", (e) => {
 /* Khởi động                                                            */
 /* ==================================================================== */
 
+/** Xoá huy hiệu của ngôn ngữ chưa hề có hoạt động nào — xem Ngu.donHuyHieuLac. */
+async function donHuyHieu() {
+  const kho = await chrome.storage.local.get(["hoc", "notebook"]);
+  const kq = window.Ngu.donHuyHieuLac(kho.hoc, kho.notebook || {});
+  if (!kq.doi.length) return;
+  await chrome.storage.local.set({ hoc: kq.hoc });
+  await theoDoi.nap(true);
+}
+
 /** Vẽ lại nút chuyển ngôn ngữ và mọi chỗ ăn theo nó. */
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
@@ -1344,6 +1370,10 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   await theoDoi.nap();
   await load();
   await loadSettings();
+  // Dọn huy hiệu bị rò từ ngôn ngữ khác sang (lỗi của bản gộp đời đầu). Phải
+  // dọn TRƯỚC khi đồng bộ, kẻo bản bẩn kịp đi lên cloud một lượt nữa.
+  await donHuyHieu();
+
   const cfg = await loadConfig();
   if (cfg.syncUrl) { $("syncBox").open = false; await syncNow(); }
   else { $("syncBox").open = true; }

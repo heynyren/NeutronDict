@@ -89,9 +89,98 @@
     return { ja: null, en: co };
   }
 
+  /**
+   * Sổ con thuộc ngôn ngữ nào.
+   *
+   * Sổ con vốn không mang thông tin ngôn ngữ — hồi còn hai extension thì không
+   * cần, mỗi bên một kho riêng. Gộp lại thì phải phân biệt, nếu không ở chế độ
+   * tiếng Nhật vẫn thấy lù lù mấy sổ tiếng Anh với số đếm 0.
+   *
+   * Ba nấc, theo thứ tự tin cậy:
+   *   1. `ngu` ghi thẳng trên sổ — sổ tạo từ bản này trở đi đều có.
+   *   2. Suy từ các mục ĐANG dùng sổ đó: mục "javi:"/"kanji:" thì sổ là tiếng
+   *      Nhật. Đây là cách nhận ra đám sổ cũ, và nó chính xác vì sổ sinh ra là
+   *      để chứa mục.
+   *   3. Không có gì để suy (sổ rỗng, tạo từ bản cũ) -> trả "" và được hiện ở
+   *      CẢ HAI bên. Thà thừa còn hơn giấu mất sổ của người ta.
+   */
+  function nguCuaSo(id, so, nb) {
+    if (so && hopLeChat(so.ngu)) return so.ngu;
+    for (const k in (nb || {})) {
+      const e = nb[k];
+      if (!e || e.del || e.deck !== id) continue;
+      const n = nguCuaKhoa(k);
+      if (n) return n;
+    }
+    return "";
+  }
+
+  function hopLeChat(n) { return DS.indexOf(n) >= 0; }
+
+  /** Chỉ giữ những sổ con thuộc ngôn ngữ này (kèm sổ chưa rõ ngôn ngữ). */
+  function locSoCon(decks, nb, ngu) {
+    const n = hopLe(ngu), ra = {};
+    for (const id in (decks || {})) {
+      const cua = nguCuaSo(id, decks[id], nb);
+      if (!cua || cua === n) ra[id] = decks[id];
+    }
+    return ra;
+  }
+
+  /**
+   * Gắn nhãn ngôn ngữ cho những sổ cũ chưa có, suy từ mục đang dùng chúng.
+   * Chạy một lần lúc mở app; sổ rỗng không suy được thì để nguyên.
+   */
+  function ganNguChoSo(decks, nb) {
+    const ra = {};
+    let doi = 0;
+    for (const id in (decks || {})) {
+      const d = decks[id];
+      if (d && hopLeChat(d.ngu)) { ra[id] = d; continue; }
+      const cua = nguCuaSo(id, d, nb);
+      if (!cua) { ra[id] = d; continue; }
+      ra[id] = Object.assign({}, d, { ngu: cua });
+      doi += 1;
+    }
+    return { decks: ra, doi };
+  }
+
+  /**
+   * Dọn huy hiệu bị rò từ ngôn ngữ khác sang.
+   *
+   * Bản gộp đời đầu có một lỗi: khi đổi ngôn ngữ, tiến độ đang nạp sẵn KHÔNG
+   * được đọc lại, nên huy hiệu tính từ số liệu tiếng Nhật lại bị ghi vào ngăn
+   * tiếng Anh. Lỗi ấy đã sửa, nhưng dữ liệu đã bẩn thì vẫn nằm đó — và còn
+   * được đẩy lên cloud.
+   *
+   * Luật dọn cố ý hẹp đến mức không thể oan: chỉ xoá huy hiệu của một ngôn ngữ
+   * khi ngôn ngữ đó KHÔNG có lấy một ngày hoạt động nào VÀ sổ tay của nó rỗng.
+   * Không học buổi nào, không lưu từ nào, thì không thể có huy hiệu — không có
+   * trường hợp thật nào rơi vào đây. Ngược lại, chỉ cần có một ngày trong nhật
+   * ký hay một mục trong sổ là không đụng tới, vì huy hiệu có thể là thành tích
+   * cũ mà số liệu hôm nay không còn phản ánh (đã xoá bớt từ chẳng hạn).
+   *
+   * @returns {{hoc: object, doi: string[]}} bản đã dọn và các ngôn ngữ bị dọn.
+   */
+  function donHuyHieuLac(hoc, soTay) {
+    const h = tachHoc(hoc);
+    const doi = [];
+    for (const n of DS) {
+      const d = h[n];
+      if (!d || !d.badges || !Object.keys(d.badges).length) continue;
+      const coNgay = d.log && Object.keys(d.log).length > 0;
+      const coMuc = Object.keys(locSo(soTay || {}, n)).some((k) => !(soTay[k] || {}).del);
+      if (coNgay || coMuc) continue;
+      h[n] = Object.assign({}, d, { badges: {} });
+      doi.push(n);
+    }
+    return { hoc: h, doi };
+  }
+
   goc.Ngu = {
     DS, NGAN, TEN, KHOA_SYNC,
-    hopLe, tienTo, thuoc, nguCuaKhoa, locSo, boPhanKhac, tachHoc,
+    hopLe, tienTo, thuoc, nguCuaKhoa, locSo, boPhanKhac, tachHoc, donHuyHieuLac,
+    nguCuaSo, locSoCon, ganNguChoSo,
     nganChinh: (ngu) => NGAN_CHINH[hopLe(ngu)],
     ten: (ngu) => TEN[hopLe(ngu)],
     khoaSync: (ngu) => KHOA_SYNC[hopLe(ngu)]
