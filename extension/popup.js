@@ -48,6 +48,7 @@ async function doiNgu() {
   const { settings } = await chrome.storage.local.get("settings");
   await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: NGU }) });
   veNgu();
+  veChuoiNgay();     // chuỗi ngày tính riêng từng ngôn ngữ, đổi bên là đổi số
   run(qEl.value);
 }
 const goEl = document.getElementById("go");
@@ -98,9 +99,15 @@ function nutLoa(text, audio, size) {
 async function veChuoiNgay() {
   try {
     const { hoc } = await chrome.storage.local.get("hoc");
-    const view = window.TienDo.tongQuan(window.TienDo.chuanHoa(hoc), {});
+    // Tách theo ngôn ngữ: `hoc` là {ja, en}, đưa thẳng cả cục cho chuanHoa thì
+    // nó không thấy log nào nên chuỗi ngày luôn bằng 0 và cái chip không bao giờ
+    // hiện ra.
+    const cua = window.Ngu.tachHoc(hoc)[NGU];
+    const view = window.TienDo.tongQuan(window.TienDo.chuanHoa(cua), {});
     const chip = document.getElementById("streakChip");
-    if (!view.chuoi.hienTai && !view.homNay.on) return;   // chưa học buổi nào -> không khoe gì cả
+    // Chưa học buổi nào thì không khoe gì cả — và phải GIẤU hẳn, vì hàm này còn
+    // chạy lại lúc đổi ngôn ngữ: bỏ quên thì con số của bên kia nằm lại đó.
+    if (!view.chuoi.hienTai && !view.homNay.on) { chip.style.display = "none"; return; }
     chip.innerHTML = window.Icon("fire", { size: 14, weight: "solid" });
     const s = document.createElement("span");
     s.textContent = view.chuoi.hienTai

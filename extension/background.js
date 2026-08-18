@@ -735,24 +735,32 @@ async function saveWord(entry, dict) {
   await chrome.storage.local.set({ notebook: nb });
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
-  if (!old || old.del) await ghiNhanLuu();
+  if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));
 }
 
 /**
- * Cộng một mục vào nhật ký học của hôm nay.
+ * Cộng một mục vào nhật ký học của hôm nay, ĐÚNG NGĂN ngôn ngữ của mục đó.
  *
  * Service worker không dùng được bộ theo dõi trong tien-do.js (nó cần DOM để vẽ),
  * nên chỗ này ghi thẳng vào cùng cấu trúc dữ liệu — vẫn qua TienDo.chuanHoa để
  * không bao giờ ghi ra hình dạng lạ.
+ *
+ * PHẢI đi qua Ngu.tachHoc. Từ ngày gộp hai ngôn ngữ, `hoc` có hình dạng
+ * {ja, en}; đưa thẳng nó cho TienDo.chuanHoa thì nó không thấy log/badges nào ở
+ * cấp ngoài nên trả về một bản TRẮNG, và lượt ghi kế tiếp đè bản trắng ấy lên
+ * cả hai ngôn ngữ — lưu đúng một từ là bay sạch chuỗi ngày, nhật ký và huy hiệu
+ * của cả hai bên.
  */
-async function ghiNhanLuu() {
+async function ghiNhanLuu(ngu) {
   try {
     const { hoc } = await chrome.storage.local.get("hoc");
-    const d = self.TienDo.chuanHoa(hoc);
+    const tach = self.Ngu.tachHoc(hoc);
+    const n = self.Ngu.hopLe(ngu || (await nguHienTai()));
+    const d = self.TienDo.chuanHoa(tach[n]);
     const iso = self.TienDo.homNay();
     if (!d.log[iso]) d.log[iso] = { r: 0, y: 0, n: 0, s: 0, sm: 0, km: 0 };
     d.log[iso].s += 1;
-    await chrome.storage.local.set({ hoc: d });
+    await chrome.storage.local.set({ hoc: Object.assign({}, tach, { [n]: d }) });
   } catch (e) { /* không ghi được nhật ký thì cũng không được làm hỏng việc lưu từ */ }
 }
 

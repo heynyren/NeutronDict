@@ -1172,10 +1172,19 @@ async function restoreJson(file) {
       Object.assign(dks, mergeLocal(dks, impDecks));
     });
     if (imp && imp.hoc) {
-      const cur = (await chrome.storage.local.get("hoc")).hoc;
-      const gop = window.TienDo.tron(cur, imp.hoc);
+      // Trộn TỪNG NGÔN NGỮ một. TienDo.tron() chỉ hiểu một bản tiến độ phẳng;
+      // ném cả cục {ja, en} vào là nó trả về bản trắng, vừa mất tiến độ đang có
+      // vừa mất tiến độ trong file. Ngu.tachHoc() cũng nhận cả file sao lưu đời
+      // cũ (một bản phẳng, hồi còn là app tiếng Anh) và xếp đúng ngăn.
+      const cur = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
+      const vao = window.Ngu.tachHoc(imp.hoc);
+      const gop = {
+        ja: window.TienDo.tron(cur.ja, vao.ja),
+        en: window.TienDo.tron(cur.en, vao.en)
+      };
       await chrome.storage.local.set({ hoc: gop });
-      theoDoi.dat(gop);
+      nguDaNap = NGU;
+      theoDoi.dat(gop[NGU]);
     }
     await load();
     syncSoon();
