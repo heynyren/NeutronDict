@@ -60,7 +60,16 @@ function fmtDate(ts) {
     return d.toLocaleDateString("vi-VN") + " " + d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
   } catch (e) { return ""; }
 }
-function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
+function dirLabel(d) {
+  if (d === "kanji") return "Hán tự";
+  if (d === "javi") return "Nhật→Việt";
+  if (d === "vija") return "Việt→Nhật";
+  if (d === "vien") return "Việt→Anh";
+  if (d === "envi") return "Anh→Việt";
+  // Mục cũ không ghi hướng thì đoán theo ngăn đang mở — đằng nào danh sách cũng
+  // đã lọc theo đúng một ngôn ngữ rồi.
+  return NGU === "ja" ? "Nhật→Việt" : "Anh→Việt";
+}
 
 /* ==================================================================== */
 /* Lưu trữ                                                              */
@@ -68,6 +77,7 @@ function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
 
 const ALL = "__all__", NONE = "__none__";
 const LIKE = "__like__", DISLIKE = "__dislike__";
+const HANTU = "__kanji__";   // sổ con ảo: chỉ những mục là MỘT chữ Hán
 
 let items = [];   // mục trong sổ (gồm cả bia mộ đã xoá)
 let decks = {};
@@ -273,7 +283,7 @@ async function load() {
   items = Object.entries(window.Ngu.locSo(s.nb, NGU)).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   // Sổ đang chọn đã bị xoá -> quay về Tất cả.
-  if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && !deckName(current)) current = ALL;
+  if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && current !== HANTU && !deckName(current)) current = ALL;
   drawDecks();
   draw();
 }
@@ -288,6 +298,7 @@ function countIn(id) {
   if (id === NONE) return a.filter((it) => !it.deck).length;
   if (id === LIKE) return a.filter((it) => it.fav === 1).length;
   if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
+  if (id === HANTU) return a.filter((it) => it.dict === "kanji").length;
   return a.filter((it) => it.deck === id).length;
 }
 
@@ -307,6 +318,10 @@ function drawDecks() {
   mk(NONE, "Chưa phân loại", "funnel");
   mk(LIKE, "Thích", "heart");
   mk(DISLIKE, "Không thích", "thumbs-down");
+  // Hán tự tách riêng vì học chữ và học từ là hai buổi khác nhau: một buổi chỉ
+  // chữ thì mỗi chữ được nhìn kỹ, chứ trộn lẫn thì chữ luôn bị từ lấn át.
+  // Bên tiếng Anh không có ngăn này nên cũng không hiện.
+  if (NGU === "ja") mk(HANTU, "Hán tự", "text-aa");
   activeDecks().forEach((d) => mk(d.id, d.name, "folder-simple"));
 
   const add = el("button", "chip add");
@@ -317,7 +332,7 @@ function drawDecks() {
   bar.appendChild(add);
 
   // Hai nhãn cố định (Thích / Không thích) không cho đổi tên hay xoá.
-  const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE;
+  const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && current !== HANTU;
   $("deckActions").style.display = real ? "" : "none";
 }
 
@@ -391,20 +406,48 @@ async function moveWord(key, deckId) {
  * thì thường sai — mà trọng âm mới là thứ người Việt hay nhớ nhầm.
  */
 const _audioCache = new Map();
+/**
+ * Âm Hán Việt của những chữ Hán trong từ. Với người Việt học tiếng Nhật đây là
+ * cái móc trí nhớ mạnh nhất: 「職場」 đọc là しょくば thì phải học thuộc, nhưng
+ * biết nó là "Chức Trường" thì gần như không cần học.
+ */
+function hanVietOf(word) {
+  const DB = (typeof window !== "undefined" && window.KANJI) || {};
+  const parts = [];
+  let hasKanji = false;
+  for (const ch of (word || "")) {
+    const c = ch.codePointAt(0);
+    const isCJK = (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || (c >= 0xf900 && c <= 0xfaff);
+    if (!isCJK) continue;
+    hasKanji = true;
+    const d = DB[ch];
+    parts.push(d && d.hv ? d.hv.split(/\s+/)[0] : "?");
+  }
+  if (!hasKanji || !parts.length) return "";
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+}
+
 function getAudio(url) {
   let a = _audioCache.get(url);
   if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
   return a;
 }
+/**
+ * Đọc to. Giọng chọn theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh
+ * thì ra một thứ không ai nghe được.
+ */
 function ttsSpeak(text) {
   try {
     speechSynthesis.cancel();
+    const ja = (typeof NGU !== "undefined" && NGU === "ja");
+    const ma = ja ? "ja" : "en";
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 0.9;
-    const v = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith("en"));
+    u.lang = ja ? "ja-JP" : "en-US";
+    u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
     if (v) u.voice = v;
     speechSynthesis.speak(u);
-  } catch (e) { /* máy không có giọng Anh */ }
+  } catch (e) { /* máy không có giọng thứ tiếng đó */ }
 }
 function speak(text, audio) {
   if (audio) {
@@ -661,6 +704,7 @@ function currentActiveSet() {
   if (current === NONE) return a.filter((it) => !it.deck);
   if (current === LIKE) return a.filter((it) => it.fav === 1);
   if (current === DISLIKE) return a.filter((it) => it.fav === -1);
+  if (current === HANTU) return a.filter((it) => it.dict === "kanji");
   return a.filter((it) => it.deck === current);
 }
 
@@ -710,12 +754,12 @@ function draw() {
   const now = Date.now();
 
   for (const it of rows) {
-    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : ""));
+    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : ""));
     const body = el("div", "body");
 
     /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
     const head = el("div", "head");
-    head.appendChild(el("span", "w", it.word));
+    head.appendChild(el("span", "w" + (NGU === "ja" ? " ja" : ""), it.word));
     if (it.reading) head.appendChild(el("span", "r", it.reading));
 
     const spk = nutIcon("speaker-high", "Phát âm", "", 17);
@@ -744,7 +788,13 @@ function draw() {
     }
     body.appendChild(head);
 
-    /* --- nghĩa và ghi chú --- */
+    /* --- Hán Việt, nghĩa, ghi chú --- */
+    const hvStr = hanVietOf(it.word);
+    if (hvStr) body.appendChild(el("div", "hv", "Hán Việt: " + hvStr));
+    if (it.dict === "kanji") {
+      const meta = window.HanTu.META(it.kanji);
+      if (meta) body.appendChild(el("div", "t-tiny faint", meta));
+    }
     if (it.means && it.means.length) {
       body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
@@ -890,9 +940,9 @@ function showCard(giuLat) {
   $("stDone").style.display = "none";
   $("stProg").textContent = "Còn " + session.queue.length + " mục · đã xong " + session.done;
 
-  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "");
+  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
-  $("stWord").className = "cw";
+  $("stWord").className = "cw" + (NGU === "ja" ? " ja" : "");
   renderStudyFav(it);
 
   const src = $("stSrc");
@@ -914,11 +964,17 @@ function showCard(giuLat) {
 function revealCard() {
   const it = theCardHienTai();
   if (!it) return;
-  $("stRead").textContent = it.reading || "";
+  const hvS = hanVietOf(it.word);
+  $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + "Hán Việt: " + hvS) : "");
+  if (it.dict === "kanji") {
+    const meta = window.HanTu.META(it.kanji);
+    if (meta) $("stMean").appendChild(el("div", "t-small faint", meta));
+  }
   if (it.means && it.means.length) {
     const ul = document.createElement("ul");
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
-    $("stMean").innerHTML = "";
+    // KHÔNG xoá trắng ở đây: showCard() đã dọn rồi, mà chữ Hán thì dòng nét/bộ
+    // vừa thêm phía trên cũng nằm trong ô này — xoá là mất.
     $("stMean").appendChild(ul);
   }
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
@@ -1052,6 +1108,7 @@ function fileTag() {
   if (current === NONE) return "chuaphanloai";
   if (current === LIKE) return "thich";
   if (current === DISLIKE) return "khongthich";
+  if (current === HANTU) return "hantu";
   return (deckName(current) || "so").replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase();
 }
 function exportAnki() {
@@ -1059,7 +1116,7 @@ function exportAnki() {
   if (!list.length) return;
   const lines = list.map((it) => {
     const front = safe(it.word);
-    const read = it.reading ? "/" + safe(it.reading) + "/ " : "";
+    const read = it.reading ? (NGU === "ja" ? "【" + safe(it.reading) + "】 " : "/" + safe(it.reading) + "/ ") : "";
     // Ghi chú đi kèm mặt sau: đó thường là phần đắt nhất của thẻ.
     const note = it.note ? "<br><i>" + safe(it.note) + "</i>" : "";
     const back = read + safe((it.means || []).join("; ")) + note;

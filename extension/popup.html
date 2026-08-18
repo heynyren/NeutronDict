@@ -90,6 +90,15 @@
       font-size: 13px; color: var(--ink-2); white-space: pre-wrap; word-break: break-word;
     }
     .notebox b { font-size: 11px; color: var(--ink-3); letter-spacing: .02em; }
+
+    /* --- bảng Hán tự (chỉ hiện ở chế độ Nhật–Việt) --- */
+    .kentry { display: flex; gap: 13px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    .kentry:first-child { padding-top: 2px; }
+    .kentry:last-child { border-bottom: none; }
+    .kchar { font-size: 42px; line-height: 1.05; flex: none; font-family: var(--font-cjk); }
+    .kbody { flex: 1; min-width: 0; }
+    .khv { font-size: 17px; font-weight: 700; color: var(--accent); text-transform: capitalize; }
+    .kmeta { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -112,12 +121,14 @@
   <div class="segmented" style="margin:10px 12px 0">
     <button id="tabWord" class="active" type="button">Từ vựng</button>
     <button id="tabDetail" type="button">Chi tiết</button>
+    <button id="tabKanji" type="button" style="display:none">Hán tự</button>
     <button id="tabTrans" type="button">Dịch</button>
   </div>
 
   <div class="body">
     <div id="result" class="state">Đang lấy từ đang chọn…</div>
     <div id="detail" class="detail" style="display:none"></div>
+    <div id="kanji" style="display:none"></div>
     <div id="trans" style="display:none"></div>
   </div>
 

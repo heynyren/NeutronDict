@@ -118,6 +118,15 @@
     .entry:first-child { padding-top: 2px; }
     .entry .ctl { flex-direction: row; align-items: center; margin-top: 10px; gap: 4px; }
     .entry .ctl select { flex: 1; min-width: 0; }
+
+    /* --- bảng Hán tự (chỉ hiện ở chế độ Nhật–Việt) --- */
+    .kentry { display: flex; gap: 15px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+    .kentry:first-child { padding-top: 2px; }
+    .kentry:last-child { border-bottom: none; }
+    .kchar { font-size: 48px; line-height: 1.1; flex: none; font-family: var(--font-cjk); }
+    .kbody { flex: 1; min-width: 0; }
+    .khv { font-size: 19px; font-weight: 750; color: var(--accent); text-transform: capitalize; }
+    .kmeta { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -150,12 +159,14 @@
     <div class="segmented" style="margin-bottom:12px">
       <button id="tabWord" class="active" type="button">Từ vựng</button>
       <button id="tabDetail" type="button">Chi tiết</button>
+      <button id="tabKanji" type="button" style="display:none">Hán tự</button>
       <button id="tabTrans" type="button">Dịch</button>
     </div>
 
     <div class="card">
       <div id="result" class="empty">Nhập một từ để tra, hoặc bấm “Dán &amp; tra”.</div>
       <div id="detail" class="detail" style="display:none"></div>
+      <div id="kanji" style="display:none"></div>
       <div id="trans" style="display:none"></div>
     </div>
   </section>

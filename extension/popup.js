@@ -36,9 +36,11 @@ function veNgu() {
   // Những thứ chỉ có nghĩa với tiếng Anh thì sang tiếng Nhật phải biến mất:
   // tab "Chi tiết" là IPA/định nghĩa Anh, và "Hướng dẫn IPA" cũng vậy.
   const an = (el, i) => { if (el) el.style.display = i ? "none" : ""; };
-  an(tabDetailEl, NGU === "ja");
+  an(tabDetailEl, NGU === "ja");     // "Chi tiết" là IPA/định nghĩa Anh
+  an(tabKanjiEl, NGU !== "ja");      // "Hán tự" chỉ có nghĩa với tiếng Nhật
   an(document.getElementById("ipaGuide"), NGU === "ja");
-  if (NGU === "ja" && tabDetailEl.classList.contains("on")) switchTab("word");
+  if (NGU === "ja" && tabDetailEl.classList.contains("active")) switchTab("word");
+  if (NGU !== "ja" && tabKanjiEl.classList.contains("active")) switchTab("word");
 }
 
 async function doiNgu() {
@@ -54,6 +56,8 @@ const detailEl = document.getElementById("detail");
 const bookEl = document.getElementById("book");
 const tabWordEl = document.getElementById("tabWord");
 const tabDetailEl = document.getElementById("tabDetail");
+const tabKanjiEl = document.getElementById("tabKanji");
+const kanjiEl = document.getElementById("kanji");
 const tabTransEl = document.getElementById("tabTrans");
 const transEl = document.getElementById("trans");
 const IS_CTX_WINDOW = new URLSearchParams(location.search).get("ctx") === "1";
@@ -177,15 +181,22 @@ function getAudio(url) {
   return a;
 }
 function preloadAudio(url) { if (url) { try { getAudio(url); } catch (e) {} } }
+/**
+ * Đọc to. Giọng chọn theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh
+ * thì ra một thứ không ai nghe được.
+ */
 function ttsSpeak(text) {
   try {
     speechSynthesis.cancel();
+    const ja = NGU === "ja";
+    const ma = ja ? "ja" : "en";
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 0.9;
-    const v = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith("en"));
+    u.lang = ja ? "ja-JP" : "en-US";
+    u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
     if (v) u.voice = v;
     speechSynthesis.speak(u);
-  } catch (e) { /* máy không có giọng Anh */ }
+  } catch (e) { /* máy không có giọng thứ tiếng đó */ }
 }
 function speak(text, audio) {
   if (audio) {
@@ -475,16 +486,96 @@ function renderDetail() {
 
 // ---- Chuyển tab ----
 function switchTab(name) {
-  if (name === "detail" && tabDetailEl.disabled) name = "word";
+  if (name === "detail" && (tabDetailEl.disabled || NGU === "ja")) name = "word";
+  if (name === "kanji" && NGU !== "ja") name = "word";
   tabWordEl.classList.toggle("active", name === "word");
   tabDetailEl.classList.toggle("active", name === "detail");
+  tabKanjiEl.classList.toggle("active", name === "kanji");
   tabTransEl.classList.toggle("active", name === "trans");
   resEl.style.display    = name === "word"   ? "" : "none";
   detailEl.style.display = name === "detail" ? "" : "none";
+  kanjiEl.style.display  = name === "kanji"  ? "" : "none";
   transEl.style.display  = name === "trans"  ? "" : "none";
   if (name === "detail") renderDetail();
   if (name === "trans") doTranslate(qEl.value);
 }
+
+/* ---- tab Hán tự (chỉ ở chế độ Nhật–Việt) ---- */
+function extractKanji(str) {
+  const seen = new Set(); const out = [];
+  for (const ch of (str || "")) {
+    const c = ch.codePointAt(0);
+    const isCJK = (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || (c >= 0xf900 && c <= 0xfaff);
+    if (isCJK && !seen.has(ch)) { seen.add(ch); out.push(ch); }
+  }
+  return out;
+}
+
+async function getNotebook() { return (await chrome.storage.local.get("notebook")).notebook || {}; }
+
+async function renderKanji(chars) {
+  kanjiEl.innerHTML = "";
+  if (!chars.length) {
+    trangThai(kanjiEl, "text-aa", "Đoạn này không có chữ Hán nào.");
+    return;
+  }
+  kanjiEl.className = "";
+  const list = window.HanTu.LIET_KE(chars.join(""));
+  const nb = await getNotebook();
+
+  for (const k of list) {
+    const row = document.createElement("div");
+    row.className = "kentry";
+
+    const cEl = document.createElement("div");
+    cEl.className = "kchar"; cEl.textContent = k.ch;
+    row.appendChild(cEl);
+
+    const body = document.createElement("div");
+    body.className = "kbody";
+    row.appendChild(body);
+    kanjiEl.appendChild(row);
+
+    const muc = window.HanTu.MUC(k);
+    const goc = (muc.means || []).slice(0, 8);
+    const daCo = window.Muc.banCuaBan(nb[window.HanTu.KHOA(k.ch)]);
+    theSuaDuoc(body, {
+      dl: {
+        means: (daCo && daCo.mEdit ? (daCo.means || []) : goc).slice(0, 6),
+        note: (daCo && daCo.note) || "",
+        saved: !!(daCo && daCo.saved),
+        mEdit: daCo && daCo.mEdit ? 1 : 0
+      },
+      dau: (el) => {
+        const hv = document.createElement("span");
+        hv.className = "khv";
+        hv.textContent = k.hv || "—";
+        el.appendChild(hv);
+        const meta = window.HanTu.META(k);
+        if (meta) {
+          const m = document.createElement("div");
+          m.className = "kmeta"; m.textContent = meta;
+          el.appendChild(m);
+        }
+      },
+      veNghia: (el, dl) => {
+        if (dl.means.length) {
+          const ul = document.createElement("ul");
+          ul.className = "kmean";
+          dl.means.forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
+          el.appendChild(ul);
+        } else {
+          const m = document.createElement("div");
+          m.className = "kmeta";
+          m.textContent = "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào.";
+          el.appendChild(m);
+        }
+      },
+      gui: (moi, coSua, xong) => guiLuu(muc, window.HanTu.HUONG, moi, coSua, goc, xong)
+    });
+  }
+}
+
 
 // ---- Dịch câu ----
 let lastTranslated = "";
@@ -519,7 +610,7 @@ function doTranslate(raw) {
       // Bản dịch chính LÀ phần sửa được, nên phần đầu thẻ chỉ có nút nghe.
       dau: (el) => {
         const spk = nutLoa(engText, null);
-        spk.title = "Nghe câu tiếng Anh";
+        spk.title = NGU === "ja" ? "Nghe câu tiếng Nhật" : "Nghe câu tiếng Anh";
         el.appendChild(spk);
       },
       veNghia: (el, dl) => {
@@ -547,6 +638,16 @@ async function run(word) {
   const w = (word || "").trim();
   const dict = dirEl.value;
   lastTranslated = "";
+
+  // Hán tự luôn có mặt ở chế độ Nhật–Việt, kể cả khi đang xem tab Dịch. Cố ý
+  // KHÔNG khoá tab khi đoạn không có chữ Hán: tab lúc có lúc mất khó dùng hơn
+  // nhiều so với một tab thỉnh thoảng trống, mở ra thì nó tự nói là không có.
+  if (NGU === "ja") {
+    const chars = extractKanji(w);
+    renderKanji(chars);
+    const lb = tabKanjiEl.querySelector(".lb");
+    if (lb) lb.textContent = "Hán tự" + (chars.length ? " " + chars.length : "");
+  }
 
   if (!w) {
     trangThai(resEl, "magnifying-glass", "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.");
@@ -584,6 +685,7 @@ dirEl.addEventListener("change", () => run(qEl.value));
 nguBtn.addEventListener("click", doiNgu);
 tabWordEl.addEventListener("click", () => switchTab("word"));
 tabDetailEl.addEventListener("click", () => { if (!tabDetailEl.disabled) switchTab("detail"); });
+tabKanjiEl.addEventListener("click", () => switchTab("kanji"));
 tabTransEl.addEventListener("click", () => switchTab("trans"));
 bookEl.addEventListener("click", () => { chrome.tabs.create({ url: chrome.runtime.getURL("notebook.html") }); });
 function openGuide() { chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") }); }
@@ -601,6 +703,7 @@ function gaiIcon() {
   };
   gan(tabWordEl, "book-open-text", "Từ vựng");
   gan(tabDetailEl, "article", "Chi tiết");
+  gan(tabKanjiEl, "text-aa", "Hán tự");
   gan(tabTransEl, "translate", "Dịch");
   qEl.parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), qEl);
 }

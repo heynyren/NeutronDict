@@ -135,15 +135,20 @@ async function speak(text, audio) {
   if (audio) {
     try { const a = getAudioEl(audio); a.currentTime = 0; await a.play(); return; } catch (e) { /* rơi xuống TTS */ }
   }
+  // Giọng theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh thì ra một
+  // thứ không ai nghe được.
+  const ma = laNhat() ? "ja-JP" : "en-US";
   try {
-    if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: "en-US", rate: 0.9 }); return; }
+    if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: ma, rate: 0.9 }); return; }
   } catch (e) { /* thử fallback */ }
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 0.9;
+    u.lang = ma; u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma.slice(0, 2)));
+    if (v) u.voice = v;
     speechSynthesis.speak(u);
-  } catch (e) { /* máy không có giọng Anh */ }
+  } catch (e) { /* máy không có giọng thứ tiếng đó */ }
 }
 
 
@@ -713,10 +718,11 @@ let lastEntries = [];
 let currentSrc = null;   // nguồn của lượt tra hiện tại, để lưu kèm khi bấm Lưu
 
 function switchSub(name) {
-  if (name === "detail" && $("tabDetail").disabled) name = "word";
-  ["word", "detail", "trans"].forEach((n) => {
-    const btn = { word: "tabWord", detail: "tabDetail", trans: "tabTrans" }[n];
-    const pane = { word: "result", detail: "detail", trans: "trans" }[n];
+  if (name === "detail" && ($("tabDetail").disabled || laNhat())) name = "word";
+  if (name === "kanji" && !laNhat()) name = "word";
+  ["word", "detail", "kanji", "trans"].forEach((n) => {
+    const btn = { word: "tabWord", detail: "tabDetail", kanji: "tabKanji", trans: "tabTrans" }[n];
+    const pane = { word: "result", detail: "detail", kanji: "kanji", trans: "trans" }[n];
     $(btn).classList.toggle("active", n === name);
     $(pane).style.display = n === name ? "" : "none";
   });
@@ -725,7 +731,105 @@ function switchSub(name) {
 }
 $("tabWord").addEventListener("click", () => switchSub("word"));
 $("tabDetail").addEventListener("click", () => switchSub("detail"));
+$("tabKanji").addEventListener("click", () => switchSub("kanji"));
 $("tabTrans").addEventListener("click", () => switchSub("trans"));
+
+/* ---- tab Hán tự (chỉ ở chế độ Nhật–Việt) ---- */
+/** Chữ này có phải chữ Hán không (gồm cả vùng mở rộng A và vùng tương thích). */
+function isCJK(ch) {
+  const c = ch.codePointAt(0);
+  return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || (c >= 0xf900 && c <= 0xfaff);
+}
+
+/**
+ * Âm Hán Việt của những chữ Hán trong từ — cái móc trí nhớ mạnh nhất với người
+ * Việt học tiếng Nhật: 「職場」 là しょくば thì phải học thuộc, nhưng biết nó
+ * là "Chức Trường" thì gần như không cần học.
+ */
+function hanVietOf(word) {
+  const DB = window.KANJI || {};
+  const parts = [];
+  let has = false;
+  for (const ch of (word || "")) {
+    if (!isCJK(ch)) continue;
+    has = true;
+    const d = DB[ch];
+    parts.push(d && d.hv ? d.hv.split(/\s*,\s*/)[0].split(/\s+/)[0] : "?");
+  }
+  if (!has || !parts.length) return "";
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+}
+
+function extractKanji(str) {
+  const seen = new Set(), out = [];
+  for (const ch of (str || "")) if (isCJK(ch) && !seen.has(ch)) { seen.add(ch); out.push(ch); }
+  return out;
+}
+
+async function renderKanji(chars) {
+  const box = $("kanji");
+  if (!chars.length) { trangThai(box, "text-aa", "Đoạn này không có chữ Hán nào."); return; }
+  box.className = "";
+  box.innerHTML = "";
+  const list = window.HanTu.LIET_KE(chars.join(""));
+  const nb = await getNB();
+
+  for (const k of list) {
+    const row = el("div", "kentry");
+    row.appendChild(el("div", "kchar", k.ch));
+
+    const body = el("div", "kbody");
+    const head = el("div", "khead");
+    const key = window.HanTu.KHOA(k.ch);
+    const daCo = window.Muc.banCuaBan(nb[key]);
+
+    const left = el("div");
+    const hv = el("span", "khv", k.hv || "—");
+    left.appendChild(hv);
+    if (daCo && daCo.mEdit) left.appendChild(nhanDaSua());
+    const meta = window.HanTu.META(k);
+    if (meta) left.appendChild(el("div", "kmeta", meta));
+    head.appendChild(left);
+
+    const luuChu = async () => {
+      const laMoi = await capNhat((so) => {
+        const cu = so[key];
+        const ne = window.HanTu.MUC(k);
+        // Lưu lại một chữ đã có -> giữ nguyên tiến độ học, ghi chú và nghĩa đã sửa.
+        if (cu && !cu.del) {
+          if (cu.deck) ne.deck = cu.deck;
+          if (cu.srs) ne.srs = cu.srs;
+          if (cu.fav) ne.fav = cu.fav;
+          if (cu.note) ne.note = cu.note;
+          if (cu.mEdit) { ne.mEdit = 1; ne.means = cu.means; ne.mOrig = cu.mOrig; }
+        }
+        // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
+        window.Muc.nhatLaiBanSua(ne, cu);
+        so[key] = ne;
+        return !cu || cu.del;
+      });
+      if (laMoi) mung(await theoDoi.ghiLuu(1));
+      syncSoon(); refreshNotifications();
+    };
+    head.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuChu, key, () => renderKanji(chars)));
+    body.appendChild(head);
+
+    const ngh = ((daCo && daCo.mEdit) ? (daCo.means || []) : window.HanTu.MUC(k).means)
+      .slice(0, 6).map(meanToStr);
+    if (ngh.length) {
+      const ul = document.createElement("ul");
+      ul.className = "kmean";
+      ngh.forEach((m) => ul.appendChild(el("li", null, m)));
+      body.appendChild(ul);
+    } else {
+      body.appendChild(el("div", "kmeta", "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào."));
+    }
+    if (daCo && daCo.note) body.appendChild(khoiGhiChu(daCo.note));
+    row.appendChild(body);
+    box.appendChild(row);
+  }
+}
+
 
 async function runLookup(word, src) {
   currentSrc = (src && src.url) ? src : null;   // tra tay/dán -> không nguồn; chia sẻ -> có nguồn
@@ -734,6 +838,13 @@ async function runLookup(word, src) {
   $("q").value = w;
   // Mở sẵn tab hợp lý nhất, nhưng cả ba tab đều có dữ liệu — xem ghi chú ở
   // trongNhuCau() về việc thôi đoán ý người dùng.
+  // Hán tự luôn có mặt ở chế độ Nhật–Việt, kể cả khi đang xem tab Dịch.
+  if (laNhat()) {
+    const chars = extractKanji(w);
+    renderKanji(chars);
+    const lb = $("tabKanji").querySelector(".lb");
+    if (lb) lb.textContent = "Hán tự" + (chars.length ? " " + chars.length : "");
+  }
   switchSub(trongNhuCau(w) ? "trans" : "word");
 
   // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ lượt gọi mạng
@@ -1191,9 +1302,19 @@ $("editSheet").addEventListener("click", (e) => { if (e.target.id === "editSheet
 
 const ALL = "__all__", NONE = "__none__";
 const LIKE = "__like__", DISLIKE = "__dislike__";
+const HANTU = "__kanji__";   // sổ con ảo: chỉ những mục là MỘT chữ Hán
 let curDeck = ALL;
 
-function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
+function dirLabel(d) {
+  if (d === "kanji") return "Hán tự";
+  if (d === "javi") return "Nhật→Việt";
+  if (d === "vija") return "Việt→Nhật";
+  if (d === "vien") return "Việt→Anh";
+  if (d === "envi") return "Anh→Việt";
+  // Mục cũ không ghi hướng thì đoán theo ngăn đang mở — danh sách đằng nào cũng
+  // đã lọc theo đúng một ngôn ngữ rồi.
+  return laNhat() ? "Nhật→Việt" : "Anh→Việt";
+}
 function deckName(decks, id) { const d = decks[id]; return d && !d.del ? d.name : null; }
 
 async function setFav(key, val) {
@@ -1321,7 +1442,7 @@ async function drawNotebook() {
 
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
-  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && !deckName(decks, curDeck)) curDeck = ALL;
+  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU && !deckName(decks, curDeck)) curDeck = ALL;
 
   /* --- hàng chip sổ con --- */
   const bar = $("deckBar");
@@ -1331,6 +1452,7 @@ async function drawNotebook() {
     : id === NONE ? activeItems.filter((i) => !i.deck).length
     : id === LIKE ? activeItems.filter((i) => i.fav === 1).length
     : id === DISLIKE ? activeItems.filter((i) => i.fav === -1).length
+    : id === HANTU ? activeItems.filter((i) => i.dict === "kanji").length
     : activeItems.filter((i) => i.deck === id).length;
   const mk = (id, label, iconTen) => {
     const b = el("button", "chip" + (curDeck === id ? " active" : ""));
@@ -1345,6 +1467,9 @@ async function drawNotebook() {
   mk(NONE, "Chưa phân loại", "funnel");
   mk(LIKE, "Thích", "heart");
   mk(DISLIKE, "Không thích", "thumbs-down");
+  // Học chữ và học từ là hai buổi khác nhau, nên Hán tự có ngăn riêng. Bên
+  // tiếng Anh không có ngăn này.
+  if (laNhat()) mk(HANTU, "Hán tự", "text-aa");
   activeDecks.forEach((d) => mk(d.id, d.name, "folder-simple"));
 
   const add = el("button", "chip add");
@@ -1361,7 +1486,7 @@ async function drawNotebook() {
   });
   bar.appendChild(add);
   $("deckActions").style.display =
-    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE) ? "" : "none";
+    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU) ? "" : "none";
 
   /* --- danh sách --- */
   const kw = $("filter").value.trim().toLowerCase();
@@ -1369,6 +1494,7 @@ async function drawNotebook() {
   if (curDeck === NONE) rows = rows.filter((i) => !i.deck);
   else if (curDeck === LIKE) rows = rows.filter((i) => i.fav === 1);
   else if (curDeck === DISLIKE) rows = rows.filter((i) => i.fav === -1);
+  else if (curDeck === HANTU) rows = rows.filter((i) => i.dict === "kanji");
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) {
     rows = rows.filter((it) =>
@@ -1392,11 +1518,11 @@ async function drawNotebook() {
 
   const now = Date.now();
   for (const it of rows) {
-    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : ""));
+    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : ""));
     const body = el("div", "body");
 
     const head = el("div", "head");
-    head.appendChild(el("span", "w", it.word));
+    head.appendChild(el("span", "w" + (laNhat() ? " ja" : ""), it.word));
     if (it.reading) head.appendChild(el("span", "r", it.reading));
     const spk = nutIcon("speaker-high", "Phát âm", "", 18);
     spk.addEventListener("click", () => speak(it.word, it.audio));
@@ -1417,6 +1543,12 @@ async function drawNotebook() {
     }
     body.appendChild(head);
 
+    const hvS = hanVietOf(it.word);
+    if (hvS) body.appendChild(el("div", "hv", "Hán Việt: " + hvS));
+    if (it.dict === "kanji") {
+      const km = window.HanTu.META(it.kanji);
+      if (km) body.appendChild(el("div", "t-tiny faint", km));
+    }
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
 
@@ -1649,8 +1781,9 @@ function showCard(giuLat) {
   const daLat = giuLat && $("stGrade").style.display !== "none";
 
   $("stProg").textContent = "Còn " + session.queue.length + " mục · đã xong " + session.done;
-  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "");
+  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
+  $("stWord").className = "cw" + (laNhat() ? " ja" : "");
   renderStudyFav(it);
 
   const src = $("stSrc");
@@ -1668,11 +1801,16 @@ function showCard(giuLat) {
 function revealCard() {
   const it = session.queue[0];
   if (!it) return;
-  $("stRead").textContent = it.reading || "";
+  const hvS = hanVietOf(it.word);
+  $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + "Hán Việt: " + hvS) : "");
+  $("stMean").innerHTML = "";
+  if (it.dict === "kanji") {
+    const km = window.HanTu.META(it.kanji);
+    if (km) $("stMean").appendChild(el("div", "t-small faint", km));
+  }
   if (it.means && it.means.length) {
     const ul = document.createElement("ul");
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
-    $("stMean").innerHTML = "";
     $("stMean").appendChild(ul);
   }
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
@@ -1931,6 +2069,10 @@ const HUONG_NGU = {
 };
 
 function veNgu() {
+  // Tab "Chi tiết" là IPA/định nghĩa Anh; "Hán tự" chỉ có nghĩa với tiếng Nhật.
+  $("tabDetail").style.display = laNhat() ? "none" : "";
+  $("tabKanji").style.display = laNhat() ? "" : "none";
+  $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");
   const b = $("nguBtn");
   b.textContent = laNhat() ? "日→V" : "EN→V";
   b.title = "Đang tra " + (laNhat() ? "Nhật–Việt" : "Anh–Việt") + " — chạm để đổi";

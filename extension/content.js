@@ -238,13 +238,18 @@
     return a;
   }
   function preloadAudio(url) { if (url) { try { getAudio(url); } catch (e) {} } }
+  /** Đọc to, giọng theo ngôn ngữ đang bật. */
   function ttsSpeak(text) {
     try {
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US"; u.rate = 0.9;
+      u.lang = laNhat() ? "ja-JP" : "en-US";
+      u.rate = 0.9;
+      const ma = laNhat() ? "ja" : "en";
+      const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
+      if (v) u.voice = v;
       speechSynthesis.speak(u);
-    } catch (e) { /* không có giọng Anh */ }
+    } catch (e) { /* máy không có giọng thứ tiếng đó */ }
   }
   function speak(text, audio) {
     if (audio) {
