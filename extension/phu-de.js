@@ -565,6 +565,28 @@
   /* Trạng thái                                                          */
   /* ================================================================== */
 
+  /**
+   * Ngôn ngữ đang bật, đọc từ cùng một khoá settings mà popup và sổ tay dùng.
+   *
+   * Bảng lời thoại phải theo nó ở HAI chỗ: lưu vào ngăn sổ tay nào, và trong
+   * các bản phụ đề của video thì ưu tiên bản tiếng nào. Đóng đinh một ngôn ngữ
+   * ở đây là xem video tiếng Nhật mà lưu từ lại rơi vào sổ tiếng Anh.
+   */
+  let NGU = "en";
+  const nganLuu = () => self.Ngu.nganChinh(NGU);
+  chrome.storage.local.get("settings", (r) => {
+    NGU = self.Ngu.hopLe(((r && r.settings) || {}).ngu);
+  });
+  chrome.storage.onChanged.addListener((ch, area) => {
+    if (area !== "local" || !ch.settings) return;
+    const moi = self.Ngu.hopLe((ch.settings.newValue || {}).ngu);
+    if (moi === NGU) return;
+    NGU = moi;
+    // Đổi ngôn ngữ giữa chừng thì bản phụ đề nên ưu tiên cũng đổi theo — dựng
+    // lại bảng cho khớp thay vì để người dùng tự tải lại trang.
+    if (S.v) xemLai(true);
+  });
+
   const S = {
     v: "",              // mã video đang xem
     tieuDe: "", kenh: "",
@@ -1350,7 +1372,7 @@
       chrome.runtime.sendMessage({
         type: "SAVE_WORD",
         entry: { word: c.s, reading: "", means: nghia ? [nghia] : [], kind: "sent", src: nguon(i) },
-        dict: "envi"
+        dict: nganLuu()
       }, () => {
         nut.classList.add("done"); nut.disabled = false;
         nut.textContent = ""; nut.appendChild(ic("check", 12));
@@ -1425,8 +1447,8 @@
         S.uiBan.style.display = "none";
         return true;
       }
-      // Ưu tiên bản người thật làm, tiếng Anh trước, rồi mới tới bản tự sinh.
-      const diem = (b) => (b.tuDong ? 0 : 2) + (b.ma === "en" ? 1 : 0);
+      // Ưu tiên bản người thật làm, và trong đó ưu tiên đúng thứ tiếng đang bật.
+      const diem = (b) => (b.tuDong ? 0 : 2) + (b.ma === NGU ? 1 : 0);
       let best = 0;
       S.ban.forEach((b, i) => { if (diem(b) > diem(S.ban[best])) best = i; });
       S.iBan = best;
@@ -1458,10 +1480,12 @@
   }
 
   let dangCho = null;
-  function xemLai() {
+  /** @param {boolean} [ep] dựng lại kể cả khi vẫn đúng video đó (đổi ngôn ngữ). */
+  function xemLai(ep) {
     const v = maVideo();
     if (!v) { dungTheoDoi(); goBang(); S.v = ""; return; }
-    if (v === S.v && S.host && S.host.isConnected) return;
+    if (!ep && v === S.v && S.host && S.host.isConnected) return;
+    if (ep) S.v = "";
     dungTheoDoi();
     // Cột phải của YouTube dựng sau khi trang đã "xong", nên thử lại vài nhịp.
     clearInterval(dangCho);
@@ -1481,7 +1505,7 @@
   }
 
   // YouTube là ứng dụng một trang: chuyển video không tải lại trang.
-  document.addEventListener("yt-navigate-finish", xemLai);
+  document.addEventListener("yt-navigate-finish", () => xemLai());
   let urlCu = location.href;
   setInterval(() => {
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
@@ -1489,7 +1513,7 @@
     // khi thấy nó biến mất, chứ không bắt người dùng tải lại trang.
     if (S.v && (!S.host || !S.host.isConnected) && choDat()) khoiDong(S.v);
   }, 700);
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", xemLai);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => xemLai());
   else xemLai();
 
   // Sổ tay bảo "về đúng giây đó" -> tua, và sáng đúng dòng.

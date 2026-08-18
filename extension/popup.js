@@ -32,6 +32,13 @@ function veNgu() {
   });
   if ([...dirEl.options].some((o) => o.value === cu)) dirEl.value = cu;
   dirEl.style.display = HUONG[NGU].length > 1 ? "" : "none";
+
+  // Những thứ chỉ có nghĩa với tiếng Anh thì sang tiếng Nhật phải biến mất:
+  // tab "Chi tiết" là IPA/định nghĩa Anh, và "Hướng dẫn IPA" cũng vậy.
+  const an = (el, i) => { if (el) el.style.display = i ? "none" : ""; };
+  an(tabDetailEl, NGU === "ja");
+  an(document.getElementById("ipaGuide"), NGU === "ja");
+  if (NGU === "ja" && tabDetailEl.classList.contains("on")) switchTab("word");
 }
 
 async function doiNgu() {
@@ -595,9 +602,6 @@ function gaiIcon() {
   gan(tabWordEl, "book-open-text", "Từ vựng");
   gan(tabDetailEl, "article", "Chi tiết");
   gan(tabTransEl, "translate", "Dịch");
-  // Tab giữa: tiếng Anh xem IPA/định nghĩa, tiếng Nhật thì phần đó không có gì.
-  if (NGU === "ja") { tabDetailEl.style.display = "none"; }
-  else { tabDetailEl.style.display = ""; }
   qEl.parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), qEl);
 }
 

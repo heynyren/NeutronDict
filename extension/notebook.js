@@ -1154,16 +1154,22 @@ async function saveConfig() {
 }
 function syncNow() {
   setStatus("Đang đồng bộ…");
-  chrome.runtime.sendMessage({ type: "SYNC_NOW", ngu: NGU }, async (res) => {
-    if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); return; }
-    if (res && res.ok) {
-      await theoDoi.nap(true);
-      await load();
-      if ($("viewProgress").classList.contains("show")) veTienDo();
-      setStatus("Đã đồng bộ · " + res.count + " mục · " + new Date().toLocaleTimeString("vi-VN"));
-    } else {
-      setStatus("Không đồng bộ được: " + ((res && res.error) || "lỗi không rõ"));
-    }
+  const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
+  return new Promise((xong) => {
+    chrome.runtime.sendMessage({ type: "SYNC_NOW", ngu: cua }, async (res) => {
+      if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); xong(); return; }
+      if (res && res.ok) {
+        if (cua === NGU) {
+          await theoDoi.nap(true);
+          await load();
+          if ($("viewProgress").classList.contains("show")) veTienDo();
+          setStatus("Đã đồng bộ · " + res.count + " mục · " + new Date().toLocaleTimeString("vi-VN"));
+        }
+      } else {
+        setStatus("Không đồng bộ được: " + ((res && res.error) || "lỗi không rõ"));
+      }
+      xong();
+    });
   });
 }
 function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu: NGU }); } catch (e) {} }
@@ -1306,6 +1312,9 @@ function veNgu() {
   $("nguJa").classList.toggle("active", NGU === "ja");
   const sb = $("brandSub");
   if (sb) sb.textContent = (NGU === "ja" ? "Nhật – Việt" : "Anh – Việt") + " · sóng học tập";
+  // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.
+  const ipa = $("ipaGuide");
+  if (ipa) ipa.style.display = NGU === "ja" ? "none" : "";
   document.title = (NGU === "ja" ? "Sổ tay Nhật – Việt" : "Sổ tay Anh – Việt") + " · NeutronDict";
 }
 
@@ -1316,9 +1325,12 @@ async function doiNgu(ngu) {
   await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: NGU }) });
   veNgu();
   current = ALL;
-  await theoDoi.nap();
+  // nap(true): ÉP đọc lại. Không có cờ này thì nó trả về bản đã nạp sẵn của
+  // ngôn ngữ CŨ — và màn Tiến độ hiện chuỗi ngày, huy hiệu của bên kia.
+  await theoDoi.nap(true);
   await load();
   await loadConfig();
+  if ($("viewProgress").classList.contains("show")) veTienDo();
 }
 
 $("nguEn").addEventListener("click", () => doiNgu("en"));
@@ -1333,9 +1345,14 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   await load();
   await loadSettings();
   const cfg = await loadConfig();
-  if (cfg.syncUrl) { $("syncBox").open = false; syncNow(); }
+  if (cfg.syncUrl) { $("syncBox").open = false; await syncNow(); }
   else { $("syncBox").open = true; }
   // Xét lại huy hiệu lúc mở app: có mốc chỉ phụ thuộc số mục trong sổ (lưu từ
   // điện thoại, hoặc lưu bằng chuột phải) nên không đi qua đường chấm bài.
+  //
+  // PHẢI đợi đồng bộ xong mới xét. Xét trước thì mình đang nhìn một bản tiến độ
+  // chưa có gì, trao lại đúng những huy hiệu mà trên cloud đã có từ lâu — rồi
+  // lượt đồng bộ ập tới ghi đè, và lần mở sau lại chúc mừng y hệt. Đó chính là
+  // cảnh "lần nào vào cũng hiện bảng thành tích".
   mung(await theoDoi.xetHuyHieu());
 })();
