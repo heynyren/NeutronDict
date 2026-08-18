@@ -135,15 +135,20 @@ async function speak(text, audio) {
   if (audio) {
     try { const a = getAudioEl(audio); a.currentTime = 0; await a.play(); return; } catch (e) { /* rơi xuống TTS */ }
   }
+  // Giọng theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh thì ra một
+  // thứ không ai nghe được.
+  const ma = laNhat() ? "ja-JP" : "en-US";
   try {
-    if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: "en-US", rate: 0.9 }); return; }
+    if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: ma, rate: 0.9 }); return; }
   } catch (e) { /* thử fallback */ }
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 0.9;
+    u.lang = ma; u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma.slice(0, 2)));
+    if (v) u.voice = v;
     speechSynthesis.speak(u);
-  } catch (e) { /* máy không có giọng Anh */ }
+  } catch (e) { /* máy không có giọng thứ tiếng đó */ }
 }
 
 
@@ -205,7 +210,28 @@ function toast(chu, kieu) {
 /* Dữ liệu sổ tay (cùng cấu trúc với extension)                          */
 /* ==================================================================== */
 
+/**
+ * Ngôn ngữ đang bật. Một app, hai từ điển — đổi ở đây là đổi luôn hướng tra,
+ * ngăn lưu vào sổ tay, tiến độ học và cloud đang dùng. Hai bên nằm chung một
+ * kho, phân biệt bằng tiền tố khoá, nên chuyển qua chuyển lại không mất gì.
+ */
+let NGU = "en";
+/** Ngôn ngữ mà bản tiến độ đang giữ trong bộ nhớ thuộc về. */
+let nguDaNap = "";
+const laNhat = () => NGU === "ja";
+
+async function napNgu() {
+  NGU = window.Ngu.hopLe(await Store.get("ngu"));
+  return NGU;
+}
+async function doiNgu(ngu) {
+  NGU = window.Ngu.hopLe(ngu);
+  await Store.set("ngu", NGU);
+}
+
 async function getNB() { return (await Store.get("notebook")) || {}; }
+/** Chỉ phần sổ tay của ngôn ngữ đang bật — dùng cho danh sách và học. */
+async function getNBNgu() { return window.Ngu.locSo(await getNB(), NGU); }
 async function setNB(nb) { await Store.set("notebook", nb); }
 async function getDecks() { return (await Store.get("decks")) || {}; }
 async function setDecks(d) { await Store.set("decks", d); }
@@ -303,7 +329,7 @@ function dueCountOn(list, dayOffset) {
 
 /** Số liệu lấy từ sổ tay để xét huy hiệu. */
 async function soLieuSoTay() {
-  const nb = await getNB();
+  const nb = await getNBNgu();
   const a = Object.values(nb).filter((it) => !it.del);
   const decks = await getDecks();
   const now = Date.now();
@@ -321,8 +347,20 @@ async function soLieuSoTay() {
 }
 
 const theoDoi = window.TienDo.tao({
-  doc: async () => Store.get("hoc"),
-  ghi: async (d) => { await Store.set("hoc", d); },
+  // Tiến độ tách theo ngôn ngữ: học tiếng Anh không làm xê dịch chuỗi ngày của
+  // tiếng Nhật. Bản cũ phẳng là của tiếng Anh, Ngu.tachHoc chuyển nguyên vào.
+  //
+  // Ghi theo nguDaNap — ngôn ngữ mà bản đang giữ trong bộ nhớ thuộc về — chứ
+  // KHÔNG theo NGU. Ghi theo NGU thì chỉ cần một lượt ghi rơi vào lúc vừa đổi
+  // ngôn ngữ là tiến độ bên này chui sang ngăn bên kia.
+  doc: async () => {
+    nguDaNap = NGU;
+    return window.Ngu.tachHoc(await Store.get("hoc"))[NGU];
+  },
+  ghi: async (d) => {
+    const cu = window.Ngu.tachHoc(await Store.get("hoc"));
+    await Store.set("hoc", Object.assign({}, cu, { [nguDaNap || NGU]: d }));
+  },
   soLieu: soLieuSoTay,
   sauKhiGhi: () => syncSoon()
 });
@@ -385,10 +423,140 @@ function posFrom(dd) {
 }
 function firstDefOf(pos) { for (const g of pos) for (const d of g.defs) if (d.def) return d.def; return ""; }
 
+function normMeans(e) {
+  if (Array.isArray(e.means)) return e.means.map((m) => (typeof m === "string" ? m : (m.mean || m.means || m.text || ""))).filter(Boolean);
+  if (typeof e.mean === "string") return [e.mean];
+  if (typeof e.short_mean === "string") return [e.short_mean];
+  return [];
+}
+
+/* ====================================================================== */
+/* Furigana                                                               */
+/* ====================================================================== */
+/*
+ * Mazii cho cách đọc của phần lớn từ, nhưng không phải tất cả — và chỗ nó cho
+ * cũng không đồng nhất: 「金融」 ra きんゆう, còn 「奪われます」 lại ra
+ * "Ubawa remasu". Mục nằm trong sổ mà không đọc nổi thì đến buổi ôn là bỏ qua.
+ * Xem kana.js. Giống hệt bên extension, cố ý — hai bên dùng chung một sổ.
+ */
+
+/** Có phải văn bản tiếng Nhật không (hiragana/katakana/kanji)? */
+function hasJapanese(s) { return /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s || ""); }
+
+const kanaDem = new Map();
+let dangVaFurigana = false;   // khoá, kẻo vá xong vẽ lại rồi lại vá tiếp thành vòng lặp
+
+/** Phiên âm La-tinh của một chuỗi tiếng Nhật, lấy từ endpoint gtx (dt=rm). */
+async function romajiCua(text) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=rm"
+    + "&sl=ja&tl=vi&q=" + encodeURIComponent(text);
+  const data = await httpGetJson(url);
+  // Google để phiên âm nguồn ở phần tử [3] của đoạn cuối (chỗ [0] rỗng).
+  let rm = "";
+  for (const seg of ((data && data[0]) || [])) {
+    if (seg && seg[0] == null && typeof seg[3] === "string") rm += seg[3];
+  }
+  return rm.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Cách đọc bằng kana cho một từ. null = cứ để nguyên.
+ * @param {boolean} [choPhepMang] lúc tra một lượt hai chục kết quả thì không,
+ *   lúc BẤM LƯU một từ thì có.
+ */
+async function docKana(word, reading, choPhepMang) {
+  const K = window.Kana;
+  const w = (word || "").trim();
+  if (!w || !hasJapanese(w)) return null;
+  if (K.laRomaji(reading)) {
+    const k = K.tuRomajiCum(reading);
+    return k ? { doc: k, suy: true } : null;     // không đổi được thì giữ romaji còn hơn mất
+  }
+  if (reading && String(reading).trim()) return null;
+  const san = K.docSan(w);
+  if (san) return { doc: san, suy: false };
+  if (!K.canDoc(w, reading) || !choPhepMang) return null;
+  if (kanaDem.has(w)) { const c = kanaDem.get(w); return c ? { doc: c, suy: true } : null; }
+  let k = "";
+  try { k = K.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
+  kanaDem.set(w, k);
+  return k ? { doc: k, suy: true } : null;
+}
+
+/** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
+async function themDoc(entries, soDuocGoiMang) {
+  const ds = entries || [];
+  for (let i = 0; i < ds.length; i++) {
+    const r = await docKana(ds[i].word, ds[i].reading, i < (soDuocGoiMang || 0));
+    if (r) { ds[i].reading = r.doc; if (r.suy) ds[i].docSuy = 1; else delete ds[i].docSuy; }
+  }
+  return ds;
+}
+
+/**
+ * Vá furigana cho những mục ĐÃ nằm sẵn trong sổ. Chạy mỗi lần mở sổ tay: phần
+ * đổi romaji sang kana làm hết vì không tốn gì, phần phải hỏi mạng thì mỗi lượt
+ * chỉ vài chục mục — mở thêm vài lần là hết. KHÔNG đụng `ts`: cách đọc suy ra
+ * là như nhau trên mọi máy, để yên mốc thời gian thì cloud khỏi nhận một lượt
+ * tải lên "cả sổ vừa đổi".
+ */
+async function vaFurigana(toiDa) {
+  let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
+  const nb = await getNB();
+  const doi = {};
+  for (const k of Object.keys(nb)) {
+    const it = nb[k];
+    if (!it || it.del) continue;
+    if (it.dict !== "javi" && it.dict !== "vija") continue;
+    if (it.kind === "sent") continue;
+    if (it.reading && !window.Kana.laRomaji(it.reading)) continue;
+    const phaiHoi = !it.reading && window.Kana.canDoc(it.word, "");
+    if (phaiHoi && conMang <= 0) continue;
+    const r = await docKana(it.word, it.reading, phaiHoi);
+    if (phaiHoi) conMang--;
+    if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+  }
+  const keys = Object.keys(doi);
+  if (!keys.length) return 0;
+  await capNhat((moi) => {
+    for (const k of keys) {
+      const it = moi[k];
+      if (!it || it.del) continue;
+      it.reading = doi[k].doc;
+      if (doi[k].suy) it.docSuy = 1;
+    }
+  });
+  return keys.length;
+}
+
+/** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
+async function fetchMazii(word) {
+  for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
+    try {
+      const data = await httpPostJson(url, { dict: "javi", type: "word", query: word, limit: 20, page: 1 });
+      let arr = (data && (data.results || data.data)) || [];
+      if (!Array.isArray(arr)) arr = [];
+      const entries = arr.map((e) => ({
+        word: e.word || e.title || e.text || e.query || "",
+        reading: e.phonetic || e.pronounce || e.hiragana || "",
+        means: normMeans(e),
+        dict: "javi"
+      })).filter((x) => x.word || x.means.length);
+      if (entries.length) return entries;
+    } catch (e) { /* thử endpoint sau */ }
+  }
+  lastLookupError = "Chưa tra được (kiểm tra mạng).";
+  return [];
+}
+
 async function lookup(word, dict) {
   const w = (word || "").trim();
   lastLookupError = "";
   if (!w) return [];
+  // Ngăn tiếng Nhật đi đường Mazii; phần dưới là đường tiếng Anh.
+  // Vá furigana ngay ở đây, để cái hiện trên màn và cái được lưu là một. Chỉ 4
+  // kết quả đầu được gọi mạng: đó là những cái người ta thật sự nhìn.
+  if (dict === "javi") return themDoc(await fetchMazii(w), 4);
   // Tự động nhận diện
   if (dict === "auto") {
     if (looksVietnamese(w)) dict = "vien";
@@ -438,16 +606,44 @@ async function lookup(word, dict) {
 /* Đồng bộ Drive (Apps Script — cùng payload với extension)              */
 /* ==================================================================== */
 
-let syncing = null;      // không cho hai lượt đồng bộ chạy chồng nhau
-function syncNow() {
-  if (syncing) return syncing;
-  syncing = doSync().finally(() => { syncing = null; });
-  return syncing;
+// Mỗi ngôn ngữ một lượt riêng, và không cho hai lượt CÙNG ngôn ngữ chạy chồng.
+const syncing = {};
+function syncNow(ngu) {
+  const n = window.Ngu.hopLe(ngu || NGU);
+  if (syncing[n]) return syncing[n];
+  syncing[n] = doSync(n).finally(() => { syncing[n] = null; });
+  return syncing[n];
 }
 
-async function doSync() {
+/**
+ * Cấu hình cloud của một ngôn ngữ.
+ *
+ * Bản cũ chỉ có một cặp {url, token} phẳng — đó là cloud TIẾNG ANH, nên giữ
+ * nguyên chỗ ấy cho tiếng Anh, người đang dùng không phải khai lại. Tiếng Nhật
+ * dùng ngăn mới, khai một lần.
+ */
+async function layCfg(ngu) {
   const cfg = (await Store.get("syncCfg")) || {};
-  if (!cfg.url) throw new Error("Chưa cấu hình URL đồng bộ");
+  if (cfg.ja !== undefined || cfg.en !== undefined) return cfg[window.Ngu.hopLe(ngu)] || {};
+  return window.Ngu.hopLe(ngu) === "en" ? cfg : {};
+}
+async function datCfg(ngu, moi) {
+  const cfg = (await Store.get("syncCfg")) || {};
+  const cu = (cfg.ja !== undefined || cfg.en !== undefined) ? cfg : { en: cfg, ja: {} };
+  await Store.set("syncCfg", Object.assign({}, cu, { [window.Ngu.hopLe(ngu)]: moi }));
+}
+
+/**
+ * Đồng bộ MỘT ngôn ngữ với cloud của chính nó.
+ *
+ * Hai điều sống còn: chỉ GỬI LÊN phần thuộc ngôn ngữ này (mọi khoá lọt lưới sẽ
+ * biến mất khỏi bản ghi trên Drive), và khi GHI XUỐNG MÁY thì giữ nguyên phần
+ * của ngôn ngữ kia — mergeByTs là phép HỢP nên phần kia đi qua nguyên vẹn.
+ */
+async function doSync(rawNgu) {
+  const ngu = window.Ngu.hopLe(rawNgu || NGU);
+  const cfg = await layCfg(ngu);
+  if (!cfg.url) throw new Error("Chưa cấu hình URL đồng bộ cho tiếng " + window.Ngu.ten(ngu));
   const load = await httpPostJson(cfg.url, { token: cfg.token || "", action: "load" }, "text/plain;charset=utf-8");
   if (!load || load.ok === false) throw new Error((load && load.error) || "Lỗi máy chủ");
   const data = load.data || {};
@@ -457,10 +653,18 @@ async function doSync() {
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
   }
-  const mergedNb = mergeByTs(await getNB(), remoteNb);
-  const mergedDecks = mergeByTs(await getDecks(), remoteDecks);
+  // Cloud cũ có thể lẫn khoá của ngôn ngữ khác; vẫn nhận về máy, nhưng khi gửi
+  // lên thì lọc lại cho sạch.
+  const remoteCuaToi = window.Ngu.locSo(remoteNb, ngu);
+  const mergedNb = mergeByTs(window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
+  // Sổ con cũng tách theo ngôn ngữ, đúng như hồi còn là hai app.
+  const nbTatCa = await getNB();
+  const mergedDecks = mergeByTs(
+    window.Ngu.locSoCon(await getDecks(), nbTatCa, ngu),
+    window.Ngu.locSoCon(remoteDecks, remoteNb, ngu));
   // Tiến độ học trộn theo luật riêng — xem TienDo.tron().
-  const mergedHoc = window.TienDo.tron(await Store.get("hoc"), remoteHoc);
+  const hocTach = window.Ngu.tachHoc(await Store.get("hoc"));
+  const mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
@@ -473,18 +677,21 @@ async function doSync() {
   // chấm bài rơi đúng khe giữa lúc đọc và lúc ghi sẽ bị bản cũ đè mất.
   let finalNb;
   await capNhat((nb) => {
-    finalNb = mergeByTs(nb, mergedNb);
+    // mergeByTs là phép HỢP: phần của ngôn ngữ kia trong nb đi qua nguyên vẹn.
+    finalNb = mergeByTs(nb, mergeByTs(remoteNb, mergedNb));
     for (const k in nb) delete nb[k];
     Object.assign(nb, finalNb);
   });
   const finalDecks = mergeByTs(await getDecks(), mergedDecks);
-  const finalHoc = window.TienDo.tron(await Store.get("hoc"), mergedHoc);
+  const freshHoc = window.Ngu.tachHoc(await Store.get("hoc"));
+  const finalHocNgu = window.TienDo.tron(freshHoc[ngu], mergedHoc);
+  const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
-  theoDoi.dat(finalHoc);
-  if (JSON.stringify(finalNb) !== JSON.stringify(mergedNb) ||
-      JSON.stringify(finalHoc) !== JSON.stringify(mergedHoc)) syncSoon();
+  theoDoi.dat(finalHocNgu);
+  if (JSON.stringify(window.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNb) ||
+      JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) syncSoon();
 
-  let n = 0; for (const k in finalNb) if (!finalNb[k].del) n++;
+  let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
   return n;
 }
 
@@ -612,10 +819,11 @@ let lastEntries = [];
 let currentSrc = null;   // nguồn của lượt tra hiện tại, để lưu kèm khi bấm Lưu
 
 function switchSub(name) {
-  if (name === "detail" && $("tabDetail").disabled) name = "word";
-  ["word", "detail", "trans"].forEach((n) => {
-    const btn = { word: "tabWord", detail: "tabDetail", trans: "tabTrans" }[n];
-    const pane = { word: "result", detail: "detail", trans: "trans" }[n];
+  if (name === "detail" && ($("tabDetail").disabled || laNhat())) name = "word";
+  if (name === "kanji" && !laNhat()) name = "word";
+  ["word", "detail", "kanji", "trans"].forEach((n) => {
+    const btn = { word: "tabWord", detail: "tabDetail", kanji: "tabKanji", trans: "tabTrans" }[n];
+    const pane = { word: "result", detail: "detail", kanji: "kanji", trans: "trans" }[n];
     $(btn).classList.toggle("active", n === name);
     $(pane).style.display = n === name ? "" : "none";
   });
@@ -624,7 +832,105 @@ function switchSub(name) {
 }
 $("tabWord").addEventListener("click", () => switchSub("word"));
 $("tabDetail").addEventListener("click", () => switchSub("detail"));
+$("tabKanji").addEventListener("click", () => switchSub("kanji"));
 $("tabTrans").addEventListener("click", () => switchSub("trans"));
+
+/* ---- tab Hán tự (chỉ ở chế độ Nhật–Việt) ---- */
+/** Chữ này có phải chữ Hán không (gồm cả vùng mở rộng A và vùng tương thích). */
+function isCJK(ch) {
+  const c = ch.codePointAt(0);
+  return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || (c >= 0xf900 && c <= 0xfaff);
+}
+
+/**
+ * Âm Hán Việt của những chữ Hán trong từ — cái móc trí nhớ mạnh nhất với người
+ * Việt học tiếng Nhật: 「職場」 là しょくば thì phải học thuộc, nhưng biết nó
+ * là "Chức Trường" thì gần như không cần học.
+ */
+function hanVietOf(word) {
+  const DB = window.KANJI || {};
+  const parts = [];
+  let has = false;
+  for (const ch of (word || "")) {
+    if (!isCJK(ch)) continue;
+    has = true;
+    const d = DB[ch];
+    parts.push(d && d.hv ? d.hv.split(/\s*,\s*/)[0].split(/\s+/)[0] : "?");
+  }
+  if (!has || !parts.length) return "";
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+}
+
+function extractKanji(str) {
+  const seen = new Set(), out = [];
+  for (const ch of (str || "")) if (isCJK(ch) && !seen.has(ch)) { seen.add(ch); out.push(ch); }
+  return out;
+}
+
+async function renderKanji(chars) {
+  const box = $("kanji");
+  if (!chars.length) { trangThai(box, "text-aa", "Đoạn này không có chữ Hán nào."); return; }
+  box.className = "";
+  box.innerHTML = "";
+  const list = window.HanTu.LIET_KE(chars.join(""));
+  const nb = await getNB();
+
+  for (const k of list) {
+    const row = el("div", "kentry");
+    row.appendChild(el("div", "kchar", k.ch));
+
+    const body = el("div", "kbody");
+    const head = el("div", "khead");
+    const key = window.HanTu.KHOA(k.ch);
+    const daCo = window.Muc.banCuaBan(nb[key]);
+
+    const left = el("div");
+    const hv = el("span", "khv", k.hv || "—");
+    left.appendChild(hv);
+    if (daCo && daCo.mEdit) left.appendChild(nhanDaSua());
+    const meta = window.HanTu.META(k);
+    if (meta) left.appendChild(el("div", "kmeta", meta));
+    head.appendChild(left);
+
+    const luuChu = async () => {
+      const laMoi = await capNhat((so) => {
+        const cu = so[key];
+        const ne = window.HanTu.MUC(k);
+        // Lưu lại một chữ đã có -> giữ nguyên tiến độ học, ghi chú và nghĩa đã sửa.
+        if (cu && !cu.del) {
+          if (cu.deck) ne.deck = cu.deck;
+          if (cu.srs) ne.srs = cu.srs;
+          if (cu.fav) ne.fav = cu.fav;
+          if (cu.note) ne.note = cu.note;
+          if (cu.mEdit) { ne.mEdit = 1; ne.means = cu.means; ne.mOrig = cu.mOrig; }
+        }
+        // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
+        window.Muc.nhatLaiBanSua(ne, cu);
+        so[key] = ne;
+        return !cu || cu.del;
+      });
+      if (laMoi) mung(await theoDoi.ghiLuu(1));
+      syncSoon(); refreshNotifications();
+    };
+    head.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuChu, key, () => renderKanji(chars)));
+    body.appendChild(head);
+
+    const ngh = ((daCo && daCo.mEdit) ? (daCo.means || []) : window.HanTu.MUC(k).means)
+      .slice(0, 6).map(meanToStr);
+    if (ngh.length) {
+      const ul = document.createElement("ul");
+      ul.className = "kmean";
+      ngh.forEach((m) => ul.appendChild(el("li", null, m)));
+      body.appendChild(ul);
+    } else {
+      body.appendChild(el("div", "kmeta", "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào."));
+    }
+    if (daCo && daCo.note) body.appendChild(khoiGhiChu(daCo.note));
+    row.appendChild(body);
+    box.appendChild(row);
+  }
+}
+
 
 async function runLookup(word, src) {
   currentSrc = (src && src.url) ? src : null;   // tra tay/dán -> không nguồn; chia sẻ -> có nguồn
@@ -633,6 +939,13 @@ async function runLookup(word, src) {
   $("q").value = w;
   // Mở sẵn tab hợp lý nhất, nhưng cả ba tab đều có dữ liệu — xem ghi chú ở
   // trongNhuCau() về việc thôi đoán ý người dùng.
+  // Hán tự luôn có mặt ở chế độ Nhật–Việt, kể cả khi đang xem tab Dịch.
+  if (laNhat()) {
+    const chars = extractKanji(w);
+    renderKanji(chars);
+    const lb = $("tabKanji").querySelector(".lb");
+    if (lb) lb.textContent = "Hán tự" + (chars.length ? " " + chars.length : "");
+  }
   switchSub(trongNhuCau(w) ? "trans" : "word");
 
   // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ lượt gọi mạng
@@ -786,9 +1099,19 @@ async function renderWord(entries) {
     head.appendChild(left);
 
     const luuTu = async () => {
+      // Chốt chặn cuối cho furigana: kết quả nằm sâu dưới danh sách chưa được vá
+      // lúc tra (để khỏi gọi mạng hai chục lần), nhưng lúc bấm lưu thì chỉ một
+      // từ — mà đây đúng là lúc cần cách đọc nhất.
+      if (huong === "javi" || huong === "vija") {
+        try {
+          const rr = await docKana(en.word, en.reading, en.kind !== "sent");
+          if (rr) { en.reading = rr.doc; if (rr.suy) en.docSuy = 1; }
+        } catch (e) { /* không có furigana thì vẫn lưu */ }
+      }
       const laMoi = await capNhat((nb) => {
         const old2 = nb[key];
         const ne2 = { word: en.word, reading: en.reading || "", means: en.means || [], dict: huong, ts: Date.now() };
+        if (en.docSuy) ne2.docSuy = 1;               // cách đọc suy ra, không phải từ điển cho
         if (en.audio) ne2.audio = en.audio;
         if (en.pos && en.pos.length) ne2.pos = en.pos;
         if (srcSnap) ne2.src = srcSnap;
@@ -921,7 +1244,7 @@ async function translateText(text, dir) {
   let out = "";
   try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
   if (!out) {
-    const cfg = (await Store.get("syncCfg")) || {};
+    const cfg = await layCfg(NGU);
     if (!cfg.url) throw new Error("Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng).");
     const r = await httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text: t, from, to }, "text/plain;charset=utf-8");
     if (!r || r.ok === false || !r.text) throw new Error((r && r.error) || "Không dịch được");
@@ -1090,9 +1413,19 @@ $("editSheet").addEventListener("click", (e) => { if (e.target.id === "editSheet
 
 const ALL = "__all__", NONE = "__none__";
 const LIKE = "__like__", DISLIKE = "__dislike__";
+const HANTU = "__kanji__";   // sổ con ảo: chỉ những mục là MỘT chữ Hán
 let curDeck = ALL;
 
-function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
+function dirLabel(d) {
+  if (d === "kanji") return "Hán tự";
+  if (d === "javi") return "Nhật→Việt";
+  if (d === "vija") return "Việt→Nhật";
+  if (d === "vien") return "Việt→Anh";
+  if (d === "envi") return "Anh→Việt";
+  // Mục cũ không ghi hướng thì đoán theo ngăn đang mở — danh sách đằng nào cũng
+  // đã lọc theo đúng một ngôn ngữ rồi.
+  return laNhat() ? "Nhật→Việt" : "Anh→Việt";
+}
 function deckName(decks, id) { const d = decks[id]; return d && !d.del ? d.name : null; }
 
 async function setFav(key, val) {
@@ -1210,11 +1543,24 @@ async function drawNotebook() {
     }
   });
   if (daSuaCu) syncSoon();
-  const nb = await getNB(), decks = await getDecks();
+  // Vá furigana cho những mục cũ còn thiếu cách đọc. Chạy nền, xong tới đâu vẽ
+  // lại tới đó — mở sổ không phải chờ mạng.
+  if (laNhat() && !dangVaFurigana) {
+    dangVaFurigana = true;
+    vaFurigana(25).then((n) => { dangVaFurigana = false; if (n) drawNotebook(); },
+                        () => { dangVaFurigana = false; });
+  }
+  // Chỉ phần của ngôn ngữ đang bật; dữ liệu bên kia vẫn nằm nguyên trong kho.
+  const nb = await getNBNgu();
+  // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó rồi ghi lại một lần.
+  const nbTatCa = await getNB();
+  const gan = window.Ngu.ganNguChoSo(await getDecks(), nbTatCa);
+  if (gan.doi) { await setDecks(gan.decks); syncSoon(); }
+  const decks = window.Ngu.locSoCon(gan.decks, nbTatCa, NGU);
 
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
-  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && !deckName(decks, curDeck)) curDeck = ALL;
+  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU && !deckName(decks, curDeck)) curDeck = ALL;
 
   /* --- hàng chip sổ con --- */
   const bar = $("deckBar");
@@ -1224,6 +1570,7 @@ async function drawNotebook() {
     : id === NONE ? activeItems.filter((i) => !i.deck).length
     : id === LIKE ? activeItems.filter((i) => i.fav === 1).length
     : id === DISLIKE ? activeItems.filter((i) => i.fav === -1).length
+    : id === HANTU ? activeItems.filter((i) => i.dict === "kanji").length
     : activeItems.filter((i) => i.deck === id).length;
   const mk = (id, label, iconTen) => {
     const b = el("button", "chip" + (curDeck === id ? " active" : ""));
@@ -1238,6 +1585,9 @@ async function drawNotebook() {
   mk(NONE, "Chưa phân loại", "funnel");
   mk(LIKE, "Thích", "heart");
   mk(DISLIKE, "Không thích", "thumbs-down");
+  // Học chữ và học từ là hai buổi khác nhau, nên Hán tự có ngăn riêng. Bên
+  // tiếng Anh không có ngăn này.
+  if (laNhat()) mk(HANTU, "Hán tự", "text-aa");
   activeDecks.forEach((d) => mk(d.id, d.name, "folder-simple"));
 
   const add = el("button", "chip add");
@@ -1249,12 +1599,12 @@ async function drawNotebook() {
     if (!name) return;
     const d = await getDecks();
     const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    d[id] = { id, name, ts: Date.now() };
+    d[id] = { id, name, ngu: NGU, ts: Date.now() };
     await setDecks(d); curDeck = id; drawNotebook(); syncSoon();
   });
   bar.appendChild(add);
   $("deckActions").style.display =
-    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE) ? "" : "none";
+    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU) ? "" : "none";
 
   /* --- danh sách --- */
   const kw = $("filter").value.trim().toLowerCase();
@@ -1262,6 +1612,7 @@ async function drawNotebook() {
   if (curDeck === NONE) rows = rows.filter((i) => !i.deck);
   else if (curDeck === LIKE) rows = rows.filter((i) => i.fav === 1);
   else if (curDeck === DISLIKE) rows = rows.filter((i) => i.fav === -1);
+  else if (curDeck === HANTU) rows = rows.filter((i) => i.dict === "kanji");
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) {
     rows = rows.filter((it) =>
@@ -1285,12 +1636,18 @@ async function drawNotebook() {
 
   const now = Date.now();
   for (const it of rows) {
-    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : ""));
+    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : ""));
     const body = el("div", "body");
 
     const head = el("div", "head");
-    head.appendChild(el("span", "w", it.word));
-    if (it.reading) head.appendChild(el("span", "r", it.reading));
+    head.appendChild(el("span", "w" + (laNhat() ? " ja" : ""), it.word));
+    if (it.reading) {
+      const r = el("span", "r", it.reading);
+      // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
+      // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
+      if (it.docSuy) { r.classList.add("suy"); r.title = "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"; }
+      head.appendChild(r);
+    }
     const spk = nutIcon("speaker-high", "Phát âm", "", 18);
     spk.addEventListener("click", () => speak(it.word, it.audio));
     head.appendChild(spk);
@@ -1310,6 +1667,12 @@ async function drawNotebook() {
     }
     body.appendChild(head);
 
+    const hvS = hanVietOf(it.word);
+    if (hvS) body.appendChild(el("div", "hv", "Hán Việt: " + hvS));
+    if (it.dict === "kanji") {
+      const km = window.HanTu.META(it.kanji);
+      if (km) body.appendChild(el("div", "t-tiny faint", km));
+    }
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
 
@@ -1406,7 +1769,7 @@ $("deleteDeck").addEventListener("click", async () => {
 
 /* --- cấu hình đồng bộ --- */
 $("saveCfg").addEventListener("click", async () => {
-  await Store.set("syncCfg", { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
+  await datCfg(NGU, { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
   $("syncStatus").textContent = "Đã lưu cấu hình.";
 });
 $("syncNow").addEventListener("click", async () => {
@@ -1485,7 +1848,7 @@ let session = { queue: [], done: 0, again: 0, deleted: 0 };
 let lastDeleted = null;
 
 async function currentDue() {
-  const nb = await getNB();
+  const nb = await getNBNgu();
   const now = Date.now();
   return Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => isDue(it, now));
 }
@@ -1542,8 +1905,9 @@ function showCard(giuLat) {
   const daLat = giuLat && $("stGrade").style.display !== "none";
 
   $("stProg").textContent = "Còn " + session.queue.length + " mục · đã xong " + session.done;
-  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "");
+  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
+  $("stWord").className = "cw" + (laNhat() ? " ja" : "");
   renderStudyFav(it);
 
   const src = $("stSrc");
@@ -1561,11 +1925,16 @@ function showCard(giuLat) {
 function revealCard() {
   const it = session.queue[0];
   if (!it) return;
-  $("stRead").textContent = it.reading || "";
+  const hvS = hanVietOf(it.word);
+  $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + "Hán Việt: " + hvS) : "");
+  $("stMean").innerHTML = "";
+  if (it.dict === "kanji") {
+    const km = window.HanTu.META(it.kanji);
+    if (km) $("stMean").appendChild(el("div", "t-small faint", km));
+  }
   if (it.means && it.means.length) {
     const ul = document.createElement("ul");
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
-    $("stMean").innerHTML = "";
     $("stMean").appendChild(ul);
   }
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
@@ -1668,7 +2037,7 @@ async function finishStudy() {
 let pulling = false;
 async function pullAndRefresh() {
   if (pulling) return;
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (!cfg.url) return;
   pulling = true;
   try {
@@ -1683,7 +2052,7 @@ async function pullAndRefresh() {
 
 // Kéo xuống ở đầu màn để làm mới — cử chỉ ai dùng Android cũng thử trước tiên.
 window.ChamVuot.keoDeLamMoi($("scroller"), async () => {
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (!cfg.url) { toast("Chưa cấu hình đồng bộ Google Drive", "bad"); return; }
   await pullAndRefresh();
   toast("Đã làm mới");
@@ -1817,16 +2186,65 @@ function gaiIcon() {
 /* Khởi động                                                            */
 /* ==================================================================== */
 
+/** Các hướng tra có nghĩa với từng ngôn ngữ. */
+const HUONG_NGU = {
+  en: [["auto", "Tự động"], ["envi", "Anh→Việt"], ["vien", "Việt→Anh"]],
+  ja: [["javi", "Nhật→Việt"]]
+};
+
+function veNgu() {
+  // Tab "Chi tiết" là IPA/định nghĩa Anh; "Hán tự" chỉ có nghĩa với tiếng Nhật.
+  $("tabDetail").style.display = laNhat() ? "none" : "";
+  $("tabKanji").style.display = laNhat() ? "" : "none";
+  $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");
+  const b = $("nguBtn");
+  b.textContent = laNhat() ? "日→V" : "EN→V";
+  b.title = "Đang tra " + (laNhat() ? "Nhật–Việt" : "Anh–Việt") + " — chạm để đổi";
+  const sel = $("dir"), cu = sel.value;
+  sel.innerHTML = "";
+  HUONG_NGU[NGU].forEach(([v, t]) => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t;
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some((o) => o.value === cu)) sel.value = cu;
+  sel.style.display = HUONG_NGU[NGU].length > 1 ? "" : "none";
+}
+
+$("nguBtn").addEventListener("click", async () => {
+  await doiNgu(laNhat() ? "en" : "ja");
+  veNgu();
+  // Đổi ngôn ngữ là đổi cả sổ tay, tiến độ lẫn cloud — nạp lại hết.
+  await theoDoi.nap(true);
+  const cfg = await layCfg(NGU);
+  $("syncUrl").value = cfg.url || "";
+  $("syncToken").value = cfg.token || "";
+  await drawNotebook();
+  await veChuoiNgay();
+  updateDueButton();
+  toast("Đã chuyển sang " + (laNhat() ? "Nhật–Việt" : "Anh–Việt"));
+});
+
+/** Xoá huy hiệu của ngôn ngữ chưa hề có hoạt động nào — xem Ngu.donHuyHieuLac. */
+async function donHuyHieu() {
+  const kq = window.Ngu.donHuyHieuLac(await Store.get("hoc"), await getNB());
+  if (!kq.doi.length) return;
+  await Store.set("hoc", kq.hoc);
+}
+
 (async () => {
   gaiIcon();
+  await napNgu();
+  veNgu();
+  await donHuyHieu();
   await theoDoi.nap();
   await veChuoiNgay();
 
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (cfg.url) {
     $("syncUrl").value = cfg.url;
     $("syncToken").value = cfg.token || "";
-    syncNow().then((n) => {
+    syncNow(NGU).then((n) => {
       $("syncStatus").textContent = "Đã đồng bộ · " + n + " mục";
       drawNotebook(); veChuoiNgay(); refreshNotifications();
     }).catch(() => {});

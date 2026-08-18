@@ -60,7 +60,16 @@ function fmtDate(ts) {
     return d.toLocaleDateString("vi-VN") + " " + d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
   } catch (e) { return ""; }
 }
-function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
+function dirLabel(d) {
+  if (d === "kanji") return "Hán tự";
+  if (d === "javi") return "Nhật→Việt";
+  if (d === "vija") return "Việt→Nhật";
+  if (d === "vien") return "Việt→Anh";
+  if (d === "envi") return "Anh→Việt";
+  // Mục cũ không ghi hướng thì đoán theo ngăn đang mở — đằng nào danh sách cũng
+  // đã lọc theo đúng một ngôn ngữ rồi.
+  return NGU === "ja" ? "Nhật→Việt" : "Anh→Việt";
+}
 
 /* ==================================================================== */
 /* Lưu trữ                                                              */
@@ -68,10 +77,22 @@ function dirLabel(d) { return d === "vien" ? "Việt→Anh" : "Anh→Việt"; }
 
 const ALL = "__all__", NONE = "__none__";
 const LIKE = "__like__", DISLIKE = "__dislike__";
+const HANTU = "__kanji__";   // sổ con ảo: chỉ những mục là MỘT chữ Hán
 
 let items = [];   // mục trong sổ (gồm cả bia mộ đã xoá)
 let decks = {};
 let current = ALL;
+
+/**
+ * Ngôn ngữ đang bật. Đổi nó là đổi cả sổ tay, chỗ lưu lẫn cloud đang dùng —
+ * nhưng KHÔNG đụng một byte nào của ngôn ngữ kia: hai bên nằm chung một kho,
+ * phân biệt bằng tiền tố khoá, nên chuyển qua chuyển lại bao nhiêu lần cũng
+ * không mất gì.
+ */
+let NGU = "en";
+
+/** Ngôn ngữ mà bản tiến độ đang giữ trong bộ nhớ thuộc về. */
+let nguDaNap = "";
 
 async function getStore() {
   const s = await chrome.storage.local.get(["notebook", "decks"]);
@@ -194,9 +215,27 @@ function soLieuSoTay() {
   return { tong: a.length, nhoLau, daSua, coGhiChu, thich, denHan, trongChuKy, soCon: dungSo.size };
 }
 
+/*
+ * Tiến độ học tách theo ngôn ngữ: { ja: {...}, en: {...} }.
+ *
+ * Đọc/ghi đều chỉ chạm vào ngăn của ngôn ngữ đang bật, nên học tiếng Anh không
+ * bao giờ làm xê dịch chuỗi ngày của tiếng Nhật. Bản cũ chỉ có một object
+ * phẳng — Ngu.tachHoc chuyển nó nguyên vẹn vào ngăn "en", không mất lượt nào.
+ */
 const theoDoi = window.TienDo.tao({
-  doc: async () => (await chrome.storage.local.get("hoc")).hoc,
-  ghi: async (d) => { await chrome.storage.local.set({ hoc: d }); },
+  // Ghi theo nguDaNap — ngôn ngữ mà bản đang giữ trong bộ nhớ thuộc về — chứ
+  // KHÔNG theo NGU. Ghi theo NGU thì chỉ cần một lượt ghi rơi vào lúc vừa đổi
+  // ngôn ngữ mà bản cũ chưa kịp nạp lại, là tiến độ và huy hiệu của bên này
+  // chui sang ngăn bên kia. Đó đúng là lỗi "sang tiếng Anh cũng thấy 3 huy
+  // hiệu của tiếng Nhật".
+  doc: async () => {
+    nguDaNap = NGU;
+    return window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc)[NGU];
+  },
+  ghi: async (d) => {
+    const cu = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
+    await chrome.storage.local.set({ hoc: Object.assign({}, cu, { [nguDaNap || NGU]: d }) });
+  },
   soLieu: async () => soLieuSoTay(),
   sauKhiGhi: () => syncSoon()
 });
@@ -233,11 +272,18 @@ async function load() {
   });
   if (daSuaCu) syncSoon();
   const s = await getStore();
-  decks = s.decks;
-  items = Object.entries(s.nb).map(([key, v]) => ({ key, ...v }));
+  // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
+  // lần cho xong — lần sau khỏi phải suy nữa.
+  const gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
+  if (gan.doi) { await chrome.storage.local.set({ decks: gan.decks }); syncSoon(); }
+  decks = window.Ngu.locSoCon(gan.decks, s.nb, NGU);
+  // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
+  // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
+  // liệu bên kia vẫn nằm nguyên đó, không hề bị đụng tới.
+  items = Object.entries(window.Ngu.locSo(s.nb, NGU)).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   // Sổ đang chọn đã bị xoá -> quay về Tất cả.
-  if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && !deckName(current)) current = ALL;
+  if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && current !== HANTU && !deckName(current)) current = ALL;
   drawDecks();
   draw();
 }
@@ -252,6 +298,7 @@ function countIn(id) {
   if (id === NONE) return a.filter((it) => !it.deck).length;
   if (id === LIKE) return a.filter((it) => it.fav === 1).length;
   if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
+  if (id === HANTU) return a.filter((it) => it.dict === "kanji").length;
   return a.filter((it) => it.deck === id).length;
 }
 
@@ -271,6 +318,10 @@ function drawDecks() {
   mk(NONE, "Chưa phân loại", "funnel");
   mk(LIKE, "Thích", "heart");
   mk(DISLIKE, "Không thích", "thumbs-down");
+  // Hán tự tách riêng vì học chữ và học từ là hai buổi khác nhau: một buổi chỉ
+  // chữ thì mỗi chữ được nhìn kỹ, chứ trộn lẫn thì chữ luôn bị từ lấn át.
+  // Bên tiếng Anh không có ngăn này nên cũng không hiện.
+  if (NGU === "ja") mk(HANTU, "Hán tự", "text-aa");
   activeDecks().forEach((d) => mk(d.id, d.name, "folder-simple"));
 
   const add = el("button", "chip add");
@@ -281,7 +332,7 @@ function drawDecks() {
   bar.appendChild(add);
 
   // Hai nhãn cố định (Thích / Không thích) không cho đổi tên hay xoá.
-  const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE;
+  const real = current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && current !== HANTU;
   $("deckActions").style.display = real ? "" : "none";
 }
 
@@ -290,7 +341,9 @@ async function createDeck() {
   if (!name) return;
   const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = (await getStore()).decks;
-  d[id] = { id, name, ts: Date.now() };
+  // Gắn nhãn ngôn ngữ ngay: sổ tiếng Nhật không được lẫn sang danh sách
+  // tiếng Anh, và ngược lại.
+  d[id] = { id, name, ngu: NGU, ts: Date.now() };
   await setDecks(d);
   current = id;
   await load();
@@ -353,20 +406,48 @@ async function moveWord(key, deckId) {
  * thì thường sai — mà trọng âm mới là thứ người Việt hay nhớ nhầm.
  */
 const _audioCache = new Map();
+/**
+ * Âm Hán Việt của những chữ Hán trong từ. Với người Việt học tiếng Nhật đây là
+ * cái móc trí nhớ mạnh nhất: 「職場」 đọc là しょくば thì phải học thuộc, nhưng
+ * biết nó là "Chức Trường" thì gần như không cần học.
+ */
+function hanVietOf(word) {
+  const DB = (typeof window !== "undefined" && window.KANJI) || {};
+  const parts = [];
+  let hasKanji = false;
+  for (const ch of (word || "")) {
+    const c = ch.codePointAt(0);
+    const isCJK = (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf) || (c >= 0xf900 && c <= 0xfaff);
+    if (!isCJK) continue;
+    hasKanji = true;
+    const d = DB[ch];
+    parts.push(d && d.hv ? d.hv.split(/\s+/)[0] : "?");
+  }
+  if (!hasKanji || !parts.length) return "";
+  return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+}
+
 function getAudio(url) {
   let a = _audioCache.get(url);
   if (!a) { a = new Audio(url); a.preload = "auto"; _audioCache.set(url, a); }
   return a;
 }
+/**
+ * Đọc to. Giọng chọn theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh
+ * thì ra một thứ không ai nghe được.
+ */
 function ttsSpeak(text) {
   try {
     speechSynthesis.cancel();
+    const ja = (typeof NGU !== "undefined" && NGU === "ja");
+    const ma = ja ? "ja" : "en";
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US"; u.rate = 0.9;
-    const v = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith("en"));
+    u.lang = ja ? "ja-JP" : "en-US";
+    u.rate = 0.9;
+    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
     if (v) u.voice = v;
     speechSynthesis.speak(u);
-  } catch (e) { /* máy không có giọng Anh */ }
+  } catch (e) { /* máy không có giọng thứ tiếng đó */ }
 }
 function speak(text, audio) {
   if (audio) {
@@ -623,6 +704,7 @@ function currentActiveSet() {
   if (current === NONE) return a.filter((it) => !it.deck);
   if (current === LIKE) return a.filter((it) => it.fav === 1);
   if (current === DISLIKE) return a.filter((it) => it.fav === -1);
+  if (current === HANTU) return a.filter((it) => it.dict === "kanji");
   return a.filter((it) => it.deck === current);
 }
 
@@ -672,13 +754,19 @@ function draw() {
   const now = Date.now();
 
   for (const it of rows) {
-    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : ""));
+    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : ""));
     const body = el("div", "body");
 
     /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
     const head = el("div", "head");
-    head.appendChild(el("span", "w", it.word));
-    if (it.reading) head.appendChild(el("span", "r", it.reading));
+    head.appendChild(el("span", "w" + (NGU === "ja" ? " ja" : ""), it.word));
+    if (it.reading) {
+      const r = el("span", "r", it.reading);
+      // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
+      // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
+      if (it.docSuy) { r.classList.add("suy"); r.title = "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"; }
+      head.appendChild(r);
+    }
 
     const spk = nutIcon("speaker-high", "Phát âm", "", 17);
     spk.addEventListener("click", () => speak(it.word, it.audio));
@@ -706,7 +794,13 @@ function draw() {
     }
     body.appendChild(head);
 
-    /* --- nghĩa và ghi chú --- */
+    /* --- Hán Việt, nghĩa, ghi chú --- */
+    const hvStr = hanVietOf(it.word);
+    if (hvStr) body.appendChild(el("div", "hv", "Hán Việt: " + hvStr));
+    if (it.dict === "kanji") {
+      const meta = window.HanTu.META(it.kanji);
+      if (meta) body.appendChild(el("div", "t-tiny faint", meta));
+    }
     if (it.means && it.means.length) {
       body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
@@ -852,9 +946,9 @@ function showCard(giuLat) {
   $("stDone").style.display = "none";
   $("stProg").textContent = "Còn " + session.queue.length + " mục · đã xong " + session.done;
 
-  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "");
+  $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
-  $("stWord").className = "cw";
+  $("stWord").className = "cw" + (NGU === "ja" ? " ja" : "");
   renderStudyFav(it);
 
   const src = $("stSrc");
@@ -876,11 +970,17 @@ function showCard(giuLat) {
 function revealCard() {
   const it = theCardHienTai();
   if (!it) return;
-  $("stRead").textContent = it.reading || "";
+  const hvS = hanVietOf(it.word);
+  $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + "Hán Việt: " + hvS) : "");
+  if (it.dict === "kanji") {
+    const meta = window.HanTu.META(it.kanji);
+    if (meta) $("stMean").appendChild(el("div", "t-small faint", meta));
+  }
   if (it.means && it.means.length) {
     const ul = document.createElement("ul");
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
-    $("stMean").innerHTML = "";
+    // KHÔNG xoá trắng ở đây: showCard() đã dọn rồi, mà chữ Hán thì dòng nét/bộ
+    // vừa thêm phía trên cũng nằm trong ô này — xoá là mất.
     $("stMean").appendChild(ul);
   }
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
@@ -1014,6 +1114,7 @@ function fileTag() {
   if (current === NONE) return "chuaphanloai";
   if (current === LIKE) return "thich";
   if (current === DISLIKE) return "khongthich";
+  if (current === HANTU) return "hantu";
   return (deckName(current) || "so").replace(/[^\p{L}\p{N}]+/gu, "-").toLowerCase();
 }
 function exportAnki() {
@@ -1021,7 +1122,7 @@ function exportAnki() {
   if (!list.length) return;
   const lines = list.map((it) => {
     const front = safe(it.word);
-    const read = it.reading ? "/" + safe(it.reading) + "/ " : "";
+    const read = it.reading ? (NGU === "ja" ? "【" + safe(it.reading) + "】 " : "/" + safe(it.reading) + "/ ") : "";
     // Ghi chú đi kèm mặt sau: đó thường là phần đắt nhất của thẻ.
     const note = it.note ? "<br><i>" + safe(it.note) + "</i>" : "";
     const back = read + safe((it.means || []).join("; ")) + note;
@@ -1071,10 +1172,19 @@ async function restoreJson(file) {
       Object.assign(dks, mergeLocal(dks, impDecks));
     });
     if (imp && imp.hoc) {
-      const cur = (await chrome.storage.local.get("hoc")).hoc;
-      const gop = window.TienDo.tron(cur, imp.hoc);
+      // Trộn TỪNG NGÔN NGỮ một. TienDo.tron() chỉ hiểu một bản tiến độ phẳng;
+      // ném cả cục {ja, en} vào là nó trả về bản trắng, vừa mất tiến độ đang có
+      // vừa mất tiến độ trong file. Ngu.tachHoc() cũng nhận cả file sao lưu đời
+      // cũ (một bản phẳng, hồi còn là app tiếng Anh) và xếp đúng ngăn.
+      const cur = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
+      const vao = window.Ngu.tachHoc(imp.hoc);
+      const gop = {
+        ja: window.TienDo.tron(cur.ja, vao.ja),
+        en: window.TienDo.tron(cur.en, vao.en)
+      };
       await chrome.storage.local.set({ hoc: gop });
-      theoDoi.dat(gop);
+      nguDaNap = NGU;
+      theoDoi.dat(gop[NGU]);
     }
     await load();
     syncSoon();
@@ -1106,33 +1216,52 @@ async function clearAll() {
 
 function setStatus(t) { $("syncStatus").textContent = t; }
 
+/*
+ * Mỗi ngôn ngữ một cloud riêng, đúng như hồi còn là hai extension.
+ *
+ * Cặp khoá của tiếng Anh giữ nguyên tên cũ ("syncUrl"/"syncToken"), nên người
+ * đang dùng NeutronDict không phải khai lại gì — cloud tiếng Anh chạy tiếp y
+ * như trước. Tiếng Nhật dùng cặp mới, khai một lần.
+ */
 async function loadConfig() {
-  const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
-  if (syncUrl) $("syncUrl").value = syncUrl;
-  if (syncToken) $("syncToken").value = syncToken;
-  return { syncUrl, syncToken };
+  const k = window.Ngu.khoaSync(NGU);
+  const kho = await chrome.storage.local.get([k.url, k.token]);
+  $("syncUrl").value = kho[k.url] || "";
+  $("syncToken").value = kho[k.token] || "";
+  const nh = $("syncNhan");
+  if (nh) nh.textContent = "Đang cấu hình cloud tiếng " + window.Ngu.ten(NGU);
+  return { syncUrl: kho[k.url], syncToken: kho[k.token] };
 }
 async function saveConfig() {
+  const k = window.Ngu.khoaSync(NGU);
   const syncUrl = $("syncUrl").value.trim();
   const syncToken = $("syncToken").value.trim();
-  await chrome.storage.local.set({ syncUrl, syncToken });
-  setStatus(syncUrl ? "Đã lưu cấu hình đồng bộ." : "Đã xoá cấu hình.");
+  await chrome.storage.local.set({ [k.url]: syncUrl, [k.token]: syncToken });
+  setStatus(syncUrl
+    ? "Đã lưu cấu hình đồng bộ cho tiếng " + window.Ngu.ten(NGU) + "."
+    : "Đã xoá cấu hình tiếng " + window.Ngu.ten(NGU) + ".");
 }
 function syncNow() {
   setStatus("Đang đồng bộ…");
-  chrome.runtime.sendMessage({ type: "SYNC_NOW" }, async (res) => {
-    if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); return; }
-    if (res && res.ok) {
-      await theoDoi.nap(true);
-      await load();
-      if ($("viewProgress").classList.contains("show")) veTienDo();
-      setStatus("Đã đồng bộ · " + res.count + " mục · " + new Date().toLocaleTimeString("vi-VN"));
-    } else {
-      setStatus("Không đồng bộ được: " + ((res && res.error) || "lỗi không rõ"));
-    }
+  const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
+  return new Promise((xong) => {
+    chrome.runtime.sendMessage({ type: "SYNC_NOW", ngu: cua }, async (res) => {
+      if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); xong(); return; }
+      if (res && res.ok) {
+        if (cua === NGU) {
+          await theoDoi.nap(true);
+          await load();
+          if ($("viewProgress").classList.contains("show")) veTienDo();
+          setStatus("Đã đồng bộ · " + res.count + " mục · " + new Date().toLocaleTimeString("vi-VN"));
+        }
+      } else {
+        setStatus("Không đồng bộ được: " + ((res && res.error) || "lỗi không rõ"));
+      }
+      xong();
+    });
   });
 }
-function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON" }); } catch (e) {} }
+function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu: NGU }); } catch (e) {} }
 
 // Quay lại tab Sổ tay -> kéo dữ liệu mới (nếu đã cấu hình đồng bộ).
 document.addEventListener("visibilitychange", async () => {
@@ -1266,15 +1395,87 @@ $("aboutSheet").addEventListener("click", (e) => {
 /* Khởi động                                                            */
 /* ==================================================================== */
 
+/** Xoá huy hiệu của ngôn ngữ chưa hề có hoạt động nào — xem Ngu.donHuyHieuLac. */
+async function donHuyHieu() {
+  const kho = await chrome.storage.local.get(["hoc", "notebook"]);
+  const kq = window.Ngu.donHuyHieuLac(kho.hoc, kho.notebook || {});
+  if (!kq.doi.length) return;
+  await chrome.storage.local.set({ hoc: kq.hoc });
+  await theoDoi.nap(true);
+}
+
+/**
+ * Nhờ nền suy cách đọc cho những mục tiếng Nhật còn thiếu furigana.
+ *
+ * Mỗi lượt mở sổ chỉ vá một nhúm — sổ vài trăm từ mà vá hết trong một lượt thì
+ * thành vài trăm lượt gọi mạng. Mở thêm vài lần là hết, mà chờ thì không phải
+ * chờ: hàm này chạy nền, xong mới vẽ lại.
+ */
+function vaFurigana() {
+  try {
+    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 25 }, (kq) => {
+      if (chrome.runtime.lastError) return;
+      if (kq && kq.ok && kq.count) load();
+    });
+  } catch (e) { /* không vá được thì thôi, sổ vẫn dùng bình thường */ }
+}
+
+/** Vẽ lại nút chuyển ngôn ngữ và mọi chỗ ăn theo nó. */
+function veNgu() {
+  $("nguEn").classList.toggle("active", NGU === "en");
+  $("nguJa").classList.toggle("active", NGU === "ja");
+  const sb = $("brandSub");
+  if (sb) sb.textContent = (NGU === "ja" ? "Nhật – Việt" : "Anh – Việt") + " · sóng học tập";
+  // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.
+  const ipa = $("ipaGuide");
+  if (ipa) ipa.style.display = NGU === "ja" ? "none" : "";
+  document.title = (NGU === "ja" ? "Sổ tay Nhật – Việt" : "Sổ tay Anh – Việt") + " · NeutronDict";
+}
+
+async function doiNgu(ngu) {
+  if (ngu === NGU) return;
+  NGU = window.Ngu.hopLe(ngu);
+  const { settings } = await chrome.storage.local.get("settings");
+  await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: NGU }) });
+  veNgu();
+  current = ALL;
+  // nap(true): ÉP đọc lại. Không có cờ này thì nó trả về bản đã nạp sẵn của
+  // ngôn ngữ CŨ — và màn Tiến độ hiện chuỗi ngày, huy hiệu của bên kia.
+  await theoDoi.nap(true);
+  await load();
+  await loadConfig();
+  if (NGU === "ja") vaFurigana();
+  if ($("viewProgress").classList.contains("show")) veTienDo();
+}
+
+$("nguEn").addEventListener("click", () => doiNgu("en"));
+$("nguJa").addEventListener("click", () => doiNgu("ja"));
+
 (async () => {
   gaiIcon();
+  const { settings } = await chrome.storage.local.get("settings");
+  NGU = window.Ngu.hopLe((settings || {}).ngu);
+  veNgu();
   await theoDoi.nap();
   await load();
   await loadSettings();
+  // Dọn huy hiệu bị rò từ ngôn ngữ khác sang (lỗi của bản gộp đời đầu). Phải
+  // dọn TRƯỚC khi đồng bộ, kẻo bản bẩn kịp đi lên cloud một lượt nữa.
+  await donHuyHieu();
+
+  // Vá furigana cho những mục đã lưu từ trước mà không có cách đọc. Không chặn
+  // màn hình: xong tới đâu vẽ lại tới đó.
+  vaFurigana();
+
   const cfg = await loadConfig();
-  if (cfg.syncUrl) { $("syncBox").open = false; syncNow(); }
+  if (cfg.syncUrl) { $("syncBox").open = false; await syncNow(); }
   else { $("syncBox").open = true; }
   // Xét lại huy hiệu lúc mở app: có mốc chỉ phụ thuộc số mục trong sổ (lưu từ
   // điện thoại, hoặc lưu bằng chuột phải) nên không đi qua đường chấm bài.
+  //
+  // PHẢI đợi đồng bộ xong mới xét. Xét trước thì mình đang nhìn một bản tiến độ
+  // chưa có gì, trao lại đúng những huy hiệu mà trên cloud đã có từ lâu — rồi
+  // lượt đồng bộ ập tới ghi đè, và lần mở sau lại chúc mừng y hệt. Đó chính là
+  // cảnh "lần nào vào cũng hiện bảng thành tích".
   mung(await theoDoi.xetHuyHieu());
 })();

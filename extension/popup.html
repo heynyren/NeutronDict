@@ -90,6 +90,15 @@
       font-size: 13px; color: var(--ink-2); white-space: pre-wrap; word-break: break-word;
     }
     .notebox b { font-size: 11px; color: var(--ink-3); letter-spacing: .02em; }
+
+    /* --- bảng Hán tự (chỉ hiện ở chế độ Nhật–Việt) --- */
+    .kentry { display: flex; gap: 13px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+    .kentry:first-child { padding-top: 2px; }
+    .kentry:last-child { border-bottom: none; }
+    .kchar { font-size: 42px; line-height: 1.05; flex: none; font-family: var(--font-cjk); }
+    .kbody { flex: 1; min-width: 0; }
+    .khv { font-size: 17px; font-weight: 700; color: var(--accent); text-transform: capitalize; }
+    .kmeta { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -103,11 +112,8 @@
       <div class="searchfield">
         <input id="q" type="text" placeholder="Nhập / dán từ cần tra…" autocomplete="off">
       </div>
-      <select id="dir" title="Hướng tra">
-        <option value="auto" selected>Tự động</option>
-        <option value="envi">Anh→Việt</option>
-        <option value="vien">Việt→Anh</option>
-      </select>
+      <button id="nguBtn" class="btn sm" type="button" title="Chuyển giữa Nhật–Việt và Anh–Việt"></button>
+      <select id="dir" title="Hướng tra"></select>
       <button id="go" class="btn primary sm" type="button">Tra</button>
     </div>
   </div>
@@ -115,12 +121,14 @@
   <div class="segmented" style="margin:10px 12px 0">
     <button id="tabWord" class="active" type="button">Từ vựng</button>
     <button id="tabDetail" type="button">Chi tiết</button>
+    <button id="tabKanji" type="button" style="display:none">Hán tự</button>
     <button id="tabTrans" type="button">Dịch</button>
   </div>
 
   <div class="body">
     <div id="result" class="state">Đang lấy từ đang chọn…</div>
     <div id="detail" class="detail" style="display:none"></div>
+    <div id="kanji" style="display:none"></div>
     <div id="trans" style="display:none"></div>
   </div>
 
@@ -131,6 +139,9 @@
 
   <script src="ipa-guide.js"></script>
   <script src="icons.js"></script>
+  <script src="kanji-data.js"></script>
+  <script src="han-tu.js"></script>
+  <script src="ngu.js"></script>
   <script src="muc.js"></script>
   <script src="tien-do.js"></script>
   <script src="popup.js"></script>
