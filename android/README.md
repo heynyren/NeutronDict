@@ -1,6 +1,19 @@
 # NeutronDict — bản Android (Capacitor)
 
-App Android dùng chung dữ liệu và đồng bộ Google Drive với extension "NeutronDict" trên máy tính. Gồm: tra từ tiếng Anh (nghĩa Việt + IPA + phát âm + định nghĩa/ví dụ), **hướng dẫn đọc IPA**, sổ tay + sổ con, chế độ học SRS, và **nhắc học hằng ngày**.
+App Android dùng chung dữ liệu và đồng bộ Google Drive với extension
+"NeutronDict" trên máy tính. Gồm: tra từ **Nhật–Việt và Anh–Việt** (một nút
+chuyển ở màn Tra từ), **hướng dẫn đọc IPA**, sổ tay + sổ con, chế độ học SRS,
+và **nhắc học hằng ngày**.
+
+## Hai ngôn ngữ, hai kho riêng
+
+Đổi ngôn ngữ là đổi cả hướng tra, sổ tay, tiến độ học và **cloud** đang dùng —
+mỗi thứ tiếng một Apps Script riêng, đúng như hồi còn là hai app. Hai bên nằm
+chung một kho trên máy nhưng khoá mang tiền tố riêng (`javi:`, `kanji:`,
+`envi:`), nên chuyển qua chuyển lại bao nhiêu lần cũng không mất gì.
+
+Cấu hình đồng bộ cũ (một cặp url/token phẳng) được hiểu là của **tiếng Anh**,
+nên nâng cấp lên bản này thì không phải khai lại; tiếng Nhật khai thêm một lần.
 
 ## Build APK
 
