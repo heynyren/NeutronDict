@@ -205,7 +205,26 @@ function toast(chu, kieu) {
 /* Dữ liệu sổ tay (cùng cấu trúc với extension)                          */
 /* ==================================================================== */
 
+/**
+ * Ngôn ngữ đang bật. Một app, hai từ điển — đổi ở đây là đổi luôn hướng tra,
+ * ngăn lưu vào sổ tay, tiến độ học và cloud đang dùng. Hai bên nằm chung một
+ * kho, phân biệt bằng tiền tố khoá, nên chuyển qua chuyển lại không mất gì.
+ */
+let NGU = "en";
+const laNhat = () => NGU === "ja";
+
+async function napNgu() {
+  NGU = window.Ngu.hopLe(await Store.get("ngu"));
+  return NGU;
+}
+async function doiNgu(ngu) {
+  NGU = window.Ngu.hopLe(ngu);
+  await Store.set("ngu", NGU);
+}
+
 async function getNB() { return (await Store.get("notebook")) || {}; }
+/** Chỉ phần sổ tay của ngôn ngữ đang bật — dùng cho danh sách và học. */
+async function getNBNgu() { return window.Ngu.locSo(await getNB(), NGU); }
 async function setNB(nb) { await Store.set("notebook", nb); }
 async function getDecks() { return (await Store.get("decks")) || {}; }
 async function setDecks(d) { await Store.set("decks", d); }
@@ -303,7 +322,7 @@ function dueCountOn(list, dayOffset) {
 
 /** Số liệu lấy từ sổ tay để xét huy hiệu. */
 async function soLieuSoTay() {
-  const nb = await getNB();
+  const nb = await getNBNgu();
   const a = Object.values(nb).filter((it) => !it.del);
   const decks = await getDecks();
   const now = Date.now();
@@ -321,8 +340,13 @@ async function soLieuSoTay() {
 }
 
 const theoDoi = window.TienDo.tao({
-  doc: async () => Store.get("hoc"),
-  ghi: async (d) => { await Store.set("hoc", d); },
+  // Tiến độ tách theo ngôn ngữ: học tiếng Anh không làm xê dịch chuỗi ngày của
+  // tiếng Nhật. Bản cũ phẳng là của tiếng Anh, Ngu.tachHoc chuyển nguyên vào.
+  doc: async () => window.Ngu.tachHoc(await Store.get("hoc"))[NGU],
+  ghi: async (d) => {
+    const cu = window.Ngu.tachHoc(await Store.get("hoc"));
+    await Store.set("hoc", Object.assign({}, cu, { [NGU]: d }));
+  },
   soLieu: soLieuSoTay,
   sauKhiGhi: () => syncSoon()
 });
@@ -385,10 +409,39 @@ function posFrom(dd) {
 }
 function firstDefOf(pos) { for (const g of pos) for (const d of g.defs) if (d.def) return d.def; return ""; }
 
+function normMeans(e) {
+  if (Array.isArray(e.means)) return e.means.map((m) => (typeof m === "string" ? m : (m.mean || m.means || m.text || ""))).filter(Boolean);
+  if (typeof e.mean === "string") return [e.mean];
+  if (typeof e.short_mean === "string") return [e.short_mean];
+  return [];
+}
+
+/** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
+async function fetchMazii(word) {
+  for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
+    try {
+      const data = await httpPostJson(url, { dict: "javi", type: "word", query: word, limit: 20, page: 1 });
+      let arr = (data && (data.results || data.data)) || [];
+      if (!Array.isArray(arr)) arr = [];
+      const entries = arr.map((e) => ({
+        word: e.word || e.title || e.text || e.query || "",
+        reading: e.phonetic || e.pronounce || e.hiragana || "",
+        means: normMeans(e),
+        dict: "javi"
+      })).filter((x) => x.word || x.means.length);
+      if (entries.length) return entries;
+    } catch (e) { /* thử endpoint sau */ }
+  }
+  lastLookupError = "Chưa tra được (kiểm tra mạng).";
+  return [];
+}
+
 async function lookup(word, dict) {
   const w = (word || "").trim();
   lastLookupError = "";
   if (!w) return [];
+  // Ngăn tiếng Nhật đi đường Mazii; phần dưới là đường tiếng Anh.
+  if (dict === "javi") return fetchMazii(w);
   // Tự động nhận diện
   if (dict === "auto") {
     if (looksVietnamese(w)) dict = "vien";
@@ -438,16 +491,44 @@ async function lookup(word, dict) {
 /* Đồng bộ Drive (Apps Script — cùng payload với extension)              */
 /* ==================================================================== */
 
-let syncing = null;      // không cho hai lượt đồng bộ chạy chồng nhau
-function syncNow() {
-  if (syncing) return syncing;
-  syncing = doSync().finally(() => { syncing = null; });
-  return syncing;
+// Mỗi ngôn ngữ một lượt riêng, và không cho hai lượt CÙNG ngôn ngữ chạy chồng.
+const syncing = {};
+function syncNow(ngu) {
+  const n = window.Ngu.hopLe(ngu || NGU);
+  if (syncing[n]) return syncing[n];
+  syncing[n] = doSync(n).finally(() => { syncing[n] = null; });
+  return syncing[n];
 }
 
-async function doSync() {
+/**
+ * Cấu hình cloud của một ngôn ngữ.
+ *
+ * Bản cũ chỉ có một cặp {url, token} phẳng — đó là cloud TIẾNG ANH, nên giữ
+ * nguyên chỗ ấy cho tiếng Anh, người đang dùng không phải khai lại. Tiếng Nhật
+ * dùng ngăn mới, khai một lần.
+ */
+async function layCfg(ngu) {
   const cfg = (await Store.get("syncCfg")) || {};
-  if (!cfg.url) throw new Error("Chưa cấu hình URL đồng bộ");
+  if (cfg.ja !== undefined || cfg.en !== undefined) return cfg[window.Ngu.hopLe(ngu)] || {};
+  return window.Ngu.hopLe(ngu) === "en" ? cfg : {};
+}
+async function datCfg(ngu, moi) {
+  const cfg = (await Store.get("syncCfg")) || {};
+  const cu = (cfg.ja !== undefined || cfg.en !== undefined) ? cfg : { en: cfg, ja: {} };
+  await Store.set("syncCfg", Object.assign({}, cu, { [window.Ngu.hopLe(ngu)]: moi }));
+}
+
+/**
+ * Đồng bộ MỘT ngôn ngữ với cloud của chính nó.
+ *
+ * Hai điều sống còn: chỉ GỬI LÊN phần thuộc ngôn ngữ này (mọi khoá lọt lưới sẽ
+ * biến mất khỏi bản ghi trên Drive), và khi GHI XUỐNG MÁY thì giữ nguyên phần
+ * của ngôn ngữ kia — mergeByTs là phép HỢP nên phần kia đi qua nguyên vẹn.
+ */
+async function doSync(rawNgu) {
+  const ngu = window.Ngu.hopLe(rawNgu || NGU);
+  const cfg = await layCfg(ngu);
+  if (!cfg.url) throw new Error("Chưa cấu hình URL đồng bộ cho tiếng " + window.Ngu.ten(ngu));
   const load = await httpPostJson(cfg.url, { token: cfg.token || "", action: "load" }, "text/plain;charset=utf-8");
   if (!load || load.ok === false) throw new Error((load && load.error) || "Lỗi máy chủ");
   const data = load.data || {};
@@ -457,10 +538,14 @@ async function doSync() {
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
   }
-  const mergedNb = mergeByTs(await getNB(), remoteNb);
+  // Cloud cũ có thể lẫn khoá của ngôn ngữ khác; vẫn nhận về máy, nhưng khi gửi
+  // lên thì lọc lại cho sạch.
+  const remoteCuaToi = window.Ngu.locSo(remoteNb, ngu);
+  const mergedNb = mergeByTs(window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
   const mergedDecks = mergeByTs(await getDecks(), remoteDecks);
   // Tiến độ học trộn theo luật riêng — xem TienDo.tron().
-  const mergedHoc = window.TienDo.tron(await Store.get("hoc"), remoteHoc);
+  const hocTach = window.Ngu.tachHoc(await Store.get("hoc"));
+  const mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
@@ -473,18 +558,21 @@ async function doSync() {
   // chấm bài rơi đúng khe giữa lúc đọc và lúc ghi sẽ bị bản cũ đè mất.
   let finalNb;
   await capNhat((nb) => {
-    finalNb = mergeByTs(nb, mergedNb);
+    // mergeByTs là phép HỢP: phần của ngôn ngữ kia trong nb đi qua nguyên vẹn.
+    finalNb = mergeByTs(nb, mergeByTs(remoteNb, mergedNb));
     for (const k in nb) delete nb[k];
     Object.assign(nb, finalNb);
   });
   const finalDecks = mergeByTs(await getDecks(), mergedDecks);
-  const finalHoc = window.TienDo.tron(await Store.get("hoc"), mergedHoc);
+  const freshHoc = window.Ngu.tachHoc(await Store.get("hoc"));
+  const finalHocNgu = window.TienDo.tron(freshHoc[ngu], mergedHoc);
+  const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
-  theoDoi.dat(finalHoc);
-  if (JSON.stringify(finalNb) !== JSON.stringify(mergedNb) ||
-      JSON.stringify(finalHoc) !== JSON.stringify(mergedHoc)) syncSoon();
+  theoDoi.dat(finalHocNgu);
+  if (JSON.stringify(window.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNb) ||
+      JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) syncSoon();
 
-  let n = 0; for (const k in finalNb) if (!finalNb[k].del) n++;
+  let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
   return n;
 }
 
@@ -921,7 +1009,7 @@ async function translateText(text, dir) {
   let out = "";
   try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
   if (!out) {
-    const cfg = (await Store.get("syncCfg")) || {};
+    const cfg = await layCfg(NGU);
     if (!cfg.url) throw new Error("Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng).");
     const r = await httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text: t, from, to }, "text/plain;charset=utf-8");
     if (!r || r.ok === false || !r.text) throw new Error((r && r.error) || "Không dịch được");
@@ -1210,7 +1298,8 @@ async function drawNotebook() {
     }
   });
   if (daSuaCu) syncSoon();
-  const nb = await getNB(), decks = await getDecks();
+  // Chỉ phần của ngôn ngữ đang bật; dữ liệu bên kia vẫn nằm nguyên trong kho.
+  const nb = await getNBNgu(), decks = await getDecks();
 
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
@@ -1406,7 +1495,7 @@ $("deleteDeck").addEventListener("click", async () => {
 
 /* --- cấu hình đồng bộ --- */
 $("saveCfg").addEventListener("click", async () => {
-  await Store.set("syncCfg", { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
+  await datCfg(NGU, { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
   $("syncStatus").textContent = "Đã lưu cấu hình.";
 });
 $("syncNow").addEventListener("click", async () => {
@@ -1485,7 +1574,7 @@ let session = { queue: [], done: 0, again: 0, deleted: 0 };
 let lastDeleted = null;
 
 async function currentDue() {
-  const nb = await getNB();
+  const nb = await getNBNgu();
   const now = Date.now();
   return Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => isDue(it, now));
 }
@@ -1668,7 +1757,7 @@ async function finishStudy() {
 let pulling = false;
 async function pullAndRefresh() {
   if (pulling) return;
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (!cfg.url) return;
   pulling = true;
   try {
@@ -1683,7 +1772,7 @@ async function pullAndRefresh() {
 
 // Kéo xuống ở đầu màn để làm mới — cử chỉ ai dùng Android cũng thử trước tiên.
 window.ChamVuot.keoDeLamMoi($("scroller"), async () => {
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (!cfg.url) { toast("Chưa cấu hình đồng bộ Google Drive", "bad"); return; }
   await pullAndRefresh();
   toast("Đã làm mới");
@@ -1817,16 +1906,53 @@ function gaiIcon() {
 /* Khởi động                                                            */
 /* ==================================================================== */
 
+/** Các hướng tra có nghĩa với từng ngôn ngữ. */
+const HUONG_NGU = {
+  en: [["auto", "Tự động"], ["envi", "Anh→Việt"], ["vien", "Việt→Anh"]],
+  ja: [["javi", "Nhật→Việt"]]
+};
+
+function veNgu() {
+  const b = $("nguBtn");
+  b.textContent = laNhat() ? "日→V" : "EN→V";
+  b.title = "Đang tra " + (laNhat() ? "Nhật–Việt" : "Anh–Việt") + " — chạm để đổi";
+  const sel = $("dir"), cu = sel.value;
+  sel.innerHTML = "";
+  HUONG_NGU[NGU].forEach(([v, t]) => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t;
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some((o) => o.value === cu)) sel.value = cu;
+  sel.style.display = HUONG_NGU[NGU].length > 1 ? "" : "none";
+}
+
+$("nguBtn").addEventListener("click", async () => {
+  await doiNgu(laNhat() ? "en" : "ja");
+  veNgu();
+  // Đổi ngôn ngữ là đổi cả sổ tay, tiến độ lẫn cloud — nạp lại hết.
+  await theoDoi.nap(true);
+  const cfg = await layCfg(NGU);
+  $("syncUrl").value = cfg.url || "";
+  $("syncToken").value = cfg.token || "";
+  await drawNotebook();
+  await veChuoiNgay();
+  updateDueButton();
+  toast("Đã chuyển sang " + (laNhat() ? "Nhật–Việt" : "Anh–Việt"));
+});
+
 (async () => {
   gaiIcon();
+  await napNgu();
+  veNgu();
   await theoDoi.nap();
   await veChuoiNgay();
 
-  const cfg = (await Store.get("syncCfg")) || {};
+  const cfg = await layCfg(NGU);
   if (cfg.url) {
     $("syncUrl").value = cfg.url;
     $("syncToken").value = cfg.token || "";
-    syncNow().then((n) => {
+    syncNow(NGU).then((n) => {
       $("syncStatus").textContent = "Đã đồng bộ · " + n + " mục";
       drawNotebook(); veChuoiNgay(); refreshNotifications();
     }).catch(() => {});

@@ -1,7 +1,7 @@
 {
   "name": "neutrondict-app",
-  "version": "2.3.1",
-  "description": "NeutronDict — tra từ tiếng Anh, phiên âm IPA, sổ tay và học SRS trên Android",
+  "version": "3.0.0",
+  "description": "NeutronDict — tra từ Nhật–Việt và Anh–Việt, sổ tay và học SRS trên Android",
   "private": true,
   "scripts": {
     "sync": "npx cap sync android",
