@@ -73,6 +73,14 @@ let items = [];   // mục trong sổ (gồm cả bia mộ đã xoá)
 let decks = {};
 let current = ALL;
 
+/**
+ * Ngôn ngữ đang bật. Đổi nó là đổi cả sổ tay, chỗ lưu lẫn cloud đang dùng —
+ * nhưng KHÔNG đụng một byte nào của ngôn ngữ kia: hai bên nằm chung một kho,
+ * phân biệt bằng tiền tố khoá, nên chuyển qua chuyển lại bao nhiêu lần cũng
+ * không mất gì.
+ */
+let NGU = "en";
+
 async function getStore() {
   const s = await chrome.storage.local.get(["notebook", "decks"]);
   return { nb: s.notebook || {}, decks: s.decks || {} };
@@ -194,9 +202,19 @@ function soLieuSoTay() {
   return { tong: a.length, nhoLau, daSua, coGhiChu, thich, denHan, trongChuKy, soCon: dungSo.size };
 }
 
+/*
+ * Tiến độ học tách theo ngôn ngữ: { ja: {...}, en: {...} }.
+ *
+ * Đọc/ghi đều chỉ chạm vào ngăn của ngôn ngữ đang bật, nên học tiếng Anh không
+ * bao giờ làm xê dịch chuỗi ngày của tiếng Nhật. Bản cũ chỉ có một object
+ * phẳng — Ngu.tachHoc chuyển nó nguyên vẹn vào ngăn "en", không mất lượt nào.
+ */
 const theoDoi = window.TienDo.tao({
-  doc: async () => (await chrome.storage.local.get("hoc")).hoc,
-  ghi: async (d) => { await chrome.storage.local.set({ hoc: d }); },
+  doc: async () => window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc)[NGU],
+  ghi: async (d) => {
+    const cu = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
+    await chrome.storage.local.set({ hoc: Object.assign({}, cu, { [NGU]: d }) });
+  },
   soLieu: async () => soLieuSoTay(),
   sauKhiGhi: () => syncSoon()
 });
@@ -234,7 +252,10 @@ async function load() {
   if (daSuaCu) syncSoon();
   const s = await getStore();
   decks = s.decks;
-  items = Object.entries(s.nb).map(([key, v]) => ({ key, ...v }));
+  // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
+  // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
+  // liệu bên kia vẫn nằm nguyên đó, không hề bị đụng tới.
+  items = Object.entries(window.Ngu.locSo(s.nb, NGU)).map(([key, v]) => ({ key, ...v }));
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
   // Sổ đang chọn đã bị xoá -> quay về Tất cả.
   if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && !deckName(current)) current = ALL;
@@ -1106,21 +1127,34 @@ async function clearAll() {
 
 function setStatus(t) { $("syncStatus").textContent = t; }
 
+/*
+ * Mỗi ngôn ngữ một cloud riêng, đúng như hồi còn là hai extension.
+ *
+ * Cặp khoá của tiếng Anh giữ nguyên tên cũ ("syncUrl"/"syncToken"), nên người
+ * đang dùng NeutronDict không phải khai lại gì — cloud tiếng Anh chạy tiếp y
+ * như trước. Tiếng Nhật dùng cặp mới, khai một lần.
+ */
 async function loadConfig() {
-  const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
-  if (syncUrl) $("syncUrl").value = syncUrl;
-  if (syncToken) $("syncToken").value = syncToken;
-  return { syncUrl, syncToken };
+  const k = window.Ngu.khoaSync(NGU);
+  const kho = await chrome.storage.local.get([k.url, k.token]);
+  $("syncUrl").value = kho[k.url] || "";
+  $("syncToken").value = kho[k.token] || "";
+  const nh = $("syncNhan");
+  if (nh) nh.textContent = "Đang cấu hình cloud tiếng " + window.Ngu.ten(NGU);
+  return { syncUrl: kho[k.url], syncToken: kho[k.token] };
 }
 async function saveConfig() {
+  const k = window.Ngu.khoaSync(NGU);
   const syncUrl = $("syncUrl").value.trim();
   const syncToken = $("syncToken").value.trim();
-  await chrome.storage.local.set({ syncUrl, syncToken });
-  setStatus(syncUrl ? "Đã lưu cấu hình đồng bộ." : "Đã xoá cấu hình.");
+  await chrome.storage.local.set({ [k.url]: syncUrl, [k.token]: syncToken });
+  setStatus(syncUrl
+    ? "Đã lưu cấu hình đồng bộ cho tiếng " + window.Ngu.ten(NGU) + "."
+    : "Đã xoá cấu hình tiếng " + window.Ngu.ten(NGU) + ".");
 }
 function syncNow() {
   setStatus("Đang đồng bộ…");
-  chrome.runtime.sendMessage({ type: "SYNC_NOW" }, async (res) => {
+  chrome.runtime.sendMessage({ type: "SYNC_NOW", ngu: NGU }, async (res) => {
     if (chrome.runtime.lastError) { setStatus("Lỗi: " + chrome.runtime.lastError.message); return; }
     if (res && res.ok) {
       await theoDoi.nap(true);
@@ -1132,7 +1166,7 @@ function syncNow() {
     }
   });
 }
-function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON" }); } catch (e) {} }
+function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu: NGU }); } catch (e) {} }
 
 // Quay lại tab Sổ tay -> kéo dữ liệu mới (nếu đã cấu hình đồng bộ).
 document.addEventListener("visibilitychange", async () => {
@@ -1266,8 +1300,35 @@ $("aboutSheet").addEventListener("click", (e) => {
 /* Khởi động                                                            */
 /* ==================================================================== */
 
+/** Vẽ lại nút chuyển ngôn ngữ và mọi chỗ ăn theo nó. */
+function veNgu() {
+  $("nguEn").classList.toggle("active", NGU === "en");
+  $("nguJa").classList.toggle("active", NGU === "ja");
+  const sb = $("brandSub");
+  if (sb) sb.textContent = (NGU === "ja" ? "Nhật – Việt" : "Anh – Việt") + " · sóng học tập";
+  document.title = (NGU === "ja" ? "Sổ tay Nhật – Việt" : "Sổ tay Anh – Việt") + " · NeutronDict";
+}
+
+async function doiNgu(ngu) {
+  if (ngu === NGU) return;
+  NGU = window.Ngu.hopLe(ngu);
+  const { settings } = await chrome.storage.local.get("settings");
+  await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: NGU }) });
+  veNgu();
+  current = ALL;
+  await theoDoi.nap();
+  await load();
+  await loadConfig();
+}
+
+$("nguEn").addEventListener("click", () => doiNgu("en"));
+$("nguJa").addEventListener("click", () => doiNgu("ja"));
+
 (async () => {
   gaiIcon();
+  const { settings } = await chrome.storage.local.get("settings");
+  NGU = window.Ngu.hopLe((settings || {}).ngu);
+  veNgu();
   await theoDoi.nap();
   await load();
   await loadSettings();

@@ -6,6 +6,41 @@
  */
 const qEl = document.getElementById("q");
 const dirEl = document.getElementById("dir");
+const nguBtn = document.getElementById("nguBtn");
+
+/**
+ * Ngôn ngữ đang bật. Một extension, hai từ điển — đổi ở đây là đổi luôn hướng
+ * tra, ngăn lưu vào sổ tay và cloud đang dùng.
+ */
+let NGU = "en";
+
+/** Các hướng tra có nghĩa với từng ngôn ngữ. */
+const HUONG = {
+  en: [["auto", "Tự động"], ["envi", "Anh→Việt"], ["vien", "Việt→Anh"]],
+  ja: [["javi", "Nhật→Việt"]]
+};
+
+function veNgu() {
+  nguBtn.textContent = NGU === "ja" ? "日→V" : "EN→V";
+  nguBtn.title = "Đang tra " + (NGU === "ja" ? "Nhật–Việt" : "Anh–Việt") + " — bấm để đổi";
+  const cu = dirEl.value;
+  dirEl.innerHTML = "";
+  HUONG[NGU].forEach(([v, t]) => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = t;
+    dirEl.appendChild(o);
+  });
+  if ([...dirEl.options].some((o) => o.value === cu)) dirEl.value = cu;
+  dirEl.style.display = HUONG[NGU].length > 1 ? "" : "none";
+}
+
+async function doiNgu() {
+  NGU = NGU === "ja" ? "en" : "ja";
+  const { settings } = await chrome.storage.local.get("settings");
+  await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: NGU }) });
+  veNgu();
+  run(qEl.value);
+}
 const goEl = document.getElementById("go");
 const resEl = document.getElementById("result");
 const detailEl = document.getElementById("detail");
@@ -489,7 +524,7 @@ function doTranslate(raw) {
         const src = document.createElement("div"); src.className = "src"; src.textContent = text;
         el.appendChild(src);
       },
-      gui: (moi, coSua, xong) => guiLuu(muc, "envi", moi, coSua, goc, xong)
+      gui: (moi, coSua, xong) => guiLuu(muc, window.Ngu.nganChinh(NGU), moi, coSua, goc, xong)
     });
   });
 }
@@ -539,6 +574,7 @@ function trongNhuCau(w) {
 goEl.addEventListener("click", () => run(qEl.value));
 qEl.addEventListener("keydown", (e) => { if (e.key === "Enter") run(qEl.value); });
 dirEl.addEventListener("change", () => run(qEl.value));
+nguBtn.addEventListener("click", doiNgu);
 tabWordEl.addEventListener("click", () => switchTab("word"));
 tabDetailEl.addEventListener("click", () => { if (!tabDetailEl.disabled) switchTab("detail"); });
 tabTransEl.addEventListener("click", () => switchTab("trans"));
@@ -559,12 +595,18 @@ function gaiIcon() {
   gan(tabWordEl, "book-open-text", "Từ vựng");
   gan(tabDetailEl, "article", "Chi tiết");
   gan(tabTransEl, "translate", "Dịch");
+  // Tab giữa: tiếng Anh xem IPA/định nghĩa, tiếng Nhật thì phần đó không có gì.
+  if (NGU === "ja") { tabDetailEl.style.display = "none"; }
+  else { tabDetailEl.style.display = ""; }
   qEl.parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), qEl);
 }
 
 // ---- Khởi động ----
 (async () => {
   gaiIcon();
+  const { settings } = await chrome.storage.local.get("settings");
+  NGU = window.Ngu.hopLe((settings || {}).ngu);
+  veNgu();
   veChuoiNgay();
   const word = await getInitialWord();
   if (word) qEl.value = word;

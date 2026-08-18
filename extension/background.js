@@ -1,3 +1,6 @@
+importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính âm Hán Việt ở nền
+importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
+importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
@@ -102,8 +105,9 @@ async function handleContextSave(info, tab) {
 
   const entry = { word: ctx.sel.slice(0, 400), reading: "", means: vi ? [vi] : [], kind: "sent", src };
   try {
-    await saveWord(entry, "envi");
-    scheduleSync();
+    const ngu = await nguHienTai();
+    await saveWord(entry, self.Ngu.nganChinh(ngu));
+    scheduleSync(ngu);
     flashBadge("✓", "#1a9d5a");
   } catch (e) {
     flashBadge("!", "#d33");
@@ -136,14 +140,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg) return;
 
   if (msg.type === "LOOKUP") {
-    handleLookup(msg.word, msg.dict || "envi")
+    // msg.chiHanTu: chỉ cần liệt kê Hán tự trong đoạn, khỏi tra từ điển.
+    handleLookup(msg.word, msg.dict || "envi", msg.chiHanTu)
       .then((r) => sendResponse(r))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
   if (msg.type === "SAVE_WORD") {
     saveWord(msg.entry, msg.dict || "envi")
-      .then(() => { scheduleSync(); sendResponse({ ok: true }); })
+      .then(() => { scheduleSync(self.Ngu.nguCuaKhoa((msg.dict || "envi") + ":")); sendResponse({ ok: true }); })
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
@@ -160,16 +165,26 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === "SYNC_NOW") {
-    syncNow().then((n) => sendResponse({ ok: true, count: n }))
+    // Không nói rõ ngôn ngữ thì đồng bộ cả hai cloud.
+    (msg.ngu ? syncNow(msg.ngu) : syncTatCa()).then((n) => sendResponse({ ok: true, count: n }))
              .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
-  if (msg.type === "SYNC_SOON") { scheduleSync(); return; }
+  if (msg.type === "SYNC_SOON") { scheduleSync(msg.ngu); return; }
 });
 
-function scheduleSync() {
+/** Ngôn ngữ đang bật. Một khoá duy nhất, mọi màn đều đọc từ đây. */
+async function nguHienTai() {
+  const { settings } = await chrome.storage.local.get("settings");
+  return self.Ngu.hopLe((settings || {}).ngu);
+}
+
+let nguHen = "";
+function scheduleSync(ngu) {
+  // Nhớ ngôn ngữ vừa đổi để chỉ đẩy đúng cloud đó; không rõ thì đẩy cả hai.
+  nguHen = (nguHen && nguHen !== ngu) ? "" : (ngu || "");
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => { syncNow().catch(() => {}); }, 2500);
+  syncTimer = setTimeout(() => { (nguHen ? syncNow(nguHen) : syncTatCa()).catch(() => {}); nguHen = ""; }, 2500);
 }
 
 // ==== Google Dịch (endpoint công khai gtx) ====
@@ -272,9 +287,61 @@ async function gtxTranslateDetect(text, to) {
 }
 
 // ==== Tra một mục ====
+/* ================== đường tra TIẾNG NHẬT (từ NJDict) ================== */
+
+function kanjiInfo(word) {
+  return self.HanTu.LIET_KE(word);
+}
+
+/** Chữ nào trong danh sách đã có trong sổ tay rồi. */
+async function savedKanji(list) {
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  const out = {};
+  (list || []).forEach((k) => {
+    const t = tomTat(nb[self.HanTu.KHOA(k.ch)]);
+    if (t) out[k.ch] = t;
+  });
+  return out;
+}
+
+async function fetchMazii(word, dict) {
+  const payload = { dict, type: "word", query: word, limit: 20, page: 1 };
+  for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
+    try {
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!r.ok) continue;
+      const data = await r.json();
+      let arr = (data && (data.results || data.data)) || [];
+      if (!Array.isArray(arr)) arr = [];
+      const entries = arr.map((e) => ({
+        word: e.word || e.title || e.text || e.query || "",
+        reading: e.phonetic || e.pronounce || e.hiragana || "",
+        means: normMeans(e)
+      })).filter((x) => x.word || x.means.length);
+      if (entries.length) return entries;
+    } catch (e) { /* thử endpoint sau */ }
+  }
+  return [];
+}
+function normMeans(e) {
+  if (Array.isArray(e.means)) return e.means.map((m) => (typeof m === "string" ? m : (m.mean || m.means || m.text || ""))).filter(Boolean);
+  if (typeof e.mean === "string") return [e.mean];
+  if (typeof e.short_mean === "string") return [e.short_mean];
+  return [];
+}
+
+/** Có phải văn bản tiếng Nhật không (hiragana/katakana/kanji)? */
+function hasJapanese(s) { return /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s || ""); }
+
+/* ====================================================================== */
+
 async function lookupEntry(rawWord, dict) {
   const word = (rawWord || "").trim();
   if (!word) return [];
+
+  // Ngăn tiếng Nhật đi đường Mazii; ngăn tiếng Anh đi đường bên dưới.
+  if (dict === "javi" || dict === "jvi") return fetchMazii(word, "javi");
 
   if (dict === "vien") {
     // Việt -> Anh: lấy từ tiếng Anh (nhiều lựa chọn) rồi làm giàu IPA/định nghĩa
@@ -329,17 +396,35 @@ async function lookupAuto(word) {
 }
 
 // ==== Tra từ + bộ nhớ đệm ====
-async function handleLookup(rawWord, dict) {
+/**
+ * @param {boolean} [chiHanTu] chỉ cần danh sách Hán tự, bỏ qua từ điển.
+ *   Dùng khi bôi đen cả đoạn văn: tra nguyên đoạn như một từ thì chắc chắn
+ *   rỗng, gọi mạng chỉ tổ chậm — mà Hán tự trong đoạn thì vẫn phải liệt kê đủ.
+ */
+async function handleLookup(rawWord, dict, chiHanTu) {
   const word = (rawWord || "").trim();
   if (!word) return { ok: false, error: "Chưa có từ" };
   const key = dict + ":" + word;
+
+  // Hán tự chỉ có nghĩa ở phía tiếng Nhật; bên tiếng Anh thì bỏ qua hẳn cho nhẹ.
+  const laJa = (dict === "javi" || dict === "kanji");
+  const ks = () => (laJa ? kanjiInfo(word) : []);
+
+  if (chiHanTu) {
+    const k0 = ks();
+    return { ok: true, word, dict, entries: [], kanji: k0, saved: {}, savedKanji: await savedKanji(k0) };
+  }
 
   const { cache } = await chrome.storage.local.get("cache");
   const c = cache || {};
   const hit = c[key];
   const now = Date.now();
   if (hit && (now - (hit.ts || 0) < CACHE_TTL)) {
-    return { ok: true, word, dict, entries: hit.entries, saved: await savedKeys(hit.entries, dict), cached: true };
+    const kC = ks();
+    return {
+      ok: true, word, dict, entries: hit.entries, kanji: kC,
+      saved: await savedKeys(hit.entries, dict), savedKanji: await savedKanji(kC), cached: true
+    };
   }
 
   const entries = (dict === "auto") ? await lookupAuto(word) : await lookupEntry(word, dict);
@@ -348,7 +433,11 @@ async function handleLookup(rawWord, dict) {
     trimCache(c);
     await chrome.storage.local.set({ cache: c });
   }
-  return { ok: true, word, dict, entries, saved: await savedKeys(entries, dict) };
+  const kR = ks();
+  return {
+    ok: true, word, dict, entries, kanji: kR,
+    saved: await savedKeys(entries, dict), savedKanji: await savedKanji(kR)
+  };
 }
 
 function trimCache(c) {
@@ -466,6 +555,7 @@ async function saveWord(entry, dict) {
   };
   if (entry.pos && entry.pos.length) e.pos = entry.pos;      // định nghĩa/ví dụ tiếng Anh
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
+  if (entry.kanji) e.kanji = entry.kanji;                     // on/kun/số nét/JLPT/bộ thủ
   if (entry.kind) e.kind = entry.kind;                        // "sent" = câu đã dịch
   if (entry.src && entry.src.url) e.src = entry.src;          // nguồn: {url, title, sel}
   // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
@@ -485,6 +575,7 @@ async function saveWord(entry, dict) {
     if (old.srs) e.srs = old.srs;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
+    if (old.kanji && !e.kanji) e.kanji = old.kanji;
     if (old.fav) e.fav = old.fav;
     if (e.note == null && old.note) e.note = old.note;
     // Bản dịch bạn đã sửa tay thì KHÔNG được để máy dịch đè lên. Tra lại cùng
@@ -587,9 +678,11 @@ async function handleTranslate(rawText, from, to) {
 }
 
 // ==== Đồng bộ Google Drive qua Apps Script ====
-async function driveRequest(body) {
-  const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
-  if (!syncUrl) throw new Error("Chưa cấu hình URL đồng bộ");
+async function driveRequest(body, ngu) {
+  const k = self.Ngu.khoaSync(ngu || "en");
+  const kho = await chrome.storage.local.get([k.url, k.token]);
+  const syncUrl = kho[k.url], syncToken = kho[k.token];
+  if (!syncUrl) throw new Error("Chưa cấu hình URL đồng bộ cho tiếng " + self.Ngu.ten(ngu));
   const r = await fetch(syncUrl, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -609,16 +702,47 @@ function mergeByTs(a, b) {
 }
 function countActive(nb) { let n = 0; for (const k in nb) if (!nb[k].del) n++; return n; }
 
-let syncing = null;
+// Mỗi ngôn ngữ một lượt đồng bộ riêng, và không cho hai lượt CÙNG ngôn ngữ
+// chạy chồng lên nhau (chồng nhau thì hai bên đọc-sửa-ghi cùng một kho).
+const syncing = {};
 
-function syncNow() {
-  if (syncing) return syncing;
-  syncing = doSync().finally(() => { syncing = null; });
-  return syncing;
+function syncNow(rawNgu) {
+  const ngu = self.Ngu.hopLe(rawNgu);
+  if (syncing[ngu]) return syncing[ngu];
+  syncing[ngu] = doSync(ngu).finally(() => { syncing[ngu] = null; });
+  return syncing[ngu];
 }
 
-async function doSync() {
-  const resp = await driveRequest({ action: "load" });
+/** Đồng bộ CẢ HAI cloud. Bên nào chưa khai URL thì lặng lẽ bỏ qua. */
+async function syncTatCa() {
+  let n = 0;
+  for (const ngu of self.Ngu.DS) {
+    const k = self.Ngu.khoaSync(ngu);
+    const kho = await chrome.storage.local.get(k.url);
+    if (!kho[k.url]) continue;
+    try { n += await syncNow(ngu); } catch (e) { /* bên kia hỏng thì bên này vẫn chạy */ }
+  }
+  return n;
+}
+
+/**
+ * Đồng bộ MỘT ngôn ngữ với cloud của chính nó.
+ *
+ * Hai điều phải tuyệt đối giữ đúng, vì sai là mất dữ liệu thật trên Drive:
+ *
+ *  1. Chỉ GỬI LÊN phần thuộc ngôn ngữ này (Ngu.locSo). Cloud tiếng Nhật không
+ *     được nhận từ vựng tiếng Anh, và ngược lại — mỗi kho giữ đúng thứ của nó,
+ *     y như hồi còn là hai extension riêng.
+ *  2. Khi GHI XUỐNG MÁY thì phải giữ nguyên phần của ngôn ngữ KIA. Ở đây dùng
+ *     mergeByTs, mà phép đó là phép HỢP — nên phần kia không thể bị xoá, kể cả
+ *     lúc cloud này trả về rỗng.
+ *
+ * Và như bản cũ: sổ tay rỗng không bao giờ xoá được cloud, vì rỗng ∪ cloud =
+ * cloud. Cài mới rồi bấm đồng bộ là kéo hết về, không mất gì.
+ */
+async function doSync(rawNgu) {
+  const ngu = self.Ngu.hopLe(rawNgu);
+  const resp = await driveRequest({ action: "load" }, ngu);
   const data = (resp && resp.data) || {};
   let remoteNb, remoteDecks, remoteHoc;
   if (data && typeof data === "object" && data.notebook !== undefined) {
@@ -628,32 +752,43 @@ async function doSync() {
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
   }
+  // Cloud cũ có thể lẫn khoá của ngôn ngữ khác (đồng bộ nhầm một lần nào đó).
+  // Vẫn nhận về máy — không vứt dữ liệu của người dùng — nhưng khi gửi lên thì
+  // lọc lại cho sạch.
+  const remoteCuaToi = self.Ngu.locSo(remoteNb, ngu);
 
   const store = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
-  const mergedNb = mergeByTs(store.notebook || {}, remoteNb);
+  const hocTach = self.Ngu.tachHoc(store.hoc);
+  const nbCuaToi = self.Ngu.locSo(store.notebook || {}, ngu);
+
+  const mergedNgu = mergeByTs(nbCuaToi, remoteCuaToi);
   const mergedDecks = mergeByTs(store.decks || {}, remoteDecks);
   // Tiến độ học KHÔNG trộn theo kiểu "bản mới hơn thắng" như sổ tay — xem
   // TienDo.tron() để biết vì sao (tóm tắt: 8 lượt trên điện thoại và 5 lượt
   // trên máy tính đều là lượt thật, không bên nào được xoá bên nào).
-  const mergedHoc = self.TienDo.tron(store.hoc, remoteHoc);
+  const mergedHoc = self.TienDo.tron(hocTach[ngu], remoteHoc);
 
   await driveRequest({
     action: "save",
-    data: { notebook: mergedNb, decks: mergedDecks, hoc: mergedHoc }
-  });
+    data: { notebook: mergedNgu, decks: mergedDecks, hoc: mergedHoc }
+  }, ngu);
 
-  // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa
-  // (phân loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
+  // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
+  // loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
   const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
-  const finalNb = mergeByTs(fresh.notebook || {}, mergedNb);
+  const freshHoc = self.Ngu.tachHoc(fresh.hoc);
+  // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
+  const finalNb = mergeByTs(fresh.notebook || {}, mergeByTs(remoteNb, mergedNgu));
   const finalDecks = mergeByTs(fresh.decks || {}, mergedDecks);
-  const finalHoc = self.TienDo.tron(fresh.hoc, mergedHoc);
+  const finalHocNgu = self.TienDo.tron(freshHoc[ngu], mergedHoc);
+  const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc });
 
-  if (JSON.stringify(finalNb) !== JSON.stringify(mergedNb) ||
+  // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
+  if (JSON.stringify(self.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNgu) ||
       JSON.stringify(finalDecks) !== JSON.stringify(mergedDecks) ||
-      JSON.stringify(finalHoc) !== JSON.stringify(mergedHoc)) {
-    scheduleSync();
+      JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) {
+    scheduleSync(ngu);
   }
-  return countActive(finalNb);
+  return countActive(self.Ngu.locSo(finalNb, ngu));
 }

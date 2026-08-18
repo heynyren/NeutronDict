@@ -11,8 +11,12 @@
  * theo cài đặt hệ điều hành, không ăn theo trang bên dưới được.
  */
 (() => {
-  const DEFAULTS = { inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400 };
+  const DEFAULTS = { ngu: "en", inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400 };
   let S = Object.assign({}, DEFAULTS);
+  /** Đang ở chế độ tiếng Nhật phải không. Mọi nhánh rẽ đều hỏi qua đây. */
+  const laNhat = () => self.Ngu.hopLe(S.ngu) === "ja";
+  /** Ngăn sổ tay để lưu vào: "javi" hay "envi". */
+  const nganLuu = () => self.Ngu.nganChinh(S.ngu);
   let host = null, root = null, boxEl = null, lastCtrl = false;
   let anchor = { x: 0, y: 0 };
 
@@ -103,6 +107,15 @@
       .tabs button.on { background: var(--surface); color: var(--accent);
         box-shadow: 0 1px 2px rgba(16,24,40,.10); }
       .tabs button .n { opacity: .6; font-weight: 600; }
+      /* --- bảng Hán tự (chỉ hiện ở chế độ tiếng Nhật) --- */
+      .kj { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+      .kj:last-child { border-bottom: none; }
+      .kj .ch { font-size: 38px; line-height: 1.05; flex: none; }
+      .kj .body { flex: 1; min-width: 0; }
+      .kj .hd { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+      .kj .hvn { font-size: 15px; font-weight: 750; color: var(--accent); text-transform: capitalize; }
+      .kj .meta { color: var(--ink-3); font-size: 11.5px; margin-top: 1px; }
+      .kj ul { margin: 4px 0 0; padding-left: 17px; font-size: 12.5px; }
       .pane { display: none; }
       .pane.on { display: block; }
 
@@ -282,6 +295,9 @@
       const t = document.createElement("span");
       t.textContent = ten;
       b.appendChild(t);
+      const n = document.createElement("span");
+      n.className = "n";
+      b.appendChild(n);
       b.addEventListener("click", (e) => { e.stopPropagation(); moTab(id); });
       tabs.appendChild(b);
       nut[id] = b;
@@ -291,7 +307,11 @@
     };
 
     them("word", "Từ vựng", "book-open-text");
-    them("detail", "Chi tiết", "article");
+    // Tab giữa đổi theo ngôn ngữ: tiếng Nhật cần Hán tự, tiếng Anh cần IPA và
+    // định nghĩa. Cùng một chỗ, hai nội dung — chứ không bày cả hai rồi để một
+    // cái luôn rỗng.
+    if (laNhat()) them("kanji", "Hán tự", "text-aa");
+    else them("detail", "Chi tiết", "article");
     if (coDich) them("trans", "Dịch", "translate");
 
     function moTab(id) {
@@ -517,7 +537,7 @@
       return;
     }
     const src = pageSrc(word);
-    const huong = (res && res.dict) || "envi";
+    const huong = (res && res.dict) || nganLuu();
     entries.slice(0, 3).forEach((en) => {
       preloadAudio(en.audio);
       const wrap = document.createElement("div"); wrap.className = "en";
@@ -586,6 +606,51 @@
     });
   }
 
+  function veHanTu(pane, res) {
+    pane.textContent = "";
+    const ks = (res && res.kanji) || [];
+    if (!ks.length) {
+      pane.appendChild(trangThai("Đoạn này không có chữ Hán nào.", "text-aa"));
+      return;
+    }
+    const daLuu = (res && res.savedKanji) || {};
+    ks.forEach((k) => {
+      const row = document.createElement("div"); row.className = "kj";
+      const ch = document.createElement("div"); ch.className = "ch"; ch.textContent = k.ch;
+      row.appendChild(ch);
+
+      const body = document.createElement("div"); body.className = "body";
+      row.appendChild(body);
+      pane.appendChild(row);
+
+      const muc = window.HanTu ? window.HanTu.MUC(k) : { word: k.ch, means: (k.m || []) };
+      const goc = (muc.means || []).slice(0, 8);
+      const daCo = daLuu[k.ch] || null;
+      theSuaDuoc(body, {
+        dl: {
+          means: (daCo && daCo.mEdit ? daCo.means : goc).slice(0, 6),
+          note: (daCo && daCo.note) || "",
+          saved: !!(daCo && daCo.saved),
+          mEdit: daCo && daCo.mEdit ? 1 : 0
+        },
+        dau: (el) => {
+          const hv = document.createElement("span"); hv.className = "hvn";
+          hv.textContent = k.hv || "—";
+          el.appendChild(hv);
+          const meta = window.HanTu ? window.HanTu.META(k) : "";
+          if (meta) { const m = document.createElement("div"); m.className = "meta"; m.textContent = meta; el.appendChild(m); }
+        },
+        veNghia: (el, dl) => {
+          if (!dl.means.length) return;
+          const ul = document.createElement("ul");
+          dl.means.forEach((m) => { const li = document.createElement("li"); li.textContent = m; ul.appendChild(li); });
+          el.appendChild(ul);
+        },
+        gui: (moi, coSua, xong) => guiLuu(muc, window.HanTu.HUONG, moi, coSua, goc, xong)
+      });
+    });
+  }
+
   /* ---------- tab Dịch ---------- */
   function veDich(pane, res, text) {
     pane.textContent = "";
@@ -619,7 +684,7 @@
         const s = document.createElement("div"); s.className = "src"; s.textContent = text;
         el.appendChild(s);
       },
-      gui: (moi, coSua, xong) => guiLuu(muc, "envi", moi, coSua, goc, xong)
+      gui: (moi, coSua, xong) => guiLuu(muc, nganLuu(), moi, coSua, goc, xong)
     });
   }
 
@@ -631,30 +696,46 @@
     const kh = dungKhung(box, coDich);
     const cuaToi = host;   // popup có thể bị đóng và mở lại trước khi mạng trả về
 
+    const nhat = laNhat();
     kh.o.word.appendChild(trangThai("Đang tra “" + text.slice(0, 24) + "”…"));
-    kh.o.detail.appendChild(trangThai("Đang lấy chi tiết…"));
+    if (nhat) kh.o.kanji.appendChild(trangThai("Đang đọc Hán tự…"));
+    else kh.o.detail.appendChild(trangThai("Đang lấy chi tiết…"));
     if (coDich) kh.o.trans.appendChild(trangThai("Đang dịch…"));
     kh.moTab(trongNhuCau(text) && coDich ? "trans" : "word");
 
     const quaDai = text.length > (S.maxLen || 40);
-    if (quaDai) {
+    // Bôi đen cả đoạn văn thì tra nguyên đoạn như một từ chỉ tổ phí một lượt
+    // gọi mạng. Bên tiếng Anh thì thôi hẳn; bên tiếng Nhật vẫn hỏi, chỉ bảo
+    // service worker bỏ qua phần từ điển — vì Hán tự trong đoạn vẫn phải liệt kê.
+    if (quaDai && !nhat) {
       veTuVung(kh.o.word, { quaDai: true }, text);
       veChiTiet(kh.o.detail, null);
       place(); requestAnimationFrame(place);
     } else {
-      chrome.runtime.sendMessage({ type: "LOOKUP", word: text, dict: "auto" }, (res) => {
-        if (host !== cuaToi) return;
-        const r = (chrome.runtime.lastError || !res)
-          ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không tra được" }
-          : res;
-        veTuVung(kh.o.word, r, text);
-        veChiTiet(kh.o.detail, r);
-        place(); requestAnimationFrame(place);
-      });
+      chrome.runtime.sendMessage(
+        { type: "LOOKUP", word: text, dict: nhat ? "javi" : "auto", chiHanTu: nhat && quaDai },
+        (res) => {
+          if (host !== cuaToi) return;
+          const r = (chrome.runtime.lastError || !res)
+            ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không tra được" }
+            : res;
+          if (nhat && quaDai) r.quaDai = true;
+          veTuVung(kh.o.word, r, text);
+          if (nhat) {
+            veHanTu(kh.o.kanji, r);
+            const n = ((r && r.kanji) || []).length;
+            if (n) kh.nut.kanji.querySelector(".n").textContent = String(n);
+          } else {
+            veChiTiet(kh.o.detail, r);
+          }
+          place(); requestAnimationFrame(place);
+        });
     }
 
     if (coDich) {
-      chrome.runtime.sendMessage({ type: "TRANSLATE", text: text, from: "auto", to: "" }, (res) => {
+      chrome.runtime.sendMessage(
+        { type: "TRANSLATE", text: text, from: nhat ? "ja" : "auto", to: nhat ? "vi" : "" },
+        (res) => {
         if (host !== cuaToi) return;
         veDich(kh.o.trans, (chrome.runtime.lastError || !res)
           ? { ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không dịch được" }

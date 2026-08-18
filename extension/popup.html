@@ -103,11 +103,8 @@
       <div class="searchfield">
         <input id="q" type="text" placeholder="Nhập / dán từ cần tra…" autocomplete="off">
       </div>
-      <select id="dir" title="Hướng tra">
-        <option value="auto" selected>Tự động</option>
-        <option value="envi">Anh→Việt</option>
-        <option value="vien">Việt→Anh</option>
-      </select>
+      <button id="nguBtn" class="btn sm" type="button" title="Chuyển giữa Nhật–Việt và Anh–Việt"></button>
+      <select id="dir" title="Hướng tra"></select>
       <button id="go" class="btn primary sm" type="button">Tra</button>
     </div>
   </div>
@@ -131,6 +128,9 @@
 
   <script src="ipa-guide.js"></script>
   <script src="icons.js"></script>
+  <script src="kanji-data.js"></script>
+  <script src="han-tu.js"></script>
+  <script src="ngu.js"></script>
   <script src="muc.js"></script>
   <script src="tien-do.js"></script>
   <script src="popup.js"></script>

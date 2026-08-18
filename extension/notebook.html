@@ -94,8 +94,14 @@
     <span class="mark" id="brandMark"></span>
     <div>
       <div class="nm">Sổ tay NeutronDict</div>
-      <div class="sb">Anh – Việt · sóng học tập</div>
+      <div class="sb" id="brandSub">Anh – Việt · sóng học tập</div>
     </div>
+  </div>
+
+  <!-- Chuyển ngôn ngữ: đổi cả sổ tay, chỗ lưu lẫn cloud đang dùng. -->
+  <div class="pagenav" id="nguNav">
+    <button id="nguEn" type="button">Anh – Việt</button>
+    <button id="nguJa" type="button">Nhật – Việt</button>
   </div>
 
   <div class="pagenav">
@@ -140,7 +146,8 @@
   <details class="box" id="syncBox">
     <summary><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr2"></span></summary>
     <div class="boxbody">
-      <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
+      <div id="syncNhan" class="t-tiny faint" style="margin-bottom:6px"></div>
+    <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
       <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt)" autocomplete="off">
       <div class="rowx" style="gap:8px">
         <button id="saveCfg" class="btn sm grow" type="button">Lưu cấu hình</button>
@@ -308,7 +315,10 @@
 
 <script src="ipa-guide.js"></script>
 <script src="icons.js"></script>
-<script src="muc.js"></script>
+<script src="kanji-data.js"></script>
+  <script src="han-tu.js"></script>
+  <script src="ngu.js"></script>
+  <script src="muc.js"></script>
 <script src="tien-do.js"></script>
 <script src="notebook.js"></script>
 </body>
