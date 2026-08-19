@@ -633,6 +633,7 @@
     songNgu: false,
     co: 2,              // nấc cỡ chữ đang dùng
     dich: new Map(),    // chỉ số câu -> bản dịch
+    sua: {},            // bản chép lời bạn tự sửa: mốc giây -> câu đúng
     host: null, root: null, oList: null, oTrong: null
   };
 
@@ -651,6 +652,65 @@
     const hai = (n) => (n < 10 ? "0" : "") + n;
     return (gio ? gio + ":" + hai(phut) : phut) + ":" + hai(giay);
   };
+
+  /* ================================================================== */
+  /* Sửa lời thoại                                                       */
+  /* ================================================================== */
+  /*
+   * Bản chép lời tự động của YouTube sai thường xuyên — nhất là tên riêng, số
+   * liệu và mấy chỗ người nói lướt. Đọc thì còn đoán ra được, nhưng LƯU MỘT CÂU
+   * SAI VÀO SỔ TAY thì vài tháng sau mở lại chẳng còn gì để đối chiếu: câu sai
+   * nằm đó, trông y như câu đúng.
+   *
+   * Nên cho sửa thẳng trên bảng. Bản sửa:
+   *   - nhớ theo VIDEO và theo MỐC GIÂY, không theo chỉ số dòng — đổi sang bản
+   *     phụ đề khác thì số dòng đổi hết, còn mốc giây thì vẫn là chỗ đó;
+   *   - đi vào cả bản dịch lẫn mục lưu trong sổ tay, vì đó mới là chỗ nó có ích;
+   *   - lúc nào cũng quay về được bản gốc của YouTube.
+   */
+
+  /** Khoá của một câu trong kho bản sửa: giây bắt đầu, làm tròn. */
+  const khoaSua = (c) => String(Math.round(c.t || 0));
+
+  /** Giữ bản sửa của 200 video gần nhất — quá số đó thì bỏ video cũ nhất. */
+  const TOI_DA_VIDEO = 200;
+
+  async function docSua(v) {
+    try {
+      const { phuDeSua } = await chrome.storage.local.get("phuDeSua");
+      const kho = (phuDeSua || {})[v];
+      return (kho && kho.d) || {};
+    } catch (e) { return {}; }
+  }
+
+  async function ghiSua(v, d) {
+    try {
+      const { phuDeSua } = await chrome.storage.local.get("phuDeSua");
+      const kho = phuDeSua || {};
+      if (Object.keys(d).length) kho[v] = { d: d, ts: Date.now() };
+      else delete kho[v];                       // sửa xong lại bỏ hết -> đừng để rác
+      const ma = Object.keys(kho);
+      if (ma.length > TOI_DA_VIDEO) {
+        ma.sort((a, b) => (kho[a].ts || 0) - (kho[b].ts || 0));
+        for (let i = 0; i < ma.length - TOI_DA_VIDEO; i++) delete kho[ma[i]];
+      }
+      await chrome.storage.local.set({ phuDeSua: kho });
+    } catch (e) { /* hết chỗ thì thôi, đừng làm hỏng bảng đang đọc */ }
+  }
+
+  /** Đắp bản sửa lên danh sách câu vừa ghép. Giữ bản gốc để còn quay về. */
+  function dapSua() {
+    for (const c of S.cau) {
+      const k = khoaSua(c);
+      const x = S.sua[k];
+      if (x && x !== c.s) {
+        if (c.goc == null) c.goc = c.s;
+        c.s = x;
+        c.suaTay = true;
+        c.manh = null;                          // mẩu cũ trỏ vào chữ cũ, bỏ đi
+      }
+    }
+  }
 
   function video() {
     return document.querySelector("video.html5-main-video") || document.querySelector("#movie_player video") || document.querySelector("video");
@@ -874,6 +934,24 @@
     }
     .ln:hover .sv, .ln.on .sv { visibility: visible; }
     .ln .sv.done { color: var(--good); background: var(--good-soft); border-color: transparent; }
+    /* Nút sửa của dòng ĐÃ SỬA thì hiện thường trực: đó là dấu cho biết dòng này
+       không còn là bản của YouTube nữa, mà giấu đi thì chẳng còn chỗ nào nói. */
+    .ln .sv.ed { padding: 3px 5px; }
+    .ln .sv.ed.done { visibility: visible; }
+    .ln.dasua .tx { border-left: 2px solid var(--good); padding-left: 7px; }
+    /* Ô sửa chiếm trọn một dòng riêng bên dưới, để mấy dòng trước và sau vẫn
+       nhìn thấy — chép lời sai thì thường sai một cụm, phải có ngữ cảnh mới đoán
+       ra người ta nói gì. */
+    .edbox { flex-basis: 100%; margin-top: 8px; cursor: default; }
+    .edta {
+      width: 100%; box-sizing: border-box; resize: vertical;
+      font: inherit; font-size: calc(var(--cx) * 0.9); line-height: 1.5;
+      color: var(--ink); background: var(--surface); border: 1px solid var(--accent);
+      border-radius: 8px; padding: 8px 10px;
+    }
+    .edrow { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .edrow .sv { visibility: visible; }
+    .edhint { color: var(--ink-3); font-size: 11px; }
     .st { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 13px; padding: 14px 13px; }
     .back {
       position: absolute; left: 50%; transform: translateX(-50%); bottom: 12px;
@@ -1194,6 +1272,7 @@
       ln.className = "ln";
       ln.dataset.i = String(i);
       ln.dataset.ts = dem(c.t);            // mốc giờ vẫn giữ, chỉ không chiếm chỗ nữa
+      if (c.suaTay) ln.classList.add("dasua");
       ln.title = T2("Bấm để nghe lại từ {t}", { t: dem(c.t) });
 
       const tx = document.createElement("div"); tx.className = "tx";
@@ -1212,11 +1291,112 @@
       sv.addEventListener("click", (e) => { e.stopPropagation(); luuCau(i, sv, svt); });
       ln.appendChild(sv);
 
+      const ed = document.createElement("button");
+      ed.className = "sv ed"; ed.type = "button";
+      ed.title = c.suaTay ? T("Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc")
+                          : T("Câu này chép sai? Bấm để sửa lại");
+      ed.appendChild(ic("pencil-simple", 12));
+      if (c.suaTay) ed.classList.add("done");
+      ed.addEventListener("click", (e) => { e.stopPropagation(); moSua(i); });
+      ln.appendChild(ed);
+
       list.appendChild(ln);
     });
     S.uiDem.textContent = S.cau.length ? S.cau.length + " câu" : "";
     batQuanSat();
     danhDau(true);
+  }
+
+  /**
+   * Mở ô sửa ngay tại dòng đó.
+   *
+   * Sửa TẠI CHỖ chứ không mở hộp thoại: cái phải nhìn trong lúc gõ là mấy dòng
+   * TRƯỚC và SAU nó — chép lời sai thì thường sai một cụm, và chỉ nhìn ngữ cảnh
+   * mới đoán ra người ta nói gì.
+   */
+  function moSua(i) {
+    const c = S.cau[i];
+    const ln = S.oList && S.oList.querySelector('.ln[data-i="' + i + '"]');
+    if (!c || !ln || ln.querySelector(".edbox")) return;
+
+    S.bam = false;                         // đang gõ thì đừng để bảng tự cuộn đi
+
+    const hop = document.createElement("div");
+    hop.className = "edbox";
+    hop.addEventListener("click", (e) => e.stopPropagation());
+
+    const o = document.createElement("textarea");
+    o.className = "edta";
+    o.value = c.s;
+    o.rows = Math.min(5, Math.max(2, Math.ceil(c.s.length / 40)));
+    hop.appendChild(o);
+
+    const hang = document.createElement("div");
+    hang.className = "edrow";
+
+    const luu = document.createElement("button");
+    luu.className = "sv"; luu.type = "button";
+    luu.appendChild(document.createTextNode(T("Lưu câu đã sửa")));
+
+    const huy = document.createElement("button");
+    huy.className = "sv"; huy.type = "button";
+    huy.appendChild(document.createTextNode(T("Huỷ")));
+
+    hang.appendChild(luu);
+    hang.appendChild(huy);
+
+    if (c.suaTay) {
+      const goc = document.createElement("button");
+      goc.className = "sv"; goc.type = "button";
+      goc.appendChild(document.createTextNode(T("Lấy lại bản gốc")));
+      goc.addEventListener("click", () => xong(c.goc != null ? c.goc : c.s, true));
+      hang.appendChild(goc);
+    }
+
+    const nhac = document.createElement("span");
+    nhac.className = "edhint";
+    nhac.textContent = T("Enter để lưu · Esc để huỷ");
+    hang.appendChild(nhac);
+
+    hop.appendChild(hang);
+    ln.appendChild(hop);
+    o.focus();
+    o.setSelectionRange(o.value.length, o.value.length);
+
+    function dong() { hop.remove(); }
+
+    async function xong(chuMoi, veGoc) {
+      const moi = String(chuMoi == null ? o.value : chuMoi).replace(/\s+/g, " ").trim();
+      dong();
+      if (!moi) return;                        // xoá trắng thì coi như không sửa
+      const goc = c.goc != null ? c.goc : c.s;
+      const k = khoaSua(c);
+
+      if (veGoc || moi === goc) {
+        delete S.sua[k];
+        c.s = goc; c.goc = null; c.suaTay = false;
+      } else {
+        if (c.goc == null) c.goc = c.s;
+        S.sua[k] = moi;
+        c.s = moi; c.suaTay = true;
+      }
+      c.manh = null;                           // mẩu cũ trỏ vào chữ cũ
+      // Bản dịch cũ là bản dịch của CÂU CŨ — giữ lại là hiện một câu tiếng Việt
+      // chẳng ăn nhập gì với dòng tiếng Nhật ngay bên trên nó.
+      S.dich.delete(i);
+      await ghiSua(S.v, S.sua);
+      veDanhSach();
+      if (S.songNgu) { hangCho.add(i); henGui(); }
+    }
+
+    luu.addEventListener("click", () => xong());
+    huy.addEventListener("click", dong);
+    o.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Escape") { e.preventDefault(); dong(); }
+      // Enter lưu, Shift+Enter xuống dòng — câu chép lời hiếm khi cần xuống dòng.
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); xong(); }
+    });
   }
 
   /** @param {Function} [thuLai] có thì hiện kèm nút "Thử lại". */
@@ -1480,6 +1660,7 @@
     try {
       const kq = await layCue(ban);
       S.cau = ghepCau(kq.cue);
+      dapSua();                         // đắp bản sửa lên trước khi vẽ
       // Lấy qua bảng của YouTube thì bản phụ đề là do HỌ chọn, đổi ở ô này cũng
       // không có tác dụng — nói thẳng ra thay vì để bấm rồi thấy không đổi gì.
       S.uiBan.disabled = (kq.cach === "bang");
@@ -1519,6 +1700,7 @@
   async function khoiDong(v) {
     await daDocCaiDat;      // đừng dựng bảng bằng thứ tiếng chưa biết là gì
     S.v = v; S.cau = []; S.hien = -1; S.dich.clear(); S.bam = true;
+    S.sua = await docSua(v);            // bản chép lời bạn đã sửa cho video này
     if (!dungBang()) return false;
     trangThai(T("Đang tìm phụ đề…"));
     try {

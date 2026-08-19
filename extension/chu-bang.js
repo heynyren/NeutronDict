@@ -560,7 +560,19 @@
     "Đoạn này không có chữ Hán nào.":
       "There are no kanji in this text.",
 
-    /* --- bản chia sẻ --- */
+/* --- sửa lời thoại --- */
+    "Câu này chép sai? Bấm để sửa lại":
+      "Transcript wrong here? Tap to fix it",
+    "Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc":
+      "You edited this line — tap to edit again or restore the original",
+    "Lưu câu đã sửa":
+      "Save the fix",
+    "Lấy lại bản gốc":
+      "Restore the original",
+    "Enter để lưu · Esc để huỷ":
+      "Enter to save · Esc to cancel",
+
+        /* --- bản chia sẻ --- */
     "Xuất để chia sẻ":
       "Export to share",
     "Nạp bản chia sẻ":
@@ -1150,7 +1162,19 @@
     "Đoạn này không có chữ Hán nào.":
       "この文章に漢字はありません。",
 
-    /* --- bản chia sẻ --- */
+/* --- sửa lời thoại --- */
+    "Câu này chép sai? Bấm để sửa lại":
+      "書き起こしが違いますか？押して直せます",
+    "Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc":
+      "この行は編集済みです——押すと再編集、または元に戻せます",
+    "Lưu câu đã sửa":
+      "修正を保存",
+    "Lấy lại bản gốc":
+      "元に戻す",
+    "Enter để lưu · Esc để huỷ":
+      "Enter で保存 · Esc で取消",
+
+        /* --- bản chia sẻ --- */
     "Xuất để chia sẻ":
       "共有用に書き出す",
     "Nạp bản chia sẻ":
