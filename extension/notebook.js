@@ -1281,6 +1281,213 @@ function exportCsv() {
 }
 
 /* ==================================================================== */
+/* Bản CHIA SẺ — mang sổ tay sang máy người khác                        */
+/* ==================================================================== */
+/*
+ * Khác gì với "Sao lưu .json": bản sao lưu là để CỨU CHÍNH MÌNH — nó mang cả
+ * tiến độ ôn, cả sổ con, cả chuỗi ngày, và nạp vào là đè lên. Bản chia sẻ thì
+ * đi sang máy NGƯỜI KHÁC, nên:
+ *
+ *   - Là CSV, mở bằng Excel / Google Sheets được. Người nhận nhìn thấy mình
+ *     sắp nạp cái gì trước khi nạp — chứ không phải một cục JSON tin thì tin.
+ *   - Mang đủ NGỮ CẢNH: đường link, phút thứ mấy trong video, câu gốc đã bôi
+ *     đen, furigana theo từng chữ Hán. Một danh sách từ trơ trọi thì người nhận
+ *     học được chữ mà không biết nó dùng ở đâu.
+ *   - KHÔNG mang tiến độ ôn của mình sang. Sóng ôn tập là của từng người: bạn
+ *     thuộc rồi không có nghĩa là người nhận cũng thuộc.
+ *   - Nạp vào thì CHỈ THÊM. Từ nào người nhận đã có thì giữ nguyên bản của họ,
+ *     chỉ điền vào những ô họ còn để trống.
+ *
+ * Ba cột đầu cố định là Từ vựng / Furigana / Nghĩa — đó là ba thứ ai mở file
+ * cũng cần thấy ngay, và cũng đúng thứ tự mà Anki với Quizlet chờ đợi.
+ */
+
+/** Tên cột, và cũng là thứ tự cột. Đổi ở đây là đổi cả xuất lẫn nạp. */
+const COT_CHIA_SE = [
+  "Từ vựng", "Furigana", "Nghĩa", "Ghi chú", "Loại", "Hướng tra", "Sổ",
+  "Link nguồn", "Phút video", "Mã video", "Kênh", "Tên nguồn", "Câu gốc",
+  "Furigana theo chữ Hán", "Phát âm", "Ngày lưu"
+];
+
+/** "1:23" -> 83 giây. Trả về null nếu ô trống hoặc không đọc được. */
+function giayTuChu(s) {
+  const x = String(s || "").trim();
+  if (!x) return null;
+  const p = x.split(":").map((n) => parseInt(n, 10));
+  if (p.some((n) => !isFinite(n))) return null;
+  return p.reduce((a, b) => a * 60 + b, 0);
+}
+
+function loaiCua(it) {
+  if (it.dict === "kanji") return "chữ Hán";
+  if (it.kind === "sent") return "câu";
+  return "từ";
+}
+
+function hangChiaSe(it) {
+  const src = it.src || {};
+  const yt = src.yt || {};
+  return [
+    it.word,
+    it.reading || "",
+    (it.means || []).join(" / "),
+    it.note || "",
+    loaiCua(it),
+    it.dict || "",
+    deckName(it.deck) || "",
+    src.url || "",
+    yt.v ? giay(yt.t) : "",
+    yt.v || "",
+    yt.kenh || "",
+    src.title || "",
+    src.sel || "",
+    (it.ruby || []).join(" "),
+    it.audio || "",
+    it.ts ? new Date(it.ts).toISOString().slice(0, 10) : ""
+  ];
+}
+
+/**
+ * Xuất CẢ SỔ, cả hai thứ tiếng — không theo bộ lọc đang bật trên màn hình.
+ *
+ * Nút "CSV" bên cạnh mới là nút xuất đúng những mục đang hiện. Nút này thì để
+ * gửi sổ tay cho người khác, mà gửi thiếu một nửa vì lúc bấm đang đứng ở ngăn
+ * tiếng Nhật là kiểu hỏng im lặng tệ nhất: người gửi tưởng đã gửi hết, người
+ * nhận cũng không có cách nào biết là mình đang thiếu.
+ */
+async function exportChiaSe() {
+  const s = await getStore();
+  const list = Object.entries(s.nb || {})
+    .map(([key, v]) => ({ key, ...v }))
+    .filter((it) => !it.del)
+    .sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  if (!list.length) { toast(T("Chưa có mục nào để xuất"), "bad"); return; }
+  const dong = [COT_CHIA_SE.map(csvCell).join(",")];
+  for (const it of list) dong.push(hangChiaSe(it).map(csvCell).join(","));
+  // BOM ở đầu: không có nó thì Excel bản Windows mở ra tiếng Việt và tiếng Nhật
+  // đều thành ký tự lạ.
+  download("neutrondict-chiase.csv", "﻿" + dong.join("\n"), "text/csv;charset=utf-8");
+  toast(T2("Đã xuất {n} mục — gửi file này cho ai cũng nạp được", { n: list.length }));
+}
+
+/**
+ * Đọc một file CSV thành mảng các hàng.
+ *
+ * Tự viết chứ không tách bằng dấu phẩy: ô "Nghĩa" gần như luôn có dấu phẩy, và
+ * ô "Câu gốc" thì có cả xuống dòng. Tách bừa là lệch cột từ dòng thứ hai trở đi
+ * mà chẳng có gì báo.
+ */
+function docCsv(text) {
+  const s = String(text || "").replace(/^﻿/, "");
+  const hang = [];
+  let o = [], cell = "", trong = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (trong) {
+      if (c === '"') {
+        if (s[i + 1] === '"') { cell += '"'; i++; }   // "" bên trong = một dấu nháy
+        else trong = false;
+      } else cell += c;
+      continue;
+    }
+    if (c === '"') { trong = true; continue; }
+    if (c === ",") { o.push(cell); cell = ""; continue; }
+    if (c === "\r") continue;
+    if (c === "\n") { o.push(cell); hang.push(o); o = []; cell = ""; continue; }
+    cell += c;
+  }
+  if (cell || o.length) { o.push(cell); hang.push(o); }
+  return hang.filter((h) => h.some((x) => String(x).trim()));
+}
+
+async function napChiaSeFile(file) {
+  let hang;
+  try { hang = docCsv(await file.text()); } catch (e) { hang = []; }
+  if (hang.length < 2) { toast(T("File không đọc được hoặc không có dòng nào"), "bad"); return; }
+
+  // Bám theo TÊN CỘT chứ không theo vị trí: người ta hay mở file ra trong Excel,
+  // thêm một cột ghi chú của mình rồi mới gửi đi.
+  const dau = hang[0].map((x) => String(x).trim().toLowerCase());
+  const cot = {};
+  COT_CHIA_SE.forEach((ten) => { cot[ten] = dau.indexOf(ten.toLowerCase()); });
+  if (cot["Từ vựng"] < 0) { toast(T("File thiếu cột “Từ vựng”"), "bad"); return; }
+  const o = (h, ten) => (cot[ten] >= 0 ? String(h[cot[ten]] || "").trim() : "");
+
+  // Sổ con nhắc tới trong file mà máy này chưa có thì tạo mới.
+  let them = 0, boQua = 0, boSung = 0;
+  await capNhat((nb, dks) => {
+    const tenSo = {};
+    for (const id in dks) { const d = dks[id]; if (d && !d.del) tenSo[d.name] = id; }
+
+    for (let i = 1; i < hang.length; i++) {
+      const h = hang[i];
+      const tu = o(h, "Từ vựng");
+      if (!tu) continue;
+      const huong = o(h, "Hướng tra") || (window.Ngu.nganChinh(NGU) || "envi");
+      const key = huong + ":" + tu;
+      const nghia = o(h, "Nghĩa").split(" / ").map((x) => x.trim()).filter(Boolean);
+
+      const src = {};
+      const url = o(h, "Link nguồn");
+      if (url) {
+        src.url = url;
+        if (o(h, "Tên nguồn")) src.title = o(h, "Tên nguồn");
+        if (o(h, "Câu gốc")) src.sel = o(h, "Câu gốc");
+        const mv = o(h, "Mã video");
+        if (mv) {
+          src.yt = { v: mv, t: giayTuChu(o(h, "Phút video")) || 0 };
+          if (o(h, "Kênh")) src.yt.kenh = o(h, "Kênh");
+        }
+      }
+
+      const cu = nb[key];
+      if (cu && !cu.del) {
+        // Người nhận đã có từ này rồi: KHÔNG đè. Chỉ điền vào ô còn trống —
+        // công hiệu đính của họ là của họ.
+        let doi = false;
+        if (!cu.reading && o(h, "Furigana")) { cu.reading = o(h, "Furigana"); doi = true; }
+        if (!(cu.src && cu.src.url) && src.url) { cu.src = src; doi = true; }
+        if (!cu.note && o(h, "Ghi chú")) { cu.note = o(h, "Ghi chú"); doi = true; }
+        if (!(cu.ruby && cu.ruby.length) && o(h, "Furigana theo chữ Hán")) {
+          cu.ruby = o(h, "Furigana theo chữ Hán").split(/\s+/).filter(Boolean); doi = true;
+        }
+        if (doi) { cu.ts = Date.now(); boSung++; } else boQua++;
+        continue;
+      }
+
+      // Mục mới: KHÔNG chép tiến độ ôn của người gửi sang. Đây là từ mới đối với
+      // người nhận, phải vào sóng ôn tập từ đầu.
+      const ne = { word: tu, reading: o(h, "Furigana"), means: nghia, dict: huong, ts: Date.now() };
+      if (o(h, "Ghi chú")) ne.note = o(h, "Ghi chú");
+      if (o(h, "Loại") === "câu") ne.kind = "sent";
+      if (o(h, "Phát âm")) ne.audio = o(h, "Phát âm");
+      if (src.url) ne.src = src;
+      const rb = o(h, "Furigana theo chữ Hán").split(/\s+/).filter(Boolean);
+      if (rb.length) { ne.ruby = rb; ne.docSuy = 1; }
+      const so = o(h, "Sổ");
+      if (so) {
+        if (!tenSo[so]) {
+          const id = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          dks[id] = { name: so, ts: Date.now() };
+          tenSo[so] = id;
+        }
+        ne.deck = tenSo[so];
+      }
+      window.Muc.nhatLaiBanSua(ne, cu);      // từng xoá thì nhặt lại phần mình tự viết
+      nb[key] = ne;
+      them++;
+    }
+  });
+
+  await load();
+  syncSoon();
+  const bao = T2("Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.",
+    { them: them, bs: boSung, bq: boQua });
+  setStatus(bao);
+  toast(bao);
+}
+
+/* ==================================================================== */
 /* Sao lưu / nạp                                                        */
 /* ==================================================================== */
 
@@ -1510,6 +1717,12 @@ $("filter").addEventListener("input", draw);
 $("exAnki").addEventListener("click", exportAnki);
 $("exCsv").addEventListener("click", exportCsv);
 $("backup").addEventListener("click", backupJson);
+$("exChiaSe").addEventListener("click", exportChiaSe);
+$("napChiaSe").addEventListener("click", () => $("napChiaSeFile").click());
+$("napChiaSeFile").addEventListener("change", (e) => {
+  if (e.target.files[0]) napChiaSeFile(e.target.files[0]);
+  e.target.value = "";
+});
 $("restore").addEventListener("click", () => $("restoreFile").click());
 $("restoreFile").addEventListener("change", (e) => {
   if (e.target.files[0]) restoreJson(e.target.files[0]);

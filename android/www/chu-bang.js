@@ -560,6 +560,24 @@
     "Đoạn này không có chữ Hán nào.":
       "There are no kanji in this text.",
 
+    /* --- bản chia sẻ --- */
+    "Xuất để chia sẻ":
+      "Export to share",
+    "Nạp bản chia sẻ":
+      "Load a shared file",
+    "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.":
+      "Exports the WHOLE notebook (both languages) with links and video timestamps, and opens in Excel. Loading one only ADDS new words — it never overwrites a meaning you edited yourself.",
+    "Chưa có mục nào để xuất":
+      "Nothing to export yet",
+    "Đã xuất {n} mục — gửi file này cho ai cũng nạp được":
+      "Exported {n} entries — send this file to anyone and they can load it",
+    "File không đọc được hoặc không có dòng nào":
+      "The file could not be read, or has no rows",
+    "File thiếu cột “Từ vựng”":
+      "The file has no “Từ vựng” column",
+    "Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.":
+      "Loaded: {them} new words added, {bs} existing words filled in, {bq} duplicates skipped.",
+
     /* --- nguồn / đường link --- */
     "Nguồn của mục này": "Source of this entry",
     "Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.":
@@ -1131,6 +1149,24 @@
       "1 語として調べるには長すぎます——「翻訳」タブを見るか、語だけを入力してください。",
     "Đoạn này không có chữ Hán nào.":
       "この文章に漢字はありません。",
+
+    /* --- bản chia sẻ --- */
+    "Xuất để chia sẻ":
+      "共有用に書き出す",
+    "Nạp bản chia sẻ":
+      "共有ファイルを読み込む",
+    "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.":
+      "単語帳ぜんぶ（両言語）を書き出します。リンクと動画の時間も入り、Excel で開けます。読み込んでも新しい語を追加するだけで、自分で直した訳が上書きされることはありません。",
+    "Chưa có mục nào để xuất":
+      "書き出すものがまだありません",
+    "Đã xuất {n} mục — gửi file này cho ai cũng nạp được":
+      "{n} 件を書き出しました——このファイルを送れば誰でも読み込めます",
+    "File không đọc được hoặc không có dòng nào":
+      "ファイルを読み込めないか、行がありません",
+    "File thiếu cột “Từ vựng”":
+      "「Từ vựng」の列がありません",
+    "Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.":
+      "読み込み完了：新規 {them} 語、既存に補足 {bs} 語、重複のためスキップ {bq} 語。",
 
     /* --- nguồn / đường link --- */
     "Nguồn của mục này": "この項目の出典",
