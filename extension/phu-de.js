@@ -101,10 +101,10 @@
 
     if (!pr) {
       const r = await fetch("/watch?v=" + encodeURIComponent(v), { credentials: "include" });
-      if (!r.ok) throw new Error("Không tải được trang video (HTTP " + r.status + ")");
+      if (!r.ok) throw new Error(T2("Không tải được trang video (HTTP {ma})", { ma: r.status }));
       pr = catJSON(await r.text(), "ytInitialPlayerResponse");
     }
-    if (!pr) throw new Error("Không đọc được dữ liệu trình phát");
+    if (!pr) throw new Error(T("Không đọc được dữ liệu trình phát"));
     const ds = pr.videoDetails || {};
     const ct = ((pr.captions || {}).playerCaptionsTracklistRenderer || {}).captionTracks || [];
     return {
@@ -190,13 +190,13 @@
     if (cs.length) return { cue: cs, cach: "bang" };
     const kh = khungBang();
     if (kh.length) {
-      throw new Error("Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — "
-        + "có vẻ họ vừa đổi cách dựng bảng. Bấm Thử lại; còn không thì báo lại để sửa. "
-        + "(khung: " + kh.length + " · thẻ quen: "
-        + document.querySelectorAll("ytd-transcript-segment-renderer").length + ")");
+      throw new Error(T2(
+        "Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — có vẻ họ vừa đổi cách dựng bảng. "
+        + "Bấm Thử lại; còn không thì báo lại để sửa. (khung: {kh} · thẻ quen: {the})",
+        { kh: kh.length, the: document.querySelectorAll("ytd-transcript-segment-renderer").length }));
     }
-    throw new Error("YouTube không cho tải phụ đề, mà cũng chưa mở được bảng bản chép lời của họ. "
-      + "Bấm “…” dưới video → “Hiện bản chép lời” — hiện ra là chỗ này tự lấy, không cần bấm gì thêm.");
+    throw new Error(T("YouTube không cho tải phụ đề, mà cũng chưa mở được bảng bản chép lời của họ. ")
+      + T("Bấm “…” dưới video → “Hiện bản chép lời” — hiện ra là chỗ này tự lấy, không cần bấm gì thêm."));
   }
 
   /* ---- Đường 3: đọc lại bảng bản chép lời của chính YouTube ---- */
@@ -578,12 +578,43 @@
   let soLanNap = 0;
   /** Mã video mà bạn đã tự đóng bảng — đừng dựng lại cho tới khi sang video khác. */
   let tatCho = "";
+  /*
+   * Ngôn ngữ giao diện. Bảng nằm trong shadow DOM do JS dựng ra nên không có
+   * lượt quét data-chu nào chạm tới — chữ trên đó sinh ra MỘT LẦN lúc dựng.
+   *
+   * Nên đổi ngôn ngữ là phải dựng lại bảng. Kể cả lượt đọc cài đặt đầu tiên:
+   * nó là một lượt hỏi bất đồng bộ, mà bảng thì có thể dựng xong trước khi câu
+   * trả lời về — lúc đó bảng đã mang chữ tiếng Việt rồi. Đừng để chuyện hiện ra
+   * đúng thứ tiếng phụ thuộc vào ai nhanh hơn ai.
+   */
+  const datChu = (st) => {
+    if (!self.Chu) return;
+    const cu = self.Chu.dang();
+    const moi = self.Chu.hopLe((st || {}).chu);
+    self.Chu.dat(moi, null);
+    if (moi !== cu && (S.v || S.host)) xemLai(true);
+  };
+  /*
+   * Bảng phải ĐỢI lượt đọc cài đặt đầu tiên rồi mới dựng.
+   *
+   * Đọc cài đặt là một lượt hỏi bất đồng bộ; trên một trang nhẹ, bảng dựng
+   * xong trước khi câu trả lời về — và nó mang chữ tiếng Việt trong khi người
+   * dùng đã chọn tiếng Nhật. Nút "dựng lại khi đổi ngôn ngữ" cũng không cứu
+   * được, vì lúc câu trả lời về thì bảng còn chưa kịp ghi mã video vào S.
+   */
+  let baoDaDoc;
+  const daDocCaiDat = new Promise((giai) => { baoDaDoc = giai; });
   chrome.storage.local.get("settings", (r) => {
-    NGU = self.Ngu.hopLe(((r && r.settings) || {}).ngu);
+    const st = (r && r.settings) || {};
+    NGU = self.Ngu.hopLe(st.ngu);
+    datChu(st);
+    baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area !== "local" || !ch.settings) return;
-    const moi = self.Ngu.hopLe((ch.settings.newValue || {}).ngu);
+    const st = ch.settings.newValue || {};
+    datChu(st);
+    const moi = self.Ngu.hopLe(st.ngu);
     if (moi === NGU) return;
     NGU = moi;
     // Đổi ngôn ngữ giữa chừng thì bản phụ đề nên ưu tiên cũng đổi theo — dựng
@@ -910,7 +941,7 @@
     lg.src = LOGO; lg.alt = ""; lg.width = 18; lg.height = 18;
     top.appendChild(lg);
     const nm = document.createElement("span"); nm.className = "nm";
-    nm.textContent = "NeutronDict · Lời thoại";
+    nm.textContent = T("NeutronDict · Lời thoại");
     top.appendChild(nm);
     const demCau = document.createElement("span"); demCau.className = "n";
     top.appendChild(demCau);
@@ -921,23 +952,23 @@
     nutNgu.classList.add("ngu");
     top.appendChild(nutNgu);
 
-    const nutNap = nutChip("arrows-clockwise", "", "Nạp lại bảng");
+    const nutNap = nutChip("arrows-clockwise", "", T("Nạp lại bảng"));
     top.appendChild(nutNap);
-    const nutCo = nutChip("text-aa", "", "Cỡ chữ — bấm để đổi");
+    const nutCo = nutChip("text-aa", "", T("Cỡ chữ — bấm để đổi"));
     top.appendChild(nutCo);
-    const nutThu = nutChip("caret-up", "", "Thu gọn");
+    const nutThu = nutChip("caret-up", "", T("Thu gọn"));
     top.appendChild(nutThu);
-    const nutTat = nutChip("x", "", "Đóng bảng");
+    const nutTat = nutChip("x", "", T("Đóng bảng"));
     top.appendChild(nutTat);
     box.appendChild(top);
 
     const veNutNgu = () => {
       nutNgu.textContent = "";
       const t = document.createElement("span");
-      t.textContent = NGU === "ja" ? "Nhật – Việt" : "Anh – Việt";
+      t.textContent = NGU === "ja" ? T("Nhật – Việt") : T("Anh – Việt");
       nutNgu.appendChild(t);
-      nutNgu.title = "Đang lưu vào sổ tiếng " + (NGU === "ja" ? "Nhật" : "Anh")
-        + " — bấm để đổi";
+      nutNgu.title = T2("Đang lưu vào sổ tiếng {ngu} — bấm để đổi",
+        { ngu: NGU === "ja" ? T("Nhật") : T("Anh") });
     };
     veNutNgu();
     S.veNutNgu = veNutNgu;
@@ -956,7 +987,7 @@
     nutNap.addEventListener("click", () => {
       if (soLanNap >= 2) { soLanNap = 0; location.reload(); return; }
       soLanNap += 1;
-      nutNap.title = "Nạp lại bảng (lần " + soLanNap + "/2 — lần nữa sẽ tải lại cả trang)";
+      nutNap.title = T2("Nạp lại bảng (lần {n}/2 — lần nữa sẽ tải lại cả trang)", { n: soLanNap });
       xemLai(true);
     });
 
@@ -967,12 +998,12 @@
     /* --- thanh công cụ --- */
     const bar = document.createElement("div"); bar.className = "bar";
     const chonBan = document.createElement("select");
-    chonBan.title = "Chọn bản phụ đề";
+    chonBan.title = T("Chọn bản phụ đề");
     const oTim = document.createElement("input");
-    oTim.className = "find"; oTim.type = "search"; oTim.placeholder = "Tìm…";
-    oTim.title = "Tìm trong lời thoại";
-    const nutSong = nutChip("translate", "Song ngữ", "Hiện kèm bản dịch tiếng Việt");
-    const nutBam = nutChip("crosshair-simple", "Bám", "Tự cuộn theo dòng đang nói");
+    oTim.className = "find"; oTim.type = "search"; oTim.placeholder = T("Tìm…");
+    oTim.title = T("Tìm trong lời thoại");
+    const nutSong = nutChip("translate", T("Song ngữ"), T("Hiện kèm bản dịch tiếng Việt"));
+    const nutBam = nutChip("crosshair-simple", T("Bám"), T("Tự cuộn theo dòng đang nói"));
     nutSong.classList.toggle("on", S.songNgu);   // giữ lựa chọn khi chuyển video
     bar.appendChild(chonBan); bar.appendChild(oTim); bar.appendChild(nutSong); bar.appendChild(nutBam);
     box.appendChild(bar);
@@ -983,7 +1014,7 @@
     const tip = document.createElement("div"); tip.className = "tip";
     const back = document.createElement("button"); back.className = "back"; back.type = "button";
     back.appendChild(ic("arrow-down", 13));
-    const bt = document.createElement("span"); bt.textContent = "Về dòng đang nói"; back.appendChild(bt);
+    const bt = document.createElement("span"); bt.textContent = T("Về dòng đang nói"); back.appendChild(bt);
     wrap.appendChild(list); wrap.appendChild(tip); wrap.appendChild(back);
     box.appendChild(wrap);
 
@@ -994,7 +1025,7 @@
     /* --- hành vi --- */
     const apDungCo = () => {
       box.style.setProperty("--cx", CO_CHU[S.co] + "px");
-      nutCo.title = "Cỡ chữ " + CO_CHU[S.co] + "px — bấm để đổi";
+      nutCo.title = T2("Cỡ chữ {px}px — bấm để đổi", { px: CO_CHU[S.co] });
       // Bảng đang bám theo video mà chữ giãn ra thì dòng đang nói trôi mất chỗ.
       if (S.bam) requestAnimationFrame(() => cuonToi(S.hien));
     };
@@ -1009,7 +1040,7 @@
       const thu = box.classList.toggle("hide");
       nutThu.innerHTML = "";
       nutThu.appendChild(ic(thu ? "caret-down" : "caret-up", 13));
-      nutThu.title = thu ? "Mở ra" : "Thu gọn";
+      nutThu.title = thu ? T("Mở ra") : T("Thu gọn");
     });
     chonBan.addEventListener("change", () => { S.iBan = +chonBan.value; napCue(); });
     oTim.addEventListener("input", () => loc(oTim.value.trim()));
@@ -1101,7 +1132,7 @@
       b.textContent = dem(giay != null ? giay : (S.cau[i] ? S.cau[i].t : 0));
       tip.appendChild(b);
       const sp = document.createElement("span");
-      sp.textContent = S.dich.get(i) || "Đang dịch…";
+      sp.textContent = S.dich.get(i) || T("Đang dịch…");
       tip.appendChild(sp);
       tip.classList.add("hien");
       // Đặt dưới dòng; sát đáy quá thì lật lên trên cho khỏi tràn ra ngoài bảng.
@@ -1163,7 +1194,7 @@
       ln.className = "ln";
       ln.dataset.i = String(i);
       ln.dataset.ts = dem(c.t);            // mốc giờ vẫn giữ, chỉ không chiếm chỗ nữa
-      ln.title = "Bấm để nghe lại từ " + dem(c.t);
+      ln.title = T2("Bấm để nghe lại từ {t}", { t: dem(c.t) });
 
       const tx = document.createElement("div"); tx.className = "tx";
       veManh(tx, c);
@@ -1175,9 +1206,9 @@
       ln.appendChild(tx);
 
       const sv = document.createElement("button");
-      sv.className = "sv"; sv.type = "button"; sv.title = "Lưu câu này vào sổ tay";
+      sv.className = "sv"; sv.type = "button"; sv.title = T("Lưu câu này vào sổ tay");
       sv.appendChild(ic("plus", 12));
-      const svt = document.createElement("span"); svt.textContent = "Lưu"; sv.appendChild(svt);
+      const svt = document.createElement("span"); svt.textContent = T("Lưu"); sv.appendChild(svt);
       sv.addEventListener("click", (e) => { e.stopPropagation(); luuCau(i, sv, svt); });
       ln.appendChild(sv);
 
@@ -1200,7 +1231,7 @@
     if (thuLai) {
       const hang = document.createElement("div");
       hang.style.cssText = "padding:0 13px 12px";
-      const b = nutChip("arrows-clockwise", "Thử lại");
+      const b = nutChip("arrows-clockwise", T("Thử lại"));
       b.addEventListener("click", thuLai);
       hang.appendChild(b);
       S.oList.appendChild(hang);
@@ -1426,7 +1457,7 @@
       }, () => {
         nut.classList.add("done"); nut.disabled = false;
         nut.textContent = ""; nut.appendChild(ic("check", 12));
-        const t = document.createElement("span"); t.textContent = "Đã lưu"; nut.appendChild(t);
+        const t = document.createElement("span"); t.textContent = T("Đã lưu"); nut.appendChild(t);
       });
     };
     // Lưu kèm luôn bản dịch: một câu trần trụi nằm trong sổ tay thì đến lúc ôn
@@ -1443,8 +1474,8 @@
 
   async function napCue() {
     const ban = S.ban[S.iBan];
-    if (!ban) { trangThai("Video này không có phụ đề nào.", "subtitles-slash"); return; }
-    trangThai("Đang tải lời thoại…");
+    if (!ban) { trangThai(T("Video này không có phụ đề nào."), "subtitles-slash"); return; }
+    trangThai(T("Đang tải lời thoại…"));
     S.dich.clear(); hangCho.clear();
     try {
       const kq = await layCue(ban);
@@ -1453,14 +1484,14 @@
       // không có tác dụng — nói thẳng ra thay vì để bấm rồi thấy không đổi gì.
       S.uiBan.disabled = (kq.cach === "bang");
       S.uiBan.title = S.uiBan.disabled
-        ? "YouTube đang chặn đường tải phụ đề, phải đọc lại từ bảng của họ — đổi bản ở đây thì hãy đổi trong bảng đó"
-        : "Chọn bản phụ đề";
-      if (!S.cau.length) { trangThai("Bản phụ đề này rỗng.", "warning-circle"); return; }
+        ? T("YouTube đang chặn đường tải phụ đề, phải đọc lại từ bảng của họ — đổi bản ở đây thì hãy đổi trong bảng đó")
+        : T("Chọn bản phụ đề");
+      if (!S.cau.length) { trangThai(T("Bản phụ đề này rỗng."), "warning-circle"); return; }
       soLanNap = 0;              // đã ra chữ -> lần bấm Nạp lại sau lại tính từ đầu
       veDanhSach();
       batTheoDoi();
     } catch (e) {
-      trangThai((e && e.message) || "Không tải được lời thoại.", "warning-circle", napCue);
+      trangThai((e && e.message) || T("Không tải được lời thoại."), "warning-circle", napCue);
       ngongBangYouTube();
     }
   }
@@ -1486,15 +1517,16 @@
   }
 
   async function khoiDong(v) {
+    await daDocCaiDat;      // đừng dựng bảng bằng thứ tiếng chưa biết là gì
     S.v = v; S.cau = []; S.hien = -1; S.dich.clear(); S.bam = true;
     if (!dungBang()) return false;
-    trangThai("Đang tìm phụ đề…");
+    trangThai(T("Đang tìm phụ đề…"));
     try {
       const d = await layBanPhuDe(v);
       if (S.v !== v) return true;                       // đã chuyển video khác
       S.tieuDe = d.tieuDe; S.kenh = d.kenh; S.ban = d.ban;
       if (!S.ban.length) {
-        trangThai("Video này không có phụ đề — không có gì để đọc.", "subtitles-slash");
+        trangThai(T("Video này không có phụ đề — không có gì để đọc."), "subtitles-slash");
         S.uiBan.style.display = "none";
         return true;
       }
@@ -1508,13 +1540,13 @@
       S.ban.forEach((b, i) => {
         const o = document.createElement("option");
         o.value = String(i);
-        o.textContent = b.ten + (b.tuDong ? " (tự động)" : "");
+        o.textContent = b.ten + (b.tuDong ? T(" (tự động)") : "");
         S.uiBan.appendChild(o);
       });
       S.uiBan.value = String(S.iBan);
       await napCue();
     } catch (e) {
-      trangThai((e && e.message) || "Không lấy được phụ đề.", "warning-circle");
+      trangThai((e && e.message) || T("Không lấy được phụ đề."), "warning-circle");
     }
     return true;
   }

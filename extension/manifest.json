@@ -30,6 +30,8 @@
         "<all_urls>"
       ],
       "js": [
+        "chu-bang.js",
+        "chu.js",
         "icons.js",
         "ngu.js",
         "muc.js",

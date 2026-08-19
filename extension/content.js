@@ -20,9 +20,19 @@
   let host = null, root = null, boxEl = null, lastCtrl = false;
   let anchor = { x: 0, y: 0 };
 
-  chrome.storage.local.get("settings", (r) => { if (r && r.settings) S = Object.assign({}, DEFAULTS, r.settings); });
+  /* Ngôn ngữ giao diện. Thẻ tra nằm trong shadow DOM do JS dựng ra, không có
+     lượt quét data-chu nào chạm tới, nên chỉ cần Chu biết đang ở thứ tiếng nào
+     là đủ — chữ đã đi qua T() hết rồi. */
+  const datChu = (st) => { if (self.Chu) self.Chu.dat(self.Chu.hopLe((st || {}).chu), null); };
+  chrome.storage.local.get("settings", (r) => {
+    if (r && r.settings) S = Object.assign({}, DEFAULTS, r.settings);
+    datChu(S);
+  });
   chrome.storage.onChanged.addListener((ch, area) => {
-    if (area === "local" && ch.settings) S = Object.assign({}, DEFAULTS, ch.settings.newValue || {});
+    if (area === "local" && ch.settings) {
+      S = Object.assign({}, DEFAULTS, ch.settings.newValue || {});
+      datChu(S);
+    }
   });
 
   function close() {
@@ -225,7 +235,7 @@
   /** Nút loa nhỏ. */
   function nutLoa(text, audio) {
     const b = document.createElement("button");
-    b.className = "spk"; b.type = "button"; b.title = "Phát âm";
+    b.className = "spk"; b.type = "button"; b.title = T("Phát âm");
     b.appendChild(ic("speaker-high", 16));
     b.addEventListener("click", (e) => { e.stopPropagation(); speak(text, audio); });
     return b;
@@ -311,13 +321,13 @@
       panes[id] = pane;
     };
 
-    them("word", "Từ vựng", "book-open-text");
+    them("word", T("Từ vựng"), "book-open-text");
     // Tab giữa đổi theo ngôn ngữ: tiếng Nhật cần Hán tự, tiếng Anh cần IPA và
     // định nghĩa. Cùng một chỗ, hai nội dung — chứ không bày cả hai rồi để một
     // cái luôn rỗng.
-    if (laNhat()) them("kanji", "Hán tự", "text-aa");
-    else them("detail", "Chi tiết", "article");
-    if (coDich) them("trans", "Dịch", "translate");
+    if (laNhat()) them("kanji", T("Hán tự"), "text-aa");
+    else them("detail", T("Chi tiết"), "article");
+    if (coDich) them("trans", T("Dịch"), "translate");
 
     function moTab(id) {
       if (!panes[id]) return;
@@ -344,14 +354,14 @@
       sv.textContent = "";
       sv.appendChild(ic("check", 14));
       const t = document.createElement("span");
-      t.textContent = "Đã lưu";
+      t.textContent = T("Đã lưu");
       sv.appendChild(t);
     };
     if (daLuu) danhDau();
     else {
       sv.appendChild(ic("plus", 14));
       const t = document.createElement("span");
-      t.textContent = "Lưu";
+      t.textContent = T("Lưu");
       sv.appendChild(t);
       sv.addEventListener("click", (e) => { e.stopPropagation(); khiBam(danhDau); });
     }
@@ -397,29 +407,29 @@
       return t;
     };
 
-    const oNghia = oVanBan("Nghĩa — mỗi dòng một nghĩa",
+    const oNghia = oVanBan(T("Nghĩa — mỗi dòng một nghĩa"),
       (dl.means || []).join("\n"),
       Math.min(6, Math.max(2, (dl.means || []).length + 1)),
-      "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…");
-    const oGhi = oVanBan("Ghi chú", dl.note || "", 2, "Ngữ cảnh, cách dùng, chỗ hay nhầm…");
+      T("Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…"));
+    const oGhi = oVanBan(T("Ghi chú"), dl.note || "", 2, T("Ngữ cảnh, cách dùng, chỗ hay nhầm…"));
 
     const row = document.createElement("div"); row.className = "edrow";
     const bLuu = document.createElement("button");
     bLuu.type = "button"; bLuu.className = "sv pri";
     bLuu.appendChild(ic("check", 14));
-    const nhanLuu = document.createElement("span"); nhanLuu.textContent = "Lưu"; bLuu.appendChild(nhanLuu);
+    const nhanLuu = document.createElement("span"); nhanLuu.textContent = T("Lưu"); bLuu.appendChild(nhanLuu);
     const bHuy = document.createElement("button");
     bHuy.type = "button"; bHuy.className = "sv";
-    const nhanHuy = document.createElement("span"); nhanHuy.textContent = "Huỷ"; bHuy.appendChild(nhanHuy);
+    const nhanHuy = document.createElement("span"); nhanHuy.textContent = T("Huỷ"); bHuy.appendChild(nhanHuy);
 
     bLuu.addEventListener("click", (e) => {
       e.stopPropagation();
       if (bLuu.disabled) return;
-      bLuu.disabled = true; nhanLuu.textContent = "Đang lưu…";
+      bLuu.disabled = true; nhanLuu.textContent = T("Đang lưu…");
       luu({
         means: oNghia.value.split("\n").map((s) => s.trim()).filter(Boolean),
         note: oGhi.value.trim()
-      }, () => { bLuu.disabled = false; nhanLuu.textContent = "Lưu"; });
+      }, () => { bLuu.disabled = false; nhanLuu.textContent = T("Lưu"); });
     });
     bHuy.addEventListener("click", (e) => { e.stopPropagation(); huy(); });
     row.appendChild(bLuu); row.appendChild(bHuy);
@@ -455,9 +465,9 @@
       }));
       const b = document.createElement("button");
       b.type = "button"; b.className = "sv";
-      b.title = "Sửa nghĩa & ghi chú";
+      b.title = T("Sửa nghĩa & ghi chú");
       b.appendChild(ic("pencil-simple", 14));
-      const t = document.createElement("span"); t.textContent = "Sửa"; b.appendChild(t);
+      const t = document.createElement("span"); t.textContent = T("Sửa"); b.appendChild(t);
       b.addEventListener("click", (e) => { e.stopPropagation(); moSua(); });
       acts.appendChild(b);
       return acts;
@@ -470,7 +480,7 @@
       if (dl.mEdit) {
         const tg = document.createElement("span"); tg.className = "tag";
         tg.appendChild(ic("pencil-simple", 11));
-        const t = document.createElement("span"); t.textContent = "bản của bạn";
+        const t = document.createElement("span"); t.textContent = T("bản của bạn");
         tg.appendChild(t);
         left.appendChild(tg);
       }
@@ -485,7 +495,7 @@
       ct.veNghia(hostEl, dl);
       if (dl.note) {
         const n = document.createElement("div"); n.className = "nt";
-        const b = document.createElement("b"); b.textContent = "Ghi chú · ";
+        const b = document.createElement("b"); b.textContent = T("Ghi chú · ");
         n.appendChild(b);
         n.appendChild(document.createTextNode(dl.note));
         hostEl.appendChild(n);
@@ -535,9 +545,9 @@
     const entries = (res && res.entries) || [];
     if (!entries.length) {
       pane.appendChild(trangThai(
-        (res && res.error) ? ("Lỗi: " + res.error)
-          : (res && res.quaDai) ? "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra."
-          : "Không tìm thấy từ này trong từ điển.",
+        (res && res.error) ? T2("Lỗi: {loi}", { loi: res.error })
+          : (res && res.quaDai) ? T("Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra.")
+          : T("Không tìm thấy từ này trong từ điển."),
         "warning-circle"));
       return;
     }
@@ -580,7 +590,7 @@
     pane.textContent = "";
     const en = ((res && res.entries) || [])[0];
     if (!en || (!(en.pos && en.pos.length) && !en.reading)) {
-      pane.appendChild(trangThai("Không có chi tiết cho đoạn này.", "article"));
+      pane.appendChild(trangThai(T("Không có chi tiết cho đoạn này."), "article"));
       return;
     }
     if (en.reading) {
@@ -615,7 +625,7 @@
     pane.textContent = "";
     const ks = (res && res.kanji) || [];
     if (!ks.length) {
-      pane.appendChild(trangThai("Đoạn này không có chữ Hán nào.", "text-aa"));
+      pane.appendChild(trangThai(T("Đoạn này không có chữ Hán nào."), "text-aa"));
       return;
     }
     const daLuu = (res && res.savedKanji) || {};
@@ -660,7 +670,7 @@
   function veDich(pane, res, text) {
     pane.textContent = "";
     if (!res || !res.ok) {
-      pane.appendChild(trangThai((res && res.error) || "Không dịch được.", "warning-circle"));
+      pane.appendChild(trangThai((res && res.error) || T("Không dịch được."), "warning-circle"));
       return;
     }
     const engText = res.target === "en" ? res.text : text;   // phần tiếng Anh để đọc
@@ -677,7 +687,7 @@
       // Bản dịch chính LÀ phần sửa được, nên phần đầu thẻ chỉ có nút nghe.
       dau: (el) => {
         const spk = nutLoa(engText, null);
-        spk.title = "Nghe câu tiếng Anh";
+        spk.title = T("Nghe câu tiếng Anh");
         el.appendChild(spk);
       },
       veNghia: (el, dl) => {
@@ -703,9 +713,9 @@
 
     const nhat = laNhat();
     kh.o.word.appendChild(trangThai("Đang tra “" + text.slice(0, 24) + "”…"));
-    if (nhat) kh.o.kanji.appendChild(trangThai("Đang đọc Hán tự…"));
-    else kh.o.detail.appendChild(trangThai("Đang lấy chi tiết…"));
-    if (coDich) kh.o.trans.appendChild(trangThai("Đang dịch…"));
+    if (nhat) kh.o.kanji.appendChild(trangThai(T("Đang đọc Hán tự…")));
+    else kh.o.detail.appendChild(trangThai(T("Đang lấy chi tiết…")));
+    if (coDich) kh.o.trans.appendChild(trangThai(T("Đang dịch…")));
     kh.moTab(trongNhuCau(text) && coDich ? "trans" : "word");
 
     const quaDai = text.length > (S.maxLen || 40);
@@ -722,7 +732,7 @@
         (res) => {
           if (host !== cuaToi) return;
           const r = (chrome.runtime.lastError || !res)
-            ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không tra được" }
+            ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || T("Không tra được") }
             : res;
           if (nhat && quaDai) r.quaDai = true;
           veTuVung(kh.o.word, r, text);
@@ -743,7 +753,7 @@
         (res) => {
         if (host !== cuaToi) return;
         veDich(kh.o.trans, (chrome.runtime.lastError || !res)
-          ? { ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || "Không dịch được" }
+          ? { ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || T("Không dịch được") }
           : res, text);
         place(); requestAnimationFrame(place);
       });
@@ -959,7 +969,7 @@
   function tryHighlight(note, tries) {
     if (doHighlight(note)) return;
     if (tries > 0) { setTimeout(() => tryHighlight(note, tries - 1), 400); return; }
-    neuToast("NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi).");
+    neuToast(T("NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi)."));
   }
   (function checkPendingHighlight() {
     try {

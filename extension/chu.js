@@ -23,8 +23,14 @@
   const DS = ["vi", "en", "ja"];
   const TEN = { vi: "Tiếng Việt", en: "English", ja: "日本語" };
 
-  /* Bảng dịch nằm ở tệp riêng để tệp này chỉ còn phần máy móc. */
-  const BANG = (goc.CHU_BANG || { en: {}, ja: {} });
+  /*
+   * Bảng dịch nằm ở tệp riêng để tệp này chỉ còn phần máy móc.
+   *
+   * Đọc LÚC TRA chứ không chụp lại lúc nạp: chụp lúc nạp thì chỉ cần tệp bảng
+   * về sau tệp này một nhịp là dính bản rỗng vĩnh viễn — và triệu chứng của nó
+   * rất dễ đọc nhầm, vì mọi thứ vẫn chạy, chỉ là chữ nào cũng ra tiếng Việt.
+   */
+  function bang() { return goc.CHU_BANG || { en: {}, ja: {} }; }
 
   let ma = "vi";
 
@@ -33,7 +39,7 @@
   /** Dịch một chuỗi. Không có bản dịch thì trả về nguyên bản tiếng Việt. */
   function T(vi) {
     if (ma === "vi") return vi;
-    const b = BANG[ma];
+    const b = bang()[ma];
     const k = String(vi == null ? "" : vi);
     return (b && b[k]) || k;
   }

@@ -246,6 +246,98 @@
     "Anh": "English",
     "Nhật": "Japanese",
 
+    /* --- thẻ tra trong trang & bảng lời thoại YouTube --- */
+    "Không có chi tiết cho đoạn này.":
+      "No details for this passage.",
+    "Không dịch được":
+      "Could not translate",
+    "Không tra được":
+      "Lookup failed",
+    "Không tìm thấy từ này trong từ điển.":
+      "That word is not in the dictionary.",
+    "NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi).":
+      "NeutronDict: could not find this entry on the page (the content may have changed).",
+    "Sửa":
+      "Edit",
+    "Đang lưu…":
+      "Saving…",
+    "Đang lấy chi tiết…":
+      "Fetching details…",
+    "Đang đọc Hán tự…":
+      "Reading the kanji…",
+    "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra.":
+      "That is too long to look up as one word — try the Translate tab, or select just the word.",
+    "Đã lưu":
+      "Saved",
+    " (tự động)":
+      " (auto)",
+    "Bám":
+      "Follow",
+    "Bản phụ đề này rỗng.":
+      "This caption track is empty.",
+    "Bấm để nghe lại từ {t}":
+      "Click to replay from {t}",
+    "Bấm “…” dưới video → “Hiện bản chép lời” — hiện ra là chỗ này tự lấy, không cần bấm gì thêm.":
+      "Click “…” under the video → “Show transcript” — once it appears this panel picks it up on its own.",
+    "Chọn bản phụ đề":
+      "Choose a caption track",
+    "Cỡ chữ {px}px — bấm để đổi":
+      "Text size {px}px — click to change",
+    "Cỡ chữ — bấm để đổi":
+      "Text size — click to change",
+    "Hiện kèm bản dịch tiếng Việt":
+      "Show the Vietnamese translation alongside",
+    "Không lấy được phụ đề.":
+      "Could not fetch the captions.",
+    "Không tải được lời thoại.":
+      "Could not load the transcript.",
+    "Không tải được trang video (HTTP {ma})":
+      "Could not load the video page (HTTP {ma})",
+    "Không đọc được dữ liệu trình phát":
+      "Could not read the player data",
+    "Lưu câu này vào sổ tay":
+      "Save this sentence to the notebook",
+    "Mở ra":
+      "Expand",
+    "NeutronDict · Lời thoại":
+      "NeutronDict · Transcript",
+    "Nạp lại bảng":
+      "Reload the panel",
+    "Nạp lại bảng (lần {n}/2 — lần nữa sẽ tải lại cả trang)":
+      "Reload the panel ({n}/2 — once more reloads the whole page)",
+    "Song ngữ":
+      "Bilingual",
+    "Thu gọn":
+      "Collapse",
+    "Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — có vẻ họ vừa đổi cách dựng bảng. Bấm Thử lại; còn không thì báo lại để sửa. (khung: {kh} · thẻ quen: {the})":
+      "YouTube's transcript panel is there but no line could be read — they seem to have changed how it is built. Press Retry; if that fails, report it so it can be fixed. (frames: {kh} · known tags: {the})",
+    "Thử lại":
+      "Retry",
+    "Tìm trong lời thoại":
+      "Search the transcript",
+    "Tìm…":
+      "Search…",
+    "Tự cuộn theo dòng đang nói":
+      "Scroll along with the line being spoken",
+    "Video này không có phụ đề nào.":
+      "This video has no captions.",
+    "Video này không có phụ đề — không có gì để đọc.":
+      "This video has no captions — there is nothing to read.",
+    "Về dòng đang nói":
+      "Back to the current line",
+    "YouTube không cho tải phụ đề, mà cũng chưa mở được bảng bản chép lời của họ. ":
+      "YouTube will not serve the captions, and their transcript panel is not open either. ",
+    "YouTube đang chặn đường tải phụ đề, phải đọc lại từ bảng của họ — đổi bản ở đây thì hãy đổi trong bảng đó":
+      "YouTube is blocking the caption download, so this reads from their panel instead — change the track there, not here",
+    "Đang lưu vào sổ tiếng {ngu} — bấm để đổi":
+      "Saving into the {ngu} notebook — click to switch",
+    "Đang tìm phụ đề…":
+      "Looking for captions…",
+    "Đang tải lời thoại…":
+      "Loading the transcript…",
+    "Đóng bảng":
+      "Close the panel",
+
     /* --- popup tra nhanh --- */
     "Anh–Việt":
       "EN–VI",
@@ -546,6 +638,98 @@
     /* --- tên thứ tiếng, dùng trong câu "cloud tiếng …" --- */
     "Anh": "英語",
     "Nhật": "日本語",
+
+    /* --- thẻ tra trong trang & bảng lời thoại YouTube --- */
+    "Không có chi tiết cho đoạn này.":
+      "この文章の詳細はありません。",
+    "Không dịch được":
+      "翻訳できません",
+    "Không tra được":
+      "検索できません",
+    "Không tìm thấy từ này trong từ điển.":
+      "この語は辞書にありません。",
+    "NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi).":
+      "NeutronDict：この項目の位置がページ上で見つかりません（内容が変わった可能性があります）。",
+    "Sửa":
+      "編集",
+    "Đang lưu…":
+      "保存中…",
+    "Đang lấy chi tiết…":
+      "詳細を取得中…",
+    "Đang đọc Hán tự…":
+      "漢字を読み取り中…",
+    "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra.":
+      "1 語として調べるには長すぎます——「翻訳」タブを見るか、語だけを選択してください。",
+    "Đã lưu":
+      "保存しました",
+    " (tự động)":
+      "（自動）",
+    "Bám":
+      "追従",
+    "Bản phụ đề này rỗng.":
+      "この字幕トラックは空です。",
+    "Bấm để nghe lại từ {t}":
+      "{t} から再生",
+    "Bấm “…” dưới video → “Hiện bản chép lời” — hiện ra là chỗ này tự lấy, không cần bấm gì thêm.":
+      "動画の下の「…」→「文字起こしを表示」を押してください。表示されればこのパネルが自動で読み取ります。",
+    "Chọn bản phụ đề":
+      "字幕トラックを選択",
+    "Cỡ chữ {px}px — bấm để đổi":
+      "文字サイズ {px}px——クリックで変更",
+    "Cỡ chữ — bấm để đổi":
+      "文字サイズ——クリックで変更",
+    "Hiện kèm bản dịch tiếng Việt":
+      "ベトナム語訳を併記",
+    "Không lấy được phụ đề.":
+      "字幕を取得できませんでした。",
+    "Không tải được lời thoại.":
+      "文字起こしを読み込めませんでした。",
+    "Không tải được trang video (HTTP {ma})":
+      "動画ページを読み込めませんでした（HTTP {ma}）",
+    "Không đọc được dữ liệu trình phát":
+      "プレーヤーのデータを読み取れません",
+    "Lưu câu này vào sổ tay":
+      "この文を単語帳に保存",
+    "Mở ra":
+      "展開",
+    "NeutronDict · Lời thoại":
+      "NeutronDict · 文字起こし",
+    "Nạp lại bảng":
+      "パネルを再読み込み",
+    "Nạp lại bảng (lần {n}/2 — lần nữa sẽ tải lại cả trang)":
+      "パネルを再読み込み（{n}/2——もう一度でページ全体を再読み込み）",
+    "Song ngữ":
+      "二言語",
+    "Thu gọn":
+      "折りたたむ",
+    "Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — có vẻ họ vừa đổi cách dựng bảng. Bấm Thử lại; còn không thì báo lại để sửa. (khung: {kh} · thẻ quen: {the})":
+      "YouTube の文字起こしパネルはありますが、1 行も読み取れませんでした——構造が変わったようです。「再試行」を押し、それでも駄目なら報告してください。（フレーム：{kh} · 既知のタグ：{the}）",
+    "Thử lại":
+      "再試行",
+    "Tìm trong lời thoại":
+      "文字起こしを検索",
+    "Tìm…":
+      "検索…",
+    "Tự cuộn theo dòng đang nói":
+      "話している行に合わせて自動スクロール",
+    "Video này không có phụ đề nào.":
+      "この動画に字幕はありません。",
+    "Video này không có phụ đề — không có gì để đọc.":
+      "この動画に字幕はありません——読むものがありません。",
+    "Về dòng đang nói":
+      "話している行に戻る",
+    "YouTube không cho tải phụ đề, mà cũng chưa mở được bảng bản chép lời của họ. ":
+      "YouTube が字幕の取得を許さず、文字起こしパネルも開いていません。",
+    "YouTube đang chặn đường tải phụ đề, phải đọc lại từ bảng của họ — đổi bản ở đây thì hãy đổi trong bảng đó":
+      "YouTube が字幕の取得を遮断しているため、先方のパネルから読み取っています——トラックの変更はそちらで行ってください",
+    "Đang lưu vào sổ tiếng {ngu} — bấm để đổi":
+      "{ngu}の単語帳に保存中——クリックで切り替え",
+    "Đang tìm phụ đề…":
+      "字幕を探しています…",
+    "Đang tải lời thoại…":
+      "文字起こしを読み込み中…",
+    "Đóng bảng":
+      "パネルを閉じる",
 
     /* --- popup tra nhanh --- */
     "Anh–Việt":
