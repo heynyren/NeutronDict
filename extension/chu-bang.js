@@ -116,6 +116,190 @@
     "Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”.":
       "For example: in power engineering “breaker” is a circuit breaker, not a knife switch.",
 
+    /* --- màn Sổ tay: chuỗi do JS dựng ra --- */
+    "Tên sổ con mới (ví dụ: Bài 5 - Kanji):":
+      "Name for the new deck (e.g. Lesson 5 – Kanji):",
+    "Đổi tên sổ:":
+      "Rename deck:",
+    "Không lưu được ảnh.":
+      "Could not save the image.",
+    "Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.":
+      "Write down the context, the equivalent term, how it is used — what the dictionary leaves out.",
+    "Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.":
+      "Adjust it to the wording your field actually uses. One meaning per line.",
+    "Bản máy dịch ban đầu: {ban}":
+      "Machine translation was: {ban}",
+    "Đã lưu bản dịch của bạn":
+      "Your translation is saved",
+    "Đã lưu ghi chú":
+      "Note saved",
+    "Bỏ khỏi {ten}":
+      "Remove from {ten}",
+    "Ghi chú của bạn":
+      "Your note",
+    "Đang hiện {n} mục":
+      "Showing {n} entries",
+    "{n} mục đến hạn":
+      "{n} due",
+    "Không có mục nào ở đây.":
+      "Nothing here yet.",
+    "Chưa có mục nào. Tra một từ rồi bấm “Lưu”.":
+      "No entries yet. Look a word up and press “Save”.",
+    "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn":
+      "Reading inferred from the romanisation — it may be off",
+    "đã sửa":
+      "edited",
+    "đến hạn":
+      "due",
+    "Hán Việt: {am}":
+      "Sino-Vietnamese: {am}",
+    "Nghe lại: {ten}":
+      "Play again: {ten}",
+    "Lưu từ: {nguon}":
+      "Saved from: {nguon}",
+    "Sửa bản dịch cho đúng chuyên ngành":
+      "Fix the translation to match your field",
+    "Sửa ghi chú":
+      "Edit note",
+    "Thêm ghi chú":
+      "Add a note",
+    "Nghe lại đúng chỗ này trong video ({t})":
+      "Replay this exact spot in the video ({t})",
+    "Mở lại trang nguồn và tô sáng vị trí đã lưu":
+      "Reopen the source page and highlight the saved spot",
+    "Xoá khỏi sổ tay":
+      "Remove from the notebook",
+    "Đã xoá “{tu}”":
+      "Deleted “{tu}”",
+    "Chuyển vào sổ":
+      "Move to deck",
+    "Không có mục nào đến hạn trong mục này. Quay lại sau nhé!":
+      "Nothing is due here. Come back later!",
+    "Còn {n} mục · đã xong {xong}":
+      "{n} left · {xong} done",
+    "Nghe lại {t}":
+      "Replay {t}",
+    "Đã thuộc {n} mục":
+      "{n} learned",
+    "học lại {n} lượt":
+      "{n} repeats",
+    "đã xoá {n} mục":
+      "{n} deleted",
+    "Hôm nay đạt mục tiêu rồi — chuỗi {n} ngày.":
+      "Today's goal is done — a {n}-day streak.",
+    "Còn {n} lượt nữa là đạt mục tiêu hôm nay.":
+      "{n} more to hit today's goal.",
+    "Từ":
+      "Word",
+    "Phiên âm (IPA)":
+      "Pronunciation (IPA)",
+    "Nghĩa":
+      "Meaning",
+    "Đã sửa":
+      "Edited",
+    "Sổ":
+      "Deck",
+    "Ngày lưu":
+      "Saved on",
+    "Đã nạp file và trộn vào sổ tay.":
+      "File loaded and merged into the notebook.",
+    "Đã nạp file sao lưu":
+      "Backup loaded",
+    "File không hợp lệ.":
+      "That file is not valid.",
+    "File không hợp lệ":
+      "Invalid file",
+    "toàn bộ sổ tay":
+      "the whole notebook",
+    "đang chọn":
+      "the current view",
+    "Xoá {n} mục trong {noi}? Việc xoá cũng đồng bộ sang máy khác.":
+      "Delete {n} entries in {noi}? The deletion syncs to your other devices too.",
+    "Đang cấu hình cloud tiếng {ngu}":
+      "Configuring the {ngu} cloud",
+    "Đã lưu cấu hình đồng bộ cho tiếng {ngu}.":
+      "Sync settings saved for {ngu}.",
+    "Đã xoá cấu hình tiếng {ngu}.":
+      "Sync settings for {ngu} cleared.",
+    "Đang đồng bộ…":
+      "Syncing…",
+    "Lỗi: {loi}":
+      "Error: {loi}",
+    "Đã đồng bộ · {n} mục · {gio}":
+      "Synced · {n} entries · {gio}",
+    "Không đồng bộ được: {loi}":
+      "Sync failed: {loi}",
+    "lỗi không rõ":
+      "unknown error",
+    "Đã lưu. Tải lại trang web đang mở để áp dụng ngay.":
+      "Saved. Reload any open page to apply it right away.",
+    "Đã xoá bộ nhớ đệm tra từ.":
+      "Lookup cache cleared.",
+    "{ngu} · sóng học tập":
+      "{ngu} · study rhythm",
+    "Sổ tay Nhật – Việt":
+      "Japanese – Vietnamese notebook",
+    "Sổ tay Anh – Việt":
+      "English – Vietnamese notebook",
+
+    /* --- tên thứ tiếng, dùng trong câu "cloud tiếng …" --- */
+    "Anh": "English",
+    "Nhật": "Japanese",
+
+    /* --- popup tra nhanh --- */
+    "Anh–Việt":
+      "EN–VI",
+    "Nhật–Việt":
+      "JA–VI",
+    "Đang tra {huong} — bấm để đổi":
+      "Looking up {huong} — click to switch",
+    "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.":
+      "Select a word and reopen this, or type one in the box above.",
+    "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào.":
+      "No meaning for this character yet — press Edit to write your own.",
+    "Cách đọc các ký hiệu:":
+      "How to read the symbols:",
+    "Còn {n} lượt nữa là đạt mục tiêu hôm nay":
+      "{n} more to hit today's goal",
+    "Ghi chú · ":
+      "Note · ",
+    "Hôm nay đã đạt mục tiêu":
+      "Today's goal is done",
+    "Không có chi tiết cho từ này.":
+      "No details for this word.",
+    "Không dịch được.":
+      "Could not translate.",
+    "Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại.":
+      "No meaning found. Check the spelling or your connection and try again.",
+    "Nghe câu tiếng Anh":
+      "Play the English sentence",
+    "Nghe câu tiếng Nhật":
+      "Play the Japanese sentence",
+    "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":
+      "A meaning that fits your context or field…",
+    "Nghĩa — mỗi dòng một nghĩa":
+      "Meanings — one per line",
+    "Ngữ cảnh, cách dùng, chỗ hay nhầm…":
+      "Context, usage, the bits people get wrong…",
+    "Nhập hoặc dán đoạn cần dịch.":
+      "Type or paste the text to translate.",
+    "Sửa nghĩa & ghi chú":
+      "Edit meaning & note",
+    "Xem đầy đủ":
+      "See all",
+    "bản của bạn":
+      "your version",
+    "{da}/{dich} hôm nay":
+      "{da}/{dich} today",
+    "{n} ngày · {da}/{dich}":
+      "{n} days · {da}/{dich}",
+    "Đang dịch…":
+      "Translating…",
+    "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra.":
+      "That is too long to look up as a single word — try the Translate tab, or type just the word.",
+    "Đoạn này không có chữ Hán nào.":
+      "There are no kanji in this text.",
+
     /* --- về tác giả --- */
     "Ra đời bởi": "Made by",
     "NeutronDict · Về tác giả": "NeutronDict · About the author",
@@ -232,6 +416,190 @@
     "Nhập nghĩa cho sát chuyên ngành…": "分野に合った意味を書く…",
     "Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”.":
       "例：電気分野では breaker は「遮断器」であって「断路器」ではありません。",
+
+    /* --- màn Sổ tay: chuỗi do JS dựng ra --- */
+    "Tên sổ con mới (ví dụ: Bài 5 - Kanji):":
+      "新しいデッキの名前（例：第5課 – 漢字）:",
+    "Đổi tên sổ:":
+      "デッキの名前を変更:",
+    "Không lưu được ảnh.":
+      "画像を保存できませんでした。",
+    "Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.":
+      "文脈、対応する専門用語、使い方——辞書が教えてくれないことを書き留めておきましょう。",
+    "Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.":
+      "自分の分野で実際に使う言い方に直してください。1 行に 1 つの意味を書きます。",
+    "Bản máy dịch ban đầu: {ban}":
+      "機械翻訳の元の訳：{ban}",
+    "Đã lưu bản dịch của bạn":
+      "訳を保存しました",
+    "Đã lưu ghi chú":
+      "メモを保存しました",
+    "Bỏ khỏi {ten}":
+      "{ten} から外す",
+    "Ghi chú của bạn":
+      "自分のメモ",
+    "Đang hiện {n} mục":
+      "{n} 件を表示中",
+    "{n} mục đến hạn":
+      "{n} 件が復習時期",
+    "Không có mục nào ở đây.":
+      "ここには何もありません。",
+    "Chưa có mục nào. Tra một từ rồi bấm “Lưu”.":
+      "まだ何もありません。語を調べて「保存」を押してください。",
+    "Cách đọc suy ra từ phiên âm, có thể chưa chuẩn":
+      "ローマ字から推測した読みです。正しくない場合があります",
+    "đã sửa":
+      "編集済み",
+    "đến hạn":
+      "復習時期",
+    "Hán Việt: {am}":
+      "漢越音：{am}",
+    "Nghe lại: {ten}":
+      "もう一度聞く：{ten}",
+    "Lưu từ: {nguon}":
+      "保存元：{nguon}",
+    "Sửa bản dịch cho đúng chuyên ngành":
+      "自分の分野に合うよう訳を直す",
+    "Sửa ghi chú":
+      "メモを編集",
+    "Thêm ghi chú":
+      "メモを追加",
+    "Nghe lại đúng chỗ này trong video ({t})":
+      "動画のこの箇所をもう一度再生（{t}）",
+    "Mở lại trang nguồn và tô sáng vị trí đã lưu":
+      "元のページを開き、保存した箇所を強調表示",
+    "Xoá khỏi sổ tay":
+      "単語帳から削除",
+    "Đã xoá “{tu}”":
+      "「{tu}」を削除しました",
+    "Chuyển vào sổ":
+      "デッキへ移動",
+    "Không có mục nào đến hạn trong mục này. Quay lại sau nhé!":
+      "ここに復習時期の項目はありません。またあとで！",
+    "Còn {n} mục · đã xong {xong}":
+      "残り {n} 件 · 完了 {xong} 件",
+    "Nghe lại {t}":
+      "{t} を再生",
+    "Đã thuộc {n} mục":
+      "{n} 件を覚えた",
+    "học lại {n} lượt":
+      "{n} 回やり直し",
+    "đã xoá {n} mục":
+      "{n} 件を削除",
+    "Hôm nay đạt mục tiêu rồi — chuỗi {n} ngày.":
+      "今日の目標を達成しました——{n} 日連続です。",
+    "Còn {n} lượt nữa là đạt mục tiêu hôm nay.":
+      "今日の目標まであと {n} 回です。",
+    "Từ":
+      "語",
+    "Phiên âm (IPA)":
+      "発音（IPA）",
+    "Nghĩa":
+      "意味",
+    "Đã sửa":
+      "編集済み",
+    "Sổ":
+      "デッキ",
+    "Ngày lưu":
+      "保存日",
+    "Đã nạp file và trộn vào sổ tay.":
+      "ファイルを読み込み、単語帳に統合しました。",
+    "Đã nạp file sao lưu":
+      "バックアップを読み込みました",
+    "File không hợp lệ.":
+      "このファイルは正しくありません。",
+    "File không hợp lệ":
+      "不正なファイル",
+    "toàn bộ sổ tay":
+      "単語帳全体",
+    "đang chọn":
+      "表示中の範囲",
+    "Xoá {n} mục trong {noi}? Việc xoá cũng đồng bộ sang máy khác.":
+      "{noi}の {n} 件を削除しますか？削除は他の端末にも同期されます。",
+    "Đang cấu hình cloud tiếng {ngu}":
+      "{ngu}のクラウドを設定中",
+    "Đã lưu cấu hình đồng bộ cho tiếng {ngu}.":
+      "{ngu}の同期設定を保存しました。",
+    "Đã xoá cấu hình tiếng {ngu}.":
+      "{ngu}の同期設定を消去しました。",
+    "Đang đồng bộ…":
+      "同期中…",
+    "Lỗi: {loi}":
+      "エラー：{loi}",
+    "Đã đồng bộ · {n} mục · {gio}":
+      "同期しました · {n} 件 · {gio}",
+    "Không đồng bộ được: {loi}":
+      "同期できませんでした：{loi}",
+    "lỗi không rõ":
+      "原因不明のエラー",
+    "Đã lưu. Tải lại trang web đang mở để áp dụng ngay.":
+      "保存しました。開いているページを再読み込みするとすぐ反映されます。",
+    "Đã xoá bộ nhớ đệm tra từ.":
+      "検索キャッシュを消去しました。",
+    "{ngu} · sóng học tập":
+      "{ngu} · 学習のリズム",
+    "Sổ tay Nhật – Việt":
+      "日本語 – ベトナム語 単語帳",
+    "Sổ tay Anh – Việt":
+      "英語 – ベトナム語 単語帳",
+
+    /* --- tên thứ tiếng, dùng trong câu "cloud tiếng …" --- */
+    "Anh": "英語",
+    "Nhật": "日本語",
+
+    /* --- popup tra nhanh --- */
+    "Anh–Việt":
+      "英–越",
+    "Nhật–Việt":
+      "日–越",
+    "Đang tra {huong} — bấm để đổi":
+      "{huong} で検索中——クリックで切り替え",
+    "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.":
+      "語を選択してから開き直すか、上の欄に入力してください。",
+    "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào.":
+      "この字の意味はまだありません——「編集」で自分で書けます。",
+    "Cách đọc các ký hiệu:":
+      "記号の読み方：",
+    "Còn {n} lượt nữa là đạt mục tiêu hôm nay":
+      "今日の目標まであと {n} 回",
+    "Ghi chú · ":
+      "メモ · ",
+    "Hôm nay đã đạt mục tiêu":
+      "今日の目標は達成済み",
+    "Không có chi tiết cho từ này.":
+      "この語の詳細はありません。",
+    "Không dịch được.":
+      "翻訳できませんでした。",
+    "Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại.":
+      "意味が見つかりません。つづりか通信を確認して、もう一度お試しください。",
+    "Nghe câu tiếng Anh":
+      "英語の文を再生",
+    "Nghe câu tiếng Nhật":
+      "日本語の文を再生",
+    "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":
+      "自分の文脈や分野に合う意味…",
+    "Nghĩa — mỗi dòng một nghĩa":
+      "意味——1 行に 1 つ",
+    "Ngữ cảnh, cách dùng, chỗ hay nhầm…":
+      "文脈、使い方、間違えやすい点…",
+    "Nhập hoặc dán đoạn cần dịch.":
+      "翻訳したい文章を入力または貼り付けてください。",
+    "Sửa nghĩa & ghi chú":
+      "意味とメモを編集",
+    "Xem đầy đủ":
+      "すべて見る",
+    "bản của bạn":
+      "自分の訳",
+    "{da}/{dich} hôm nay":
+      "今日 {da}/{dich}",
+    "{n} ngày · {da}/{dich}":
+      "{n} 日連続 · {da}/{dich}",
+    "Đang dịch…":
+      "翻訳中…",
+    "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra.":
+      "1 語として調べるには長すぎます——「翻訳」タブを見るか、語だけを入力してください。",
+    "Đoạn này không có chữ Hán nào.":
+      "この文章に漢字はありません。",
 
     /* --- về tác giả --- */
     "Ra đời bởi": "制作",

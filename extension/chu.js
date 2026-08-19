@@ -39,6 +39,20 @@
   }
 
   /**
+   * Dịch một câu có chỗ trống: T2("Đang hiện {n} mục", { n: 12 }).
+   *
+   * Nối chuỗi kiểu `"Đang hiện " + n + " mục"` thì mỗi mảnh phải dịch riêng, mà
+   * trật tự từ mỗi thứ tiếng một khác — tiếng Nhật đếm xong mới tới danh từ.
+   * Dịch cả câu rồi mới điền số vào thì thứ tiếng nào cũng đặt được chỗ trống
+   * đúng chỗ của nó.
+   */
+  function T2(vi, thay) {
+    let r = T(vi);
+    for (const k in (thay || {})) r = r.split("{" + k + "}").join(thay[k]);
+    return r;
+  }
+
+  /**
    * Chữ của một phần tử, chỉ tính phần CHỮ chứ không tính phần tử con.
    *
    * `<button>Học ngay <span>3</span></button>` thì khoá là "Học ngay", và lúc
@@ -98,9 +112,11 @@
     hopLe: hopLe,
     dang: function () { return ma; },
     t: T,
+    t2: T2,
     dat: dat,
     ve: ve
   };
   goc.T = T;
+  goc.T2 = T2;
   if (typeof module !== "undefined" && module.exports) module.exports = goc.Chu;
 })(typeof self !== "undefined" ? self : this);

@@ -16,13 +16,13 @@ let NGU = "en";
 
 /** Các hướng tra có nghĩa với từng ngôn ngữ. */
 const HUONG = {
-  en: [["auto", "Tự động"], ["envi", "Anh→Việt"], ["vien", "Việt→Anh"]],
-  ja: [["javi", "Nhật→Việt"]]
+  en: [["auto", T("Tự động")], ["envi", T("Anh→Việt")], ["vien", T("Việt→Anh")]],
+  ja: [["javi", T("Nhật→Việt")]]
 };
 
 function veNgu() {
   nguBtn.textContent = NGU === "ja" ? "日→V" : "EN→V";
-  nguBtn.title = "Đang tra " + (NGU === "ja" ? "Nhật–Việt" : "Anh–Việt") + " — bấm để đổi";
+  nguBtn.title = T2("Đang tra {huong} — bấm để đổi", { huong: NGU === "ja" ? T("Nhật–Việt") : T("Anh–Việt") });
   const cu = dirEl.value;
   dirEl.innerHTML = "";
   HUONG[NGU].forEach(([v, t]) => {
@@ -83,7 +83,7 @@ function trangThai(box, iconTen, chu) {
 /** Nút loa nhỏ, chìm vào nền. */
 function nutLoa(text, audio, size) {
   const b = document.createElement("button");
-  b.className = "iconbtn"; b.type = "button"; b.title = "Phát âm";
+  b.className = "iconbtn"; b.type = "button"; b.title = T("Phát âm");
   b.appendChild(ic("speaker-high", { size: size || 17 }));
   b.addEventListener("click", () => speak(text, audio));
   return b;
@@ -120,12 +120,12 @@ async function veChuoiNgay() {
     chip.innerHTML = window.Icon("fire", { size: 14, weight: "solid" });
     const s = document.createElement("span");
     s.textContent = view.chuoi.hienTai
-      ? view.chuoi.hienTai + " ngày · " + view.homNay.on + "/" + view.goal
-      : view.homNay.on + "/" + view.goal + " hôm nay";
+      ? T2("{n} ngày · {da}/{dich}", { n: view.chuoi.hienTai, da: view.homNay.on, dich: view.goal })
+      : T2("{da}/{dich} hôm nay", { da: view.homNay.on, dich: view.goal });
     chip.appendChild(s);
     chip.title = view.homNay.dat
-      ? "Hôm nay đã đạt mục tiêu"
-      : "Còn " + view.homNay.conLai + " lượt nữa là đạt mục tiêu hôm nay";
+      ? T("Hôm nay đã đạt mục tiêu")
+      : T2("Còn {n} lượt nữa là đạt mục tiêu hôm nay", { n: view.homNay.conLai });
     chip.style.display = "";
   } catch (e) { /* không có dữ liệu tiến độ thì thôi */ }
 }
@@ -274,11 +274,11 @@ function oSuaNhanh(dl, luu, huy) {
     f.appendChild(t);
     return t;
   };
-  const oNghia = oVanBan("Nghĩa — mỗi dòng một nghĩa",
+  const oNghia = oVanBan(T("Nghĩa — mỗi dòng một nghĩa"),
     (dl.means || []).join("\n"),
     Math.min(6, Math.max(2, (dl.means || []).length + 1)),
-    "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…");
-  const oGhi = oVanBan("Ghi chú", dl.note || "", 2, "Ngữ cảnh, cách dùng, chỗ hay nhầm…");
+    T("Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…"));
+  const oGhi = oVanBan(T("Ghi chú"), dl.note || "", 2, T("Ngữ cảnh, cách dùng, chỗ hay nhầm…"));
 
   const row = document.createElement("div"); row.className = "edrow";
   const bLuu = document.createElement("button");
@@ -335,7 +335,7 @@ function theSuaDuoc(hostEl, ct) {
 
     const ed = document.createElement("button");
     ed.type = "button"; ed.className = "btn xs";
-    ed.title = "Sửa nghĩa & ghi chú";
+    ed.title = T("Sửa nghĩa & ghi chú");
     ed.innerHTML = window.Icon("pencil-simple", { size: 15 }) + '<span class="lb" data-chu>Sửa</span>';
     ed.addEventListener("click", moSua);
     acts.appendChild(ed);
@@ -351,7 +351,7 @@ function theSuaDuoc(hostEl, ct) {
     if (dl.mEdit) {
       const tg = document.createElement("span");
       tg.className = "tag edited";
-      tg.innerHTML = window.Icon("pencil-simple", { size: 12 }) + "<span>bản của bạn</span>";
+      tg.innerHTML = window.Icon("pencil-simple", { size: 12 }) + "<span>" + T("bản của bạn") + "</span>";
       left.appendChild(tg);
     }
     head.appendChild(left);
@@ -365,7 +365,7 @@ function theSuaDuoc(hostEl, ct) {
     ct.veNghia(hostEl, dl);
     if (dl.note) {
       const n = document.createElement("div"); n.className = "notebox";
-      const b = document.createElement("b"); b.textContent = "Ghi chú · ";
+      const b = document.createElement("b"); b.textContent = T("Ghi chú · ");
       n.appendChild(b);
       n.appendChild(document.createTextNode(dl.note));
       hostEl.appendChild(n);
@@ -397,7 +397,7 @@ async function renderWord(res) {
   resEl.innerHTML = "";
   lastEntry = entries[0] || null;
   if (!entries.length) {
-    trangThai(resEl, "warning-circle", "Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại.");
+    trangThai(resEl, "warning-circle", T("Không tìm thấy nghĩa. Kiểm tra chính tả hoặc mạng rồi thử lại."));
     tabDetailEl.disabled = true;
     return;
   }
@@ -449,7 +449,7 @@ function renderDetail() {
   detailEl.innerHTML = "";
   const en = lastEntry;
   if (!en || (!(en.pos && en.pos.length) && !en.reading)) {
-    trangThai(detailEl, "article", "Không có chi tiết cho từ này."); return;
+    trangThai(detailEl, "article", T("Không có chi tiết cho từ này.")); return;
   }
   detailEl.className = "detail";
   if (en.reading) {
@@ -464,8 +464,8 @@ function renderDetail() {
     if (legend.length) {
       const box = document.createElement("div"); box.className = "legend";
       const lh = document.createElement("div"); lh.className = "lh";
-      const t = document.createElement("span"); t.textContent = "Cách đọc các ký hiệu:"; lh.appendChild(t);
-      const a = document.createElement("a"); a.href = "#"; a.textContent = "Xem đầy đủ";
+      const t = document.createElement("span"); t.textContent = T("Cách đọc các ký hiệu:"); lh.appendChild(t);
+      const a = document.createElement("a"); a.href = "#"; a.textContent = T("Xem đầy đủ");
       a.addEventListener("click", (e) => { e.preventDefault(); openGuide(); });
       lh.appendChild(a);
       box.appendChild(lh);
@@ -532,7 +532,7 @@ async function getNotebook() { return (await chrome.storage.local.get("notebook"
 async function renderKanji(chars) {
   kanjiEl.innerHTML = "";
   if (!chars.length) {
-    trangThai(kanjiEl, "text-aa", "Đoạn này không có chữ Hán nào.");
+    trangThai(kanjiEl, "text-aa", T("Đoạn này không có chữ Hán nào."));
     return;
   }
   kanjiEl.className = "";
@@ -583,7 +583,7 @@ async function renderKanji(chars) {
         } else {
           const m = document.createElement("div");
           m.className = "kmeta";
-          m.textContent = "Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào.";
+          m.textContent = T("Chưa có nghĩa cho chữ này — bấm Sửa để tự viết vào.");
           el.appendChild(m);
         }
       },
@@ -597,16 +597,16 @@ async function renderKanji(chars) {
 let lastTranslated = "";
 function doTranslate(raw) {
   const text = (raw || "").trim();
-  if (!text) { trangThai(transEl, "translate", "Nhập hoặc dán đoạn cần dịch."); return; }
+  if (!text) { trangThai(transEl, "translate", T("Nhập hoặc dán đoạn cần dịch.")); return; }
   const dir = dirEl.value;
   const from = dir === "auto" ? "auto" : (dir === "vien" ? "vi" : "en");
   const to = dir === "auto" ? "" : (dir === "vien" ? "en" : "vi");
   const tkey = dir + ":" + text;
   if (lastTranslated === tkey && transEl.querySelector(".tr")) return;
-  trangThai(transEl, "spinner-gap", "Đang dịch…");
+  trangThai(transEl, "spinner-gap", T("Đang dịch…"));
   chrome.runtime.sendMessage({ type: "TRANSLATE", text, from, to }, (res) => {
-    if (chrome.runtime.lastError) { trangThai(transEl, "warning-circle", "Lỗi: " + chrome.runtime.lastError.message); return; }
-    if (!res || !res.ok) { trangThai(transEl, "warning-circle", (res && res.error) || "Không dịch được."); return; }
+    if (chrome.runtime.lastError) { trangThai(transEl, "warning-circle", T2("Lỗi: {loi}", { loi: chrome.runtime.lastError.message })); return; }
+    if (!res || !res.ok) { trangThai(transEl, "warning-circle", (res && res.error) || T("Không dịch được.")); return; }
     lastTranslated = tkey;
     transEl.className = "trbox";
     transEl.innerHTML = "";
@@ -626,7 +626,7 @@ function doTranslate(raw) {
       // Bản dịch chính LÀ phần sửa được, nên phần đầu thẻ chỉ có nút nghe.
       dau: (el) => {
         const spk = nutLoa(engText, null);
-        spk.title = NGU === "ja" ? "Nghe câu tiếng Nhật" : "Nghe câu tiếng Anh";
+        spk.title = NGU === "ja" ? T("Nghe câu tiếng Nhật") : T("Nghe câu tiếng Anh");
         el.appendChild(spk);
       },
       veNghia: (el, dl) => {
@@ -662,11 +662,11 @@ async function run(word) {
     const chars = extractKanji(w);
     renderKanji(chars);
     const lb = tabKanjiEl.querySelector(".lb");
-    if (lb) lb.textContent = "Hán tự" + (chars.length ? " " + chars.length : "");
+    if (lb) lb.textContent = T("Hán tự") + (chars.length ? " " + chars.length : "");   // số chữ không cần dịch
   }
 
   if (!w) {
-    trangThai(resEl, "magnifying-glass", "Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên.");
+    trangThai(resEl, "magnifying-glass", T("Bôi đen một từ rồi mở lại, hoặc gõ vào ô trên."));
     tabDetailEl.disabled = true;
     switchTab("word");
     return;
@@ -680,7 +680,7 @@ async function run(word) {
   if (w.length > 40) {
     lastEntry = null;
     tabDetailEl.disabled = true;
-    trangThai(resEl, "article", "Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra.");
+    trangThai(resEl, "article", T("Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra."));
     return;
   }
   trangThai(resEl, "spinner-gap", "Đang tra “" + w + "”…");
