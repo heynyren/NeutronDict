@@ -32,6 +32,11 @@
       if (it.mOrig) t.mOrig = it.mOrig.slice();
     }
     if (it.note) t.note = it.note;
+    // Và giữ cả NGUỒN. Đường link — nhất là "phút thứ 3:47 của video này" — là thứ
+    // không bao giờ tìm lại được: bản dịch máy thì gọi lúc nào cũng có, còn cái
+    // video mình nghe được từ đó thì không. Xoá vì đã thuộc, vài tháng sau quên
+    // mà lưu lại, đáng ra phải nghe lại được đúng chỗ cũ.
+    if (it.src && it.src.url) t.src = it.src;
     return t;
   }
 
@@ -43,6 +48,7 @@
    *   - `saved`  mục HIỆN CÓ trong sổ tay hay không (bia mộ thì không).
    *   - `mEdit`, `means`  bản nghĩa bạn đã tự sửa.
    *   - `note`   ghi chú của bạn.
+   *   - `src`    nguồn (trang / phút video) đã lưu từ đó.
    *
    * Tách `saved` khỏi việc "có dữ liệu của bạn" là chỗ mấu chốt: một mục đã xoá
    * vẫn đưa được bản dịch của bạn ra dùng, chỉ là nút vẫn phải hiện "Lưu" chứ
@@ -54,7 +60,8 @@
     if (en.note) o.note = en.note;
     if (en.mEdit) { o.mEdit = 1; o.means = (en.means || []).slice(); }
     if (en.mOrig) o.mOrig = en.mOrig.slice();
-    if (!o.saved && !o.note && !o.mEdit) return null;   // bia mộ trơn — coi như chưa có gì
+    if (en.src && en.src.url) o.src = en.src;
+    if (!o.saved && !o.note && !o.mEdit && !o.src) return null;   // bia mộ trơn — coi như chưa có gì
     return o;
   }
 
@@ -73,6 +80,9 @@
       ne.means = (cu.means || []).slice();
       if (cu.mOrig) ne.mOrig = cu.mOrig.slice();
     }
+    // Nguồn cũ chỉ dùng khi lượt lưu này KHÔNG có nguồn nào. Tra lại từ một
+    // trang khác thì nguồn mới mới là chỗ mình vừa gặp lại nó.
+    if (cu.src && cu.src.url && !(ne.src && ne.src.url)) ne.src = cu.src;
     return ne;
   }
 

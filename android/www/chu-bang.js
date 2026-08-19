@@ -560,6 +560,17 @@
     "Đoạn này không có chữ Hán nào.":
       "There are no kanji in this text.",
 
+    /* --- nguồn / đường link --- */
+    "Nguồn của mục này": "Source of this entry",
+    "Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.":
+      "Paste the address of the page or video where you met this word, so you can find the context again later.",
+    "Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.":
+      "Points at {t} in the video. Changing the link drops that timestamp.",
+    "Đã lưu từ đoạn: “{doan}”": "Saved from: “{doan}”",
+    "Nguồn": "Source",
+    "— trang hoặc video đã gặp từ này": "— the page or video you met it in",
+    "https://… (để trống = bỏ link)": "https://… (leave empty to remove the link)",
+
     /* --- về tác giả --- */
     "Ra đời bởi": "Made by",
     "NeutronDict · Về tác giả": "NeutronDict · About the author",
@@ -1120,6 +1131,17 @@
       "1 語として調べるには長すぎます——「翻訳」タブを見るか、語だけを入力してください。",
     "Đoạn này không có chữ Hán nào.":
       "この文章に漢字はありません。",
+
+    /* --- nguồn / đường link --- */
+    "Nguồn của mục này": "この項目の出典",
+    "Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.":
+      "この語に出会ったページや動画のアドレスを貼っておくと、あとで文脈をたどれます。",
+    "Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.":
+      "動画の {t} を指しています。リンクを変えるとこの時間は消えます。",
+    "Đã lưu từ đoạn: “{doan}”": "保存元の文：「{doan}」",
+    "Nguồn": "出典",
+    "— trang hoặc video đã gặp từ này": "— 出会ったページまたは動画",
+    "https://… (để trống = bỏ link)": "https://…（空にするとリンクを削除）",
 
     /* --- về tác giả --- */
     "Ra đời bởi": "制作",

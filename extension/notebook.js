@@ -570,10 +570,14 @@ function moSua(it, tab) {
   veAnhSua();
   $("edAnhLoi").textContent = "";
 
+  const laLink = tab === "link";
   const laGhiChu = tab === "note";
-  $("edTitle").textContent = laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
-  $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
-  $("edSub").textContent = laGhiChu
+  $("edTitle").textContent = laLink ? T("Nguồn của mục này")
+    : laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
+  $("edIcon").innerHTML = window.Icon(laLink ? "link-simple" : laGhiChu ? "note-pencil" : "translate", { size: 20 });
+  $("edSub").textContent = laLink
+    ? T("Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.")
+    : laGhiChu
     ? T("Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.")
     : T("Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.");
 
@@ -581,13 +585,22 @@ function moSua(it, tab) {
   $("edTrans").value = (it.means || []).join("\n");
   $("edNote").value = it.note || "";
 
+  // Đường link: cho SỬA TAY được, vì không phải lượt lưu nào cũng có nguồn đi
+  // kèm (tra từ ô gõ, hay trang mà trình duyệt không cho đọc địa chỉ), mà một
+  // mục không có link thì sau này chẳng biết mình gặp nó ở đâu.
+  const sc = it.src || {};
+  $("edLink").value = sc.url || "";
+  $("edLinkHint").textContent = (sc.yt && sc.yt.v)
+    ? T2("Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.", { t: giay(sc.yt.t) })
+    : (sc.sel ? T2("Đã lưu từ đoạn: “{doan}”", { doan: sc.sel.slice(0, 60) }) : "");
+
   // Nhắc bản gốc của máy, và cho đường quay về nếu đã từng sửa.
   const goc = it.mOrig && it.mOrig.length ? it.mOrig.join("; ") : "";
   $("edOrigHint").textContent = goc ? T2("Bản máy dịch ban đầu: {ban}", { ban: goc }) : "";
   $("edRestore").style.display = goc ? "" : "none";
 
   $("editSheet").classList.add("show");
-  setTimeout(() => $(laGhiChu ? "edNote" : "edTrans").focus(), 40);
+  setTimeout(() => $(laLink ? "edLink" : laGhiChu ? "edNote" : "edTrans").focus(), 40);
 }
 
 function dongSua() {
@@ -600,6 +613,8 @@ async function luuSua() {
   const key = dangSua.key;
   const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
   const ghiChu = $("edNote").value.trim();
+  let link = $("edLink").value.trim();
+  if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;   // dán thiếu https:// thì tự thêm
 
   const doiNghia = await capNhat((nb) => {
     const e = nb[key];
@@ -616,6 +631,15 @@ async function luuSua() {
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
     if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
+    // Link: giữ nguyên mốc phút và đoạn đã tô nếu địa chỉ không đổi; đổi địa chỉ
+    // thì hai thứ kia không còn đúng nữa nên bỏ đi, chứ không mang sang link mới.
+    const scCu = e.src || {};
+    if (!link) delete ne.src;
+    else if (link !== scCu.url) {
+      let ten = link;
+      try { ten = new URL(link).hostname.replace(/^www\./, ""); } catch (e2) {}
+      ne.src = { url: link, title: ten, sel: scCu.sel || e.word || "" };
+    }
     nb[key] = ne;
     return doi;
   });
@@ -931,14 +955,19 @@ function draw() {
     gc.addEventListener("click", () => moSua(it, "note"));
     hang.appendChild(gc);
 
-    if (it.src && it.src.url) {
-      // Nguồn video thì việc sắp làm không phải "mở trang" mà là "nghe lại đúng
-      // chỗ đó" — nói đúng việc thì đỡ phải đoán.
-      const laYt = !!(it.src.yt && it.src.yt.v);
+    // Nút nguồn hiện CẢ KHI mục chưa có link: bấm vào là thêm được. Trước đây nút
+    // này biến mất khi không có nguồn, nên một mục lỡ lưu thiếu link thì trong sổ
+    // tay không còn đường nào chữa lại.
+    {
+      const laYt = !!(it.src && it.src.yt && it.src.yt.v);
+      const coLink = !!(it.src && it.src.url);
       const open = nutIcon(laYt ? "subtitles" : "link-simple",
         laYt ? T2("Nghe lại đúng chỗ này trong video ({t})", { t: giay(it.src.yt.t) })
-             : T("Mở lại trang nguồn và tô sáng vị trí đã lưu"), "", 17);
-      open.addEventListener("click", () => openSource(it));
+             : coLink ? T("Mở lại trang nguồn và tô sáng vị trí đã lưu")
+             : T("Thêm link nguồn"), coLink ? "" : "faint", 17);
+      open.addEventListener("click", () => { if (coLink) openSource(it); else moSua(it, "link"); });
+      // Chuột phải vào nút = sửa/bỏ link, khỏi phải mở hộp sửa rồi mò xuống dưới.
+      open.addEventListener("contextmenu", (ev) => { ev.preventDefault(); moSua(it, "link"); });
       hang.appendChild(open);
     }
 

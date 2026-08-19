@@ -707,6 +707,10 @@ async function saveWord(entry, dict) {
   // độ ôn hay sổ con — bạn xoá nó vì đã thuộc, không phải vì viết nhầm.
   if (old && old.del) {
     if (e.note == null && old.note) e.note = old.note;
+    // Kể cả đường link: lượt lưu này thường không có nguồn nào (gõ vào ô tra chứ
+    // không phải bôi đen trên trang), mà cái link cũ — nhất là mốc phút video —
+    // thì không tìm lại được nữa. Xem muc.js.
+    if (!(e.src && e.src.url) && old.src && old.src.url) e.src = old.src;
     if (!entry.mEdit && old.mEdit) {
       e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig;
     }
