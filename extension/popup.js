@@ -96,6 +96,15 @@ function nutLoa(text, audio, size) {
  * Nhét con số chuỗi ngày vào đây nghĩa là bạn thấy nó vài chục lần một ngày mà
  * không phải mở app, đó chính là lúc nó có tác dụng nhắc.
  */
+/**
+ * Ngôn ngữ giao diện, đặt bên màn Sổ tay. Popup chỉ đọc theo, không có chỗ đổi:
+ * nó là cửa sổ bật ra vài giây, nhét thêm một ô chọn nữa vào đó chỉ tổ chật.
+ */
+async function napChu() {
+  const { settings } = await chrome.storage.local.get("settings");
+  window.Chu.dat(window.Chu.hopLe((settings || {}).chu));
+}
+
 async function veChuoiNgay() {
   try {
     const { hoc } = await chrome.storage.local.get("hoc");
@@ -274,10 +283,10 @@ function oSuaNhanh(dl, luu, huy) {
   const row = document.createElement("div"); row.className = "edrow";
   const bLuu = document.createElement("button");
   bLuu.type = "button"; bLuu.className = "btn xs primary";
-  bLuu.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb">Lưu</span>';
+  bLuu.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb" data-chu>Lưu</span>';
   const bHuy = document.createElement("button");
   bHuy.type = "button"; bHuy.className = "btn xs";
-  bHuy.innerHTML = '<span class="lb">Huỷ</span>';
+  bHuy.innerHTML = '<span class="lb" data-chu>Huỷ</span>';
   bLuu.addEventListener("click", () => {
     bLuu.disabled = true;
     luu({
@@ -309,12 +318,12 @@ function theSuaDuoc(hostEl, ct) {
     sv.type = "button"; sv.className = "btn xs save";
     const danhDau = () => {
       sv.classList.add("saved");
-      sv.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb">Đã lưu</span>';
+      sv.innerHTML = window.Icon("check", { size: 15 }) + '<span class="lb" data-chu>Đã lưu</span>';
       sv.disabled = true;
     };
     if (dl.saved) danhDau();
     else {
-      sv.innerHTML = window.Icon("plus", { size: 15 }) + '<span class="lb">Lưu</span>';
+      sv.innerHTML = window.Icon("plus", { size: 15 }) + '<span class="lb" data-chu>Lưu</span>';
       sv.addEventListener("click", () => {
         sv.disabled = true;
         ct.gui({ means: dl.means, note: dl.note }, false, (kq) => {
@@ -327,7 +336,7 @@ function theSuaDuoc(hostEl, ct) {
     const ed = document.createElement("button");
     ed.type = "button"; ed.className = "btn xs";
     ed.title = "Sửa nghĩa & ghi chú";
-    ed.innerHTML = window.Icon("pencil-simple", { size: 15 }) + '<span class="lb">Sửa</span>';
+    ed.innerHTML = window.Icon("pencil-simple", { size: 15 }) + '<span class="lb" data-chu>Sửa</span>';
     ed.addEventListener("click", moSua);
     acts.appendChild(ed);
     return acts;
@@ -699,14 +708,18 @@ function openGuide() { chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guid
 document.getElementById("ipaGuide").addEventListener("click", openGuide);
 
 /** Gắn icon vào khung tĩnh của HTML. */
+/*
+ * gaiIcon() dựng lại nội dung mấy cái nút bằng innerHTML, xoá luôn phần đánh
+ * dấu data-chu viết sẵn trong HTML. Nên nhãn do nó tạo ra phải tự mang dấu.
+ */
 function gaiIcon() {
   document.getElementById("brandMark").innerHTML = window.Icon("translate", { size: 17, weight: "solid" });
-  goEl.innerHTML = window.Icon("magnifying-glass", { size: 15 }) + '<span class="lb">Tra</span>';
-  bookEl.innerHTML = window.Icon("notebook", { size: 16 }) + '<span class="lb">Sổ tay &amp; tiến độ</span>';
+  goEl.innerHTML = window.Icon("magnifying-glass", { size: 15 }) + '<span class="lb" data-chu>Tra</span>';
+  bookEl.innerHTML = window.Icon("notebook", { size: 16 }) + '<span class="lb" data-chu>Sổ tay &amp; tiến độ</span>';
   document.getElementById("ipaGuide").innerHTML =
-    window.Icon("text-aa", { size: 16 }) + '<span class="lb">Hướng dẫn IPA</span>';
+    window.Icon("text-aa", { size: 16 }) + '<span class="lb" data-chu>Hướng dẫn IPA</span>';
   const gan = (el, ten, chu) => {
-    el.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb">' + chu + "</span>";
+    el.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb" data-chu>' + chu + "</span>";
   };
   gan(tabWordEl, "book-open-text", "Từ vựng");
   gan(tabDetailEl, "article", "Chi tiết");
@@ -718,6 +731,7 @@ function gaiIcon() {
 // ---- Khởi động ----
 (async () => {
   gaiIcon();
+  await napChu();
   const { settings } = await chrome.storage.local.get("settings");
   NGU = window.Ngu.hopLe((settings || {}).ngu);
   veNgu();

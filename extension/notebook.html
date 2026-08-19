@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title>Sổ tay NeutronDict</title>
+  <title data-chu>Sổ tay NeutronDict</title>
   <link rel="stylesheet" href="ui.css">
   <style>
     /* ----------------------------------------------------------------------
@@ -93,36 +93,36 @@
   <div class="brand">
     <span class="mark" id="brandMark"></span>
     <div>
-      <div class="nm">Sổ tay NeutronDict</div>
-      <div class="sb" id="brandSub">Anh – Việt · sóng học tập</div>
+      <div class="nm" data-chu>Sổ tay NeutronDict</div>
+      <div class="sb" id="brandSub" data-chu>Anh – Việt · sóng học tập</div>
     </div>
   </div>
 
   <!-- Chuyển ngôn ngữ: đổi cả sổ tay, chỗ lưu lẫn cloud đang dùng. -->
   <div class="pagenav" id="nguNav">
-    <button id="nguEn" type="button">Anh – Việt</button>
-    <button id="nguJa" type="button">Nhật – Việt</button>
+    <button id="nguEn" type="button" data-chu>Anh – Việt</button>
+    <button id="nguJa" type="button" data-chu>Nhật – Việt</button>
   </div>
 
   <div class="pagenav">
-    <button id="pageList" class="active" type="button">Sổ tay</button>
-    <button id="pageProgress" type="button">Tiến độ</button>
+    <button id="pageList" class="active" type="button" data-chu>Sổ tay</button>
+    <button id="pageProgress" type="button" data-chu>Tiến độ</button>
   </div>
 
-  <button id="study" class="btn primary block lg" type="button">
+  <button id="study" class="btn primary block lg" type="button" data-chu>
     Học ngay <span id="dueCount" class="tag" style="background:rgba(255,255,255,.22);color:#fff">0</span>
   </button>
 
   <div class="searchfield">
-    <input id="filter" type="text" placeholder="Lọc theo từ, nghĩa hoặc ghi chú…" autocomplete="off">
+    <input id="filter" type="text" placeholder="Lọc theo từ, nghĩa hoặc ghi chú…" autocomplete="off" data-chu-ph>
   </div>
 
   <div class="sec">
-    <div class="eyebrow" id="ebDecks">Sổ con</div>
+    <div class="eyebrow" id="ebDecks" data-chu>Sổ con</div>
     <div id="deckBar" class="decklist"></div>
     <div id="deckActions" class="rowx" style="display:none;gap:6px">
-      <button id="renameDeck" class="btn sm grow" type="button">Đổi tên</button>
-      <button id="deleteDeck" class="btn sm danger grow" type="button">Xoá sổ</button>
+      <button id="renameDeck" class="btn sm grow" type="button" data-chu>Đổi tên</button>
+      <button id="deleteDeck" class="btn sm danger grow" type="button" data-chu>Xoá sổ</button>
     </div>
   </div>
 
@@ -130,15 +130,15 @@
     <summary><span id="icTool"></span> Xuất &amp; sao lưu <span class="caret" id="cr1"></span></summary>
     <div class="boxbody">
       <div class="rowx" style="gap:8px">
-        <button id="exAnki" class="btn sm grow" type="button">Anki (TSV)</button>
-        <button id="exCsv" class="btn sm grow" type="button">CSV</button>
+        <button id="exAnki" class="btn sm grow" type="button" data-chu>Anki (TSV)</button>
+        <button id="exCsv" class="btn sm grow" type="button" data-chu>CSV</button>
       </div>
       <div class="rowx" style="gap:8px">
-        <button id="backup" class="btn sm grow" type="button">Sao lưu .json</button>
-        <button id="restore" class="btn sm grow" type="button">Nạp .json</button>
+        <button id="backup" class="btn sm grow" type="button" data-chu>Sao lưu .json</button>
+        <button id="restore" class="btn sm grow" type="button" data-chu>Nạp .json</button>
       </div>
-      <button id="clear" class="btn sm danger block" type="button">Xoá hết mục đang hiện</button>
-      <button id="ipaGuide" class="btn sm block" type="button">Hướng dẫn đọc IPA</button>
+      <button id="clear" class="btn sm danger block" type="button" data-chu>Xoá hết mục đang hiện</button>
+      <button id="ipaGuide" class="btn sm block" type="button" data-chu>Hướng dẫn đọc IPA</button>
       <input id="restoreFile" type="file" accept=".json,application/json" hidden>
     </div>
   </details>
@@ -147,11 +147,11 @@
     <summary><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr2"></span></summary>
     <div class="boxbody">
       <div id="syncNhan" class="t-tiny faint" style="margin-bottom:6px"></div>
-    <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off">
-      <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt)" autocomplete="off">
+    <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off" data-chu-ph>
+      <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt)" autocomplete="off" data-chu-ph>
       <div class="rowx" style="gap:8px">
-        <button id="saveCfg" class="btn sm grow" type="button">Lưu cấu hình</button>
-        <button id="syncNow" class="btn sm primary grow" type="button">Đồng bộ ngay</button>
+        <button id="saveCfg" class="btn sm grow" type="button" data-chu>Lưu cấu hình</button>
+        <button id="syncNow" class="btn sm primary grow" type="button" data-chu>Đồng bộ ngay</button>
       </div>
       <span id="syncStatus" class="t-tiny faint"></span>
     </div>
@@ -160,26 +160,34 @@
   <details class="box" id="setBox">
     <summary><span id="icSet"></span> Cài đặt tra nhanh <span class="caret" id="cr3"></span></summary>
     <div class="boxbody">
+      <label class="field-label" for="chuNgu" data-chu>Ngôn ngữ giao diện</label>
+      <select id="chuNgu" style="width:100%">
+        <option value="vi">Tiếng Việt</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+      </select>
+      <span class="t-tiny faint" style="display:block;margin:4px 0 10px" data-chu>Chỉ đổi chữ trên màn hình. Ngôn ngữ tra từ đổi ở nút Anh – Việt / Nhật – Việt phía trên.</span>
+
       <label class="check">
         <input type="checkbox" id="setInline">
-        <span>Bôi đen là hiện popup ngay tại con trỏ (chỉ trên trang web, không áp dụng cho PDF)</span>
+        <span data-chu>Bôi đen là hiện popup ngay tại con trỏ (chỉ trên trang web, không áp dụng cho PDF)</span>
       </label>
       <label class="check">
         <input type="checkbox" id="setCtrl">
-        <span>Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)</span>
+        <span data-chu>Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)</span>
       </label>
       <label class="check">
         <input type="checkbox" id="setTrans">
-        <span>Hiện tab <b>Dịch</b> trong popup (dịch cả câu bằng Google Dịch)</span>
+        <span data-chu>Hiện tab <b data-chu>Dịch</b> trong popup (dịch cả câu bằng Google Dịch)</span>
       </label>
-      <label class="field-label" style="margin-top:4px">Bỏ qua tra từ điển khi bôi đen dài hơn</label>
+      <label class="field-label" style="margin-top:4px" data-chu>Bỏ qua tra từ điển khi bôi đen dài hơn</label>
       <div class="rowx" style="gap:8px">
         <input type="number" id="setLen" min="5" max="200" style="max-width:110px">
-        <span class="t-small muted">ký tự</span>
+        <span class="t-small muted" data-chu>ký tự</span>
       </div>
       <div class="rowx" style="gap:8px">
-        <button id="saveSet" class="btn sm grow" type="button">Lưu cài đặt</button>
-        <button id="clearCache" class="btn sm grow" type="button">Xoá bộ nhớ đệm</button>
+        <button id="saveSet" class="btn sm grow" type="button" data-chu>Lưu cài đặt</button>
+        <button id="clearCache" class="btn sm grow" type="button" data-chu>Xoá bộ nhớ đệm</button>
       </div>
       <span id="setStatus" class="t-tiny faint"></span>
       <span class="t-tiny faint">Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab —
@@ -188,7 +196,7 @@
     </div>
   </details>
 
-  <div class="credit">
+  <div class="credit" data-chu>
     Ra đời bởi <button id="creditBtn" type="button">Nyren Phạm <span class="hb">♥</span></button>
   </div>
 </aside>
@@ -207,7 +215,7 @@
 
     <section id="viewProgress" class="view">
       <div class="topbar">
-        <span class="t-title grow">Tiến độ học tập</span>
+        <span class="t-title grow" data-chu>Tiến độ học tập</span>
       </div>
       <div id="progressBody" class="stack"></div>
     </section>
@@ -217,9 +225,9 @@
 <!-- ====================== Buổi học ====================== -->
 <div id="studyOverlay">
   <div class="sttop">
-    <button id="stClose" class="btn sm ghost" type="button">Đóng</button>
+    <button id="stClose" class="btn sm ghost" type="button" data-chu>Đóng</button>
     <span id="stProg" class="t-small muted grow" style="text-align:center"></span>
-    <button id="stDel" class="btn sm ghost danger" type="button">Đã thuộc hẳn — xoá</button>
+    <button id="stDel" class="btn sm ghost danger" type="button" data-chu>Đã thuộc hẳn — xoá</button>
   </div>
   <div class="stwrap">
     <div class="stcol">
@@ -227,35 +235,35 @@
         <div class="studycard" id="stCard">
           <div class="rowx" style="justify-content:center;gap:6px">
             <span class="cw" id="stWord"></span>
-            <button class="iconbtn" id="stSpk" type="button" title="Phát âm"></button>
+            <button class="iconbtn" id="stSpk" type="button" title="Phát âm" data-chu-title></button>
           </div>
           <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px">
-            <button class="btn xs" id="stSrc" type="button" style="display:none">Mở nguồn</button>
-            <button class="btn xs" id="stEdit" type="button">Sửa bản dịch</button>
-            <button class="btn xs" id="stNote" type="button">Ghi chú</button>
+            <button class="btn xs" id="stSrc" type="button" style="display:none" data-chu>Mở nguồn</button>
+            <button class="btn xs" id="stEdit" type="button" data-chu>Sửa bản dịch</button>
+            <button class="btn xs" id="stNote" type="button" data-chu>Ghi chú</button>
           </div>
           <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
           <div class="cr" id="stRead"></div>
           <div class="cm" id="stMean"></div>
           <div id="stMyNote"></div>
-          <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px">Hiện nghĩa</button>
+          <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px" data-chu>Hiện nghĩa</button>
           <div class="grade" id="stGrade" style="display:none">
-            <button class="btn no" id="gForgot" type="button">Quên</button>
-            <button class="btn yes" id="gKnow" type="button">Nhớ</button>
+            <button class="btn no" id="gForgot" type="button" data-chu>Quên</button>
+            <button class="btn yes" id="gKnow" type="button" data-chu>Nhớ</button>
           </div>
         </div>
         <div class="rowx" style="justify-content:center;margin-top:12px;min-height:28px">
-          <span class="t-small muted" id="stUndo" style="display:none">
+          <span class="t-small muted" id="stUndo" style="display:none" data-chu>
             Đã xoá <b id="stUndoWord"></b>
-            <button id="stUndoBtn" class="btn xs ghost" type="button">Hoàn tác</button>
+            <button id="stUndoBtn" class="btn xs ghost" type="button" data-chu>Hoàn tác</button>
           </span>
         </div>
       </div>
       <div id="stDone" class="card" style="display:none;text-align:center;padding:34px 20px">
         <div id="stDoneIcon" style="color:var(--spark)"></div>
-        <div class="t-title" style="margin-top:10px">Xong buổi học!</div>
+        <div class="t-title" style="margin-top:10px" data-chu>Xong buổi học!</div>
         <div class="t-small muted" id="stSummary" style="margin-top:6px"></div>
-        <button class="btn primary lg" id="stDoneClose" type="button" style="margin-top:18px">Về sổ tay</button>
+        <button class="btn primary lg" id="stDoneClose" type="button" style="margin-top:18px" data-chu>Về sổ tay</button>
       </div>
     </div>
   </div>
@@ -264,45 +272,45 @@
 <!-- ====================== Sửa bản dịch / ghi chú ====================== -->
 <div id="editSheet" class="sheet">
   <div class="panel">
-    <h3><span id="edIcon"></span><span id="edTitle">Sửa bản dịch</span></h3>
-    <div class="sub" id="edSub">Chỉnh lại cho đúng cách nói của chuyên ngành bạn.</div>
+    <h3><span id="edIcon"></span><span id="edTitle" data-chu>Sửa bản dịch</span></h3>
+    <div class="sub" id="edSub" data-chu>Chỉnh lại cho đúng cách nói của chuyên ngành bạn.</div>
 
     <div id="edOrigWrap">
-      <label class="field-label">Nội dung gốc</label>
+      <label class="field-label" data-chu>Nội dung gốc</label>
       <div class="original" id="edOrig"></div>
     </div>
 
     <div id="edTransWrap">
-      <label class="field-label" for="edTrans">Bản dịch / nghĩa <span class="faint">— mỗi dòng một nghĩa</span></label>
-      <textarea id="edTrans" placeholder="Nhập nghĩa cho sát chuyên ngành…"></textarea>
+      <label class="field-label" for="edTrans" data-chu>Bản dịch / nghĩa <span class="faint" data-chu>— mỗi dòng một nghĩa</span></label>
+      <textarea id="edTrans" placeholder="Nhập nghĩa cho sát chuyên ngành…" data-chu-ph></textarea>
       <div class="t-tiny faint" style="margin-top:6px" id="edOrigHint"></div>
     </div>
 
     <div id="edNoteWrap" style="margin-top:14px">
-      <label class="field-label" for="edNote">Ghi chú riêng <span class="faint">— ngữ cảnh, thuật ngữ, cách dùng…</span></label>
-      <textarea id="edNote" placeholder="Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”."></textarea>
+      <label class="field-label" for="edNote" data-chu>Ghi chú riêng <span class="faint" data-chu>— ngữ cảnh, thuật ngữ, cách dùng…</span></label>
+      <textarea id="edNote" placeholder="Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”." data-chu-ph></textarea>
 
-      <label class="field-label" style="margin-top:12px">Ảnh đính kèm
-        <span class="faint">— chụp màn hình, hình vẽ, trang sách…</span></label>
+      <label class="field-label" style="margin-top:12px" data-chu>Ảnh đính kèm
+        <span class="faint" data-chu>— chụp màn hình, hình vẽ, trang sách…</span></label>
       <div class="anh-hang" id="edAnh"></div>
       <div class="rowx" style="gap:8px;margin-top:6px">
         <label class="btn sm" style="cursor:pointer">
-          <input type="file" id="edAnhFile" accept="image/*" multiple hidden>
+          <input type="file" id="edAnhFile" accept="image/*" multiple hidden data-chu>
           ＋ Thêm ảnh
         </label>
-        <span class="t-tiny faint">hoặc dán thẳng ảnh vào ô ghi chú</span>
+        <span class="t-tiny faint" data-chu>hoặc dán thẳng ảnh vào ô ghi chú</span>
       </div>
       <div class="t-tiny faint" id="edAnhLoi" style="margin-top:4px"></div>
-      <div class="t-tiny faint" style="margin-top:4px">
+      <div class="t-tiny faint" style="margin-top:4px" data-chu>
         Ảnh nằm trong máy này, không đẩy lên Drive — đồng bộ chỉ mang chữ đi.
       </div>
     </div>
 
     <div class="actions">
-      <button class="btn grow" id="edCancel" type="button">Huỷ</button>
-      <button class="btn primary grow" id="edSave" type="button">Lưu</button>
+      <button class="btn grow" id="edCancel" type="button" data-chu>Huỷ</button>
+      <button class="btn primary grow" id="edSave" type="button" data-chu>Lưu</button>
     </div>
-    <button class="btn ghost block sm" id="edRestore" type="button" style="margin-top:8px;display:none">
+    <button class="btn ghost block sm" id="edRestore" type="button" style="margin-top:8px;display:none" data-chu>
       Khôi phục bản dịch gốc
     </button>
   </div>
@@ -312,22 +320,24 @@
 <div id="aboutSheet" class="sheet">
   <div class="panel" style="max-width:430px">
     <h3><span id="abFlag"></span> NeutronDict · Về tác giả</h3>
-    <div class="sub">Một món quà nhỏ gửi tặng cộng đồng học tập</div>
+    <div class="sub" data-chu>Một món quà nhỏ gửi tặng cộng đồng học tập</div>
     <p class="t-body">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
       <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
       <b>nghiên cứu công nghệ</b>.</p>
     <p class="t-small muted">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
       một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
       &amp; tiếng Anh. Nếu nó giúp ích cho việc học của bạn, thì mình đã hạnh phúc rồi.</p>
-    <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px">“Cho đi là còn mãi.”</p>
+    <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px" data-chu>“Cho đi là còn mãi.”</p>
     <div class="actions">
-      <button class="btn primary block" id="abClose" type="button">Cảm ơn ♥</button>
+      <button class="btn primary block" id="abClose" type="button" data-chu>Cảm ơn ♥</button>
     </div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
+<script src="chu-bang.js"></script>
+<script src="chu.js"></script>
 <script src="anh.js"></script>
 <script src="ipa-guide.js"></script>
 <script src="icons.js"></script>

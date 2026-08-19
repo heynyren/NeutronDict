@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title>NeutronDict</title>
+  <title data-chu>NeutronDict</title>
   <link rel="stylesheet" href="ui.css">
   <style>
     /* Cửa sổ popup: hẹp và thấp, nên bố cục là ba tầng cố định — thanh tra ở
@@ -105,28 +105,28 @@
   <div class="top">
     <div class="brandrow">
       <span class="mark" id="brandMark"></span>
-      <span class="nm">NeutronDict</span>
+      <span class="nm" data-chu>NeutronDict</span>
       <span class="streak" id="streakChip" style="display:none"></span>
     </div>
     <div class="searchrow">
       <div class="searchfield">
-        <input id="q" type="text" placeholder="Nhập / dán từ cần tra…" autocomplete="off">
+        <input id="q" type="text" placeholder="Nhập / dán từ cần tra…" autocomplete="off" data-chu-ph>
       </div>
-      <button id="nguBtn" class="btn sm" type="button" title="Chuyển giữa Nhật–Việt và Anh–Việt"></button>
-      <select id="dir" title="Hướng tra"></select>
-      <button id="go" class="btn primary sm" type="button">Tra</button>
+      <button id="nguBtn" class="btn sm" type="button" title="Chuyển giữa Nhật–Việt và Anh–Việt" data-chu-title></button>
+      <select id="dir" title="Hướng tra" data-chu-title></select>
+      <button id="go" class="btn primary sm" type="button" data-chu>Tra</button>
     </div>
   </div>
 
   <div class="segmented" style="margin:10px 12px 0">
-    <button id="tabWord" class="active" type="button">Từ vựng</button>
-    <button id="tabDetail" type="button">Chi tiết</button>
-    <button id="tabKanji" type="button" style="display:none">Hán tự</button>
-    <button id="tabTrans" type="button">Dịch</button>
+    <button id="tabWord" class="active" type="button" data-chu>Từ vựng</button>
+    <button id="tabDetail" type="button" data-chu>Chi tiết</button>
+    <button id="tabKanji" type="button" style="display:none" data-chu>Hán tự</button>
+    <button id="tabTrans" type="button" data-chu>Dịch</button>
   </div>
 
   <div class="body">
-    <div id="result" class="state">Đang lấy từ đang chọn…</div>
+    <div id="result" class="state" data-chu>Đang lấy từ đang chọn…</div>
     <div id="detail" class="detail" style="display:none"></div>
     <div id="kanji" style="display:none"></div>
     <div id="trans" style="display:none"></div>
@@ -134,10 +134,12 @@
 
   <div class="foot rowx" style="gap:8px">
     <button id="book" class="btn grow" type="button">Sổ tay &amp; tiến độ</button>
-    <button id="ipaGuide" class="btn grow" type="button">Hướng dẫn IPA</button>
+    <button id="ipaGuide" class="btn grow" type="button" data-chu>Hướng dẫn IPA</button>
   </div>
 
-  <script src="ipa-guide.js"></script>
+  <script src="chu-bang.js"></script>
+<script src="chu.js"></script>
+<script src="ipa-guide.js"></script>
   <script src="icons.js"></script>
   <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>

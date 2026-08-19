@@ -1042,7 +1042,7 @@ function showCard(giuLat) {
   if (it.src && it.src.url) {
     const laYt = !!(it.src.yt && it.src.yt.v);
     src.innerHTML = window.Icon(laYt ? "subtitles" : "link-simple", { size: 15 })
-      + '<span class="lb">' + (laYt ? "Nghe lại " + giay(it.src.yt.t) : "Mở nguồn") + "</span>";
+      + '<span class="lb" data-chu>' + (laYt ? "Nghe lại " + giay(it.src.yt.t) : "Mở nguồn") + "</span>";
     src.style.display = ""; src.onclick = () => openSource(it);
   } else { src.style.display = "none"; src.onclick = null; }
 
@@ -1412,6 +1412,11 @@ $("pageProgress").addEventListener("click", () => moMan("progress"));
 /* Gắn icon vào phần khung tĩnh của HTML                                */
 /* ==================================================================== */
 
+/*
+ * gaiIcon() dựng lại nội dung mấy cái nút bằng innerHTML, xoá luôn phần đánh
+ * dấu data-chu viết sẵn trong HTML. Nên nhãn do nó tạo ra phải tự mang dấu:
+ * `<span class="lb" data-chu>`. Xem chu.js.
+ */
 function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
@@ -1419,13 +1424,13 @@ function gaiIcon() {
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
   ["cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
 
-  $("ebDecks").innerHTML = window.Icon("folder-simple", { size: 15 }) + "<span>Sổ con</span>";
-  $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb">Sổ tay</span>';
-  $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb">Tiến độ</span>';
+  $("ebDecks").innerHTML = window.Icon("folder-simple", { size: 15 }) + "<span data-chu>Sổ con</span>";
+  $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb" data-chu>Sổ tay</span>';
+  $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb" data-chu>Tiến độ</span>';
 
   const st = $("study");
   const den = st.querySelector(".tag");
-  st.innerHTML = window.Icon("graduation-cap", { size: 20 }) + '<span class="lb">Học ngay</span>';
+  st.innerHTML = window.Icon("graduation-cap", { size: 20 }) + '<span class="lb" data-chu>Học ngay</span>';
   st.appendChild(den);
 
   $("filter").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("filter"));
@@ -1433,7 +1438,7 @@ function gaiIcon() {
   $("stSpk").innerHTML = window.Icon("speaker-high", { size: 22 });
   const gan = (id, ten, chu) => {
     const b = $(id);
-    b.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb">' + chu + "</span>";
+    b.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb" data-chu>' + chu + "</span>";
   };
   gan("stSrc", "link-simple", "Mở nguồn");
   gan("stEdit", "translate", "Sửa bản dịch");
@@ -1512,6 +1517,31 @@ function vaFurigana() {
   } catch (e) { /* không vá được thì thôi, sổ vẫn dùng bình thường */ }
 }
 
+/* ==================================================================== */
+/* Ngôn ngữ giao diện                                                    */
+/* ==================================================================== */
+/*
+ * Khác hẳn nút Anh – Việt / Nhật – Việt: cái đó chọn TỪ ĐIỂN nào, còn cái này
+ * chỉ đổi chữ trên màn hình. Một người Nhật học tiếng Việt vẫn có thể để giao
+ * diện tiếng Nhật mà tra Việt–Anh.
+ */
+async function napChu() {
+  const { settings } = await chrome.storage.local.get("settings");
+  const c = window.Chu.hopLe((settings || {}).chu);
+  $("chuNgu").value = c;
+  window.Chu.dat(c);
+  return c;
+}
+$("chuNgu").addEventListener("change", async () => {
+  const c = window.Chu.hopLe($("chuNgu").value);
+  const { settings } = await chrome.storage.local.get("settings");
+  await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { chu: c }) });
+  window.Chu.dat(c);
+  // Những chỗ do JS dựng ra không nằm trong lượt quét DOM, phải vẽ lại.
+  veNgu();
+  await load();
+});
+
 /** Vẽ lại nút chuyển ngôn ngữ và mọi chỗ ăn theo nó. */
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
@@ -1545,6 +1575,7 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
 
 (async () => {
   gaiIcon();
+  await napChu();      // sau gaiIcon: nhãn do nó dựng ra mới có mặt để dịch
   const { settings } = await chrome.storage.local.get("settings");
   NGU = window.Ngu.hopLe((settings || {}).ngu);
   veNgu();
