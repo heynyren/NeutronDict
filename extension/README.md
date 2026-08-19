@@ -5,7 +5,11 @@ Bôi đen một từ **tiếng Anh** trên trang web hoặc PDF để tra ngay: 
 ## Tính năng
 
 - **Trên web:** bôi đen từ → popup hiện **ngay tại con trỏ** với nghĩa tiếng Việt, IPA, phát âm và định nghĩa Anh; bấm ra ngoài là tắt. Bật/tắt trong Sổ tay → ⚙ Cài đặt.
-- **Trên PDF:** bôi đen → `Ctrl + C` → phím tắt (`Ctrl+Shift+E`) → popup tự dán và hiện nghĩa.
+- **Phím tắt `Ctrl+Shift+Z`:** mở popup và TRA LUÔN từ đang bôi đen. Không bôi
+  đen được (PDF, trang chặn, hay chữ nằm ở app khác) thì bôi đen → `Ctrl + C`
+  → `Ctrl+Shift+Z`, popup tự dán và hiện nghĩa.
+  Nếu phím tắt không ăn thì có extension khác đang giữ nó — đổi lại ở
+  `chrome://extensions/shortcuts`.
 - **Chuột phải** → *Tra "…" bằng NeutronDict* — mở cửa sổ popup nhỏ, không nhảy tab.
 - Đổi hướng **Anh → Việt / Việt → Anh** ngay trong popup.
 - **Tab Chi tiết:** phiên âm IPA + **chú giải cách đọc từng ký hiệu IPA có trong từ**, các định nghĩa/ví dụ/từ đồng nghĩa tiếng Anh theo từng loại từ.
