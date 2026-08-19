@@ -113,8 +113,13 @@ jobs:
           tag_name: latest-debug
           name: NeutronDict — debug build
           body: |
-            Bản APK debug tự build từ commit mới nhất trên nhánh `main`.
+            Bản APK debug tự build từ `${{ github.ref_name }}`
+            (commit `${{ github.sha }}`).
+
             Tải file `NeutronDict-debug.apk` bên dưới, mở trên điện thoại và cho phép
             "Cài đặt từ nguồn không xác định" để cài.
+
+            Bản phát hành này bị ghi đè mỗi lần build, nên nó luôn là bản mới nhất —
+            và vì Releases nằm ở kho riêng, nó vẫn có kể cả lúc kho bản build đầy.
           prerelease: true
           files: android/NeutronDict-debug.apk
