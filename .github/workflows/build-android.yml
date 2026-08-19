@@ -69,13 +69,44 @@ jobs:
       - name: Rename APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk NeutronDict-debug.apk
 
-      - name: Upload APK artifact
+      # `continue-on-error` cố ý: kho bản build đầy là chuyện của CÁI KHO, không
+      # phải lỗi của mã nguồn. Không có nó thì hết chỗ là bước này đỏ, kéo cả
+      # luồng đỏ theo — nhìn vào chỉ thấy "build hỏng" trong khi APK đã đóng gói
+      # xong xuôi. Tệ hơn: bước đính vào Releases nằm SAU đây nên cũng không
+      # chạy, mất nốt đường lấy file duy nhất còn lại. Đó đúng là cảnh đã xảy ra.
+      #
+      # Kho GitHub tính lại dung lượng mỗi 6–12 tiếng, nên dọn xong vẫn còn kẹt
+      # một lúc; đừng để cái đó chặn build.
+      - id: tai_len
+        name: Upload APK artifact
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: NeutronDict-debug-apk
           path: android/NeutronDict-debug.apk
           if-no-files-found: error
+          # APK có 6 MB nhưng vẫn cắt hạn: bản cũ hơn 5 ngày thì đã có bản mới rồi.
+          retention-days: 5
 
+      - name: Báo khi kho đầy
+        if: steps.tai_len.outcome == 'failure'
+        run: |
+          {
+            echo "## 📦 APK đóng gói xong nhưng chưa tải lên được"
+            echo
+            echo "Kho bản build của tài khoản đã đầy. Bản thân APK **không sao** —"
+            echo "mã nguồn build sạch, chỉ là không có chỗ để cất file."
+            echo
+            echo "Tải ở mục **Releases** → \`latest-debug\`: Releases nằm ở kho"
+            echo "RIÊNG, không tính vào hạn mức 0,5 GB này, nên đường đó luôn còn."
+            echo
+            echo "Muốn lấy lại chỗ thì chạy luồng **Dọn kho bản build**. Lưu ý"
+            echo "GitHub tính lại dung lượng mỗi 6–12 tiếng, xoá xong vẫn phải chờ."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Đường lấy file CHẮC ĂN. Releases nằm ở kho riêng, không tính vào hạn mức
+      # 0,5 GB của kho bản build — nên kho bản build có đầy thì bước này vẫn chạy
+      # và vẫn có file để tải.
       - name: Publish to "latest-debug" release
         uses: softprops/action-gh-release@v2
         with:
