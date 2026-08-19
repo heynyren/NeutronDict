@@ -281,6 +281,21 @@
     <div id="edNoteWrap" style="margin-top:14px">
       <label class="field-label" for="edNote">Ghi chú riêng <span class="faint">— ngữ cảnh, thuật ngữ, cách dùng…</span></label>
       <textarea id="edNote" placeholder="Ví dụ: trong ngành điện, “breaker” dịch là “máy cắt”, không phải “cầu dao”."></textarea>
+
+      <label class="field-label" style="margin-top:12px">Ảnh đính kèm
+        <span class="faint">— chụp màn hình, hình vẽ, trang sách…</span></label>
+      <div class="anh-hang" id="edAnh"></div>
+      <div class="rowx" style="gap:8px;margin-top:6px">
+        <label class="btn sm" style="cursor:pointer">
+          <input type="file" id="edAnhFile" accept="image/*" multiple hidden>
+          ＋ Thêm ảnh
+        </label>
+        <span class="t-tiny faint">hoặc dán thẳng ảnh vào ô ghi chú</span>
+      </div>
+      <div class="t-tiny faint" id="edAnhLoi" style="margin-top:4px"></div>
+      <div class="t-tiny faint" style="margin-top:4px">
+        Ảnh nằm trong máy này, không đẩy lên Drive — đồng bộ chỉ mang chữ đi.
+      </div>
     </div>
 
     <div class="actions">
@@ -313,6 +328,7 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="anh.js"></script>
 <script src="ipa-guide.js"></script>
 <script src="icons.js"></script>
 <script src="kanji-data.js"></script>

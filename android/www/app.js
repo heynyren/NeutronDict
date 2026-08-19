@@ -236,6 +236,27 @@ async function setNB(nb) { await Store.set("notebook", nb); }
 async function getDecks() { return (await Store.get("decks")) || {}; }
 async function setDecks(d) { await Store.set("decks", d); }
 
+/** Bỏ bản mô tả ảnh khỏi bản sắp gửi lên Drive. Xem doSync. */
+function boAnh(nb) {
+  const ra = {};
+  for (const k in (nb || {})) {
+    const e = nb[k];
+    if (e && e.anh) { const b = Object.assign({}, e); delete b.anh; ra[k] = b; }
+    else ra[k] = e;
+  }
+  return ra;
+}
+/** Trả lại bản mô tả ảnh của máy này vào bản vừa trộn từ Drive. */
+function traAnh(dich, nguon) {
+  for (const k in (nguon || {})) {
+    const cu = nguon[k];
+    if (cu && cu.anh && cu.anh.length && dich[k] && !dich[k].anh) {
+      dich[k] = Object.assign({}, dich[k], { anh: cu.anh });
+    }
+  }
+  return dich;
+}
+
 function mergeByTs(a, b) {
   const out = {};
   [a || {}, b || {}].forEach((src) => {
@@ -657,6 +678,10 @@ async function doSync(rawNgu) {
   // lên thì lọc lại cho sạch.
   const remoteCuaToi = window.Ngu.locSo(remoteNb, ngu);
   const mergedNb = mergeByTs(window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
+  // Ảnh đính kèm KHÔNG đi lên Drive: byte nằm trong IndexedDB của từng máy, nên
+  // bản mô tả gửi lên chỉ là con trỏ trỏ vào ổ đĩa máy này — sang máy khác nó
+  // là con trỏ chết, hiện ra một ô ảnh trắng không ai giải thích được.
+  const guiDi = boAnh(mergedNb);
   // Sổ con cũng tách theo ngôn ngữ, đúng như hồi còn là hai app.
   const nbTatCa = await getNB();
   const mergedDecks = mergeByTs(
@@ -668,7 +693,7 @@ async function doSync(rawNgu) {
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
-    data: { notebook: mergedNb, decks: mergedDecks, hoc: mergedHoc }
+    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc }
   }, "text/plain;charset=utf-8");
   if (!save || save.ok === false) throw new Error((save && save.error) || "Lỗi khi lưu");
 
@@ -678,7 +703,9 @@ async function doSync(rawNgu) {
   let finalNb;
   await capNhat((nb) => {
     // mergeByTs là phép HỢP: phần của ngôn ngữ kia trong nb đi qua nguyên vẹn.
-    finalNb = mergeByTs(nb, mergeByTs(remoteNb, mergedNb));
+    // traAnh: bản trên Drive không mang `anh`, để nguyên thì mỗi lượt đồng bộ
+    // lại gỡ sạch ảnh của chính máy này.
+    finalNb = traAnh(mergeByTs(nb, mergeByTs(remoteNb, mergedNb)), nb);
     for (const k in nb) delete nb[k];
     Object.assign(nb, finalNb);
   });
@@ -688,7 +715,9 @@ async function doSync(rawNgu) {
   const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
   theoDoi.dat(finalHocNgu);
-  if (JSON.stringify(window.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNb) ||
+  // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác nhau
+  // và lượt đồng bộ này tự hẹn lượt sau, mãi mãi.
+  if (JSON.stringify(boAnh(window.Ngu.locSo(finalNb, ngu))) !== JSON.stringify(guiDi) ||
       JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) syncSoon();
 
   let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
@@ -1339,8 +1368,75 @@ let dangSua = null;
  * @param {Function} [veLai] gọi lại sau khi lưu — dùng khi mở từ thẻ kết quả
  *        tra, để thẻ đó hiện ngay bản vừa sửa thay vì phải tra lại.
  */
+/* ==================================================================== */
+/* Ảnh đính kèm                                                         */
+/* ==================================================================== */
+/*
+ * Byte ảnh nằm trong IndexedDB của máy này (xem anh.js); mục sổ tay chỉ mang
+ * bản mô tả nhẹ trong `anh`. Giống hệt bản extension — hai bên dùng chung một
+ * sổ, nên phải cùng một luật.
+ */
+
+/** Danh sách ảnh đang sửa trong bảng Sửa. Chốt lại vào mục khi bấm Lưu. */
+let anhSua = [];
+
+/** Một ô ảnh: bấm vào là mở to, bấm dấu × là gỡ. */
+function oAnh(f, choGo) {
+  const o = el("button", "anh-o");
+  o.type = "button";
+  o.title = f.ten + " · " + window.Anh.coChu(f.cd);
+  const img = document.createElement("img");
+  img.alt = f.ten;
+  o.appendChild(img);
+  window.Anh.url(f.id).then((u) => { if (u) img.src = u; });
+  o.addEventListener("click", () => {
+    window.Anh.url(f.id).then((u) => { if (u) window.open(u, "_blank", "noopener"); });
+  });
+  if (choGo) {
+    const x = el("button", "anh-xoa");
+    x.type = "button"; x.textContent = "✕"; x.title = "Gỡ ảnh này";
+    x.addEventListener("click", (e) => {
+      e.stopPropagation();
+      anhSua = anhSua.filter((a) => a.id !== f.id);
+      veAnhSua();
+    });
+    o.appendChild(x);
+  }
+  return o;
+}
+
+function veAnhSua() {
+  const hang = $("edAnh");
+  hang.innerHTML = "";
+  anhSua.forEach((f) => hang.appendChild(oAnh(f, true)));
+}
+
+async function themAnh(ds) {
+  const loi = $("edAnhLoi");
+  loi.textContent = "";
+  for (const f of Array.from(ds || [])) {
+    if (!window.Anh.laAnh(f.type)) { loi.textContent = "Chỉ nhận ảnh."; continue; }
+    try { anhSua.push(await window.Anh.luu(f)); }
+    catch (e) { loi.textContent = (e && e.message) || "Không lưu được ảnh."; }
+  }
+  veAnhSua();
+}
+
+$("edAnhFile").addEventListener("change", (e) => {
+  themAnh(e.target.files).then(() => { e.target.value = ""; });
+});
+$("edNote").addEventListener("paste", (e) => {
+  const tep = e.clipboardData && e.clipboardData.files;
+  if (!tep || !tep.length) return;
+  e.preventDefault();
+  themAnh(tep);
+});
+
 function moSua(it, tab, veLai) {
   dangSua = { key: it.key, veLai: veLai || null };
+  anhSua = (it.anh || []).slice();
+  veAnhSua();
+  $("edAnhLoi").textContent = "";
   const laGhiChu = tab === "note";
   $("edTitle").textContent = laGhiChu ? "Ghi chú cho mục này" : "Sửa bản dịch";
   $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
@@ -1379,6 +1475,7 @@ async function luuSua() {
       ne.mEdit = 1;
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
+    if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
     nb[key] = ne;
     return { doi, ne };
   });
@@ -1543,6 +1640,11 @@ async function drawNotebook() {
     }
   });
   if (daSuaCu) syncSoon();
+  // Thu lại URL của lượt vẽ trước rồi bỏ những blob không mục nào còn trỏ tới.
+  if (window.Anh) {
+    window.Anh.nhaUrl();
+    getNB().then((t) => window.Anh.quet(t)).catch(() => {});
+  }
   // Vá furigana cho những mục cũ còn thiếu cách đọc. Chạy nền, xong tới đâu vẽ
   // lại tới đó — mở sổ không phải chờ mạng.
   if (laNhat() && !dangVaFurigana) {
@@ -1675,6 +1777,11 @@ async function drawNotebook() {
     }
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
+    if (it.anh && it.anh.length) {
+      const hangAnh = el("div", "anh-hang");
+      it.anh.forEach((f) => hangAnh.appendChild(oAnh(f, false)));
+      body.appendChild(hangAnh);
+    }
 
     if (it.src && it.src.url) {
       const meta = el("div", "meta");
@@ -1940,6 +2047,11 @@ function revealCard() {
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
   $("stMyNote").innerHTML = "";
   if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
+  if (it.anh && it.anh.length) {
+    const hangAnh = el("div", "anh-hang");
+    it.anh.forEach((f) => hangAnh.appendChild(oAnh(f, false)));
+    $("stMyNote").appendChild(hangAnh);
+  }
   $("stReveal").style.display = "none";
   $("stGrade").style.display = "";
 }

@@ -843,6 +843,34 @@ async function driveRequest(body, ngu) {
   return data;
 }
 
+/*
+ * Ảnh đính kèm KHÔNG đi lên Drive.
+ *
+ * Byte ảnh nằm trong IndexedDB của từng máy (xem anh.js), nên bản mô tả `anh`
+ * gửi lên chỉ là một con trỏ trỏ vào ổ đĩa của máy này — sang máy khác nó là
+ * con trỏ chết, hiện ra một ô ảnh trắng không ai giải thích được. Bỏ nó khỏi
+ * gói gửi đi, và trả lại vào bản ghi xuống máy, để một lượt đồng bộ không bao
+ * giờ gỡ mất ảnh của chính mình.
+ */
+function boAnh(nb) {
+  const ra = {};
+  for (const k in (nb || {})) {
+    const e = nb[k];
+    if (e && e.anh) { const b = Object.assign({}, e); delete b.anh; ra[k] = b; }
+    else ra[k] = e;
+  }
+  return ra;
+}
+function traAnh(dich, nguon) {
+  for (const k in (nguon || {})) {
+    const cu = nguon[k];
+    if (cu && cu.anh && cu.anh.length && dich[k] && !dich[k].anh) {
+      dich[k] = Object.assign({}, dich[k], { anh: cu.anh });
+    }
+  }
+  return dich;
+}
+
 function mergeByTs(a, b) {
   const out = {};
   [a || {}, b || {}].forEach((src) => {
@@ -921,9 +949,10 @@ async function doSync(rawNgu) {
   // trên máy tính đều là lượt thật, không bên nào được xoá bên nào).
   const mergedHoc = self.TienDo.tron(hocTach[ngu], remoteHoc);
 
+  const guiDi = boAnh(mergedNgu);
   await driveRequest({
     action: "save",
-    data: { notebook: mergedNgu, decks: mergedDecks, hoc: mergedHoc }
+    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc }
   }, ngu);
 
   // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
@@ -931,14 +960,18 @@ async function doSync(rawNgu) {
   const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
   const freshHoc = self.Ngu.tachHoc(fresh.hoc);
   // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
-  const finalNb = mergeByTs(fresh.notebook || {}, mergeByTs(remoteNb, mergedNgu));
+  // traAnh: bản trên Drive không mang `anh`, nên nếu để nguyên thì mỗi lượt
+  // đồng bộ lại gỡ sạch ảnh của chính máy này.
+  const finalNb = traAnh(mergeByTs(fresh.notebook || {}, mergeByTs(remoteNb, mergedNgu)), fresh.notebook || {});
   const finalDecks = mergeByTs(fresh.decks || {}, mergedDecks);
   const finalHocNgu = self.TienDo.tron(freshHoc[ngu], mergedHoc);
   const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc });
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
-  if (JSON.stringify(self.Ngu.locSo(finalNb, ngu)) !== JSON.stringify(mergedNgu) ||
+  // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác
+  // nhau, và lượt đồng bộ này tự hẹn lượt sau, mãi mãi.
+  if (JSON.stringify(boAnh(self.Ngu.locSo(finalNb, ngu))) !== JSON.stringify(guiDi) ||
       JSON.stringify(self.Ngu.locSoCon(finalDecks, finalNb, ngu)) !== JSON.stringify(mergedDecks) ||
       JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) {
     scheduleSync(ngu);

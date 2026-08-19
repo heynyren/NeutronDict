@@ -272,6 +272,12 @@ async function load() {
   });
   if (daSuaCu) syncSoon();
   const s = await getStore();
+  // Thu lại URL của lượt vẽ trước rồi bỏ những blob không mục nào còn trỏ tới.
+  // Xoá một mục có ảnh mà không quét thì byte nằm lại trong IndexedDB mãi mãi.
+  if (window.Anh) {
+    window.Anh.nhaUrl();
+    window.Anh.quet(s.nb).catch(() => {});
+  }
   // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
   // lần cho xong — lần sau khỏi phải suy nữa.
   const gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
@@ -486,8 +492,83 @@ try { speechSynthesis.getVoices(); } catch (e) {}
  */
 let dangSua = null;   // { key, tab: "trans" | "note" }
 
+/* ==================================================================== */
+/* Ảnh đính kèm                                                         */
+/* ==================================================================== */
+/*
+ * Byte ảnh nằm trong IndexedDB của máy này (xem anh.js); mục sổ tay chỉ mang
+ * bản mô tả nhẹ trong `anh`. Nhét ảnh vào chính mục sổ tay là mỗi lượt đồng bộ
+ * đẩy cả đống byte đó lên Drive, tệp phình lên rất nhanh rồi hỏng hẳn.
+ */
+
+/** Danh sách ảnh đang sửa trong bảng Sửa. Chốt lại vào mục khi bấm Lưu. */
+let anhSua = [];
+
+/** Một ô ảnh: bấm vào là mở to, bấm dấu × là gỡ. */
+function oAnh(f, choGo) {
+  const o = document.createElement("button");
+  o.className = "anh-o"; o.type = "button";
+  o.title = f.ten + " · " + window.Anh.coChu(f.cd);
+  const img = document.createElement("img");
+  img.alt = f.ten;
+  o.appendChild(img);
+  // Byte nằm trong IndexedDB nên URL chỉ có sau một lượt đọc — gắn ảnh vào sau.
+  window.Anh.url(f.id).then((u) => { if (u) img.src = u; });
+  o.addEventListener("click", () => {
+    window.Anh.url(f.id).then((u) => { if (u) window.open(u, "_blank", "noopener"); });
+  });
+  if (choGo) {
+    const x = document.createElement("button");
+    x.className = "anh-xoa"; x.type = "button"; x.textContent = "✕";
+    x.title = "Gỡ ảnh này";
+    x.addEventListener("click", (e) => {
+      e.stopPropagation();
+      anhSua = anhSua.filter((a) => a.id !== f.id);
+      veAnhSua();
+    });
+    o.appendChild(x);
+  }
+  return o;
+}
+
+/** Vẽ lại hàng ảnh trong bảng Sửa. */
+function veAnhSua() {
+  const hang = $("edAnh");
+  hang.innerHTML = "";
+  anhSua.forEach((f) => hang.appendChild(oAnh(f, true)));
+}
+
+/** Nhận một mớ File/Blob vào danh sách ảnh đang sửa. */
+async function themAnh(ds) {
+  const loi = $("edAnhLoi");
+  loi.textContent = "";
+  for (const f of Array.from(ds || [])) {
+    if (!window.Anh.laAnh(f.type)) { loi.textContent = "Chỉ nhận ảnh."; continue; }
+    try {
+      anhSua.push(await window.Anh.luu(f));
+    } catch (e) {
+      loi.textContent = (e && e.message) || "Không lưu được ảnh.";
+    }
+  }
+  veAnhSua();
+}
+
+$("edAnhFile").addEventListener("change", (e) => {
+  themAnh(e.target.files).then(() => { e.target.value = ""; });
+});
+// Chụp màn hình xong Ctrl+V thẳng vào ô ghi chú là xong, khỏi qua hộp chọn tệp.
+$("edNote").addEventListener("paste", (e) => {
+  const tep = e.clipboardData && e.clipboardData.files;
+  if (!tep || !tep.length) return;          // dán chữ thì để trình duyệt lo
+  e.preventDefault();
+  themAnh(tep);
+});
+
 function moSua(it, tab) {
   dangSua = { key: it.key, tab: tab || "trans" };
+  anhSua = (it.anh || []).slice();
+  veAnhSua();
+  $("edAnhLoi").textContent = "";
 
   const laGhiChu = tab === "note";
   $("edTitle").textContent = laGhiChu ? "Ghi chú cho mục này" : "Sửa bản dịch";
@@ -534,6 +615,7 @@ async function luuSua() {
       ne.mEdit = 1;
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
+    if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
     nb[key] = ne;
     return doi;
   });
@@ -805,6 +887,11 @@ function draw() {
       body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
+    if (it.anh && it.anh.length) {
+      const hang = el("div", "anh-hang");
+      it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
+      body.appendChild(hang);
+    }
 
     /* --- dòng chân: nguồn + thời gian --- */
     const meta = el("div", "meta");
@@ -985,6 +1072,11 @@ function revealCard() {
   }
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
   if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
+  if (it.anh && it.anh.length) {
+    const hang = el("div", "anh-hang");
+    it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
+    $("stMyNote").appendChild(hang);
+  }
   $("stReveal").style.display = "none";
   $("stGrade").style.display = "";
 }
