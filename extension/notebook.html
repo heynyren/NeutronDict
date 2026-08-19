@@ -137,6 +137,15 @@
         <button id="backup" class="btn sm grow" type="button" data-chu>Sao lưu .json</button>
         <button id="restore" class="btn sm grow" type="button" data-chu>Nạp .json</button>
       </div>
+      <div class="rowx" style="gap:8px">
+        <button id="exChiaSe" class="btn sm grow" type="button" data-chu>Xuất để chia sẻ</button>
+        <button id="napChiaSe" class="btn sm grow" type="button" data-chu>Nạp bản chia sẻ</button>
+      </div>
+      <div class="t-tiny faint" style="margin-top:4px" data-chu>
+        Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel
+        được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.
+      </div>
+      <input id="napChiaSeFile" type="file" accept=".csv,text/csv" hidden>
       <button id="clear" class="btn sm danger block" type="button" data-chu>Xoá hết mục đang hiện</button>
       <button id="ipaGuide" class="btn sm block" type="button" data-chu>Hướng dẫn đọc IPA</button>
       <input id="restoreFile" type="file" accept=".json,application/json" hidden>
@@ -190,9 +199,14 @@
         <button id="clearCache" class="btn sm grow" type="button" data-chu>Xoá bộ nhớ đệm</button>
       </div>
       <span id="setStatus" class="t-tiny faint"></span>
-      <span class="t-tiny faint">Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab —
+      <span class="t-tiny faint" data-chu>Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab —
         chỉ đoạn dài hơn số trên mới bỏ qua phần từ điển, vì tra nguyên đoạn như một từ thì chắc chắn rỗng.
-        Tắt popup thì vẫn dùng được Ctrl+Shift+Z và chuột phải như cũ.</span>
+        Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.</span>
+
+      <div class="t-tiny" id="oPhimTat" style="margin-top:8px"></div>
+      <button id="doiPhimTat" class="btn sm block" type="button" style="margin-top:6px" data-chu>
+        Đổi phím tắt
+      </button>
     </div>
   </details>
 
@@ -304,6 +318,11 @@
       <div class="t-tiny faint" style="margin-top:4px" data-chu>
         Ảnh nằm trong máy này, không đẩy lên Drive — đồng bộ chỉ mang chữ đi.
       </div>
+
+      <label class="field-label" style="margin-top:12px" for="edLink" data-chu>Nguồn
+        <span class="faint" data-chu>— trang hoặc video đã gặp từ này</span></label>
+      <input type="text" id="edLink" placeholder="https://… (để trống = bỏ link)" data-chu-ph>
+      <div class="t-tiny faint" id="edLinkHint" style="margin-top:4px"></div>
     </div>
 
     <div class="actions">
@@ -344,6 +363,7 @@
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
+  <script src="kana.js"></script>
   <script src="muc.js"></script>
 <script src="tien-do.js"></script>
 <script src="notebook.js"></script>

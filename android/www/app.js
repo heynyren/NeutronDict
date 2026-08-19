@@ -281,12 +281,12 @@ function traAnh(dich, nguon) {
   return dich;
 }
 
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeByTs(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return window.Muc.tron(a, b);
 }
 
 // Nghĩa có thể bị lưu nhầm thành object (lỗi cũ) -> lấy lại phần chữ.
@@ -358,9 +358,34 @@ async function gradeWord(key, remembered) {
     let lv, due;
     if (remembered) { lv = Math.min(cur + 1, SRS_STEPS.length - 1); due = dueInDays(SRS_STEPS[lv]); }
     else { lv = -1; due = now; }
-    nb[key] = Object.assign({}, e, { srs: { lv, due }, ts: now });
+    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục. Xem Muc.gopSrs.
+    nb[key] = Object.assign({}, e, { srs: { lv, due, ts: now }, ts: now });
   });
 }
+/**
+ * Cấp của một mục, nói theo cách người học đọc được. Bên trong đếm từ -1, ra
+ * ngoài đếm từ 1 — "cấp 0" đọc lên chẳng ai biết là đã học hay chưa.
+ */
+function tenCap(srs) {
+  if (!srs || typeof srs.lv !== "number") return T("Chưa học");
+  if (srs.lv < 0) return T("Về lại đầu");
+  return T2("Cấp {n}", { n: srs.lv + 1 });
+}
+
+/** Bao giờ ôn lại: "đến hạn" / "mai" / "còn 5 ngày" / "còn ~3 tháng". */
+function khiNaoOn(due, now) {
+  if (!due || due <= now) return T("đến hạn");
+  const ngay = Math.ceil((due - now) / DAY);
+  if (ngay <= 1) return T("mai");
+  if (ngay < 30) return T2("còn {n} ngày", { n: ngay });
+  return T2("còn ~{n} tháng", { n: Math.round(ngay / 30) });
+}
+
+/** Một dòng gọn: "Cấp 3 · còn 5 ngày". */
+function chuCap(it, now) {
+  return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
+}
+
 function dueCountOn(list, dayOffset) {
   // Số mục đến hạn tính đến cuối ngày thứ dayOffset (0 = hôm nay).
   const end = new Date(); end.setHours(23, 59, 59, 999);
@@ -1178,6 +1203,7 @@ async function renderWord(entries) {
           if (old2.note) ne2.note = old2.note;
           if (old2.src && !ne2.src) ne2.src = old2.src;
           if (old2.audio && !ne2.audio) ne2.audio = old2.audio;
+          if (old2.ruby && !ne2.ruby) { ne2.ruby = old2.ruby; if (old2.docSuy) ne2.docSuy = 1; }
           if (old2.mEdit) { ne2.mEdit = 1; ne2.means = old2.means; ne2.mOrig = old2.mOrig; }
         }
         // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
@@ -1348,6 +1374,7 @@ async function showTranslate(text) {
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
+          if (oldS.ruby && !neS.ruby) { neS.ruby = oldS.ruby; if (oldS.docSuy) neS.docSuy = 1; }
           if (oldS.mEdit) { neS.mEdit = 1; neS.means = oldS.means; neS.mOrig = oldS.mOrig; }
         }
         // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
@@ -1661,6 +1688,12 @@ async function drawNotebook() {
         const nm = e.means.map(meanToStr);
         if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
       }
+      // Đóng dấu mốc cho tiến độ ôn của các mục cũ — xem ghi chú cùng chỗ này
+      // bên bản extension. KHÔNG đụng vào `e.ts`.
+      if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
+        e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
+        daSuaCu = true;
+      }
     }
   });
   if (daSuaCu) syncSoon();
@@ -1742,7 +1775,9 @@ async function drawNotebook() {
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) {
     rows = rows.filter((it) =>
-      (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ") + " " + (it.note || ""))
+      // Có cả furigana của câu: gõ かな tìm được câu, dù trong câu chỉ có chữ Hán.
+      (it.word + " " + (it.reading || "") + " " + ((it.ruby || []).join(" ")) + " "
+        + (it.means || []).join(" ") + " " + (it.note || ""))
         .toLowerCase().includes(kw));
   }
   $("nbCount").textContent = T2("Đang hiện {n} mục", { n: rows.length })
@@ -1766,7 +1801,14 @@ async function drawNotebook() {
     const body = el("div", "body");
 
     const head = el("div", "head");
-    head.appendChild(el("span", "w" + (laNhat() ? " ja" : ""), it.word));
+    // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
+    // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
+    const wSpan = el("span", "w" + (laNhat() ? " ja" : ""));
+    const rb = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+    if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
+    else wSpan.textContent = it.word;
+    if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
+    head.appendChild(wSpan);
     if (it.reading) {
       const r = el("span", "r", it.reading);
       // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
@@ -1785,10 +1827,12 @@ async function drawNotebook() {
       t.appendChild(el("span", null, T("đã sửa")));
       head.appendChild(t);
     }
-    if (isDue(it, now)) {
-      const t = el("span", "tag due");
-      t.appendChild(ic("alarm", { size: 12 }));
-      t.appendChild(el("span", null, T("đến hạn")));
+    // Cấp và hạn ôn đi cùng một chỗ — xem ghi chú cùng chỗ này bên bản extension.
+    {
+      const den = isDue(it, now);
+      const t = el("span", "tag srs" + (den ? " due" : ""));
+      t.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
+      t.appendChild(el("span", null, chuCap(it, now)));
       head.appendChild(t);
     }
     body.appendChild(head);
@@ -2058,6 +2102,10 @@ function revealCard() {
   if (!it) return;
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
+  // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
+  const rbS = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+  const oW = $("stWord");
+  if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
   $("stMean").innerHTML = "";
   if (it.dict === "kanji") {
     const km = window.HanTu.META(it.kanji);

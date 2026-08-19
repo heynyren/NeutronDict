@@ -560,6 +560,71 @@
     "Đoạn này không có chữ Hán nào.":
       "There are no kanji in this text.",
 
+/* --- sửa lời thoại --- */
+    "Câu này chép sai? Bấm để sửa lại":
+      "Transcript wrong here? Tap to fix it",
+    "Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc":
+      "You edited this line — tap to edit again or restore the original",
+    "Lưu câu đã sửa":
+      "Save the fix",
+    "Lấy lại bản gốc":
+      "Restore the original",
+    "Enter để lưu · Esc để huỷ":
+      "Enter to save · Esc to cancel",
+
+        /* --- bản chia sẻ --- */
+    "Xuất để chia sẻ":
+      "Export to share",
+    "Nạp bản chia sẻ":
+      "Load a shared file",
+    "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.":
+      "Exports the WHOLE notebook (both languages) with links and video timestamps, and opens in Excel. Loading one only ADDS new words — it never overwrites a meaning you edited yourself.",
+    "Chưa có mục nào để xuất":
+      "Nothing to export yet",
+    "Đã xuất {n} mục — gửi file này cho ai cũng nạp được":
+      "Exported {n} entries — send this file to anyone and they can load it",
+    "File không đọc được hoặc không có dòng nào":
+      "The file could not be read, or has no rows",
+    "File thiếu cột “Từ vựng”":
+      "The file has no “Từ vựng” column",
+    "Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.":
+      "Loaded: {them} new words added, {bs} existing words filled in, {bq} duplicates skipped.",
+
+    /* --- nguồn / đường link --- */
+    "Nguồn của mục này": "Source of this entry",
+    "Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.":
+      "Paste the address of the page or video where you met this word, so you can find the context again later.",
+    "Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.":
+      "Points at {t} in the video. Changing the link drops that timestamp.",
+    "Đã lưu từ đoạn: “{doan}”": "Saved from: “{doan}”",
+    "Nguồn": "Source",
+    "— trang hoặc video đã gặp từ này": "— the page or video you met it in",
+    "https://… (để trống = bỏ link)": "https://… (leave empty to remove the link)",
+
+    /* --- phím tắt & sóng ôn tập --- */
+    "Đổi phím tắt":
+      "Change the shortcut",
+    "Phím tắt tra nhanh: {phim}":
+      "Quick-lookup shortcut: {phim}",
+    "Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.":
+      "The quick-lookup shortcut is NOT set. Usually the key is one Chrome keeps for itself (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) or another extension took it — Chrome says nothing either way. Use the button below to set it again.",
+    "Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.":
+      "With the popup off, the keyboard shortcut and the right-click menu still work as before.",
+    "Chưa học":
+      "Not studied",
+    "Về lại đầu":
+      "Back to start",
+    "Cấp {n}":
+      "Level {n}",
+    "mai":
+      "tomorrow",
+    "còn {n} ngày":
+      "in {n} days",
+    "còn ~{n} tháng":
+      "in ~{n} months",
+    "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
+      "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
+
     /* --- về tác giả --- */
     "Ra đời bởi": "Made by",
     "NeutronDict · Về tác giả": "NeutronDict · About the author",
@@ -1120,6 +1185,71 @@
       "1 語として調べるには長すぎます——「翻訳」タブを見るか、語だけを入力してください。",
     "Đoạn này không có chữ Hán nào.":
       "この文章に漢字はありません。",
+
+/* --- sửa lời thoại --- */
+    "Câu này chép sai? Bấm để sửa lại":
+      "書き起こしが違いますか？押して直せます",
+    "Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc":
+      "この行は編集済みです——押すと再編集、または元に戻せます",
+    "Lưu câu đã sửa":
+      "修正を保存",
+    "Lấy lại bản gốc":
+      "元に戻す",
+    "Enter để lưu · Esc để huỷ":
+      "Enter で保存 · Esc で取消",
+
+        /* --- bản chia sẻ --- */
+    "Xuất để chia sẻ":
+      "共有用に書き出す",
+    "Nạp bản chia sẻ":
+      "共有ファイルを読み込む",
+    "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.":
+      "単語帳ぜんぶ（両言語）を書き出します。リンクと動画の時間も入り、Excel で開けます。読み込んでも新しい語を追加するだけで、自分で直した訳が上書きされることはありません。",
+    "Chưa có mục nào để xuất":
+      "書き出すものがまだありません",
+    "Đã xuất {n} mục — gửi file này cho ai cũng nạp được":
+      "{n} 件を書き出しました——このファイルを送れば誰でも読み込めます",
+    "File không đọc được hoặc không có dòng nào":
+      "ファイルを読み込めないか、行がありません",
+    "File thiếu cột “Từ vựng”":
+      "「Từ vựng」の列がありません",
+    "Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.":
+      "読み込み完了：新規 {them} 語、既存に補足 {bs} 語、重複のためスキップ {bq} 語。",
+
+    /* --- nguồn / đường link --- */
+    "Nguồn của mục này": "この項目の出典",
+    "Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.":
+      "この語に出会ったページや動画のアドレスを貼っておくと、あとで文脈をたどれます。",
+    "Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.":
+      "動画の {t} を指しています。リンクを変えるとこの時間は消えます。",
+    "Đã lưu từ đoạn: “{doan}”": "保存元の文：「{doan}」",
+    "Nguồn": "出典",
+    "— trang hoặc video đã gặp từ này": "— 出会ったページまたは動画",
+    "https://… (để trống = bỏ link)": "https://…（空にするとリンクを削除）",
+
+    /* --- phím tắt & sóng ôn tập --- */
+    "Đổi phím tắt":
+      "ショートカットを変更",
+    "Phím tắt tra nhanh: {phim}":
+      "クイック検索のショートカット：{phim}",
+    "Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.":
+      "クイック検索のショートカットが設定されていません。Chrome が予約しているキー（Ctrl+Shift+N、Ctrl+Shift+T、Ctrl+Shift+W）か、他の拡張機能に取られている場合がほとんどです——どちらも Chrome は何も知らせません。下のボタンから設定し直してください。",
+    "Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.":
+      "ポップアップを切っても、ショートカットと右クリックメニューはこれまでどおり使えます。",
+    "Chưa học":
+      "未学習",
+    "Về lại đầu":
+      "最初に戻る",
+    "Cấp {n}":
+      "レベル {n}",
+    "mai":
+      "明日",
+    "còn {n} ngày":
+      "あと {n} 日",
+    "còn ~{n} tháng":
+      "あと約 {n} か月",
+    "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
+      "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 
     /* --- về tác giả --- */
     "Ra đời bởi": "制作",

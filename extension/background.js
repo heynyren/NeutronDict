@@ -195,13 +195,26 @@ async function vaFurigana(toiDa) {
   let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
   const { notebook } = await chrome.storage.local.get("notebook");
   const nb = notebook || {};
-  const doi = {};
+  const doi = {}, doiRuby = {};
   for (const k of Object.keys(nb)) {
     const it = nb[k];
     if (!it || it.del) continue;
     if (it.dict !== "javi" && it.dict !== "vija") continue;
-    if (it.kind === "sent") continue;                 // cả câu thì furigana phải làm kiểu khác
     if (it.reading && !self.Kana.laRomaji(it.reading)) continue;   // đã có kana rồi
+
+    // Cả câu (và cụm quá dài để có MỘT dòng kana) đi đường khác: furigana đặt
+    // trên từng khúc chữ Hán. Những câu bạn đã lưu từ bảng lời thoại trước đây
+    // nằm ở đây — vá dần chúng qua các lượt mở, khỏi phải lưu lại từng câu.
+    const coHan = self.Kana.catKhuc(it.word).some((x) => x.han);
+    if (it.kind === "sent" || (coHan && !self.Kana.canDoc(it.word, ""))) {
+      if (!coHan) continue;                                         // toàn kana: chẳng có gì để đặt furigana lên
+      if (it.ruby && it.ruby.length) continue;                      // đã ghép rồi
+      if (conMang <= 0) continue;                                   // để dành cho lượt mở sau
+      const rb = await rubyCua(it.word);
+      conMang--;                                                    // trừ cả lượt hỏi hụt
+      if (rb.length) doiRuby[k] = rb;
+      continue;
+    }
 
     // Mục này có phải đi hỏi mạng không: chỉ khi trắng cách đọc và có chữ Hán.
     const phaiHoi = !it.reading && self.Kana.canDoc(it.word, "");
@@ -210,8 +223,8 @@ async function vaFurigana(toiDa) {
     if (phaiHoi) conMang--;                           // trừ cả lượt hỏi hụt, không thì kẹt mãi ở đây
     if (r && r.doc && r.doc !== it.reading) doi[k] = r;
   }
-  const keys = Object.keys(doi);
-  if (!keys.length) return 0;
+  const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
+  if (!keys.length && !keysRb.length) return 0;
 
   // Đọc lại ngay trước khi ghi: giữa lúc hỏi mạng có thể đã có lượt lưu khác.
   const moi = (await chrome.storage.local.get("notebook")).notebook || {};
@@ -221,8 +234,14 @@ async function vaFurigana(toiDa) {
     it.reading = doi[k].doc;
     if (doi[k].suy) it.docSuy = 1;
   }
+  for (const k of keysRb) {
+    const it = moi[k];
+    if (!it || it.del) continue;
+    it.ruby = doiRuby[k];
+    it.docSuy = 1;
+  }
   await chrome.storage.local.set({ notebook: moi });
-  return keys.length;
+  return keys.length + keysRb.length;
 }
 
 /** Ngôn ngữ đang bật. Một khoá duy nhất, mọi màn đều đọc từ đây. */
@@ -461,6 +480,49 @@ async function themDoc(entries, soDuocGoiMang) {
     if (r) { e.reading = r.doc; if (r.suy) e.docSuy = 1; else delete e.docSuy; }
   }
   return ds;
+}
+
+/**
+ * Furigana cho một CÂU, đặt trên từng khúc chữ Hán.
+ *
+ * Vì sao không dùng `docKana`: nó trả về MỘT dòng kana cho cả cụm, mà một dòng
+ * kana dài bằng cả câu thì đọc còn mệt hơn đọc chữ Hán. Cách đọc của câu phải
+ * nằm đúng trên chữ sinh ra nó. Xem kana.js: xin kana của cả câu rồi trừ đi
+ * phần kana đã có sẵn trong câu để suy ra phần của từng khúc chữ Hán.
+ *
+ * @returns {Promise<string[]>} cách đọc của các khúc chữ Hán, đúng thứ tự.
+ *   [] = canh không khớp; furigana đặt sai chỗ còn tệ hơn không có.
+ */
+const rubyDem = new Map();
+async function rubyCua(text) {
+  const w = (text || "").trim();
+  if (!w || !hasJapanese(w)) return [];
+  if (rubyDem.has(w)) return rubyDem.get(w);
+  let ra = [];
+  try {
+    const kana = self.Kana.tuRomajiCum(await romajiCua(w));
+    ra = kana ? self.Kana.gonRuby(self.Kana.ghepFurigana(w, kana)) : [];
+  } catch (e) { ra = []; }
+  if (rubyDem.size > 400) rubyDem.clear();
+  rubyDem.set(w, ra);
+  return ra;
+}
+
+/** Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ. Không đụng `ts`. */
+async function rubyVaSau(key, word) {
+  try {
+    const rb = await rubyCua(word);
+    if (!rb.length) return;
+    const { notebook } = await chrome.storage.local.get("notebook");
+    const nb = notebook || {};
+    const it = nb[key];
+    // Đọc lại ngay trước khi ghi: giữa lúc hỏi mạng có thể đã có lượt lưu khác,
+    // mà mục cũng có thể đã bị xoá.
+    if (!it || it.del || (it.ruby && it.ruby.length)) return;
+    it.ruby = rb;
+    it.docSuy = 1;
+    await chrome.storage.local.set({ notebook: nb });
+  } catch (e) { /* canh không được thì thôi */ }
 }
 
 /* ====================================================================== */
@@ -707,6 +769,10 @@ async function saveWord(entry, dict) {
   // độ ôn hay sổ con — bạn xoá nó vì đã thuộc, không phải vì viết nhầm.
   if (old && old.del) {
     if (e.note == null && old.note) e.note = old.note;
+    // Kể cả đường link: lượt lưu này thường không có nguồn nào (gõ vào ô tra chứ
+    // không phải bôi đen trên trang), mà cái link cũ — nhất là mốc phút video —
+    // thì không tìm lại được nữa. Xem muc.js.
+    if (!(e.src && e.src.url) && old.src && old.src.url) e.src = old.src;
     if (!entry.mEdit && old.mEdit) {
       e.mEdit = 1; e.means = old.means; if (old.mOrig) e.mOrig = old.mOrig;
     }
@@ -718,6 +784,7 @@ async function saveWord(entry, dict) {
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.kanji && !e.kanji) e.kanji = old.kanji;
+    if (old.ruby && !e.ruby) { e.ruby = old.ruby; if (old.docSuy) e.docSuy = 1; }
     if (old.fav) e.fav = old.fav;
     if (e.note == null && old.note) e.note = old.note;
     // Bản dịch bạn đã sửa tay thì KHÔNG được để máy dịch đè lên. Tra lại cùng
@@ -733,6 +800,15 @@ async function saveWord(entry, dict) {
   }
   nb[key] = e;
   await chrome.storage.local.set({ notebook: nb });
+  // Còn trắng cách đọc mà vẫn có chữ Hán, tức đây là một CÂU (hoặc một cụm dài)
+  // — thứ mà `docKana` cố tình không đụng tới, nên câu lời thoại YouTube lưu
+  // xong là chẳng có cách đọc nào. Ghép furigana theo từng khúc chữ Hán.
+  //
+  // Vá SAU khi đã ghi, và KHÔNG chờ: bấm Lưu thì phải lưu xong ngay. Bắt cả
+  // lượt lưu đứng chờ một lượt hỏi mạng chỉ để làm đẹp cách đọc là đổi một thứ
+  // chắc chắn lấy một thứ hên xui — mạng chậm thì nút treo, mạng hỏng thì mất
+  // luôn cảm giác "đã lưu".
+  if ((d === "javi" || d === "vija") && !e.reading && !e.ruby) rubyVaSau(key, e.word);
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
   if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));
@@ -871,12 +947,12 @@ function traAnh(dich, nguon) {
   return dich;
 }
 
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeByTs(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return self.Muc.tron(a, b);
 }
 function countActive(nb) { let n = 0; for (const k in nb) if (!nb[k].del) n++; return n; }
 

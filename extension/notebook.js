@@ -173,6 +173,32 @@ function dueList(scopeList) {
   const now = Date.now();
   return scopeList.filter((it) => isDue(it, now));
 }
+/**
+ * Cấp của một mục, nói theo cách người học đọc được.
+ *
+ * Bên trong đếm từ -1 (rơi về đầu) rồi 0..6. Ra ngoài thì đếm từ 1, vì "cấp 0"
+ * đọc lên chẳng ai biết là đã học hay chưa.
+ */
+function tenCap(srs) {
+  if (!srs || typeof srs.lv !== "number") return T("Chưa học");
+  if (srs.lv < 0) return T("Về lại đầu");
+  return T2("Cấp {n}", { n: srs.lv + 1 });
+}
+
+/** Bao giờ ôn lại: "đến hạn" / "mai" / "còn 5 ngày" / "còn ~3 tháng". */
+function khiNaoOn(due, now) {
+  if (!due || due <= now) return T("đến hạn");
+  const ngay = Math.ceil((due - now) / DAY);
+  if (ngay <= 1) return T("mai");
+  if (ngay < 30) return T2("còn {n} ngày", { n: ngay });
+  return T2("còn ~{n} tháng", { n: Math.round(ngay / 30) });
+}
+
+/** Một dòng gọn: "Cấp 3 · còn 5 ngày". */
+function chuCap(it, now) {
+  return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
+}
+
 async function gradeWord(key, remembered) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -187,7 +213,10 @@ async function gradeWord(key, remembered) {
       lv = -1;                 // rơi về đầu
       due = now;               // học lại ngay trong buổi
     }
-    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
+    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục — nhờ nó
+    // mà lúc gộp hai máy, một lượt sửa ghi chú không kéo tụt cấp đã chấm ở máy
+    // kia. Xem Muc.gopSrs.
+    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due, ts: now }, ts: now });
   });
 }
 
@@ -267,6 +296,17 @@ async function load() {
       if (e && Array.isArray(e.means)) {
         const nm = e.means.map(meanToStr);
         if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+      }
+      // Đóng dấu mốc cho tiến độ ôn của các mục cũ.
+      //
+      // Trước đây `srs` không có mốc riêng, nên lúc gộp hai máy nó phải mượn
+      // mốc của cả mục — mà mốc đó nhảy theo mọi lần sửa ghi chú. Đóng dấu ngay
+      // BÂY GIỜ, bằng mốc hiện có, thì từ lần sửa sau trở đi mốc chấm bài đứng
+      // yên và cấp đã chấm không bị kéo tụt nữa. KHÔNG đụng vào `e.ts` — đây là
+      // vá tại chỗ, không phải một lượt sửa, đừng để nó kéo cả sổ lên cloud.
+      if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
+        e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
+        daSuaCu = true;
       }
     }
   });
@@ -570,10 +610,14 @@ function moSua(it, tab) {
   veAnhSua();
   $("edAnhLoi").textContent = "";
 
+  const laLink = tab === "link";
   const laGhiChu = tab === "note";
-  $("edTitle").textContent = laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
-  $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
-  $("edSub").textContent = laGhiChu
+  $("edTitle").textContent = laLink ? T("Nguồn của mục này")
+    : laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
+  $("edIcon").innerHTML = window.Icon(laLink ? "link-simple" : laGhiChu ? "note-pencil" : "translate", { size: 20 });
+  $("edSub").textContent = laLink
+    ? T("Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.")
+    : laGhiChu
     ? T("Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.")
     : T("Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.");
 
@@ -581,13 +625,22 @@ function moSua(it, tab) {
   $("edTrans").value = (it.means || []).join("\n");
   $("edNote").value = it.note || "";
 
+  // Đường link: cho SỬA TAY được, vì không phải lượt lưu nào cũng có nguồn đi
+  // kèm (tra từ ô gõ, hay trang mà trình duyệt không cho đọc địa chỉ), mà một
+  // mục không có link thì sau này chẳng biết mình gặp nó ở đâu.
+  const sc = it.src || {};
+  $("edLink").value = sc.url || "";
+  $("edLinkHint").textContent = (sc.yt && sc.yt.v)
+    ? T2("Đang trỏ tới phút {t} của video. Sửa link sẽ mất mốc phút này.", { t: giay(sc.yt.t) })
+    : (sc.sel ? T2("Đã lưu từ đoạn: “{doan}”", { doan: sc.sel.slice(0, 60) }) : "");
+
   // Nhắc bản gốc của máy, và cho đường quay về nếu đã từng sửa.
   const goc = it.mOrig && it.mOrig.length ? it.mOrig.join("; ") : "";
   $("edOrigHint").textContent = goc ? T2("Bản máy dịch ban đầu: {ban}", { ban: goc }) : "";
   $("edRestore").style.display = goc ? "" : "none";
 
   $("editSheet").classList.add("show");
-  setTimeout(() => $(laGhiChu ? "edNote" : "edTrans").focus(), 40);
+  setTimeout(() => $(laLink ? "edLink" : laGhiChu ? "edNote" : "edTrans").focus(), 40);
 }
 
 function dongSua() {
@@ -600,6 +653,8 @@ async function luuSua() {
   const key = dangSua.key;
   const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
   const ghiChu = $("edNote").value.trim();
+  let link = $("edLink").value.trim();
+  if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;   // dán thiếu https:// thì tự thêm
 
   const doiNghia = await capNhat((nb) => {
     const e = nb[key];
@@ -616,6 +671,15 @@ async function luuSua() {
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
     if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
+    // Link: giữ nguyên mốc phút và đoạn đã tô nếu địa chỉ không đổi; đổi địa chỉ
+    // thì hai thứ kia không còn đúng nữa nên bỏ đi, chứ không mang sang link mới.
+    const scCu = e.src || {};
+    if (!link) delete ne.src;
+    else if (link !== scCu.url) {
+      let ten = link;
+      try { ten = new URL(link).hostname.replace(/^www\./, ""); } catch (e2) {}
+      ne.src = { url: link, title: ten, sel: scCu.sel || e.word || "" };
+    }
     nb[key] = ne;
     return doi;
   });
@@ -806,7 +870,9 @@ function draw() {
   const base = currentActiveSet();
   const rows = base.filter((it) => {
     if (!kw) return true;
-    const hay = (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ") + " " + (it.note || "")).toLowerCase();
+    // Có cả furigana của câu: gõ かな tìm được câu, dù trong câu chỉ có chữ Hán.
+    const hay = (it.word + " " + (it.reading || "") + " " + ((it.ruby || []).join(" ")) + " "
+      + (it.means || []).join(" ") + " " + (it.note || "")).toLowerCase();
     return hay.includes(kw);
   });
 
@@ -841,7 +907,14 @@ function draw() {
 
     /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
     const head = el("div", "head");
-    head.appendChild(el("span", "w" + (NGU === "ja" ? " ja" : ""), it.word));
+    // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
+    // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
+    const wSpan = el("span", "w" + (NGU === "ja" ? " ja" : ""));
+    const rb = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+    if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
+    else wSpan.textContent = it.word;
+    if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
+    head.appendChild(wSpan);
     if (it.reading) {
       const r = el("span", "r", it.reading);
       // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
@@ -862,10 +935,15 @@ function draw() {
       t.appendChild(el("span", null, T("đã sửa")));
       head.appendChild(t);
     }
-    if (isDue(it, now)) {
-      const t = el("span", "tag due");
-      t.appendChild(ic("alarm", { size: 12 }));
-      t.appendChild(el("span", null, T("đến hạn")));
+    // Cấp và hạn ôn đi cùng một chỗ: biết "đến hạn" mà không biết mình đang ở
+    // cấp mấy thì không thấy được là đã tiến tới đâu — mà đó mới là thứ giữ
+    // người ta ôn tiếp.
+    {
+      const den = isDue(it, now);
+      const t = el("span", "tag srs" + (den ? " due" : ""));
+      t.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
+      t.appendChild(el("span", null, chuCap(it, now)));
+      t.title = T("Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.");
       head.appendChild(t);
     }
     if (it.deck && deckName(it.deck) && current === ALL) {
@@ -931,14 +1009,19 @@ function draw() {
     gc.addEventListener("click", () => moSua(it, "note"));
     hang.appendChild(gc);
 
-    if (it.src && it.src.url) {
-      // Nguồn video thì việc sắp làm không phải "mở trang" mà là "nghe lại đúng
-      // chỗ đó" — nói đúng việc thì đỡ phải đoán.
-      const laYt = !!(it.src.yt && it.src.yt.v);
+    // Nút nguồn hiện CẢ KHI mục chưa có link: bấm vào là thêm được. Trước đây nút
+    // này biến mất khi không có nguồn, nên một mục lỡ lưu thiếu link thì trong sổ
+    // tay không còn đường nào chữa lại.
+    {
+      const laYt = !!(it.src && it.src.yt && it.src.yt.v);
+      const coLink = !!(it.src && it.src.url);
       const open = nutIcon(laYt ? "subtitles" : "link-simple",
         laYt ? T2("Nghe lại đúng chỗ này trong video ({t})", { t: giay(it.src.yt.t) })
-             : T("Mở lại trang nguồn và tô sáng vị trí đã lưu"), "", 17);
-      open.addEventListener("click", () => openSource(it));
+             : coLink ? T("Mở lại trang nguồn và tô sáng vị trí đã lưu")
+             : T("Thêm link nguồn"), coLink ? "" : "faint", 17);
+      open.addEventListener("click", () => { if (coLink) openSource(it); else moSua(it, "link"); });
+      // Chuột phải vào nút = sửa/bỏ link, khỏi phải mở hộp sửa rồi mò xuống dưới.
+      open.addEventListener("contextmenu", (ev) => { ev.preventDefault(); moSua(it, "link"); });
       hang.appendChild(open);
     }
 
@@ -1059,6 +1142,13 @@ function revealCard() {
   if (!it) return;
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
+  // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
+  const rbS = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+  const oW = $("stWord");
+  if (oW) {
+    if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
+    else { oW.textContent = it.word; oW.classList.remove("co-ruby"); }
+  }
   if (it.dict === "kanji") {
     const meta = window.HanTu.META(it.kanji);
     if (meta) $("stMean").appendChild(el("div", "t-small faint", meta));
@@ -1093,6 +1183,12 @@ async function grade(remembered) {
   await load();
   const moi = await theoDoi.ghiLuotOn(remembered);
   syncSoon();
+
+  // Nói ngay kết quả của lượt vừa chấm. Không có dòng này thì bấm Nhớ/Quên
+  // xong chỉ thấy thẻ nhảy sang cái khác, chẳng biết mình vừa đẩy nó đi đâu.
+  const sau = (items.find((x) => x.key === it.key) || {}).srs;
+  toast((remembered ? T("Nhớ") : T("Quên")) + " → " +
+    tenCap(sau) + " · " + khiNaoOn(sau && sau.due, Date.now()));
 
   if (moi.length) {
     // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che
@@ -1236,6 +1332,213 @@ function exportCsv() {
 }
 
 /* ==================================================================== */
+/* Bản CHIA SẺ — mang sổ tay sang máy người khác                        */
+/* ==================================================================== */
+/*
+ * Khác gì với "Sao lưu .json": bản sao lưu là để CỨU CHÍNH MÌNH — nó mang cả
+ * tiến độ ôn, cả sổ con, cả chuỗi ngày, và nạp vào là đè lên. Bản chia sẻ thì
+ * đi sang máy NGƯỜI KHÁC, nên:
+ *
+ *   - Là CSV, mở bằng Excel / Google Sheets được. Người nhận nhìn thấy mình
+ *     sắp nạp cái gì trước khi nạp — chứ không phải một cục JSON tin thì tin.
+ *   - Mang đủ NGỮ CẢNH: đường link, phút thứ mấy trong video, câu gốc đã bôi
+ *     đen, furigana theo từng chữ Hán. Một danh sách từ trơ trọi thì người nhận
+ *     học được chữ mà không biết nó dùng ở đâu.
+ *   - KHÔNG mang tiến độ ôn của mình sang. Sóng ôn tập là của từng người: bạn
+ *     thuộc rồi không có nghĩa là người nhận cũng thuộc.
+ *   - Nạp vào thì CHỈ THÊM. Từ nào người nhận đã có thì giữ nguyên bản của họ,
+ *     chỉ điền vào những ô họ còn để trống.
+ *
+ * Ba cột đầu cố định là Từ vựng / Furigana / Nghĩa — đó là ba thứ ai mở file
+ * cũng cần thấy ngay, và cũng đúng thứ tự mà Anki với Quizlet chờ đợi.
+ */
+
+/** Tên cột, và cũng là thứ tự cột. Đổi ở đây là đổi cả xuất lẫn nạp. */
+const COT_CHIA_SE = [
+  "Từ vựng", "Furigana", "Nghĩa", "Ghi chú", "Loại", "Hướng tra", "Sổ",
+  "Link nguồn", "Phút video", "Mã video", "Kênh", "Tên nguồn", "Câu gốc",
+  "Furigana theo chữ Hán", "Phát âm", "Ngày lưu"
+];
+
+/** "1:23" -> 83 giây. Trả về null nếu ô trống hoặc không đọc được. */
+function giayTuChu(s) {
+  const x = String(s || "").trim();
+  if (!x) return null;
+  const p = x.split(":").map((n) => parseInt(n, 10));
+  if (p.some((n) => !isFinite(n))) return null;
+  return p.reduce((a, b) => a * 60 + b, 0);
+}
+
+function loaiCua(it) {
+  if (it.dict === "kanji") return "chữ Hán";
+  if (it.kind === "sent") return "câu";
+  return "từ";
+}
+
+function hangChiaSe(it) {
+  const src = it.src || {};
+  const yt = src.yt || {};
+  return [
+    it.word,
+    it.reading || "",
+    (it.means || []).join(" / "),
+    it.note || "",
+    loaiCua(it),
+    it.dict || "",
+    deckName(it.deck) || "",
+    src.url || "",
+    yt.v ? giay(yt.t) : "",
+    yt.v || "",
+    yt.kenh || "",
+    src.title || "",
+    src.sel || "",
+    (it.ruby || []).join(" "),
+    it.audio || "",
+    it.ts ? new Date(it.ts).toISOString().slice(0, 10) : ""
+  ];
+}
+
+/**
+ * Xuất CẢ SỔ, cả hai thứ tiếng — không theo bộ lọc đang bật trên màn hình.
+ *
+ * Nút "CSV" bên cạnh mới là nút xuất đúng những mục đang hiện. Nút này thì để
+ * gửi sổ tay cho người khác, mà gửi thiếu một nửa vì lúc bấm đang đứng ở ngăn
+ * tiếng Nhật là kiểu hỏng im lặng tệ nhất: người gửi tưởng đã gửi hết, người
+ * nhận cũng không có cách nào biết là mình đang thiếu.
+ */
+async function exportChiaSe() {
+  const s = await getStore();
+  const list = Object.entries(s.nb || {})
+    .map(([key, v]) => ({ key, ...v }))
+    .filter((it) => !it.del)
+    .sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  if (!list.length) { toast(T("Chưa có mục nào để xuất"), "bad"); return; }
+  const dong = [COT_CHIA_SE.map(csvCell).join(",")];
+  for (const it of list) dong.push(hangChiaSe(it).map(csvCell).join(","));
+  // BOM ở đầu: không có nó thì Excel bản Windows mở ra tiếng Việt và tiếng Nhật
+  // đều thành ký tự lạ.
+  download("neutrondict-chiase.csv", "﻿" + dong.join("\n"), "text/csv;charset=utf-8");
+  toast(T2("Đã xuất {n} mục — gửi file này cho ai cũng nạp được", { n: list.length }));
+}
+
+/**
+ * Đọc một file CSV thành mảng các hàng.
+ *
+ * Tự viết chứ không tách bằng dấu phẩy: ô "Nghĩa" gần như luôn có dấu phẩy, và
+ * ô "Câu gốc" thì có cả xuống dòng. Tách bừa là lệch cột từ dòng thứ hai trở đi
+ * mà chẳng có gì báo.
+ */
+function docCsv(text) {
+  const s = String(text || "").replace(/^﻿/, "");
+  const hang = [];
+  let o = [], cell = "", trong = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (trong) {
+      if (c === '"') {
+        if (s[i + 1] === '"') { cell += '"'; i++; }   // "" bên trong = một dấu nháy
+        else trong = false;
+      } else cell += c;
+      continue;
+    }
+    if (c === '"') { trong = true; continue; }
+    if (c === ",") { o.push(cell); cell = ""; continue; }
+    if (c === "\r") continue;
+    if (c === "\n") { o.push(cell); hang.push(o); o = []; cell = ""; continue; }
+    cell += c;
+  }
+  if (cell || o.length) { o.push(cell); hang.push(o); }
+  return hang.filter((h) => h.some((x) => String(x).trim()));
+}
+
+async function napChiaSeFile(file) {
+  let hang;
+  try { hang = docCsv(await file.text()); } catch (e) { hang = []; }
+  if (hang.length < 2) { toast(T("File không đọc được hoặc không có dòng nào"), "bad"); return; }
+
+  // Bám theo TÊN CỘT chứ không theo vị trí: người ta hay mở file ra trong Excel,
+  // thêm một cột ghi chú của mình rồi mới gửi đi.
+  const dau = hang[0].map((x) => String(x).trim().toLowerCase());
+  const cot = {};
+  COT_CHIA_SE.forEach((ten) => { cot[ten] = dau.indexOf(ten.toLowerCase()); });
+  if (cot["Từ vựng"] < 0) { toast(T("File thiếu cột “Từ vựng”"), "bad"); return; }
+  const o = (h, ten) => (cot[ten] >= 0 ? String(h[cot[ten]] || "").trim() : "");
+
+  // Sổ con nhắc tới trong file mà máy này chưa có thì tạo mới.
+  let them = 0, boQua = 0, boSung = 0;
+  await capNhat((nb, dks) => {
+    const tenSo = {};
+    for (const id in dks) { const d = dks[id]; if (d && !d.del) tenSo[d.name] = id; }
+
+    for (let i = 1; i < hang.length; i++) {
+      const h = hang[i];
+      const tu = o(h, "Từ vựng");
+      if (!tu) continue;
+      const huong = o(h, "Hướng tra") || (window.Ngu.nganChinh(NGU) || "envi");
+      const key = huong + ":" + tu;
+      const nghia = o(h, "Nghĩa").split(" / ").map((x) => x.trim()).filter(Boolean);
+
+      const src = {};
+      const url = o(h, "Link nguồn");
+      if (url) {
+        src.url = url;
+        if (o(h, "Tên nguồn")) src.title = o(h, "Tên nguồn");
+        if (o(h, "Câu gốc")) src.sel = o(h, "Câu gốc");
+        const mv = o(h, "Mã video");
+        if (mv) {
+          src.yt = { v: mv, t: giayTuChu(o(h, "Phút video")) || 0 };
+          if (o(h, "Kênh")) src.yt.kenh = o(h, "Kênh");
+        }
+      }
+
+      const cu = nb[key];
+      if (cu && !cu.del) {
+        // Người nhận đã có từ này rồi: KHÔNG đè. Chỉ điền vào ô còn trống —
+        // công hiệu đính của họ là của họ.
+        let doi = false;
+        if (!cu.reading && o(h, "Furigana")) { cu.reading = o(h, "Furigana"); doi = true; }
+        if (!(cu.src && cu.src.url) && src.url) { cu.src = src; doi = true; }
+        if (!cu.note && o(h, "Ghi chú")) { cu.note = o(h, "Ghi chú"); doi = true; }
+        if (!(cu.ruby && cu.ruby.length) && o(h, "Furigana theo chữ Hán")) {
+          cu.ruby = o(h, "Furigana theo chữ Hán").split(/\s+/).filter(Boolean); doi = true;
+        }
+        if (doi) { cu.ts = Date.now(); boSung++; } else boQua++;
+        continue;
+      }
+
+      // Mục mới: KHÔNG chép tiến độ ôn của người gửi sang. Đây là từ mới đối với
+      // người nhận, phải vào sóng ôn tập từ đầu.
+      const ne = { word: tu, reading: o(h, "Furigana"), means: nghia, dict: huong, ts: Date.now() };
+      if (o(h, "Ghi chú")) ne.note = o(h, "Ghi chú");
+      if (o(h, "Loại") === "câu") ne.kind = "sent";
+      if (o(h, "Phát âm")) ne.audio = o(h, "Phát âm");
+      if (src.url) ne.src = src;
+      const rb = o(h, "Furigana theo chữ Hán").split(/\s+/).filter(Boolean);
+      if (rb.length) { ne.ruby = rb; ne.docSuy = 1; }
+      const so = o(h, "Sổ");
+      if (so) {
+        if (!tenSo[so]) {
+          const id = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          dks[id] = { name: so, ts: Date.now() };
+          tenSo[so] = id;
+        }
+        ne.deck = tenSo[so];
+      }
+      window.Muc.nhatLaiBanSua(ne, cu);      // từng xoá thì nhặt lại phần mình tự viết
+      nb[key] = ne;
+      them++;
+    }
+  });
+
+  await load();
+  syncSoon();
+  const bao = T2("Đã nạp: thêm {them} từ mới, bổ sung {bs} từ đã có, bỏ qua {bq} từ trùng.",
+    { them: them, bs: boSung, bq: boQua });
+  setStatus(bao);
+  toast(bao);
+}
+
+/* ==================================================================== */
 /* Sao lưu / nạp                                                        */
 /* ==================================================================== */
 
@@ -1246,12 +1549,12 @@ async function backupJson() {
     JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null }),
     "application/json;charset=utf-8");
 }
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeLocal(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return window.Muc.tron(a, b);
 }
 async function restoreJson(file) {
   try {
@@ -1465,6 +1768,12 @@ $("filter").addEventListener("input", draw);
 $("exAnki").addEventListener("click", exportAnki);
 $("exCsv").addEventListener("click", exportCsv);
 $("backup").addEventListener("click", backupJson);
+$("exChiaSe").addEventListener("click", exportChiaSe);
+$("napChiaSe").addEventListener("click", () => $("napChiaSeFile").click());
+$("napChiaSeFile").addEventListener("change", (e) => {
+  if (e.target.files[0]) napChiaSeFile(e.target.files[0]);
+  e.target.value = "";
+});
 $("restore").addEventListener("click", () => $("restoreFile").click());
 $("restoreFile").addEventListener("change", (e) => {
   if (e.target.files[0]) restoreJson(e.target.files[0]);
@@ -1475,6 +1784,41 @@ $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
 $("syncNow").addEventListener("click", syncNow);
+/**
+ * Nói thật về phím tắt.
+ *
+ * Chrome giữ riêng một số tổ hợp cho chính nó — Ctrl+Shift+N là "cửa sổ ẩn
+ * danh", Ctrl+Shift+T là "mở lại tab vừa đóng", Ctrl+Shift+W là "đóng cửa sổ".
+ * Gán extension vào mấy phím đó thì Chrome BỎ QUA MÀ KHÔNG BÁO GÌ: trong khai
+ * báo vẫn thấy phím, nhưng bấm thì không có gì xảy ra. Extension khác giành mất
+ * phím cũng hỏng y như vậy, và cũng im lặng y như vậy.
+ *
+ * Nên hỏi thẳng Chrome xem phím tắt THẬT SỰ đang là gì, rồi hiện ra.
+ */
+async function veChuPhimTat() {
+  const o = $("oPhimTat");
+  if (!o) return;
+  try {
+    const ds = await chrome.commands.getAll();
+    const c = (ds || []).find((x) => x.name === "_execute_action");
+    const phim = c && c.shortcut;
+    if (phim) {
+      o.textContent = T2("Phím tắt tra nhanh: {phim}", { phim: phim });
+      o.className = "t-tiny faint";
+    } else {
+      o.textContent = T("Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.");
+      o.className = "t-tiny";
+      o.style.color = "var(--bad, #c0392b)";
+    }
+  } catch (e) { o.textContent = ""; }
+}
+
+$("doiPhimTat").addEventListener("click", () => {
+  // Trang này chỉ mở được từ trong extension, dán vào thanh địa chỉ thì Chrome chặn.
+  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+});
+veChuPhimTat();
+
 $("saveSet").addEventListener("click", saveSettings);
 $("clearCache").addEventListener("click", clearCache);
 

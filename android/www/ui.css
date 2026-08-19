@@ -389,6 +389,10 @@ select { cursor: pointer; }
 .tag.accent { color: var(--accent); background: var(--accent-soft); }
 .tag.good { color: var(--good); background: var(--good-soft); }
 .tag.edited { color: var(--accent); background: var(--accent-soft); }
+/* Cấp trong sóng ôn tập. Chưa đến hạn thì để nhạt — đó là thông tin để
+   liếc, không phải việc phải làm; đến hạn thì .tag.due lo phần nổi bật. */
+.tag.srs { color: var(--ink-3); background: var(--surface-2); }
+.tag.srs.due { color: var(--warn); background: var(--warn-soft); }
 
 /* --------------------------------------------------------------------------
    8. Thanh tiến trình và vòng tròn KPI
@@ -606,6 +610,16 @@ select { cursor: pointer; }
 /* Mục Hán tự chỉ có đúng một chữ, nên cho nó to hẳn ra — đó là toàn bộ nội dung
    cần nhìn, không phải nhãn của thứ gì khác. */
 .entry.kanji .w { font-size: 40px; line-height: 1.1; font-weight: 600; }
+/* Furigana đặt trên chữ Hán (câu lời thoại).
+   Dòng phải nới ra, nếu không rt chồng lên dòng trên. rt cỡ chữ nhỏ và nhạt
+   hơn: nó là thứ để liếc khi bí, không phải thứ đọc thay chữ Hán. */
+.co-ruby { line-height: 2.1; }
+.co-ruby ruby > rt {
+  font-size: 0.5em; font-weight: 500; color: var(--ink-2);
+  letter-spacing: 0; user-select: none;
+}
+.entry.sent .w.co-ruby { line-height: 2.25; }
+.studycard .cw.co-ruby { line-height: 1.9; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
 /* Ghi công tác giả, nằm cuối cột cài đặt bên trái. Bản Android căn giữa và làm
    chìm màu đi; ở đây trước giờ không có luật nào nên nó lệch hẳn so với bên kia. */

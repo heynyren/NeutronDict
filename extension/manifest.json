@@ -56,9 +56,9 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Ctrl+Shift+E"
+        "default": "Ctrl+Shift+Z"
       },
-      "description": "Mở popup NeutronDict (đọc từ đang bôi đen hoặc vừa Ctrl+C)"
+      "description": "Mở popup NeutronDict và tra luôn từ đang bôi đen hoặc vừa Ctrl+C"
     }
   },
   "icons": {
