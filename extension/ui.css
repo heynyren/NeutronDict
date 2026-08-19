@@ -607,6 +607,13 @@ select { cursor: pointer; }
    cần nhìn, không phải nhãn của thứ gì khác. */
 .entry.kanji .w { font-size: 40px; line-height: 1.1; font-weight: 600; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
+/* Ghi công tác giả, nằm cuối cột cài đặt bên trái. Bản Android căn giữa và làm
+   chìm màu đi; ở đây trước giờ không có luật nào nên nó lệch hẳn so với bên kia. */
+.credit { text-align: center; margin-top: 18px; color: var(--ink-3); font-size: 12.5px; }
+.credit button { background: none; border: 0; padding: 0 2px; cursor: pointer;
+  color: var(--accent); font: inherit; font-weight: 600; }
+.credit .hb { color: var(--spark); }
+
 .entry .r { color: var(--accent); font-size: 13.5px; font-weight: 600; }
 /* Cách đọc SUY RA từ phiên âm chứ không phải từ điển cho — gạch chấm nhẹ để
    người học biết mà kiểm lại, chứ không tô đỏ làm sổ thành rối. */
