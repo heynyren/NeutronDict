@@ -830,7 +830,9 @@ function draw() {
   const base = currentActiveSet();
   const rows = base.filter((it) => {
     if (!kw) return true;
-    const hay = (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ") + " " + (it.note || "")).toLowerCase();
+    // Có cả furigana của câu: gõ かな tìm được câu, dù trong câu chỉ có chữ Hán.
+    const hay = (it.word + " " + (it.reading || "") + " " + ((it.ruby || []).join(" ")) + " "
+      + (it.means || []).join(" ") + " " + (it.note || "")).toLowerCase();
     return hay.includes(kw);
   });
 
@@ -865,7 +867,14 @@ function draw() {
 
     /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
     const head = el("div", "head");
-    head.appendChild(el("span", "w" + (NGU === "ja" ? " ja" : ""), it.word));
+    // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
+    // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
+    const wSpan = el("span", "w" + (NGU === "ja" ? " ja" : ""));
+    const rb = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+    if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
+    else wSpan.textContent = it.word;
+    if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
+    head.appendChild(wSpan);
     if (it.reading) {
       const r = el("span", "r", it.reading);
       // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
@@ -1088,6 +1097,13 @@ function revealCard() {
   if (!it) return;
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
+  // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
+  const rbS = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+  const oW = $("stWord");
+  if (oW) {
+    if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
+    else { oW.textContent = it.word; oW.classList.remove("co-ruby"); }
+  }
   if (it.dict === "kanji") {
     const meta = window.HanTu.META(it.kanji);
     if (meta) $("stMean").appendChild(el("div", "t-small faint", meta));

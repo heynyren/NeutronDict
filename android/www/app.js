@@ -1178,6 +1178,7 @@ async function renderWord(entries) {
           if (old2.note) ne2.note = old2.note;
           if (old2.src && !ne2.src) ne2.src = old2.src;
           if (old2.audio && !ne2.audio) ne2.audio = old2.audio;
+          if (old2.ruby && !ne2.ruby) { ne2.ruby = old2.ruby; if (old2.docSuy) ne2.docSuy = 1; }
           if (old2.mEdit) { ne2.mEdit = 1; ne2.means = old2.means; ne2.mOrig = old2.mOrig; }
         }
         // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
@@ -1348,6 +1349,7 @@ async function showTranslate(text) {
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
+          if (oldS.ruby && !neS.ruby) { neS.ruby = oldS.ruby; if (oldS.docSuy) neS.docSuy = 1; }
           if (oldS.mEdit) { neS.mEdit = 1; neS.means = oldS.means; neS.mOrig = oldS.mOrig; }
         }
         // Lưu lại một mục đã xoá: nhặt lại đúng phần bạn tự viết. Xem muc.js.
@@ -1742,7 +1744,9 @@ async function drawNotebook() {
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) {
     rows = rows.filter((it) =>
-      (it.word + " " + (it.reading || "") + " " + (it.means || []).join(" ") + " " + (it.note || ""))
+      // Có cả furigana của câu: gõ かな tìm được câu, dù trong câu chỉ có chữ Hán.
+      (it.word + " " + (it.reading || "") + " " + ((it.ruby || []).join(" ")) + " "
+        + (it.means || []).join(" ") + " " + (it.note || ""))
         .toLowerCase().includes(kw));
   }
   $("nbCount").textContent = T2("Đang hiện {n} mục", { n: rows.length })
@@ -1766,7 +1770,14 @@ async function drawNotebook() {
     const body = el("div", "body");
 
     const head = el("div", "head");
-    head.appendChild(el("span", "w" + (laNhat() ? " ja" : ""), it.word));
+    // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
+    // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
+    const wSpan = el("span", "w" + (laNhat() ? " ja" : ""));
+    const rb = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+    if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
+    else wSpan.textContent = it.word;
+    if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
+    head.appendChild(wSpan);
     if (it.reading) {
       const r = el("span", "r", it.reading);
       // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
@@ -2058,6 +2069,10 @@ function revealCard() {
   if (!it) return;
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
+  // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
+  const rbS = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+  const oW = $("stWord");
+  if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
   $("stMean").innerHTML = "";
   if (it.dict === "kanji") {
     const km = window.HanTu.META(it.kanji);
