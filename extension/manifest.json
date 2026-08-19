@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NeutronDict — Nhật/Anh – Việt",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Bôi đen từ tiếng Anh trên web hoặc PDF để tra ngay: nghĩa tiếng Việt, phiên âm IPA, phát âm, ví dụ, sổ tay và ôn tập SRS.",
   "permissions": [
     "contextMenus",
