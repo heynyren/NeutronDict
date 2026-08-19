@@ -281,12 +281,12 @@ function traAnh(dich, nguon) {
   return dich;
 }
 
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeByTs(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return window.Muc.tron(a, b);
 }
 
 // Nghĩa có thể bị lưu nhầm thành object (lỗi cũ) -> lấy lại phần chữ.
@@ -358,9 +358,34 @@ async function gradeWord(key, remembered) {
     let lv, due;
     if (remembered) { lv = Math.min(cur + 1, SRS_STEPS.length - 1); due = dueInDays(SRS_STEPS[lv]); }
     else { lv = -1; due = now; }
-    nb[key] = Object.assign({}, e, { srs: { lv, due }, ts: now });
+    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục. Xem Muc.gopSrs.
+    nb[key] = Object.assign({}, e, { srs: { lv, due, ts: now }, ts: now });
   });
 }
+/**
+ * Cấp của một mục, nói theo cách người học đọc được. Bên trong đếm từ -1, ra
+ * ngoài đếm từ 1 — "cấp 0" đọc lên chẳng ai biết là đã học hay chưa.
+ */
+function tenCap(srs) {
+  if (!srs || typeof srs.lv !== "number") return T("Chưa học");
+  if (srs.lv < 0) return T("Về lại đầu");
+  return T2("Cấp {n}", { n: srs.lv + 1 });
+}
+
+/** Bao giờ ôn lại: "đến hạn" / "mai" / "còn 5 ngày" / "còn ~3 tháng". */
+function khiNaoOn(due, now) {
+  if (!due || due <= now) return T("đến hạn");
+  const ngay = Math.ceil((due - now) / DAY);
+  if (ngay <= 1) return T("mai");
+  if (ngay < 30) return T2("còn {n} ngày", { n: ngay });
+  return T2("còn ~{n} tháng", { n: Math.round(ngay / 30) });
+}
+
+/** Một dòng gọn: "Cấp 3 · còn 5 ngày". */
+function chuCap(it, now) {
+  return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
+}
+
 function dueCountOn(list, dayOffset) {
   // Số mục đến hạn tính đến cuối ngày thứ dayOffset (0 = hôm nay).
   const end = new Date(); end.setHours(23, 59, 59, 999);
@@ -1663,6 +1688,12 @@ async function drawNotebook() {
         const nm = e.means.map(meanToStr);
         if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
       }
+      // Đóng dấu mốc cho tiến độ ôn của các mục cũ — xem ghi chú cùng chỗ này
+      // bên bản extension. KHÔNG đụng vào `e.ts`.
+      if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
+        e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
+        daSuaCu = true;
+      }
     }
   });
   if (daSuaCu) syncSoon();
@@ -1796,10 +1827,12 @@ async function drawNotebook() {
       t.appendChild(el("span", null, T("đã sửa")));
       head.appendChild(t);
     }
-    if (isDue(it, now)) {
-      const t = el("span", "tag due");
-      t.appendChild(ic("alarm", { size: 12 }));
-      t.appendChild(el("span", null, T("đến hạn")));
+    // Cấp và hạn ôn đi cùng một chỗ — xem ghi chú cùng chỗ này bên bản extension.
+    {
+      const den = isDue(it, now);
+      const t = el("span", "tag srs" + (den ? " due" : ""));
+      t.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
+      t.appendChild(el("span", null, chuCap(it, now)));
       head.appendChild(t);
     }
     body.appendChild(head);

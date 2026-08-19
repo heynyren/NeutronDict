@@ -173,6 +173,32 @@ function dueList(scopeList) {
   const now = Date.now();
   return scopeList.filter((it) => isDue(it, now));
 }
+/**
+ * Cấp của một mục, nói theo cách người học đọc được.
+ *
+ * Bên trong đếm từ -1 (rơi về đầu) rồi 0..6. Ra ngoài thì đếm từ 1, vì "cấp 0"
+ * đọc lên chẳng ai biết là đã học hay chưa.
+ */
+function tenCap(srs) {
+  if (!srs || typeof srs.lv !== "number") return T("Chưa học");
+  if (srs.lv < 0) return T("Về lại đầu");
+  return T2("Cấp {n}", { n: srs.lv + 1 });
+}
+
+/** Bao giờ ôn lại: "đến hạn" / "mai" / "còn 5 ngày" / "còn ~3 tháng". */
+function khiNaoOn(due, now) {
+  if (!due || due <= now) return T("đến hạn");
+  const ngay = Math.ceil((due - now) / DAY);
+  if (ngay <= 1) return T("mai");
+  if (ngay < 30) return T2("còn {n} ngày", { n: ngay });
+  return T2("còn ~{n} tháng", { n: Math.round(ngay / 30) });
+}
+
+/** Một dòng gọn: "Cấp 3 · còn 5 ngày". */
+function chuCap(it, now) {
+  return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
+}
+
 async function gradeWord(key, remembered) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -187,7 +213,10 @@ async function gradeWord(key, remembered) {
       lv = -1;                 // rơi về đầu
       due = now;               // học lại ngay trong buổi
     }
-    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due }, ts: now });
+    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục — nhờ nó
+    // mà lúc gộp hai máy, một lượt sửa ghi chú không kéo tụt cấp đã chấm ở máy
+    // kia. Xem Muc.gopSrs.
+    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due, ts: now }, ts: now });
   });
 }
 
@@ -267,6 +296,17 @@ async function load() {
       if (e && Array.isArray(e.means)) {
         const nm = e.means.map(meanToStr);
         if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+      }
+      // Đóng dấu mốc cho tiến độ ôn của các mục cũ.
+      //
+      // Trước đây `srs` không có mốc riêng, nên lúc gộp hai máy nó phải mượn
+      // mốc của cả mục — mà mốc đó nhảy theo mọi lần sửa ghi chú. Đóng dấu ngay
+      // BÂY GIỜ, bằng mốc hiện có, thì từ lần sửa sau trở đi mốc chấm bài đứng
+      // yên và cấp đã chấm không bị kéo tụt nữa. KHÔNG đụng vào `e.ts` — đây là
+      // vá tại chỗ, không phải một lượt sửa, đừng để nó kéo cả sổ lên cloud.
+      if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
+        e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
+        daSuaCu = true;
       }
     }
   });
@@ -895,10 +935,15 @@ function draw() {
       t.appendChild(el("span", null, T("đã sửa")));
       head.appendChild(t);
     }
-    if (isDue(it, now)) {
-      const t = el("span", "tag due");
-      t.appendChild(ic("alarm", { size: 12 }));
-      t.appendChild(el("span", null, T("đến hạn")));
+    // Cấp và hạn ôn đi cùng một chỗ: biết "đến hạn" mà không biết mình đang ở
+    // cấp mấy thì không thấy được là đã tiến tới đâu — mà đó mới là thứ giữ
+    // người ta ôn tiếp.
+    {
+      const den = isDue(it, now);
+      const t = el("span", "tag srs" + (den ? " due" : ""));
+      t.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
+      t.appendChild(el("span", null, chuCap(it, now)));
+      t.title = T("Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.");
       head.appendChild(t);
     }
     if (it.deck && deckName(it.deck) && current === ALL) {
@@ -1138,6 +1183,12 @@ async function grade(remembered) {
   await load();
   const moi = await theoDoi.ghiLuotOn(remembered);
   syncSoon();
+
+  // Nói ngay kết quả của lượt vừa chấm. Không có dòng này thì bấm Nhớ/Quên
+  // xong chỉ thấy thẻ nhảy sang cái khác, chẳng biết mình vừa đẩy nó đi đâu.
+  const sau = (items.find((x) => x.key === it.key) || {}).srs;
+  toast((remembered ? T("Nhớ") : T("Quên")) + " → " +
+    tenCap(sau) + " · " + khiNaoOn(sau && sau.due, Date.now()));
 
   if (moi.length) {
     // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che
@@ -1498,12 +1549,12 @@ async function backupJson() {
     JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null }),
     "application/json;charset=utf-8");
 }
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeLocal(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return window.Muc.tron(a, b);
 }
 async function restoreJson(file) {
   try {
@@ -1733,6 +1784,41 @@ $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
 $("syncNow").addEventListener("click", syncNow);
+/**
+ * Nói thật về phím tắt.
+ *
+ * Chrome giữ riêng một số tổ hợp cho chính nó — Ctrl+Shift+N là "cửa sổ ẩn
+ * danh", Ctrl+Shift+T là "mở lại tab vừa đóng", Ctrl+Shift+W là "đóng cửa sổ".
+ * Gán extension vào mấy phím đó thì Chrome BỎ QUA MÀ KHÔNG BÁO GÌ: trong khai
+ * báo vẫn thấy phím, nhưng bấm thì không có gì xảy ra. Extension khác giành mất
+ * phím cũng hỏng y như vậy, và cũng im lặng y như vậy.
+ *
+ * Nên hỏi thẳng Chrome xem phím tắt THẬT SỰ đang là gì, rồi hiện ra.
+ */
+async function veChuPhimTat() {
+  const o = $("oPhimTat");
+  if (!o) return;
+  try {
+    const ds = await chrome.commands.getAll();
+    const c = (ds || []).find((x) => x.name === "_execute_action");
+    const phim = c && c.shortcut;
+    if (phim) {
+      o.textContent = T2("Phím tắt tra nhanh: {phim}", { phim: phim });
+      o.className = "t-tiny faint";
+    } else {
+      o.textContent = T("Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.");
+      o.className = "t-tiny";
+      o.style.color = "var(--bad, #c0392b)";
+    }
+  } catch (e) { o.textContent = ""; }
+}
+
+$("doiPhimTat").addEventListener("click", () => {
+  // Trang này chỉ mở được từ trong extension, dán vào thanh địa chỉ thì Chrome chặn.
+  chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+});
+veChuPhimTat();
+
 $("saveSet").addEventListener("click", saveSettings);
 $("clearCache").addEventListener("click", clearCache);
 

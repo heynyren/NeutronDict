@@ -86,5 +86,60 @@
     return ne;
   }
 
-  root.Muc = { biaMo, banCuaBan, nhatLaiBanSua };
+  /**
+   * Mốc thời gian của LẦN CHẤM BÀI, không phải của cả mục.
+   *
+   * Mục cũ chưa có `srs.ts` thì lấy tạm mốc của cả mục — bằng đúng cách nó vẫn
+   * được so từ trước tới nay, nên dữ liệu cũ không đổi hành vi.
+   */
+  function tsSrs(e) {
+    if (!e || !e.srs) return -1;
+    return typeof e.srs.ts === "number" ? e.srs.ts : (e.ts || 0);
+  }
+
+  /**
+   * Gộp TIẾN ĐỘ ÔN của hai bản cùng một mục, tách khỏi phép gộp cả mục.
+   *
+   * Vì sao phải tách: phép gộp thường là "mốc nào mới hơn thì đè cả mục". Với
+   * chữ nghĩa thì đúng — bản sửa sau là ý mới nhất của bạn. Nhưng tiến độ ôn
+   * KHÔNG phải thứ bạn gõ ra, nó do máy ghi lại lúc bạn chấm bài, và hai máy
+   * ghi vào hai lúc khác nhau. Chấm bài trên điện thoại lên cấp 4, về máy tính
+   * sửa một chữ trong ghi chú — mục ở máy tính mới hơn nên đè cả cục, và cấp 4
+   * tụt về cấp 1 mà chẳng có gì báo. Công ôn tập mất im lặng là kiểu mất tệ nhất.
+   *
+   * Nên so riêng bằng `srs.ts`: lần CHẤM nào mới hơn thì lần đó thắng, không
+   * liên quan tới lần SỬA nào mới hơn.
+   *
+   * Chỉ gộp khi cả hai bên đều đang có tiến độ và đều còn sống. Bia mộ cố ý
+   * không mang tiến độ (xoá vì đã thuộc), và một mục vừa lưu lại sau khi xoá
+   * cũng cố ý bắt đầu lại từ đầu — hai chỗ đó mà "khôi phục" tiến độ cũ thì
+   * thành đi ngược lại điều người dùng vừa làm.
+   */
+  function gopSrs(thang, thua) {
+    if (!thang || !thua || thang.del || thua.del) return thang;
+    if (!thang.srs || !thua.srs) return thang;
+    if (tsSrs(thua) <= tsSrs(thang)) return thang;
+    const r = Object.assign({}, thang);
+    r.srs = thua.srs;
+    return r;
+  }
+
+  /**
+   * Gộp hai kho mục: mốc mới hơn thì thắng, nhưng tiến độ ôn so riêng.
+   * Đây là phép HỢP — khoá chỉ có ở một bên vẫn đi qua nguyên vẹn.
+   */
+  function tron(a, b) {
+    const A = a || {}, B = b || {};
+    const ra = {};
+    for (const k in A) ra[k] = A[k];
+    for (const k in B) {
+      const x = ra[k], y = B[k];
+      if (!x) { ra[k] = y; continue; }
+      const thang = (y.ts || 0) > (x.ts || 0) ? y : x;
+      ra[k] = gopSrs(thang, thang === y ? x : y);
+    }
+    return ra;
+  }
+
+  root.Muc = { biaMo, banCuaBan, nhatLaiBanSua, tsSrs, gopSrs, tron };
 })(typeof window !== "undefined" ? window : self);

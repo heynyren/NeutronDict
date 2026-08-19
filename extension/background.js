@@ -947,12 +947,12 @@ function traAnh(dich, nguon) {
   return dich;
 }
 
+/**
+ * Gộp hai kho mục. Mốc nào mới hơn thì đè, RIÊNG tiến độ ôn so bằng mốc của
+ * lần chấm bài — xem `Muc.tron` trong muc.js để biết vì sao phải tách ra.
+ */
 function mergeByTs(a, b) {
-  const out = {};
-  [a || {}, b || {}].forEach((src) => {
-    for (const k in src) { const e = src[k]; if (!out[k] || (e.ts || 0) > (out[k].ts || 0)) out[k] = e; }
-  });
-  return out;
+  return self.Muc.tron(a, b);
 }
 function countActive(nb) { let n = 0; for (const k in nb) if (!nb[k].del) n++; return n; }
 

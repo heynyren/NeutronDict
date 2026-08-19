@@ -601,6 +601,30 @@
     "— trang hoặc video đã gặp từ này": "— the page or video you met it in",
     "https://… (để trống = bỏ link)": "https://… (leave empty to remove the link)",
 
+    /* --- phím tắt & sóng ôn tập --- */
+    "Đổi phím tắt":
+      "Change the shortcut",
+    "Phím tắt tra nhanh: {phim}":
+      "Quick-lookup shortcut: {phim}",
+    "Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.":
+      "The quick-lookup shortcut is NOT set. Usually the key is one Chrome keeps for itself (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) or another extension took it — Chrome says nothing either way. Use the button below to set it again.",
+    "Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.":
+      "With the popup off, the keyboard shortcut and the right-click menu still work as before.",
+    "Chưa học":
+      "Not studied",
+    "Về lại đầu":
+      "Back to start",
+    "Cấp {n}":
+      "Level {n}",
+    "mai":
+      "tomorrow",
+    "còn {n} ngày":
+      "in {n} days",
+    "còn ~{n} tháng":
+      "in ~{n} months",
+    "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
+      "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
+
     /* --- về tác giả --- */
     "Ra đời bởi": "Made by",
     "NeutronDict · Về tác giả": "NeutronDict · About the author",
@@ -1202,6 +1226,30 @@
     "Nguồn": "出典",
     "— trang hoặc video đã gặp từ này": "— 出会ったページまたは動画",
     "https://… (để trống = bỏ link)": "https://…（空にするとリンクを削除）",
+
+    /* --- phím tắt & sóng ôn tập --- */
+    "Đổi phím tắt":
+      "ショートカットを変更",
+    "Phím tắt tra nhanh: {phim}":
+      "クイック検索のショートカット：{phim}",
+    "Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.":
+      "クイック検索のショートカットが設定されていません。Chrome が予約しているキー（Ctrl+Shift+N、Ctrl+Shift+T、Ctrl+Shift+W）か、他の拡張機能に取られている場合がほとんどです——どちらも Chrome は何も知らせません。下のボタンから設定し直してください。",
+    "Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.":
+      "ポップアップを切っても、ショートカットと右クリックメニューはこれまでどおり使えます。",
+    "Chưa học":
+      "未学習",
+    "Về lại đầu":
+      "最初に戻る",
+    "Cấp {n}":
+      "レベル {n}",
+    "mai":
+      "明日",
+    "còn {n} ngày":
+      "あと {n} 日",
+    "còn ~{n} tháng":
+      "あと約 {n} か月",
+    "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
+      "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 
     /* --- về tác giả --- */
     "Ra đời bởi": "制作",

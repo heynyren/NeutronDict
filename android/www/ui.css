@@ -389,6 +389,10 @@ select { cursor: pointer; }
 .tag.accent { color: var(--accent); background: var(--accent-soft); }
 .tag.good { color: var(--good); background: var(--good-soft); }
 .tag.edited { color: var(--accent); background: var(--accent-soft); }
+/* Cấp trong sóng ôn tập. Chưa đến hạn thì để nhạt — đó là thông tin để
+   liếc, không phải việc phải làm; đến hạn thì .tag.due lo phần nổi bật. */
+.tag.srs { color: var(--ink-3); background: var(--surface-2); }
+.tag.srs.due { color: var(--warn); background: var(--warn-soft); }
 
 /* --------------------------------------------------------------------------
    8. Thanh tiến trình và vòng tròn KPI
