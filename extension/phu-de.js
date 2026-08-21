@@ -293,7 +293,9 @@
     for (const k of khung) {
       // Đòi ít nhất 3 dòng: một dòng lẻ trông giống mốc giờ thì trang nào chẳng
       // có (thời lượng video, mốc chương…), ba dòng liền thì mới là bản chép lời.
-      const c = quetSau(k, laDongTrongCung);
+      // Vẫn phải lọc vùng cấm: một khung "transcript" của YouTube có lúc ôm luôn
+      // mấy thứ khác bên trong.
+      const c = quetSau(k, (el) => laDongTrongCung(el) && !trongVungCam(el));
       if (laBanChepLoi(c)) return c;
     }
     if (!sau) return [];
@@ -301,8 +303,7 @@
     // Đường cùng: quét cả trang, kể cả trong shadow root. Tốn, nhưng chỉ chạy
     // một lượt khi mọi cách khác đã trượt. Nhớ bỏ qua CHÍNH BẢNG NÀY — dòng của
     // nó cũng là "mốc giờ rồi tới chữ", ăn lại đầu ra của mình thì thành vòng.
-    const d = quetSau(document.body, (el) =>
-      laDongTrongCung(el) && !(el.closest && el.closest(KHONG_PHAI_BANG)));
+    const d = quetSau(document.body, (el) => laDongTrongCung(el) && !trongVungCam(el));
     return laBanChepLoi(d) ? d : [];
   }
 
@@ -321,8 +322,34 @@
     "ytd-compact-video-renderer", "ytd-compact-radio-renderer",
     "ytd-compact-playlist-renderer", "ytd-video-renderer",
     "yt-lockup-view-model", "ytd-playlist-panel-renderer",
-    "ytd-comments", "ytd-comment-thread-renderer"
+    "ytd-comments", "ytd-comment-thread-renderer",
+    // Danh sách CHƯƠNG của video. Cái bẫy này qua được mọi phép thử phía dưới:
+    // mốc giờ của nó chạy tiến, và nó bắt đầu đúng từ 0:00 — không chặn theo tên
+    // thẻ thì không còn dấu hiệu nào phân biệt được với một bản chép lời thưa.
+    "ytd-macro-markers-list-renderer", "ytd-macro-markers-list-item-renderer",
+    "ytd-chapter-renderer", "[target-id*='macro-markers' i]", "[target-id*='chapter' i]"
   ].join(",");
+
+  /**
+   * Dòng này có nằm trong một vùng cấm không — XÉT XUYÊN QUA CẢ SHADOW ROOT.
+   *
+   * `closest()` dừng lại ở ranh giới shadow: gọi trên một thẻ nằm trong shadow
+   * root thì nó không bao giờ nhìn thấy thẻ cha ở ngoài. Mà YouTube dựng gần
+   * như mọi thứ bằng shadow DOM, nên danh sách chặn ở trên trượt sạch đúng lúc
+   * cần nhất — và bảng đầy tên video gợi ý kèm "70K lượt xem".
+   *
+   * Nên phải tự trèo: hỏi trong cây hiện tại trước, hết cây thì nhảy sang thẻ
+   * chủ của shadow root rồi hỏi tiếp, cho tới khi ra tới tài liệu gốc.
+   */
+  function trongVungCam(el) {
+    let n = el;
+    while (n && n.nodeType === 1) {
+      if (n.closest && n.closest(KHONG_PHAI_BANG)) return true;
+      const goc = n.getRootNode ? n.getRootNode() : null;
+      n = (goc && goc.nodeType === 11 && goc.host) ? goc.host : null;
+    }
+    return false;
+  }
 
   /**
    * Đám dòng này có thật sự là một bản chép lời không.
@@ -380,10 +407,26 @@
     return s.replace(/\s+/g, " ").trim();
   }
 
-  /** Trông có giống một dòng bản chép lời không: mốc giờ, RỒI tới chữ. */
+  /** Bao nhiêu mốc giờ nằm trong đoạn chữ này. */
+  const DEM_MOC = /\b\d{1,2}:\d{2}(?::\d{2})?\b/g;
+
+  /**
+   * Trông có giống một dòng bản chép lời không: mốc giờ, RỒI tới chữ.
+   *
+   * Và chỉ ĐÚNG MỘT mốc giờ. Đây là chỗ chặn quan trọng nhất, vì nó không dựa
+   * vào tên thẻ nào của YouTube cả — mà chặn theo tên thẻ thì không bao giờ đuổi
+   * kịp: họ đổi tên thẻ luôn, và cột gợi ý còn nằm trong shadow root với những
+   * tên mình chưa từng thấy. Nhưng một Ô GOM cả danh sách (sáu video gợi ý, mỗi
+   * cái một huy hiệu thời lượng) thì bao giờ cũng mang NHIỀU mốc giờ trong ruột,
+   * còn một dòng phụ đề thật thì chỉ có đúng một cái ở đầu. Đó là dấu hiệu phân
+   * biệt bền nhất.
+   */
   function laDong(el) {
-    const m = chuSau(el).match(MOC_GIO);
-    return !!(m && m[2] && m[2].trim());
+    const chu = chuSau(el);
+    const m = chu.match(MOC_GIO);
+    if (!m || !m[2] || !m[2].trim()) return false;
+    const dem = chu.match(DEM_MOC);
+    return !!dem && dem.length === 1;
   }
 
   /**
