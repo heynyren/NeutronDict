@@ -338,27 +338,76 @@ async function load() {
 /* Cột trái: sổ con                                                     */
 /* ==================================================================== */
 
-function countIn(id) {
+/**
+ * Các mục nằm trong một ngăn. Một chỗ duy nhất trả lời câu "ngăn này có gì",
+ * để cái ĐẾM trên chip, cái HỌC của ngăn đó và danh sách đang hiện không bao
+ * giờ nói ba con số khác nhau.
+ */
+function setIn(id) {
   const a = active(items);
-  if (id === ALL) return a.length;
-  if (id === NONE) return a.filter((it) => !it.deck).length;
-  if (id === LIKE) return a.filter((it) => it.fav === 1).length;
-  if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
-  if (id === HANTU) return a.filter((it) => it.dict === "kanji").length;
-  return a.filter((it) => it.deck === id).length;
+  if (id === ALL) return a;
+  if (id === NONE) return a.filter((it) => !it.deck);
+  if (id === LIKE) return a.filter((it) => it.fav === 1);
+  if (id === DISLIKE) return a.filter((it) => it.fav === -1);
+  if (id === HANTU) return a.filter((it) => it.dict === "kanji");
+  return a.filter((it) => it.deck === id);
 }
+
+function countIn(id) { return setIn(id).length; }
+
+/** Tên đọc được của một ngăn dựng sẵn (sổ con thì hỏi deckName). */
+function nhanNgan(id) {
+  if (id === NONE) return T("Chưa phân loại");
+  if (id === LIKE) return T("Thích");
+  if (id === DISLIKE) return T("Không thích");
+  if (id === HANTU) return T("Hán tự");
+  return "";
+}
+
+/** Ngăn này đang có bao nhiêu mục tới hạn ôn. */
+function dueIn(id) { return dueList(setIn(id)).length; }
 
 function drawDecks() {
   const bar = $("deckBar");
   bar.innerHTML = "";
+  /*
+   * Mỗi ngăn là một CẶP: chip để mở ra xem, và nút học của riêng ngăn đó.
+   *
+   * Buổi học vốn đã chỉ lấy mục trong ngăn đang mở, nhưng muốn dùng thì phải
+   * tự đoán ra luật ấy: bấm ngăn, rồi ngước lên bấm nút ở trên đầu. Nút học
+   * nằm ngay trên ngăn thì "ôn nhanh đúng chỗ mình muốn" chỉ còn một cú bấm,
+   * và không phải đoán gì cả.
+   *
+   * Chỉ hiện khi ngăn ấy CÓ mục tới hạn: ngăn nào cũng đeo một nút thì hàng
+   * ngăn dài gấp đôi mà phần lớn bấm vào chỉ nhận được câu "chưa tới hạn".
+   */
   const mk = (id, label, iconTen) => {
+    const cum = el("span", "chipgroup");
     const b = el("button", "chip" + (current === id ? " active" : ""));
     b.type = "button";
     b.appendChild(ic(iconTen, { size: 16, weight: current === id ? "solid" : "line" }));
     b.appendChild(el("span", "grow", label));
     b.appendChild(el("span", "n", String(countIn(id))));
     b.addEventListener("click", () => { current = id; drawDecks(); draw(); });
-    bar.appendChild(b);
+    cum.appendChild(b);
+
+    const den = dueIn(id);
+    if (den) {
+      const h = el("button", "chip hoc");
+      h.type = "button";
+      h.title = T2("Ôn ngay {n} mục đến hạn trong “{ten}”", { n: den, ten: label });
+      h.appendChild(ic("graduation-cap", { size: 14, weight: "solid" }));
+      h.appendChild(el("span", "n", String(den)));
+      h.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Mở ngăn ra rồi mới học: hết buổi, đóng lại là thấy đúng ngăn vừa ôn,
+        // chứ không rơi về danh sách tất cả.
+        current = id; drawDecks(); draw();
+        startStudy();
+      });
+      cum.appendChild(h);
+    }
+    bar.appendChild(cum);
   };
   mk(ALL, T("Tất cả"), "list-bullets");
   mk(NONE, T("Chưa phân loại"), "funnel");
@@ -844,15 +893,7 @@ function openSource(it) {
 /* Danh sách                                                            */
 /* ==================================================================== */
 
-function currentActiveSet() {
-  const a = active(items);
-  if (current === ALL) return a;
-  if (current === NONE) return a.filter((it) => !it.deck);
-  if (current === LIKE) return a.filter((it) => it.fav === 1);
-  if (current === DISLIKE) return a.filter((it) => it.fav === -1);
-  if (current === HANTU) return a.filter((it) => it.dict === "kanji");
-  return a.filter((it) => it.deck === current);
-}
+function currentActiveSet() { return setIn(current); }
 
 /** Khối ghi chú riêng, hiện dưới phần nghĩa. */
 function khoiGhiChu(chu) {
@@ -881,6 +922,11 @@ function draw() {
 
   const den = dueList(base).length;
   $("dueCount").textContent = String(den);
+  // Nói thẳng buổi học sắp tới lấy mục ở đâu. Nút chỉ ghi "Học ngay" thì đang
+  // mở một sổ con mà bấm vào, người ta vẫn tưởng nó ôn cả sổ tay.
+  const tenNgan = current === ALL ? "" : (deckName(current) || nhanNgan(current));
+  const oNgan = $("study").querySelector(".scope");
+  if (oNgan) oNgan.textContent = tenNgan ? "\u2002·\u2002" + tenNgan : "";
   const chip = $("dueChip");
   if (den) { chip.style.display = ""; chip.textContent = T2("{n} mục đến hạn", { n: den }); }
   else chip.style.display = "none";
@@ -1733,7 +1779,10 @@ function gaiIcon() {
 
   const st = $("study");
   const den = st.querySelector(".tag");
+  // Chỗ ghi tên ngăn sắp ôn phải dựng Ở ĐÂY chứ không đặt sẵn trong HTML: dòng
+  // dưới thay trắng ruột cái nút, thẻ nào đặt sẵn cũng bay theo.
   st.innerHTML = window.Icon("graduation-cap", { size: 20 }) + '<span class="lb" data-chu>Học ngay</span>';
+  st.appendChild(el("span", "lb scope", ""));
   st.appendChild(den);
 
   $("filter").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("filter"));

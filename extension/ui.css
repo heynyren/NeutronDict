@@ -337,6 +337,19 @@ select { cursor: pointer; }
 .chip.active { background: var(--grad); border-color: transparent; color: var(--accent-ink); }
 .chip.add { border-style: dashed; color: var(--accent); }
 .chip .n { opacity: 0.65; font-variant-numeric: tabular-nums; }
+/* Một ngăn = chip để mở ra xem + nút học của riêng ngăn đó, dính liền nhau nên
+   nhìn ra ngay là hai nút của CÙNG một ngăn chứ không phải hai ngăn rời. */
+.chipgroup { display: inline-flex; align-items: stretch; gap: 2px; }
+.chipgroup .chip { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+.chip.hoc {
+  border-top-left-radius: 6px; border-bottom-left-radius: 6px;
+  padding-left: 8px; padding-right: 9px; gap: 4px;
+  color: var(--accent); border-color: var(--line);
+}
+.chip.hoc .n { opacity: 1; font-weight: 700; }
+.chip.hoc:hover { background: var(--grad); border-color: transparent; color: var(--accent-ink); }
+/* Ngăn không có nút học thì chip giữ nguyên góc tròn như cũ. */
+.chipgroup .chip:only-child { border-radius: var(--r-pill); }
 
 /* Thanh phân đoạn kiểu iOS — dùng cho tab con Từ vựng / Chi tiết / Dịch.
    Cái nền trượt là thứ Denken không có; ở đây nó nói rõ "ba mặt của cùng một
