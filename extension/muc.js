@@ -110,16 +110,24 @@
    * Nên so riêng bằng `srs.ts`: lần CHẤM nào mới hơn thì lần đó thắng, không
    * liên quan tới lần SỬA nào mới hơn.
    *
-   * Chỉ gộp khi cả hai bên đều đang có tiến độ và đều còn sống. Bia mộ cố ý
-   * không mang tiến độ (xoá vì đã thuộc), và một mục vừa lưu lại sau khi xoá
-   * cũng cố ý bắt đầu lại từ đầu — hai chỗ đó mà "khôi phục" tiến độ cũ thì
-   * thành đi ngược lại điều người dùng vừa làm.
+   * Bên nào KHÔNG có tiến độ thì tiến độ của bên kia đi qua nguyên vẹn — kể cả
+   * khi bên không có mới là bên thắng. Chỉ có bia mộ là ngoại lệ: xoá vì đã
+   * thuộc, và một mục vừa lưu lại sau khi xoá cũng cố ý bắt đầu lại từ đầu, nên
+   * hai chỗ đó mà "khôi phục" tiến độ cũ thì thành đi ngược lại điều người dùng
+   * vừa làm.
    */
   function gopSrs(thang, thua) {
     if (!thang || !thua || thang.del || thua.del) return thang;
-    if (!thang.srs || !thua.srs) return thang;
-    if (tsSrs(thua) <= tsSrs(thang)) return thang;
+    if (!thua.srs) return thang;                  // bên kia chẳng có gì để mang sang
     const r = Object.assign({}, thang);
+    // Bên thắng CHƯA TỪNG chấm bài từ này thì lấy nguyên tiến độ bên kia.
+    //
+    // Đây mới là cảnh hay gặp nhất, và trước đây nó rơi đúng vào chỗ bỏ cuộc:
+    // máy tính chưa từng ôn từ đó, chỉ mở ra sửa lại nghĩa — mục của nó mới hơn
+    // nên thắng, và cấp 6 chấm trên điện thoại biến mất, không một lời báo. Đó
+    // chính là "sửa định nghĩa xong thì từ tụt từ cấp cao về cấp thấp".
+    if (!thang.srs) { r.srs = thua.srs; return r; }
+    if (tsSrs(thua) <= tsSrs(thang)) return thang;
     r.srs = thua.srs;
     return r;
   }
