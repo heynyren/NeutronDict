@@ -339,6 +339,16 @@ select { cursor: pointer; }
 .chip .n { opacity: 0.65; font-variant-numeric: tabular-nums; }
 /* Một ngăn = chip để mở ra xem + nút học của riêng ngăn đó, dính liền nhau nên
    nhìn ra ngay là hai nút của CÙNG một ngăn chứ không phải hai ngăn rời. */
+/* Cụm ghi âm để đọc theo: Ghi · Nghe · Xoá, luôn đứng liền một khối để mỗi
+   vòng đọc lại không phải đi tìm nút. */
+.ghiam { display: inline-flex; align-items: center; gap: 1px; }
+.ghiam .iconbtn { color: var(--ink-3); }
+.ghiam .iconbtn:hover { color: var(--accent); }
+/* Đang thu thì phải nhìn ra ngay, không thì thu cả buổi mà tưởng đã dừng. */
+.ghiam .iconbtn.dangthu { color: #d33; animation: ndict-thu 1s ease-in-out infinite; }
+@keyframes ndict-thu { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .ghiam .iconbtn.dangthu { animation: none; } }
+
 .chipgroup { display: inline-flex; align-items: stretch; gap: 2px; }
 .chipgroup .chip { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
 .chip.hoc {

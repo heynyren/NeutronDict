@@ -9,7 +9,8 @@
     "storage",
     "scripting",
     "activeTab",
-    "clipboardRead"
+    "clipboardRead",
+    "audioCapture"
   ],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",
@@ -36,6 +37,7 @@
         "ngu.js",
         "phim.js",
         "muc.js",
+        "ghi-am.js",
         "han-tu.js",
         "content.js",
         "cat-cau.js",
