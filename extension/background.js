@@ -116,11 +116,13 @@ async function handleContextSave(info, tab) {
 }
 
 async function openPopupWindow(rawText, tab) {
-  const word = rawText.trim();
-  if (!word) return;
-  const src = (tab && /^https?:/i.test(tab.url || ""))
+  const word = (rawText || "").trim();
+  const src = (word && tab && /^https?:/i.test(tab.url || ""))
     ? { url: tab.url, title: (tab.title || "").slice(0, 200), sel: word } : null;
-  await chrome.storage.local.set({ pendingLookup: { word, ts: Date.now(), src } });
+  // Rỗng thì vẫn mở — popup tự đọc clipboard (getInitialWord), đúng cảnh
+  // Ctrl+C ở một app khác rồi bấm phím tắt.
+  if (word) await chrome.storage.local.set({ pendingLookup: { word, ts: Date.now(), src } });
+  else await chrome.storage.local.remove("pendingLookup");
   const W = 430, H = 620;
   const opts = { url: chrome.runtime.getURL("popup.html?ctx=1"), type: "popup", width: W, height: H };
   try {
@@ -128,11 +130,26 @@ async function openPopupWindow(rawText, tab) {
       const win = await chrome.windows.get(tab.windowId);
       if (win && win.width) {
         opts.left = Math.max(0, (win.left || 0) + win.width - W - 24);
-        opts.top = (win.top || 0) + 80;
+        opts.top = Math.max(0, (win.top || 0) + 80);
       }
     }
   } catch (e) { /* để Chrome tự đặt */ }
-  await chrome.windows.create(opts);
+
+  // Mở cho BẰNG ĐƯỢC. Toạ độ tính ra có thể rơi ra ngoài vùng nhìn thấy — nhiều
+  // màn hình, cửa sổ kéo sát mép phải, hay màn hình nhỏ hơn cửa sổ nguồn — và
+  // khi đó Chrome NÉM LỖI "Bounds must be at least 50% within visible screen
+  // space" rồi KHÔNG mở gì cả. Đó đúng là cảnh "bấm phím tắt mà cửa sổ không
+  // hiện ra". Vấp thì bỏ toạ độ cho Chrome tự đặt; vẫn không được thì mở tab.
+  try {
+    await chrome.windows.create(opts);
+  } catch (e) {
+    delete opts.left; delete opts.top;
+    try {
+      await chrome.windows.create(opts);
+    } catch (e2) {
+      await chrome.tabs.create({ url: opts.url });
+    }
+  }
 }
 
 // ==== Tin nhắn ====
@@ -174,6 +191,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "VA_FURIGANA") {
     vaFurigana(msg.toiDa)
       .then((n) => sendResponse({ ok: true, count: n }))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
+  if (msg.type === "OPEN_LOOKUP") {
+    // Content script bắt Ctrl+Shift+Z rồi nhờ nền mở cửa sổ popup — đúng đường
+    // mà menu chuột phải "Tra bằng NeutronDict" vẫn dùng.
+    //
+    // PHẢI return true + sendResponse: mở cửa sổ là việc bất đồng bộ, mà service
+    // worker MV3 có thể bị ngắt ngay khi hàm nghe tin trả về. Không giữ nó sống
+    // thì đôi khi ghi xong pendingLookup là worker chết, chưa kịp tạo cửa sổ.
+    openPopupWindow(msg.text || "", sender && sender.tab)
+      .then(() => sendResponse({ ok: true }))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }

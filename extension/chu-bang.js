@@ -601,6 +601,10 @@
     "— trang hoặc video đã gặp từ này": "— the page or video you met it in",
     "https://… (để trống = bỏ link)": "https://… (leave empty to remove the link)",
 
+        "Phím tắt tra nhanh: {phim}. Trang web thường thì Ctrl+Shift+Z chạy sẵn; lệnh này để tra ngay cả trong PDF.":
+      "Quick-lookup shortcut: {phim}. On ordinary web pages Ctrl+Shift+Z already works; this command is for looking up inside a PDF too.",
+    "Trên trang web thường, Ctrl+Shift+Z đã chạy sẵn. Nhưng để tra trong PDF thì cần lệnh gốc, mà Chrome không tự gán lại cho bản đã cài. Bấm nút dưới rồi đặt Ctrl+Shift+Z cho “Mở popup”, hoặc gỡ ra cài lại extension.":
+      "On ordinary web pages Ctrl+Shift+Z already works. But looking up inside a PDF needs the native command, and Chrome does not re-assign it for an already-installed extension. Use the button below and set Ctrl+Shift+Z for “Open popup”, or remove and re-add the extension.",
     /* --- phím tắt & sóng ôn tập --- */
     "Đổi phím tắt":
       "Change the shortcut",
@@ -1227,6 +1231,10 @@
     "— trang hoặc video đã gặp từ này": "— 出会ったページまたは動画",
     "https://… (để trống = bỏ link)": "https://…（空にするとリンクを削除）",
 
+        "Phím tắt tra nhanh: {phim}. Trang web thường thì Ctrl+Shift+Z chạy sẵn; lệnh này để tra ngay cả trong PDF.":
+      "クイック検索のショートカット：{phim}。通常のウェブページでは Ctrl+Shift+Z がそのまま動きます。このコマンドは PDF 内でも引けるようにするためのものです。",
+    "Trên trang web thường, Ctrl+Shift+Z đã chạy sẵn. Nhưng để tra trong PDF thì cần lệnh gốc, mà Chrome không tự gán lại cho bản đã cài. Bấm nút dưới rồi đặt Ctrl+Shift+Z cho “Mở popup”, hoặc gỡ ra cài lại extension.":
+      "通常のウェブページでは Ctrl+Shift+Z はすでに動きます。ただし PDF 内で引くにはネイティブコマンドが必要で、Chrome はインストール済みの拡張機能に再割り当てしません。下のボタンから「ポップアップを開く」に Ctrl+Shift+Z を設定するか、拡張機能を入れ直してください。",
     /* --- phím tắt & sóng ôn tập --- */
     "Đổi phím tắt":
       "ショートカットを変更",

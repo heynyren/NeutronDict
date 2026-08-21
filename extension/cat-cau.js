@@ -750,5 +750,79 @@
     return ra;
   }
 
-  goc.CatCau = { ghepCau, noiChu, locNhieu, xePhach, doanNgu, NGU };
+  /**
+   * Dựng lại mốc giờ trong câu sau khi người ta SỬA TAY lời thoại.
+   *
+   * Mỗi câu trên bảng là mấy mẩu phụ đề gốc nối lại, và `manh` giữ chỗ của từng
+   * mẩu trong câu. Nhờ nó mà bấm vào giữa câu là video nhảy đúng tới chỗ đó, và
+   * mẩu đang được nói mới sáng lên theo tiếng.
+   *
+   * Sửa một chữ là mọi vị trí phía sau chữ ấy lệch đi hết, nên cách dễ nhất là
+   * quăng cả `manh`. Nhưng quăng xong thì câu đã sửa hoá ra một khối chữ chết:
+   * bấm vào không nghe lại được, nghe theo cũng chẳng có gì sáng lên — trong khi
+   * đó lại đúng là câu người ta quan tâm nhất, vì họ vừa ngồi sửa nó.
+   *
+   * Thật ra sửa chép lời gần như bao giờ cũng chỉ đụng vào MỘT CHỖ. Nên ở đây
+   * chỉ cần tìm phần đầu và phần đuôi còn trùng nhau, giữ nguyên mốc của mấy mẩu
+   * nằm gọn trong hai phần ấy, rồi gộp mấy mẩu vắt qua đoạn vừa sửa thành một
+   * mẩu chung. Đoạn bị đụng mất chi tiết tới từng mẩu, phần còn lại vẫn đúng
+   * từng mẩu như cũ.
+   *
+   * @param {string} goc  câu gốc của YouTube
+   * @param {Array}  manh mốc giờ của câu gốc
+   * @param {string} moi  câu sau khi sửa
+   * @returns {Array|null} mốc giờ tính lại cho `moi`
+   */
+  function docLaiManh(goc, manh, moi) {
+    if (!Array.isArray(manh) || !manh.length) return null;
+    if (typeof goc !== "string" || typeof moi !== "string") return null;
+    const chep = (m) => ({ t: m.t, d: m.d, a: m.a, b: m.b });
+    if (goc === moi) return manh.map(chep);
+
+    let p = 0;
+    const nho = Math.min(goc.length, moi.length);
+    while (p < nho && goc[p] === moi[p]) p++;
+    let q = 0;
+    while (q < nho - p && goc[goc.length - 1 - q] === moi[moi.length - 1 - q]) q++;
+
+    const gA = p, gB = goc.length - q;      // đoạn bị đụng, đếm trên câu gốc
+    const mA = p, mB = moi.length - q;      // ... và trên câu mới
+    const doi = mB - gB;
+
+    const ra = [], giua = [], sau = [];
+    for (const m of manh) {
+      if (m.b <= gA) ra.push(chep(m));
+      else if (m.a >= gB) sau.push({ t: m.t, d: m.d, a: m.a + doi, b: m.b + doi });
+      else giua.push(m);
+    }
+
+    if (giua.length) {
+      // Mấy mẩu vắt qua chỗ sửa gộp làm một. Hai đầu của mẩu gộp lấy theo mẩu
+      // ngoài cùng chứ KHÔNG cắt đúng bằng đoạn vừa sửa: mẩu "các bạn" mà chỉ
+      // sửa chữ "bạn" thì chữ "các" vẫn phải nằm trong mẩu ấy, không thì nó rơi
+      // ra ngoài mọi mẩu và bấm vào chẳng nhảy đi đâu.
+      const dau = giua[0], cuoi = giua[giua.length - 1];
+      const a = dau.a <= gA ? dau.a : mA;
+      const b = cuoi.b >= gB ? cuoi.b + doi : mB;
+      if (b > a) ra.push({ t: dau.t, d: Math.max(0, cuoi.t + (cuoi.d || 0) - dau.t), a, b });
+    } else if (mB > mA) {
+      // Chỉ CHÈN thêm chữ, không mẩu nào bị đụng. Chữ chèn vào chưa ai đọc bao
+      // giờ nên không có mốc riêng — cho nó theo mẩu ĐỨNG TRƯỚC, vì trong câu
+      // nói, chữ thêm vào thường thuộc về ý vừa nói xong. Kẽ hở một hai dấu cách
+      // giữa hai mẩu thì bỏ qua, đó là chỗ nối chứ không phải chữ.
+      const truoc = ra.length ? ra[ra.length - 1] : null;
+      if (truoc && mA - truoc.b <= 2) truoc.b = mB;
+      else if (sau.length && sau[0].a - mB <= 2) sau[0].a = mA;
+    }
+
+    for (const m of sau) ra.push(m);
+    for (const m of ra) {
+      m.a = Math.max(0, Math.min(m.a, moi.length));
+      m.b = Math.max(m.a, Math.min(m.b, moi.length));
+    }
+    const con = ra.filter((m) => m.b > m.a);
+    return con.length ? con : null;
+  }
+
+  goc.CatCau = { ghepCau, noiChu, locNhieu, xePhach, doanNgu, docLaiManh, NGU };
 })(typeof self !== "undefined" ? self : this);

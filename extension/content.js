@@ -36,6 +36,8 @@
   });
 
   function close() {
+    // Dấu "đang gõ" nằm trên chính thẻ chủ, nên bỏ thẻ chủ là dấu đi theo —
+    // popup lần sau dựng thẻ mới, không mang theo dấu cũ.
     if (host) { host.remove(); host = null; root = null; boxEl = null; }
     soOSuaDangMo = 0;
   }
@@ -508,11 +510,15 @@
       if (!dangSua) return;
       dangSua = false;
       soOSuaDangMo = Math.max(0, soOSuaDangMo - 1);
+      if (self.Phim) self.Phim.giuPhim(host, false);
     }
 
     function moSua() {
       if (dangSua) return;
       dangSua = true; soOSuaDangMo++;
+      // Trang bên dưới phải hiểu là ĐANG CÓ NGƯỜI GÕ, không thì bấm Space giữa
+      // câu là video dừng lại / trang cuộn xuống. Xem phim.js.
+      if (self.Phim) self.Phim.giuPhim(host, true);
       hostEl.textContent = "";
       veDau(false);
       hostEl.appendChild(dungOSua(dl, (moi, thatBai) => {
@@ -1021,6 +1027,28 @@
     if (!t || t.length > (S.maxSent || 400)) return;
     moPopup(x, y, t, src);
   };
+
+  // Phím tắt TRA NHANH (Ctrl+Shift+Z) tự bắt ngay trong trang, KHÔNG dựa vào
+  // lệnh của Chrome. Vì sao: đổi suggested_key trong manifest không áp lại cho
+  // bản đã cài — Chrome giữ phím cũ, mà phím cũ (Ctrl+Shift+N) lại là phím
+  // Chrome giữ riêng nên hoá ra rỗng. Bắt thẳng ở đây thì Ctrl+Shift+Z chạy
+  // ngay sau khi cập nhật, khỏi phải vào chrome://extensions/shortcuts.
+  //
+  // Nếu Chrome CÓ gán phím này cho lệnh thật thì nó nuốt phím trước khi tới
+  // trang, chỗ này không chạy — nên hai đường không đá nhau.
+  //
+  // Chỉ ra tay khi ĐANG bôi đen một đoạn: không có vùng chọn thì để phím đi
+  // tiếp (Ctrl+Shift+Z còn là "làm lại" trong nhiều trình soạn thảo).
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey) return;
+    if ((e.key || "").toLowerCase() !== "z") return;
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : "";
+    if (!text || text.length > (S.maxSent || 400)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    chrome.runtime.sendMessage({ type: "OPEN_LOOKUP", text: text });
+  }, true);
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !soOSuaDangMo) close(); });
   window.addEventListener("blur", () => { if (!soOSuaDangMo) close(); });
