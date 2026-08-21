@@ -1857,7 +1857,7 @@ async function donHuyHieu() {
  */
 function vaFurigana() {
   try {
-    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 25 }, (kq) => {
+    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 60 }, (kq) => {
       if (chrome.runtime.lastError) return;
       if (kq && kq.ok && kq.count) load();
     });
