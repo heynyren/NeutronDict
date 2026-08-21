@@ -1022,6 +1022,28 @@
     moPopup(x, y, t, src);
   };
 
+  // Phím tắt TRA NHANH (Ctrl+Shift+Z) tự bắt ngay trong trang, KHÔNG dựa vào
+  // lệnh của Chrome. Vì sao: đổi suggested_key trong manifest không áp lại cho
+  // bản đã cài — Chrome giữ phím cũ, mà phím cũ (Ctrl+Shift+N) lại là phím
+  // Chrome giữ riêng nên hoá ra rỗng. Bắt thẳng ở đây thì Ctrl+Shift+Z chạy
+  // ngay sau khi cập nhật, khỏi phải vào chrome://extensions/shortcuts.
+  //
+  // Nếu Chrome CÓ gán phím này cho lệnh thật thì nó nuốt phím trước khi tới
+  // trang, chỗ này không chạy — nên hai đường không đá nhau.
+  //
+  // Chỉ ra tay khi ĐANG bôi đen một đoạn: không có vùng chọn thì để phím đi
+  // tiếp (Ctrl+Shift+Z còn là "làm lại" trong nhiều trình soạn thảo).
+  document.addEventListener("keydown", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey) return;
+    if ((e.key || "").toLowerCase() !== "z") return;
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : "";
+    if (!text || text.length > (S.maxSent || 400)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    chrome.runtime.sendMessage({ type: "OPEN_LOOKUP", text: text });
+  }, true);
+
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !soOSuaDangMo) close(); });
   window.addEventListener("blur", () => { if (!soOSuaDangMo) close(); });
   window.addEventListener("resize", () => { if (host) place(); });

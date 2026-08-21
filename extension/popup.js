@@ -599,8 +599,19 @@ function doTranslate(raw) {
   const text = (raw || "").trim();
   if (!text) { trangThai(transEl, "translate", T("Nhập hoặc dán đoạn cần dịch.")); return; }
   const dir = dirEl.value;
-  const from = dir === "auto" ? "auto" : (dir === "vien" ? "vi" : "en");
-  const to = dir === "auto" ? "" : (dir === "vien" ? "en" : "vi");
+  // Ánh xạ ĐẦY ĐỦ từng hướng. Bản cũ đóng đinh from="en" cho mọi hướng không
+  // phải auto/vien — nên ở chế độ Nhật (hướng "javi") nó bảo Google dịch một
+  // CÂU TIẾNG NHẬT như thể là tiếng Anh, và Google trả lại nguyên câu. Đó đúng
+  // là "tra ở tab Dịch mà ra nguyên mẫu".
+  const HUONG_DICH = {
+    auto: { from: "auto", to: "" },
+    envi: { from: "en", to: "vi" },
+    vien: { from: "vi", to: "en" },
+    javi: { from: "ja", to: "vi" },
+    vija: { from: "vi", to: "ja" },
+  };
+  const md = HUONG_DICH[dir] || { from: "auto", to: "" };
+  const from = md.from, to = md.to;
   const tkey = dir + ":" + text;
   if (lastTranslated === tkey && transEl.querySelector(".tr")) return;
   trangThai(transEl, "spinner-gap", T("Đang dịch…"));

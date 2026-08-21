@@ -1802,11 +1802,14 @@ async function veChuPhimTat() {
     const ds = await chrome.commands.getAll();
     const c = (ds || []).find((x) => x.name === "_execute_action");
     const phim = c && c.shortcut;
+    // Trên trang web thường, Ctrl+Shift+Z được bắt thẳng trong trang nên chạy
+    // ngay dù Chrome có gán lệnh hay không. Lệnh gốc này CHỈ cần cho một chỗ:
+    // xem PDF — nơi content script không chạy được.
     if (phim) {
-      o.textContent = T2("Phím tắt tra nhanh: {phim}", { phim: phim });
+      o.textContent = T2("Phím tắt tra nhanh: {phim}. Trang web thường thì Ctrl+Shift+Z chạy sẵn; lệnh này để tra ngay cả trong PDF.", { phim: phim });
       o.className = "t-tiny faint";
     } else {
-      o.textContent = T("Phím tắt tra nhanh đang KHÔNG có. Thường là do phím đã bị Chrome giữ riêng (Ctrl+Shift+N, Ctrl+Shift+T, Ctrl+Shift+W) hoặc bị extension khác giành mất — Chrome không báo gì cả. Bấm nút dưới để đặt lại.");
+      o.textContent = T("Trên trang web thường, Ctrl+Shift+Z đã chạy sẵn. Nhưng để tra trong PDF thì cần lệnh gốc, mà Chrome không tự gán lại cho bản đã cài. Bấm nút dưới rồi đặt Ctrl+Shift+Z cho “Mở popup”, hoặc gỡ ra cài lại extension.");
       o.className = "t-tiny";
       o.style.color = "var(--bad, #c0392b)";
     }
