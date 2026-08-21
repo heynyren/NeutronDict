@@ -36,6 +36,8 @@
   });
 
   function close() {
+    // Dấu "đang gõ" nằm trên chính thẻ chủ, nên bỏ thẻ chủ là dấu đi theo —
+    // popup lần sau dựng thẻ mới, không mang theo dấu cũ.
     if (host) { host.remove(); host = null; root = null; boxEl = null; }
     soOSuaDangMo = 0;
   }
@@ -508,11 +510,15 @@
       if (!dangSua) return;
       dangSua = false;
       soOSuaDangMo = Math.max(0, soOSuaDangMo - 1);
+      if (self.Phim) self.Phim.giuPhim(host, false);
     }
 
     function moSua() {
       if (dangSua) return;
       dangSua = true; soOSuaDangMo++;
+      // Trang bên dưới phải hiểu là ĐANG CÓ NGƯỜI GÕ, không thì bấm Space giữa
+      // câu là video dừng lại / trang cuộn xuống. Xem phim.js.
+      if (self.Phim) self.Phim.giuPhim(host, true);
       hostEl.textContent = "";
       veDau(false);
       hostEl.appendChild(dungOSua(dl, (moi, thatBai) => {

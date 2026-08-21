@@ -698,16 +698,29 @@
     } catch (e) { /* hết chỗ thì thôi, đừng làm hỏng bảng đang đọc */ }
   }
 
+  /**
+   * Dời bảng mốc giờ trong câu sang bản chữ vừa sửa.
+   *
+   * Không làm việc này thì câu đã sửa mất hết mốc, và nó thành một khối chữ
+   * chết giữa bảng: bấm vào không nhảy tới đâu, nghe theo cũng chẳng có chữ nào
+   * sáng lên — trong khi đó lại đúng là câu người ta vừa ngồi sửa, tức là câu họ
+   * quan tâm nhất. Xem CatCau.docLaiManh để biết mốc được dời thế nào.
+   */
+  function tinhLaiManh(c) {
+    if (!self.CatCau || !self.CatCau.docLaiManh) return null;
+    return self.CatCau.docLaiManh(c.goc == null ? c.s : c.goc, c.manhGoc, c.s);
+  }
+
   /** Đắp bản sửa lên danh sách câu vừa ghép. Giữ bản gốc để còn quay về. */
   function dapSua() {
     for (const c of S.cau) {
       const k = khoaSua(c);
       const x = S.sua[k];
       if (x && x !== c.s) {
-        if (c.goc == null) c.goc = c.s;
+        if (c.goc == null) { c.goc = c.s; c.manhGoc = c.manh; }
         c.s = x;
         c.suaTay = true;
-        c.manh = null;                          // mẩu cũ trỏ vào chữ cũ, bỏ đi
+        c.manh = tinhLaiManh(c);
       }
     }
   }
@@ -927,31 +940,62 @@
     .top, .bar, .back, .tip, .ln .sv {
       -webkit-user-select: none; user-select: none;
     }
+    /* Hai nút xếp CHỒNG lên nhau, cả cụm chỉ rộng bằng nút rộng nhất. Nằm ngang
+       thì chúng ăn mất một khoảng bề ngang của dòng chữ, mà bảng vốn đã hẹp:
+       chữ xuống dòng sớm, mắt đọc theo tiếng không kịp. */
+    .acts { flex: none; display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
     .ln .sv {
       flex: none; visibility: hidden; border: 1px solid var(--line); background: var(--surface);
-      color: var(--accent); border-radius: 999px; padding: 3px 7px; font-size: 11px; font-weight: 650;
-      display: inline-flex; align-items: center; gap: 3px;
+      color: var(--accent); border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 650;
+      display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+      white-space: nowrap;
     }
     .ln:hover .sv, .ln.on .sv { visibility: visible; }
     .ln .sv.done { color: var(--good); background: var(--good-soft); border-color: transparent; }
     /* Nút sửa của dòng ĐÃ SỬA thì hiện thường trực: đó là dấu cho biết dòng này
        không còn là bản của YouTube nữa, mà giấu đi thì chẳng còn chỗ nào nói. */
-    .ln .sv.ed { padding: 3px 5px; }
     .ln .sv.ed.done { visibility: visible; }
     .ln.dasua .tx { border-left: 2px solid var(--good); padding-left: 7px; }
-    /* Ô sửa chiếm trọn một dòng riêng bên dưới, để mấy dòng trước và sau vẫn
-       nhìn thấy — chép lời sai thì thường sai một cụm, phải có ngữ cảnh mới đoán
-       ra người ta nói gì. */
-    .edbox { flex-basis: 100%; margin-top: 8px; cursor: default; }
-    .edta {
-      width: 100%; box-sizing: border-box; resize: vertical;
-      font: inherit; font-size: calc(var(--cx) * 0.9); line-height: 1.5;
-      color: var(--ink); background: var(--surface); border: 1px solid var(--accent);
-      border-radius: 8px; padding: 8px 10px;
+
+    /* --- ô sửa lời thoại ---
+       Chiếm trọn một dòng riêng bên dưới, để mấy dòng trước và sau vẫn nhìn
+       thấy: chép lời sai thì thường sai một cụm, phải có ngữ cảnh mới đoán ra
+       người ta nói gì. */
+    .edbox {
+      flex-basis: 100%; margin: 8px 0 2px; cursor: default;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      padding: 10px 11px 9px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.10);
     }
-    .edrow { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-    .edrow .sv { visibility: visible; }
-    .edhint { color: var(--ink-3); font-size: 11px; }
+    .edtop {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 7px;
+      color: var(--ink-3); font-size: 11px; font-weight: 650;
+      -webkit-user-select: none; user-select: none;
+    }
+    .edtop b { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 700; }
+    .edta {
+      width: 100%; box-sizing: border-box; resize: none; overflow: hidden; display: block;
+      font: inherit; font-size: calc(var(--cx) * 0.9); line-height: 1.55;
+      color: var(--ink); background: var(--surface-2); border: 1px solid transparent;
+      border-radius: 9px; padding: 9px 11px; transition: border-color .12s, box-shadow .12s;
+    }
+    .edta:focus {
+      outline: none; background: var(--surface);
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .edrow { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    /* Nút trong ô sửa không núp theo chuột như nút ngoài dòng: đang gõ mà nút
+       Lưu chỉ hiện khi rê chuột tới thì gõ xong chẳng biết bấm vào đâu. */
+    .edbox .sv {
+      visibility: visible; border: 1px solid var(--line); background: var(--surface);
+      color: var(--accent); border-radius: 999px; padding: 5px 12px; font-size: 12px;
+      font-weight: 650; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+      -webkit-user-select: none; user-select: none;
+    }
+    .edbox .sv:hover { background: var(--surface-2); }
+    .edbox .sv.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .edbox .sv.pri:hover { filter: brightness(1.07); }
+    .edhint { color: var(--ink-3); font-size: 11px; margin-left: auto; }
     .st { display: flex; align-items: center; gap: 8px; color: var(--ink-3); font-size: 13px; padding: 14px 13px; }
     .back {
       position: absolute; left: 50%; transform: translateX(-50%); bottom: 12px;
@@ -1266,6 +1310,10 @@
   function veDanhSach() {
     const list = S.oList;
     if (!list) return;
+    // Vẽ lại là xoá sạch mọi ô sửa đang mở. Phải trả lại dấu "đang gõ" cho từng
+    // ô một, không thì trang bên dưới cứ tưởng còn người đang gõ mãi và phím
+    // tắt của nó chết luôn từ đó.
+    if (self.Phim) list.querySelectorAll(".edbox").forEach(() => self.Phim.giuPhim(S.host, false));
     list.textContent = "";
     S.cau.forEach((c, i) => {
       const ln = document.createElement("div");
@@ -1284,21 +1332,32 @@
       }
       ln.appendChild(tx);
 
+      /* Hai nút xếp CHỒNG chứ không nằm ngang: nằm ngang thì chúng ăn hết
+         phần bề ngang của dòng chữ, mà bảng lời thoại vốn đã hẹp — chữ bị đẩy
+         xuống dòng sớm, đọc theo tiếng không kịp. Xếp dọc thì cả cụm chỉ rộng
+         bằng nút rộng nhất. */
+      const nut = document.createElement("div"); nut.className = "acts";
+
       const sv = document.createElement("button");
       sv.className = "sv"; sv.type = "button"; sv.title = T("Lưu câu này vào sổ tay");
       sv.appendChild(ic("plus", 12));
       const svt = document.createElement("span"); svt.textContent = T("Lưu"); sv.appendChild(svt);
       sv.addEventListener("click", (e) => { e.stopPropagation(); luuCau(i, sv, svt); });
-      ln.appendChild(sv);
+      nut.appendChild(sv);
 
       const ed = document.createElement("button");
       ed.className = "sv ed"; ed.type = "button";
       ed.title = c.suaTay ? T("Câu này bạn đã sửa — bấm để sửa tiếp hoặc lấy lại bản gốc")
                           : T("Câu này chép sai? Bấm để sửa lại");
       ed.appendChild(ic("pencil-simple", 12));
+      const edt = document.createElement("span");
+      edt.textContent = c.suaTay ? T("Đã sửa") : T("Sửa");
+      ed.appendChild(edt);
       if (c.suaTay) ed.classList.add("done");
       ed.addEventListener("click", (e) => { e.stopPropagation(); moSua(i); });
-      ln.appendChild(ed);
+      nut.appendChild(ed);
+
+      ln.appendChild(nut);
 
       list.appendChild(ln);
     });
@@ -1325,18 +1384,40 @@
     hop.className = "edbox";
     hop.addEventListener("click", (e) => e.stopPropagation());
 
+    /* Đầu ô nhắc lại đang sửa câu ở phút nào: cuộn một lúc rồi thì mấy ô sửa
+       giống hệt nhau, không có mốc giờ là không biết mình đang ở đâu. */
+    const dinh = document.createElement("div");
+    dinh.className = "edtop";
+    dinh.appendChild(ic("pencil-simple", 12));
+    const mocGio = document.createElement("b"); mocGio.textContent = dem(c.t);
+    dinh.appendChild(mocGio);
+    const nhanDinh = document.createElement("span");
+    nhanDinh.textContent = T("Sửa lại lời thoại");
+    dinh.appendChild(nhanDinh);
+    hop.appendChild(dinh);
+
     const o = document.createElement("textarea");
     o.className = "edta";
     o.value = c.s;
-    o.rows = Math.min(5, Math.max(2, Math.ceil(c.s.length / 40)));
+    o.rows = 1;
     hop.appendChild(o);
+
+    /* Ô tự cao lên theo chữ. Để nguyên `rows` cố định thì câu dài phải cuộn
+       trong một khung bé tí — sửa chép lời mà không nhìn được cả câu thì sửa
+       chỗ này lại hỏng chỗ kia. */
+    const vuaChu = () => {
+      o.style.height = "auto";
+      o.style.height = Math.min(320, o.scrollHeight) + "px";
+    };
+    o.addEventListener("input", vuaChu);
 
     const hang = document.createElement("div");
     hang.className = "edrow";
 
     const luu = document.createElement("button");
-    luu.className = "sv"; luu.type = "button";
-    luu.appendChild(document.createTextNode(T("Lưu câu đã sửa")));
+    luu.className = "sv pri"; luu.type = "button";
+    luu.appendChild(ic("check", 13));
+    luu.appendChild(document.createTextNode(T("Lưu")));
 
     const huy = document.createElement("button");
     huy.className = "sv"; huy.type = "button";
@@ -1348,7 +1429,9 @@
     if (c.suaTay) {
       const goc = document.createElement("button");
       goc.className = "sv"; goc.type = "button";
-      goc.appendChild(document.createTextNode(T("Lấy lại bản gốc")));
+      goc.appendChild(ic("arrow-counter-clockwise", 13));
+      goc.appendChild(document.createTextNode(T("Bản gốc")));
+      goc.title = T("Bỏ bản sửa của bạn, lấy lại đúng chữ YouTube chép");
       goc.addEventListener("click", () => xong(c.goc != null ? c.goc : c.s, true));
       hang.appendChild(goc);
     }
@@ -1360,10 +1443,20 @@
 
     hop.appendChild(hang);
     ln.appendChild(hop);
+    vuaChu();
     o.focus();
     o.setSelectionRange(o.value.length, o.value.length);
+    /* Từ giờ tới lúc đóng ô, trang bên dưới phải hiểu là ĐANG CÓ NGƯỜI GÕ —
+       không thì mỗi lần bấm Space giữa câu là video dừng lại. Xem phim.js. */
+    if (self.Phim) self.Phim.giuPhim(S.host, true);
 
-    function dong() { hop.remove(); }
+    let daDong = false;
+    function dong() {
+      if (daDong) return;
+      daDong = true;
+      if (self.Phim) self.Phim.giuPhim(S.host, false);
+      hop.remove();
+    }
 
     async function xong(chuMoi, veGoc) {
       const moi = String(chuMoi == null ? o.value : chuMoi).replace(/\s+/g, " ").trim();
@@ -1374,13 +1467,15 @@
 
       if (veGoc || moi === goc) {
         delete S.sua[k];
-        c.s = goc; c.goc = null; c.suaTay = false;
+        c.s = goc; c.suaTay = false;
+        c.manh = c.manhGoc || c.manh;          // lấy lại nguyên bảng mốc của YouTube
+        c.goc = null; c.manhGoc = null;
       } else {
-        if (c.goc == null) c.goc = c.s;
+        if (c.goc == null) { c.goc = c.s; c.manhGoc = c.manh; }
         S.sua[k] = moi;
         c.s = moi; c.suaTay = true;
+        c.manh = tinhLaiManh(c);
       }
-      c.manh = null;                           // mẩu cũ trỏ vào chữ cũ
       // Bản dịch cũ là bản dịch của CÂU CŨ — giữ lại là hiện một câu tiếng Việt
       // chẳng ăn nhập gì với dòng tiếng Nhật ngay bên trên nó.
       S.dich.delete(i);
@@ -1397,6 +1492,10 @@
       // Enter lưu, Shift+Enter xuống dòng — câu chép lời hiếm khi cần xuống dòng.
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); xong(); }
     });
+    // Chặn nốt hai loại còn lại: có trang bắt phím tắt ở keypress/keyup chứ
+    // không phải keydown, và Space là phím hay bị bắt nhất.
+    o.addEventListener("keypress", (e) => e.stopPropagation());
+    o.addEventListener("keyup", (e) => e.stopPropagation());
   }
 
   /** @param {Function} [thuLai] có thì hiện kèm nút "Thử lại". */
