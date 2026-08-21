@@ -42,6 +42,81 @@ function nutIcon(iconTen, title, cls, size) {
   return b;
 }
 
+/* ==================================================================== */
+/* Ghi âm để đọc theo                                                    */
+/* ==================================================================== */
+
+/**
+ * Cụm nút ghi âm cho MỘT mục: Ghi · Nghe · Xoá.
+ *
+ * Đọc theo không phải việc làm một lần. Người ta nghe câu mẫu, đọc lại, nghe
+ * lại giọng mình, thấy chỗ vấp, rồi XOÁ ĐI ĐỌC LẠI cho tới lúc vừa ý — nên ba
+ * việc ấy phải nằm cạnh nhau, không chôn cái nào vào menu. Ghi lại đè thẳng lên
+ * bản cũ, đúng như người ta nghĩ khi bấm "Ghi lại".
+ *
+ * @param {string} ma  mã bản thu (dùng khoá của mục, để sổ tay và buổi học
+ *   nhìn thấy CÙNG một bản thu)
+ */
+function cumGhiAm(ma) {
+  const cum = el("span", "ghiam");
+  let dangThu = null;
+
+  const ve = async () => {
+    cum.textContent = "";
+    if (!window.GhiAm || !window.GhiAm.hoTro()) return;   // máy không ghi âm được thì đừng bày nút ra
+
+    if (dangThu) {
+      const b = nutIcon("stop", T("Dừng ghi"), "dangthu", 16);
+      b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const t = dangThu; dangThu = null;
+        try {
+          await window.GhiAm.luu(ma, await t.dung());
+          toast(T("Đã ghi xong — bấm Nghe để nghe lại."));
+        } catch (err) { toast(T("Không ghi được: ") + ((err && err.message) || err), "bad"); }
+        ve();
+      });
+      cum.appendChild(b);
+      return;
+    }
+
+    const ban = await window.GhiAm.doc(ma);
+    const thu = nutIcon("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"), "", 16);
+    thu.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      try {
+        dangThu = await window.GhiAm.batDau();
+        ve();
+      } catch (err) {
+        toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad");
+      }
+    });
+
+    if (ban) {
+      const nghe = nutIcon("play", T("Nghe lại giọng mình"), "", 15);
+      nghe.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const a = new Audio(window.GhiAm.duong(ban));
+        a.play().catch(() => toast(T("Không phát được bản thu."), "bad"));
+      });
+      cum.appendChild(nghe);
+      cum.appendChild(thu);
+      const bo = nutIcon("trash", T("Xoá bản thu này"), "", 15);
+      bo.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await window.GhiAm.xoa(ma);
+        ve();
+      });
+      cum.appendChild(bo);
+    } else {
+      cum.appendChild(thu);
+    }
+  };
+
+  ve();
+  return cum;
+}
+
 let toastTimer = null;
 function toast(chu, kieu) {
   const t = $("toast");
@@ -338,27 +413,76 @@ async function load() {
 /* Cột trái: sổ con                                                     */
 /* ==================================================================== */
 
-function countIn(id) {
+/**
+ * Các mục nằm trong một ngăn. Một chỗ duy nhất trả lời câu "ngăn này có gì",
+ * để cái ĐẾM trên chip, cái HỌC của ngăn đó và danh sách đang hiện không bao
+ * giờ nói ba con số khác nhau.
+ */
+function setIn(id) {
   const a = active(items);
-  if (id === ALL) return a.length;
-  if (id === NONE) return a.filter((it) => !it.deck).length;
-  if (id === LIKE) return a.filter((it) => it.fav === 1).length;
-  if (id === DISLIKE) return a.filter((it) => it.fav === -1).length;
-  if (id === HANTU) return a.filter((it) => it.dict === "kanji").length;
-  return a.filter((it) => it.deck === id).length;
+  if (id === ALL) return a;
+  if (id === NONE) return a.filter((it) => !it.deck);
+  if (id === LIKE) return a.filter((it) => it.fav === 1);
+  if (id === DISLIKE) return a.filter((it) => it.fav === -1);
+  if (id === HANTU) return a.filter((it) => it.dict === "kanji");
+  return a.filter((it) => it.deck === id);
 }
+
+function countIn(id) { return setIn(id).length; }
+
+/** Tên đọc được của một ngăn dựng sẵn (sổ con thì hỏi deckName). */
+function nhanNgan(id) {
+  if (id === NONE) return T("Chưa phân loại");
+  if (id === LIKE) return T("Thích");
+  if (id === DISLIKE) return T("Không thích");
+  if (id === HANTU) return T("Hán tự");
+  return "";
+}
+
+/** Ngăn này đang có bao nhiêu mục tới hạn ôn. */
+function dueIn(id) { return dueList(setIn(id)).length; }
 
 function drawDecks() {
   const bar = $("deckBar");
   bar.innerHTML = "";
+  /*
+   * Mỗi ngăn là một CẶP: chip để mở ra xem, và nút học của riêng ngăn đó.
+   *
+   * Buổi học vốn đã chỉ lấy mục trong ngăn đang mở, nhưng muốn dùng thì phải
+   * tự đoán ra luật ấy: bấm ngăn, rồi ngước lên bấm nút ở trên đầu. Nút học
+   * nằm ngay trên ngăn thì "ôn nhanh đúng chỗ mình muốn" chỉ còn một cú bấm,
+   * và không phải đoán gì cả.
+   *
+   * Chỉ hiện khi ngăn ấy CÓ mục tới hạn: ngăn nào cũng đeo một nút thì hàng
+   * ngăn dài gấp đôi mà phần lớn bấm vào chỉ nhận được câu "chưa tới hạn".
+   */
   const mk = (id, label, iconTen) => {
+    const cum = el("span", "chipgroup");
     const b = el("button", "chip" + (current === id ? " active" : ""));
     b.type = "button";
     b.appendChild(ic(iconTen, { size: 16, weight: current === id ? "solid" : "line" }));
     b.appendChild(el("span", "grow", label));
     b.appendChild(el("span", "n", String(countIn(id))));
     b.addEventListener("click", () => { current = id; drawDecks(); draw(); });
-    bar.appendChild(b);
+    cum.appendChild(b);
+
+    const den = dueIn(id);
+    if (den) {
+      const h = el("button", "chip hoc");
+      h.type = "button";
+      h.title = T2("Ôn ngay {n} mục đến hạn trong “{ten}”", { n: den, ten: label });
+      h.appendChild(ic("graduation-cap", { size: 14, weight: "solid" }));
+      h.appendChild(el("span", "n", String(den)));
+      h.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // Mở ngăn ra rồi mới học: hết buổi, đóng lại là thấy đúng ngăn vừa ôn,
+        // chứ không rơi về danh sách tất cả.
+        current = id; drawDecks(); draw();
+        startStudy();
+      });
+      cum.appendChild(h);
+    }
+    bar.appendChild(cum);
   };
   mk(ALL, T("Tất cả"), "list-bullets");
   mk(NONE, T("Chưa phân loại"), "funnel");
@@ -844,15 +968,7 @@ function openSource(it) {
 /* Danh sách                                                            */
 /* ==================================================================== */
 
-function currentActiveSet() {
-  const a = active(items);
-  if (current === ALL) return a;
-  if (current === NONE) return a.filter((it) => !it.deck);
-  if (current === LIKE) return a.filter((it) => it.fav === 1);
-  if (current === DISLIKE) return a.filter((it) => it.fav === -1);
-  if (current === HANTU) return a.filter((it) => it.dict === "kanji");
-  return a.filter((it) => it.deck === current);
-}
+function currentActiveSet() { return setIn(current); }
 
 /** Khối ghi chú riêng, hiện dưới phần nghĩa. */
 function khoiGhiChu(chu) {
@@ -881,6 +997,11 @@ function draw() {
 
   const den = dueList(base).length;
   $("dueCount").textContent = String(den);
+  // Nói thẳng buổi học sắp tới lấy mục ở đâu. Nút chỉ ghi "Học ngay" thì đang
+  // mở một sổ con mà bấm vào, người ta vẫn tưởng nó ôn cả sổ tay.
+  const tenNgan = current === ALL ? "" : (deckName(current) || nhanNgan(current));
+  const oNgan = $("study").querySelector(".scope");
+  if (oNgan) oNgan.textContent = tenNgan ? "\u2002·\u2002" + tenNgan : "";
   const chip = $("dueChip");
   if (den) { chip.style.display = ""; chip.textContent = T2("{n} mục đến hạn", { n: den }); }
   else chip.style.display = "none";
@@ -926,6 +1047,10 @@ function draw() {
     const spk = nutIcon("speaker-high", T("Phát âm"), "", 17);
     spk.addEventListener("click", () => speak(it.word, it.audio));
     head.appendChild(spk);
+
+    // Ghi âm nằm NGAY CẠNH nút phát âm: nghe mẫu rồi đọc lại là một mạch, tách
+    // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
+    head.appendChild(cumGhiAm(it.key));
 
     head.appendChild(favButtons(it));
     head.appendChild(el("span", "tag", dirLabel(it.dict)));
@@ -1128,6 +1253,11 @@ function showCard(giuLat) {
       + '<span class="lb" data-chu>' + (laYt ? T2("Nghe lại {t}", { t: giay(it.src.yt.t) }) : T("Mở nguồn")) + "</span>";
     src.style.display = ""; src.onclick = () => openSource(it);
   } else { src.style.display = "none"; src.onclick = null; }
+
+  // Cụm ghi âm của buổi học dựng lại mỗi lần đổi thẻ, và dùng CHÍNH khoá của
+  // mục — nên bản thu ghi ở sổ tay mở buổi học ra là nghe lại được ngay.
+  const oGhi = $("stGhiAm");
+  if (oGhi) { oGhi.textContent = ""; oGhi.appendChild(cumGhiAm(it.key)); }
 
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
@@ -1733,7 +1863,10 @@ function gaiIcon() {
 
   const st = $("study");
   const den = st.querySelector(".tag");
+  // Chỗ ghi tên ngăn sắp ôn phải dựng Ở ĐÂY chứ không đặt sẵn trong HTML: dòng
+  // dưới thay trắng ruột cái nút, thẻ nào đặt sẵn cũng bay theo.
   st.innerHTML = window.Icon("graduation-cap", { size: 20 }) + '<span class="lb" data-chu>Học ngay</span>';
+  st.appendChild(el("span", "lb scope", ""));
   st.appendChild(den);
 
   $("filter").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("filter"));
@@ -1857,7 +1990,7 @@ async function donHuyHieu() {
  */
 function vaFurigana() {
   try {
-    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 25 }, (kq) => {
+    chrome.runtime.sendMessage({ type: "VA_FURIGANA", toiDa: 60 }, (kq) => {
       if (chrome.runtime.lastError) return;
       if (kq && kq.ok && kq.count) load();
     });

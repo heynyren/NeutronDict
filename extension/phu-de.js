@@ -961,6 +961,13 @@
        Chiếm trọn một dòng riêng bên dưới, để mấy dòng trước và sau vẫn nhìn
        thấy: chép lời sai thì thường sai một cụm, phải có ngữ cảnh mới đoán ra
        người ta nói gì. */
+    /* Ba nút đọc theo xếp ngang trong cụm dọc: chúng chỉ có hình nên một hàng
+       ngang vẫn hẹp hơn nút Lưu ở trên. */
+    .acts .ghiam { display: flex; gap: 2px; justify-content: center; }
+    .ln .sv.ga { padding: 3px 5px; }
+    .ln .sv.ga.dangthu { color: #d33; border-color: #d33; visibility: visible; }
+    .ln .sv.ga.hong { color: var(--ink-3); }
+
     .edbox {
       flex-basis: 100%; margin: 8px 0 2px; cursor: default;
       background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
@@ -1357,6 +1364,11 @@
       ed.addEventListener("click", (e) => { e.stopPropagation(); moSua(i); });
       nut.appendChild(ed);
 
+      // Đọc theo ngay tại dòng: nghe câu, đọc lại, nghe lại giọng mình. Ba nút
+      // xếp NGANG trong cụm dọc — chúng chỉ có hình, không có chữ, nên một hàng
+      // ngang vẫn hẹp hơn cái nút Lưu ở trên.
+      if (self.GhiAm && self.GhiAm.hoTro() && S.v) nut.appendChild(cumGhiAm(c));
+
       ln.appendChild(nut);
 
       list.appendChild(ln);
@@ -1364,6 +1376,71 @@
     S.uiDem.textContent = S.cau.length ? S.cau.length + " câu" : "";
     batQuanSat();
     danhDau(true);
+  }
+
+  /**
+   * Cụm đọc theo cho một dòng lời thoại: Ghi · Nghe · Xoá.
+   *
+   * Đọc theo không phải việc làm một lần — nghe mẫu, đọc lại, nghe lại giọng
+   * mình, thấy chỗ vấp rồi XOÁ ĐI ĐỌC LẠI cho tới lúc vừa ý. Nên cả ba việc đều
+   * nằm ngay trên dòng, không chôn cái nào vào menu; "Ghi" khi đã có bản thu thì
+   * đè thẳng lên bản cũ, đúng như người ta nghĩ khi bấm Ghi lại.
+   *
+   * Bản thu đánh mã theo VIDEO và MỐC GIÂY, giống hệt bản sửa lời thoại: đổi
+   * sang bản phụ đề khác thì số dòng đổi hết, còn mốc giây thì vẫn là chỗ đó.
+   */
+  function cumGhiAm(c) {
+    const cum = document.createElement("div");
+    cum.className = "ghiam";
+    cum.addEventListener("click", (e) => e.stopPropagation());   // đừng tua video khi bấm nút
+    const ma = self.GhiAm.maDongYt(S.v, c.t);
+    let dangThu = null;
+
+    const nutNho = (ten, title, cls) => {
+      const b = document.createElement("button");
+      b.className = "sv ga" + (cls ? " " + cls : "");
+      b.type = "button"; b.title = title;
+      b.appendChild(ic(ten, 12));
+      return b;
+    };
+
+    const ve = async () => {
+      cum.textContent = "";
+      if (dangThu) {
+        const b = nutNho("stop", T("Dừng ghi"), "dangthu");
+        b.addEventListener("click", async () => {
+          const t = dangThu; dangThu = null;
+          try { await self.GhiAm.luu(ma, await t.dung()); } catch (e) { /* thu hỏng thì thôi */ }
+          ve();
+        });
+        cum.appendChild(b);
+        return;
+      }
+      const ban = await self.GhiAm.doc(ma);
+      const thu = nutNho("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"));
+      thu.addEventListener("click", async () => {
+        try { dangThu = await self.GhiAm.batDau(); ve(); }
+        catch (e) {
+          // Bảng này chạy trong trang YouTube nên quyền micro là quyền của
+          // YouTube — nói thẳng ra thay vì để cái nút bấm mãi không lên.
+          thu.classList.add("hong");
+          thu.title = T("YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.");
+        }
+      });
+      if (ban) {
+        const nghe = nutNho("play", T("Nghe lại giọng mình"));
+        nghe.addEventListener("click", () => { new Audio(self.GhiAm.duong(ban)).play().catch(() => {}); });
+        cum.appendChild(nghe);
+        cum.appendChild(thu);
+        const bo = nutNho("trash", T("Xoá bản thu này"));
+        bo.addEventListener("click", async () => { await self.GhiAm.xoa(ma); ve(); });
+        cum.appendChild(bo);
+      } else {
+        cum.appendChild(thu);
+      }
+    };
+    ve();
+    return cum;
   }
 
   /**

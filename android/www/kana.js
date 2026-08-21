@@ -285,6 +285,22 @@
     return ra;
   }
 
+  /**
+   * Bảng furigana này có còn khớp với chữ hiện tại không.
+   *
+   * Trả lời bằng ĐÚNG phép dựng ruby chứ không đếm lại theo cách khác: có thế
+   * thì "coi là còn dùng được" và "vẽ ra được" mới không bao giờ lệch nhau.
+   *
+   * Cần tới nó vì bảng furigana bám theo từng khúc chữ Hán trong câu. Sửa lại
+   * chữ của một mục — thêm một chữ Hán, bỏ một chữ Hán — là bảng cũ hết khớp,
+   * và phép dựng ruby lặng lẽ trả về rỗng. Không ai hỏi lại câu này thì mục ấy
+   * mất furigana vĩnh viễn: nó vẫn "đã có ruby" nên lượt vá bỏ qua, mà vẽ ra thì
+   * chẳng vẽ được gì.
+   */
+  function rubyKhop(text, ds) {
+    return !!(ds && ds.length) && dungRuby(text, ds).length > 0;
+  }
+
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -302,5 +318,5 @@
   }
 
   goc.Kana = { tuRomaji, tuRomajiCum, canDoc, docSan, chuanRomaji, laRomaji,
-                ghepFurigana, gonRuby, dungRuby, htmlRuby, catKhuc, soSanh, veHira };
+                ghepFurigana, gonRuby, dungRuby, htmlRuby, rubyKhop, catKhuc, soSanh, veHira };
 })(typeof self !== "undefined" ? self : this);

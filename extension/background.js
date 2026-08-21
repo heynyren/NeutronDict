@@ -228,7 +228,9 @@ async function vaFurigana(toiDa) {
   for (const k of Object.keys(nb)) {
     const it = nb[k];
     if (!it || it.del) continue;
-    if (it.dict !== "javi" && it.dict !== "vija") continue;
+    // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ
+    // nằm trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
+    if (it.dict !== "javi" && it.dict !== "vija" && it.dict !== "kanji") continue;
     if (it.reading && !self.Kana.laRomaji(it.reading)) continue;   // đã có kana rồi
 
     // Cả câu (và cụm quá dài để có MỘT dòng kana) đi đường khác: furigana đặt
@@ -237,7 +239,10 @@ async function vaFurigana(toiDa) {
     const coHan = self.Kana.catKhuc(it.word).some((x) => x.han);
     if (it.kind === "sent" || (coHan && !self.Kana.canDoc(it.word, ""))) {
       if (!coHan) continue;                                         // toàn kana: chẳng có gì để đặt furigana lên
-      if (it.ruby && it.ruby.length) continue;                      // đã ghép rồi
+      // "Đã ghép rồi" chưa đủ: bảng cũ bám theo từng khúc chữ Hán, sửa lại chữ
+      // của mục là nó hết khớp và ruby lặng lẽ biến mất. Hỏi xem còn khớp không
+      // thì mục ấy được ghép lại, thay vì mất furigana vĩnh viễn.
+      if (self.Kana.rubyKhop(it.word, it.ruby)) continue;
       if (conMang <= 0) continue;                                   // để dành cho lượt mở sau
       const rb = await rubyCua(it.word);
       conMang--;                                                    // trừ cả lượt hỏi hụt
@@ -547,7 +552,7 @@ async function rubyVaSau(key, word) {
     const it = nb[key];
     // Đọc lại ngay trước khi ghi: giữa lúc hỏi mạng có thể đã có lượt lưu khác,
     // mà mục cũng có thể đã bị xoá.
-    if (!it || it.del || (it.ruby && it.ruby.length)) return;
+    if (!it || it.del || self.Kana.rubyKhop(it.word, it.ruby)) return;
     it.ruby = rb;
     it.docSuy = 1;
     await chrome.storage.local.set({ notebook: nb });
