@@ -24,7 +24,7 @@
      lượt quét data-chu nào chạm tới, nên chỉ cần Chu biết đang ở thứ tiếng nào
      là đủ — chữ đã đi qua T() hết rồi. */
   const datChu = (st) => { if (self.Chu) self.Chu.dat(self.Chu.hopLe((st || {}).chu), null); };
-  chrome.storage.local.get("settings", (r) => {
+  self.Song.doc("settings").then((r) => {
     if (r && r.settings) S = Object.assign({}, DEFAULTS, r.settings);
     datChu(S);
   });
@@ -540,7 +540,7 @@
     const e = Object.assign({}, entry, { means: moi.means });
     e.note = moi.note || "";
     if (coSua) { e.mEdit = 1; if (goc && goc.length) e.mOrig = goc; }
-    chrome.runtime.sendMessage({ type: "SAVE_WORD", entry: e, dict: dict }, (kq) => {
+    self.Song.gui({ type: "SAVE_WORD", entry: e, dict: dict }, (kq) => {
       xong(chrome.runtime.lastError ? { ok: false } : (kq || { ok: true }));
     });
   }
@@ -733,12 +733,12 @@
       veChiTiet(kh.o.detail, null);
       place(); requestAnimationFrame(place);
     } else {
-      chrome.runtime.sendMessage(
+      self.Song.gui(
         { type: "LOOKUP", word: text, dict: nhat ? "javi" : "auto", chiHanTu: nhat && quaDai },
-        (res) => {
+        (res, loi) => {
           if (host !== cuaToi) return;
-          const r = (chrome.runtime.lastError || !res)
-            ? { error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || T("Không tra được") }
+          const r = (loi || !res)
+            ? { error: (loi && loi.message) || T("Không tra được") }
             : res;
           if (nhat && quaDai) r.quaDai = true;
           veTuVung(kh.o.word, r, text);
@@ -754,12 +754,12 @@
     }
 
     if (coDich) {
-      chrome.runtime.sendMessage(
+      self.Song.gui(
         { type: "TRANSLATE", text: text, from: nhat ? "ja" : "auto", to: nhat ? "vi" : "" },
-        (res) => {
+        (res, loi) => {
         if (host !== cuaToi) return;
-        veDich(kh.o.trans, (chrome.runtime.lastError || !res)
-          ? { ok: false, error: (chrome.runtime.lastError && chrome.runtime.lastError.message) || T("Không dịch được") }
+        veDich(kh.o.trans, (loi || !res)
+          ? { ok: false, error: (loi && loi.message) || T("Không dịch được") }
           : res, text);
         place(); requestAnimationFrame(place);
       });
@@ -980,12 +980,12 @@
   (function checkPendingHighlight() {
     try {
       if (!/^https?:/i.test(location.href)) return;
-      chrome.storage.local.get("pendingHighlight", (r) => {
+      self.Song.doc("pendingHighlight").then((r) => {
         const ph = r && r.pendingHighlight;
         if (!ph || !ph.url || !ph.text) return;
-        if (Date.now() - (ph.ts || 0) > 60000) { chrome.storage.local.remove("pendingHighlight"); return; }
+        if (Date.now() - (ph.ts || 0) > 60000) { self.Song.xoa("pendingHighlight"); return; }
         if (!sameDoc(ph.url, location.href)) return;
-        chrome.storage.local.remove("pendingHighlight");
+        self.Song.xoa("pendingHighlight");
         const run = () => tryHighlight({ text: ph.text, prefix: ph.prefix || "", suffix: ph.suffix || "" }, 15);
         if (document.readyState === "complete") setTimeout(run, 300);
         else window.addEventListener("load", () => setTimeout(run, 300), { once: true });
@@ -1047,7 +1047,7 @@
     if (!text || text.length > (S.maxSent || 400)) return;
     e.preventDefault();
     e.stopPropagation();
-    chrome.runtime.sendMessage({ type: "OPEN_LOOKUP", text: text });
+    self.Song.gui({ type: "OPEN_LOOKUP", text: text });
   }, true);
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !soOSuaDangMo) close(); });
