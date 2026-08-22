@@ -1291,6 +1291,14 @@ function renderDetail() {
 /* Dịch câu                                                             */
 /* ==================================================================== */
 
+/* Hướng dịch của từng lựa chọn trong ô "Hướng". */
+const HUONG_DICH = {
+  envi: { from: "en", to: "vi" },
+  vien: { from: "vi", to: "en" },
+  javi: { from: "ja", to: "vi" },
+  vija: { from: "vi", to: "ja" },
+};
+
 async function translateText(text, dir) {
   const t = (text || "").trim();
   if (!t) throw new Error(T("Chưa có nội dung"));
@@ -1314,8 +1322,16 @@ async function translateText(text, dir) {
       if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
       from = "en"; to = "vi";
     }
-  } else if (dir === "vien") { from = "vi"; to = "en"; }
-  else { from = "en"; to = "vi"; }
+  } else {
+    // Hướng dịch phải tra theo BẢNG, không phải "vien thì Việt→Anh, còn lại
+    // Anh→Việt". Ở chế độ tiếng Nhật thì hướng duy nhất là "javi", mà nó rơi
+    // thẳng vào nhánh còn-lại ấy — thành ra mọi câu tiếng Nhật đều đi xin Google
+    // dịch TỪ TIẾNG ANH, và Google trả lại đúng câu cũ. Đó chính là cảnh "tra ở
+    // tab Dịch mà ra nguyên mẫu".
+    const md = HUONG_DICH[dir];
+    if (!md) return { text: "", target: "vi" };     // hướng lạ thì thà không dịch còn hơn dịch sai
+    from = md.from; to = md.to;
+  }
 
   const key = from + ">" + to + ":" + t;
   const hit = fresh(key);
