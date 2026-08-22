@@ -10,7 +10,8 @@
     "scripting",
     "activeTab",
     "clipboardRead",
-    "audioCapture"
+    "audioCapture",
+    "unlimitedStorage"
   ],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",

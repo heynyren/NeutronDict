@@ -74,8 +74,13 @@ function cumGhiAm(ma, giuLau, mocSua) {
         e.stopPropagation();
         const t = dangThu; dangThu = null;
         try {
-          await window.GhiAm.luu(ma, await t.dung(), giuLau);
-          toast(T("Đã ghi xong — bấm Nghe để nghe lại."));
+          // Nhìn KẾT QUẢ ghi, đừng chỉ nhìn việc gọi xong. Bản thu giờ không bị
+          // cắt ngắn nữa nên có thể rất nặng, và kho vẫn có thể chối. Thu mười
+          // phút rồi báo "đã ghi" trong khi chẳng có gì được lưu là kiểu mất mát
+          // tệ nhất — thà nói thẳng để người ta thu lại ngắn hơn.
+          const xong = await window.GhiAm.luu(ma, await t.dung(), giuLau);
+          toast(xong ? T("Đã ghi xong — bấm Nghe để nghe lại.")
+                     : T("Không lưu được bản thu — có lẽ máy đã hết chỗ."), xong ? "" : "bad");
         } catch (err) { toast(T("Không ghi được: ") + ((err && err.message) || err), "bad"); }
         ve();
       });

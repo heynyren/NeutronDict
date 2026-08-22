@@ -545,6 +545,8 @@
       "Stop recording",
     "Dừng phát":
       "Stop playback",
+    "Không lưu được bản thu — có lẽ máy đã hết chỗ.":
+      "Could not save the recording — the device may be out of space.",
     "Luyện nói":
       "Speaking practice",
     "Tên bài nói":
@@ -1259,6 +1261,8 @@
       "録音を停止",
     "Dừng phát":
       "再生を停止",
+    "Không lưu được bản thu — có lẽ máy đã hết chỗ.":
+      "録音を保存できませんでした。空き容量が足りない可能性があります。",
     "Luyện nói":
       "スピーキング練習",
     "Tên bài nói":
