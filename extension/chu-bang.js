@@ -545,6 +545,34 @@
       "Stop recording",
     "Dừng phát":
       "Stop playback",
+    "Luyện nói":
+      "Speaking practice",
+    "Đoạn bạn muốn tập nói":
+      "The passage you want to practise",
+    "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":
+      "Paste or type a passage on any topic…",
+    "Dịch và thêm":
+      "Translate and add",
+    "Hãy viết hoặc dán một đoạn đã.":
+      "Write or paste a passage first.",
+    "Chưa dịch được — kiểm tra mạng rồi thử lại.":
+      "Could not translate — check your connection and try again.",
+    "Chưa có đoạn nào. Viết một đoạn ở trên rồi bấm “Dịch và thêm”.":
+      "No passages yet. Write one above and tap “Translate and add”.",
+    "Nghe giọng máy đọc ({ngu})":
+      "Hear it read aloud ({ngu})",
+    "Tiếng Việt":
+      "Vietnamese",
+    "Tiếng Nhật":
+      "Japanese",
+    "Tiếng Anh":
+      "English",
+    "Xoá đoạn":
+      "Delete passage",
+    "Xoá đoạn này và cả bản thu của nó?":
+      "Delete this passage and its recordings?",
+    "{n} đoạn":
+      "{n} passages",
     "Chưa dịch được sang tiếng Nhật (kiểm tra mạng).":
       "Could not translate to Japanese (check your connection).",
     "Ghi giọng mình để đọc theo":
@@ -1215,6 +1243,34 @@
       "録音を停止",
     "Dừng phát":
       "再生を停止",
+    "Luyện nói":
+      "スピーキング練習",
+    "Đoạn bạn muốn tập nói":
+      "練習したい文章",
+    "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":
+      "好きなテーマの文章を貼り付けるか入力…",
+    "Dịch và thêm":
+      "翻訳して追加",
+    "Hãy viết hoặc dán một đoạn đã.":
+      "まず文章を書くか貼り付けてください。",
+    "Chưa dịch được — kiểm tra mạng rồi thử lại.":
+      "翻訳できませんでした。通信を確認してもう一度お試しください。",
+    "Chưa có đoạn nào. Viết một đoạn ở trên rồi bấm “Dịch và thêm”.":
+      "まだ文章がありません。上に書いて「翻訳して追加」を押してください。",
+    "Nghe giọng máy đọc ({ngu})":
+      "読み上げを聞く（{ngu}）",
+    "Tiếng Việt":
+      "ベトナム語",
+    "Tiếng Nhật":
+      "日本語",
+    "Tiếng Anh":
+      "英語",
+    "Xoá đoạn":
+      "文章を削除",
+    "Xoá đoạn này và cả bản thu của nó?":
+      "この文章と録音を削除しますか？",
+    "{n} đoạn":
+      "{n} 件",
     "Chưa dịch được sang tiếng Nhật (kiểm tra mạng).":
       "日本語に翻訳できませんでした（通信を確認してください）。",
     "Ghi giọng mình để đọc theo":

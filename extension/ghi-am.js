@@ -126,22 +126,32 @@
     };
   }
 
-  /** Bỏ bản quá hạn, rồi bỏ tiếp bản cũ nhất cho tới khi lọt hai cái trần. */
+  /**
+   * Bỏ bản quá hạn, rồi bỏ tiếp bản cũ nhất cho tới khi lọt hai cái trần.
+   *
+   * Trừ những bản có dấu `giu`. Đó là bản của trang Luyện nói: người dùng bảo
+   * giữ lâu dài thì phải giữ thật, và chỉ chính họ xoá. Tự xoá đi một bản thu
+   * mà người ta đã cất công đọc và đang lấy làm mốc so sánh thì tệ hơn nhiều so
+   * với việc kho hơi đầy — nên bản `giu` không hết hạn, và cũng không bị lượt
+   * dọn theo dung lượng đụng tới. Hai cái trần chỉ áp cho bản NGẮN HẠN.
+   */
   function locKho(kho, bayGio) {
-    const ra = {};
+    const daGiu = {}, tam = {};
     for (const id in kho) {
       const b = kho[id];
-      if (b && typeof b.ts === "number" && bayGio - b.ts < MOT_NGAY) ra[id] = b;
+      if (!b || typeof b.ts !== "number") continue;
+      if (b.giu) { daGiu[id] = b; continue; }
+      if (bayGio - b.ts < MOT_NGAY) tam[id] = b;
     }
-    const ma = Object.keys(ra).sort((a, b) => (ra[b].ts || 0) - (ra[a].ts || 0));  // mới nhất trước
-    let tong = 0;
-    const giu = {};
+    const ma = Object.keys(tam).sort((a, b) => (tam[b].ts || 0) - (tam[a].ts || 0));  // mới nhất trước
+    let tong = 0, dem = 0;
+    const ra = daGiu;
     for (const id of ma) {
-      const co = (ra[id].b64 || "").length;
-      if (Object.keys(giu).length >= TOI_DA_BAN || tong + co > TOI_DA_BYTE) break;
-      giu[id] = ra[id]; tong += co;
+      const co = (tam[id].b64 || "").length;
+      if (dem >= TOI_DA_BAN || tong + co > TOI_DA_BYTE) break;
+      ra[id] = tam[id]; tong += co; dem++;
     }
-    return giu;
+    return ra;
   }
 
   /**
@@ -182,10 +192,12 @@
     return Object.keys(con).length;
   }
 
-  async function luu(id, ban) {
+  /** @param {boolean} [giuLau] giữ lâu dài, chỉ người dùng mới xoá được. */
+  async function luu(id, ban, giuLau) {
     if (!id || !ban || !ban.b64) return false;
     const con = await docKho();
     con[id] = { b64: ban.b64, mime: ban.mime || "audio/webm", dai: ban.dai || 0, ts: Date.now() };
+    if (giuLau) con[id].giu = 1;
     try {
       const k = khoLuu();
       if (!k) return false;
