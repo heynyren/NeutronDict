@@ -613,14 +613,20 @@
 
     // Lượt 1: điểm tĩnh. Nguồn đã có dấu câu thì khỏi chấm điểm làm gì.
     const diem = new Array(n).fill(0);
+    // Ranh giới này có đuôi VỊ NGỮ RÕ RÀNG không (〜です／〜ます／〜ました／
+    // 〜ください…). Ghi lại riêng vì nó là dấu hiệu mạnh nhất mà tiếng Nhật có
+    // để báo hết câu, và ở dưới nó được miễn một khoản phạt.
+    const ketRo = new Array(n).fill(false);
     for (let i = 0; !coDau && i < n; i++) {
+      const duoi = chu.slice(Math.max(0, viTri[i].b - 24), viTri[i].b);
       diem[i] = diemTinh(
-        chu.slice(Math.max(0, viTri[i].b - 24), viTri[i].b),
+        duoi,
         cs[i + 1] ? cs[i + 1].s.trim() : null,
         lang[i] === Infinity ? 99 : lang[i],
         nhip[i],
         !!cs[i].ev,
         L);
+      ketRo[i] = !!((L.khongTreo && L.khongTreo.test(duoi)) || (L.ket && L.ket.test(duoi)));
     }
 
     // Lượt 2: chọn chỗ ngắt.
@@ -660,7 +666,20 @@
       let dau = 0, tot = -1, diemTot = -Infinity;
       for (let i = 0; i < n; i++) {
         const soChu = viTri[i].b - viTri[dau].a;
-        const d = diem[i] + apLuc(soChu, NGAN, DAI);
+        const ap = apLuc(soChu, NGAN, DAI);
+        // Đuôi vị ngữ rõ ràng thì KHÔNG bị khoản phạt "câu còn ngắn" phủ quyết.
+        //
+        // Đây là chỗ hỏng thật, tìm ra bằng cách đo: 「これは伝統の酒です」 chấm
+        // đủ 1.6 điểm, thừa ngưỡng 1.0 — nhưng câu mới có 9 chữ nên bị phạt kéo
+        // xuống -0.4, và nó dính luôn vào câu sau thành một khối. Trong lời nói
+        // thật thì gần như bao giờ cũng có một quãng nghỉ nhỏ đỡ cho, nên lỗi chỉ
+        // lộ ra đúng ở phụ đề tự động — nơi các mẩu nối nhau khít không một kẽ hở.
+        //
+        // Mà trong tiếng Nhật thì 「〜です」「〜ます」 là hết câu, câu ngắn cũng là
+        // câu. Chỉ miễn phần phạt (ap < 0); áp lực câu QUÁ DÀI vẫn giữ nguyên.
+        // Mấy chốt chặn thật vẫn nguyên vẹn: mẩu kế tiếp là trợ từ thì -20 điểm,
+        // vẫn dư sức dìm xuống dưới ngưỡng.
+        const d = diem[i] + (ketRo[i] && ap < 0 ? 0 : ap);
         if (d > diemTot) { diemTot = d; tot = i; }
         if (i === n - 1) { moc.push(i); break; }
         if (d >= NG) {
