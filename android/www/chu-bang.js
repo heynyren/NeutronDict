@@ -533,6 +533,8 @@
       "No meaning found. Check the spelling or your connection and try again.",
     "Nghe câu tiếng Anh":
       "Play the English sentence",
+    "Nghe lại câu gốc":
+      "Play the original sentence",
     "Nghe câu tiếng Nhật":
       "Play the Japanese sentence",
     "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":
@@ -1163,6 +1165,8 @@
       "意味が見つかりません。つづりか通信を確認して、もう一度お試しください。",
     "Nghe câu tiếng Anh":
       "英語の文を再生",
+    "Nghe lại câu gốc":
+      "元の文を再生",
     "Nghe câu tiếng Nhật":
       "日本語の文を再生",
     "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":

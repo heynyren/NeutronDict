@@ -553,6 +553,52 @@ async function docKana(word, reading, choPhepMang) {
   return k ? { doc: k, suy: true } : null;
 }
 
+const rubyDem = new Map();
+
+/**
+ * Furigana cho CẢ CÂU: đặt trên từng khúc chữ Hán, không phải một dòng kana
+ * chạy dài ở dưới — dòng đó đọc còn mệt hơn đọc chữ Hán.
+ *
+ * Xin được từ Google chỉ là kana của cả câu, nên phần còn lại là canh: chỗ kana
+ * đã có sẵn trong câu chính là các cọc mốc. Canh không khớp thì trả về rỗng —
+ * furigana đặt sai chỗ còn tệ hơn không có. Xem kana.js.
+ */
+async function rubyCua(text) {
+  const w = (text || "").trim();
+  if (!w || !hasJapanese(w)) return [];
+  if (rubyDem.has(w)) return rubyDem.get(w);
+  let ra = [];
+  try {
+    const kana = window.Kana.tuRomajiCum(await romajiCua(w));
+    ra = kana ? window.Kana.gonRuby(window.Kana.ghepFurigana(w, kana)) : [];
+  } catch (e) { ra = []; }
+  if (rubyDem.size > 400) rubyDem.clear();
+  rubyDem.set(w, ra);
+  return ra;
+}
+
+/**
+ * Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ.
+ *
+ * Chạy SAU khi đã ghi và KHÔNG chờ: bấm Lưu thì phải lưu xong ngay. Bắt cả lượt
+ * lưu đứng chờ một lượt hỏi mạng chỉ để làm đẹp cách đọc là đổi một thứ chắc
+ * chắn lấy một thứ hên xui — mạng chậm thì nút treo, mạng hỏng thì mất luôn cảm
+ * giác "đã lưu". Mốc `ts` của mục cũng không bị đụng tới — đây là máy tự vá,
+ * không phải bạn vừa sửa, nên nó không được kéo cả sổ lên cloud.
+ */
+async function rubyVaSau(key, word) {
+  try {
+    const rb = await rubyCua(word);
+    if (!rb.length) return;
+    await capNhat((nb) => {
+      const it = nb[key];
+      if (!it || it.del || window.Kana.rubyKhop(it.word, it.ruby)) return;
+      it.ruby = rb;
+      it.docSuy = 1;
+    });
+  } catch (e) { /* không ghép được thì thôi, mục vẫn dùng bình thường */ }
+}
+
 /** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
 async function themDoc(entries, soDuocGoiMang) {
   const ds = entries || [];
@@ -573,21 +619,40 @@ async function themDoc(entries, soDuocGoiMang) {
 async function vaFurigana(toiDa) {
   let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
   const nb = await getNB();
-  const doi = {};
+  const doi = {}, doiRuby = {};
   for (const k of Object.keys(nb)) {
     const it = nb[k];
     if (!it || it.del) continue;
-    if (it.dict !== "javi" && it.dict !== "vija") continue;
-    if (it.kind === "sent") continue;
+    // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ
+    // nằm trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
+    if (it.dict !== "javi" && it.dict !== "vija" && it.dict !== "kanji") continue;
     if (it.reading && !window.Kana.laRomaji(it.reading)) continue;
+
+    // Cả câu (và cụm dài quá mức để có MỘT dòng kana) đi đường khác: furigana
+    // đặt trên từng khúc chữ Hán. Trước đây nhánh này bị bỏ qua thẳng, nên câu
+    // lưu trong sổ tay của bản Android không bao giờ có furigana.
+    const coHan = window.Kana.catKhuc(it.word).some((x) => x.han);
+    if (it.kind === "sent" || (coHan && !window.Kana.canDoc(it.word, ""))) {
+      if (!coHan) continue;                        // toàn kana: chẳng có gì để đặt furigana lên
+      // "Đã ghép rồi" chưa đủ: bảng cũ bám theo từng khúc chữ Hán, sửa lại chữ
+      // của mục là nó hết khớp và ruby lặng lẽ biến mất. Hỏi xem còn khớp không
+      // thì mục ấy được ghép lại, thay vì mất furigana vĩnh viễn.
+      if (window.Kana.rubyKhop(it.word, it.ruby)) continue;
+      if (conMang <= 0) continue;                  // để dành cho lượt mở sau
+      const rb = await rubyCua(it.word);
+      conMang--;                                   // trừ cả lượt hỏi hụt
+      if (rb.length) doiRuby[k] = rb;
+      continue;
+    }
+
     const phaiHoi = !it.reading && window.Kana.canDoc(it.word, "");
     if (phaiHoi && conMang <= 0) continue;
     const r = await docKana(it.word, it.reading, phaiHoi);
     if (phaiHoi) conMang--;
     if (r && r.doc && r.doc !== it.reading) doi[k] = r;
   }
-  const keys = Object.keys(doi);
-  if (!keys.length) return 0;
+  const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
+  if (!keys.length && !keysRb.length) return 0;
   await capNhat((moi) => {
     for (const k of keys) {
       const it = moi[k];
@@ -595,8 +660,14 @@ async function vaFurigana(toiDa) {
       it.reading = doi[k].doc;
       if (doi[k].suy) it.docSuy = 1;
     }
+    for (const k of keysRb) {
+      const it = moi[k];
+      if (!it || it.del) continue;
+      it.ruby = doiRuby[k];
+      it.docSuy = 1;
+    }
   });
-  return keys.length;
+  return keys.length + keysRb.length;
 }
 
 /** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
@@ -1212,6 +1283,11 @@ async function renderWord(entries) {
         return !old2 || old2.del;
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
+      // Còn trắng cách đọc mà vẫn có chữ Hán, tức đây là một cụm dài — thứ mà
+      // docKana cố tình không đụng tới. Ghép furigana theo từng khúc chữ Hán.
+      if ((huong === "javi" || huong === "vija") && !en.reading) {
+        rubyVaSau(key, en.word).then(() => drawNotebook(), () => {});
+      }
       syncSoon(); refreshNotifications();
     };
     head.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuTu, key, () => renderWord(entries)));
@@ -1361,7 +1437,12 @@ async function showTranslate(text) {
     box.className = "trbox";
     box.innerHTML = "";
 
-    const key = "envi:" + text;
+    // Hộp dịch này dùng cho CẢ chế độ Nhật, nên câu lưu ra phải mang đúng hướng
+    // đang tra. Đóng đinh "envi" thì một câu tiếng Nhật nằm trong sổ dưới nhãn
+    // Anh–Việt: lượt vá furigana lọc theo hướng nên không bao giờ với tới nó, và
+    // câu ấy vĩnh viễn không có cách đọc.
+    const huongCau = laNhat() ? "javi" : "envi";
+    const key = huongCau + ":" + text;
     const nb0 = await getNB();
     const daCo = window.Muc.banCuaBan(nb0[key]);
     const banDich = ((daCo && daCo.mEdit) ? (daCo.means || []) : [out]).map(meanToStr);
@@ -1375,14 +1456,14 @@ async function showTranslate(text) {
 
     const phai = el("div", "rowx");
     phai.style.gap = "2px";
-    const spk = nutIcon("speaker-high", T("Nghe câu tiếng Anh"), "", 19);
+    const spk = nutIcon("speaker-high", T("Nghe lại câu gốc"), "", 19);
     spk.addEventListener("click", () => speak(engText));
     phai.appendChild(spk);
 
     const luuCau = async () => {
       const laMoi = await capNhat((nb) => {
         const oldS = nb[key];
-        const neS = { word: text, reading: "", means: [out], dict: "envi", kind: "sent", ts: Date.now() };
+        const neS = { word: text, reading: "", means: [out], dict: huongCau, kind: "sent", ts: Date.now() };
         if (srcSnap) neS.src = srcSnap;
         if (oldS && !oldS.del) {
           if (oldS.deck) neS.deck = oldS.deck;
@@ -1399,6 +1480,9 @@ async function showTranslate(text) {
         return !oldS || oldS.del;
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
+      // Câu tiếng Nhật thì ghép furigana theo từng khúc chữ Hán. Chạy sau và
+      // KHÔNG chờ: bấm Lưu thì phải lưu xong ngay.
+      if (huongCau === "javi") rubyVaSau(key, text).then(() => drawNotebook(), () => {});
       syncSoon(); refreshNotifications();
       toast(T("Đã lưu — bấm Sửa nếu bản dịch chưa đúng chuyên ngành"));
     };
