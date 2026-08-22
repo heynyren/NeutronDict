@@ -17,7 +17,7 @@ let NGU = "en";
 /** Các hướng tra có nghĩa với từng ngôn ngữ. */
 const HUONG = {
   en: [["auto", T("Tự động")], ["envi", T("Anh→Việt")], ["vien", T("Việt→Anh")]],
-  ja: [["javi", T("Nhật→Việt")]]
+  ja: [["javi", T("Nhật→Việt")], ["vija", T("Việt→Nhật")]]
 };
 
 function veNgu() {

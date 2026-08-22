@@ -545,6 +545,8 @@
       "Stop recording",
     "Dừng phát":
       "Stop playback",
+    "Chưa dịch được sang tiếng Nhật (kiểm tra mạng).":
+      "Could not translate to Japanese (check your connection).",
     "Ghi giọng mình để đọc theo":
       "Record yourself for shadowing",
     "Ghi lại — đè lên bản cũ":
@@ -1213,6 +1215,8 @@
       "録音を停止",
     "Dừng phát":
       "再生を停止",
+    "Chưa dịch được sang tiếng Nhật (kiểm tra mạng).":
+      "日本語に翻訳できませんでした（通信を確認してください）。",
     "Ghi giọng mình để đọc theo":
       "シャドーイング用に自分の声を録音",
     "Ghi lại — đè lên bản cũ":

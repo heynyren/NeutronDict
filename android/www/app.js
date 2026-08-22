@@ -801,6 +801,32 @@ async function lookup(word, dict) {
       };
       return [entry];
     }
+    if (dict === "vija") {
+      /*
+       * Việt -> Nhật. Dịch sang tiếng Nhật rồi TRA LẠI chính từ ấy bằng Mazii.
+       *
+       * Vì sao phải tra lại thay vì trả thẳng bản dịch: một từ tiếng Nhật trơ
+       * gần như luôn là chữ Hán, mà chữ Hán không có cách đọc thì người học
+       * không đọc lên được — tức là không dùng được để nói, đúng thứ họ cần.
+       */
+      let gv = null;
+      try { gv = await gtxDict(w, "vi", "ja"); } catch (e) { gv = null; }
+      const ja = gv ? gv.main : "";
+      if (!ja) { lastLookupError = T("Chưa dịch được sang tiếng Nhật (kiểm tra mạng)."); return []; }
+      const ds = await fetchMazii(ja).catch(() => []);
+      const trung = ds.find((x) => x.word === ja);
+      const entry = { word: ja, reading: trung ? trung.reading : "", means: [w], dict: "vija" };
+      if (!entry.reading) {
+        // Không tra được thì vẫn suy cách đọc, còn hơn để một dãy chữ Hán câm.
+        try {
+          const r = await docKana(ja, "", true);
+          if (r) { entry.reading = r.doc; if (r.suy) entry.docSuy = 1; }
+        } catch (e) { /* thôi vậy */ }
+      }
+      // Mấy cách nói khác cho cùng một ý — chọn được sắc thái thì câu mới tự nhiên.
+      const khac = ds.filter((x) => x.word && x.word !== ja).slice(0, 5);
+      return [entry].concat(khac.map((x) => Object.assign({}, x, { dict: "vija" })));
+    }
     // Anh -> Việt: nghĩa tiếng Việt NHIỀU TẦNG (dt=bd) + IPA/định nghĩa Anh ở tab Chi tiết.
     const [dd, gv] = await Promise.all([
       fetchDictionary(w),
@@ -2625,7 +2651,7 @@ function gaiIcon() {
 /** Các hướng tra có nghĩa với từng ngôn ngữ. */
 const HUONG_NGU = {
   en: [["auto", T("Tự động")], ["envi", T("Anh→Việt")], ["vien", T("Việt→Anh")]],
-  ja: [["javi", T("Nhật→Việt")]]
+  ja: [["javi", T("Nhật→Việt")], ["vija", T("Việt→Nhật")]]
 };
 
 function veNgu() {
