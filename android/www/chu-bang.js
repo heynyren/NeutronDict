@@ -547,6 +547,22 @@
       "Stop playback",
     "Luyện nói":
       "Speaking practice",
+    "Tên bài nói":
+      "Title",
+    "Ví dụ: Giới thiệu bản thân, Báo cáo sự cố…":
+      "e.g. Introducing myself, Reporting a fault…",
+    "(chưa đặt tên)":
+      "(untitled)",
+    "Đổi tên bài nói":
+      "Rename this passage",
+    "Sửa đoạn này — bản kia sẽ tự dịch lại theo":
+      "Edit this side — the other one is re-translated to match",
+    "Đã lưu, nhưng chưa dịch lại được bản kia — kiểm tra mạng.":
+      "Saved, but the other side could not be re-translated — check your connection.",
+    "Nghe lại — bản thu này thu TRƯỚC lần sửa, chữ đã khác":
+      "Play back — this take predates your edit, so the text has changed",
+    "Nói":
+      "Speak",
     "Đoạn bạn muốn tập nói":
       "The passage you want to practise",
     "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":
@@ -1245,6 +1261,22 @@
       "再生を停止",
     "Luyện nói":
       "スピーキング練習",
+    "Tên bài nói":
+      "タイトル",
+    "Ví dụ: Giới thiệu bản thân, Báo cáo sự cố…":
+      "例：自己紹介、故障の報告…",
+    "(chưa đặt tên)":
+      "（無題）",
+    "Đổi tên bài nói":
+      "タイトルを変更",
+    "Sửa đoạn này — bản kia sẽ tự dịch lại theo":
+      "こちらを編集 — 反対側は自動で訳し直します",
+    "Đã lưu, nhưng chưa dịch lại được bản kia — kiểm tra mạng.":
+      "保存しましたが、反対側を訳し直せませんでした。通信を確認してください。",
+    "Nghe lại — bản thu này thu TRƯỚC lần sửa, chữ đã khác":
+      "再生 — この録音は編集より前のもので、文章が変わっています",
+    "Nói":
+      "話す",
     "Đoạn bạn muốn tập nói":
       "練習したい文章",
     "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":
