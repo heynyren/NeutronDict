@@ -1825,20 +1825,48 @@ async function drawNotebook() {
   const bar = $("deckBar");
   bar.innerHTML = "";
   const activeDecks = Object.values(decks).filter((d) => !d.del).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  const countIn = (id) => id === ALL ? activeItems.length
-    : id === NONE ? activeItems.filter((i) => !i.deck).length
-    : id === LIKE ? activeItems.filter((i) => i.fav === 1).length
-    : id === DISLIKE ? activeItems.filter((i) => i.fav === -1).length
-    : id === HANTU ? activeItems.filter((i) => i.dict === "kanji").length
-    : activeItems.filter((i) => i.deck === id).length;
+  const countIn = (id) => setIn(activeItems, id).length;
+  const denHanIn = (id) => { const now = Date.now(); return setIn(activeItems, id).filter((i) => isDue(i, now)).length; };
+  /*
+   * Mỗi ngăn là một CẶP: chip để mở ra xem, và nút học của riêng ngăn đó.
+   *
+   * Buổi học giờ chỉ lấy mục trong ngăn đang mở, nhưng muốn dùng thì phải tự
+   * đoán ra luật ấy: bấm ngăn, rồi sang màn Học bấm tiếp. Nút học nằm ngay trên
+   * ngăn thì "ôn nhanh đúng chỗ mình muốn" chỉ còn một cú chạm.
+   *
+   * Chỉ hiện khi ngăn ấy CÓ mục tới hạn: ngăn nào cũng đeo một nút thì hàng ngăn
+   * dài gấp đôi mà phần lớn chạm vào chỉ nhận được câu "chưa tới hạn".
+   */
   const mk = (id, label, iconTen) => {
+    const cum = el("span", "chipgroup");
     const b = el("button", "chip" + (curDeck === id ? " active" : ""));
     b.type = "button";
     b.appendChild(ic(iconTen, { size: 15, weight: curDeck === id ? "solid" : "line" }));
     b.appendChild(el("span", null, label));
     b.appendChild(el("span", "n", String(countIn(id))));
     b.addEventListener("click", () => { curDeck = id; drawNotebook(); });
-    bar.appendChild(b);
+    cum.appendChild(b);
+
+    const den = denHanIn(id);
+    if (den) {
+      const h = el("button", "chip hoc");
+      h.type = "button";
+      h.title = T2("Ôn ngay {n} mục đến hạn trong “{ten}”", { n: den, ten: label });
+      h.appendChild(ic("graduation-cap", { size: 14, weight: "solid" }));
+      h.appendChild(el("span", "n", String(den)));
+      h.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        // Mở ngăn ra rồi mới sang màn Học: hết buổi quay lại là thấy đúng ngăn
+        // vừa ôn, chứ không rơi về danh sách tất cả.
+        curDeck = id;
+        await drawNotebook();
+        show("Study");
+        await updateDueButton();
+        $("stStart").click();
+      });
+      cum.appendChild(h);
+    }
+    bar.appendChild(cum);
   };
   mk(ALL, T("Tất cả"), "list-bullets");
   mk(NONE, T("Chưa phân loại"), "funnel");
@@ -2122,10 +2150,41 @@ $("aboutSheet").addEventListener("click", (e) => {
 let session = { queue: [], done: 0, again: 0, deleted: 0 };
 let lastDeleted = null;
 
+/**
+ * Các mục nằm trong một ngăn. Một chỗ duy nhất trả lời câu "ngăn này có gì", để
+ * cái ĐẾM trên chip, cái HỌC của ngăn đó và danh sách đang hiện không bao giờ
+ * nói ba con số khác nhau.
+ */
+function setIn(list, id) {
+  if (id === ALL) return list;
+  if (id === NONE) return list.filter((i) => !i.deck);
+  if (id === LIKE) return list.filter((i) => i.fav === 1);
+  if (id === DISLIKE) return list.filter((i) => i.fav === -1);
+  if (id === HANTU) return list.filter((i) => i.dict === "kanji");
+  return list.filter((i) => i.deck === id);
+}
+
+/** Tên đọc được của một ngăn dựng sẵn (sổ con thì hỏi deckName). */
+function nhanNgan(id) {
+  if (id === NONE) return T("Chưa phân loại");
+  if (id === LIKE) return T("Thích");
+  if (id === DISLIKE) return T("Không thích");
+  if (id === HANTU) return T("Hán tự");
+  return "";
+}
+
+/**
+ * Các mục đến hạn ôn — CHỈ trong ngăn đang mở.
+ *
+ * Trước đây hàm này đọc cả sổ, nên bấm vào một sổ con rồi sang màn Học vẫn ra
+ * nguyên cả sổ tay: người ta muốn ôn nhanh đúng một thư mục thì không có cách
+ * nào làm được.
+ */
 async function currentDue() {
   const nb = await getNBNgu();
   const now = Date.now();
-  return Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => isDue(it, now));
+  const ds = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
+  return setIn(ds, curDeck).filter((it) => isDue(it, now));
 }
 
 async function updateDueButton() {
@@ -2135,7 +2194,15 @@ async function updateDueButton() {
   const view = await theoDoi.xem();
   $("stIdleIcon").innerHTML = window.Icon(due.length ? "graduation-cap" : "seal-check",
     { size: 52, weight: "duo" });
-  $("stIdleTitle").textContent = due.length ? T2("Có {n} mục đến hạn", { n: due.length }) : T("Không còn mục nào đến hạn");
+  // Nói thẳng buổi học sắp tới lấy mục ở đâu. Chỉ ghi "Có 5 mục đến hạn" thì
+  // đang mở một sổ con mà nhìn vào, người ta vẫn tưởng đó là cả sổ tay.
+  const dsSo = await getDecks();
+  const tenNgan = curDeck === ALL ? "" : (deckName(dsSo, curDeck) || nhanNgan(curDeck));
+  $("stIdleTitle").textContent = due.length
+    ? (tenNgan ? T2("Có {n} mục đến hạn trong “{ten}”", { n: due.length, ten: tenNgan })
+               : T2("Có {n} mục đến hạn", { n: due.length }))
+    : (tenNgan ? T2("“{ten}” không còn mục nào đến hạn", { ten: tenNgan })
+               : T("Không còn mục nào đến hạn"));
   $("stIdleSub").textContent = view.homNay.dat
     ? T2("Hôm nay đã đạt mục tiêu {dich} lượt. Chuỗi {n} ngày.", { dich: view.goal, n: Math.max(1, view.chuoi.hienTai) })
     : T2("Ôn thêm {n} lượt nữa là đạt mục tiêu hôm nay.", { n: view.homNay.conLai });

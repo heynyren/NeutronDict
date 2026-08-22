@@ -535,6 +535,40 @@
       "Play the English sentence",
     "Nghe lại câu gốc":
       "Play the original sentence",
+    "Bản gốc":
+      "Original",
+    "Bỏ bản sửa của bạn, lấy lại đúng chữ YouTube chép":
+      "Discard your edit and restore YouTube's own wording",
+    "Có {n} mục đến hạn trong “{ten}”":
+      "{n} items due in “{ten}”",
+    "Dừng ghi":
+      "Stop recording",
+    "Ghi giọng mình để đọc theo":
+      "Record yourself for shadowing",
+    "Ghi lại — đè lên bản cũ":
+      "Record again — replaces the old take",
+    "Không ghi được: ":
+      "Couldn't record: ",
+    "Không mở được micro. Hãy cho phép quyền micro rồi thử lại.":
+      "Couldn't open the microphone. Allow microphone access and try again.",
+    "Không phát được bản thu.":
+      "Couldn't play the recording.",
+    "Nghe lại giọng mình":
+      "Play your recording",
+    "Sửa lại lời thoại":
+      "Edit this line",
+    "Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — có vẻ họ vừa đổi cách dựng bảng. ":
+      "Found YouTube's transcript panel but couldn't read a single line — they seem to have changed how it is built. ",
+    "Xoá bản thu này":
+      "Delete this recording",
+    "YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.":
+      "YouTube does not have microphone permission. Use the padlock in the address bar to allow it.",
+    "Ôn ngay {n} mục đến hạn trong “{ten}”":
+      "Review the {n} items due in “{ten}”",
+    "Đã ghi xong — bấm Nghe để nghe lại.":
+      "Recorded — tap Play to listen back.",
+    "“{ten}” không còn mục nào đến hạn":
+      "Nothing due in “{ten}”",
     "Nghe câu tiếng Nhật":
       "Play the Japanese sentence",
     "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":
@@ -1167,6 +1201,40 @@
       "英語の文を再生",
     "Nghe lại câu gốc":
       "元の文を再生",
+    "Bản gốc":
+      "元の文",
+    "Bỏ bản sửa của bạn, lấy lại đúng chữ YouTube chép":
+      "自分の修正を取り消し、YouTube の原文に戻す",
+    "Có {n} mục đến hạn trong “{ten}”":
+      "「{ten}」に期限の項目が {n} 件",
+    "Dừng ghi":
+      "録音を停止",
+    "Ghi giọng mình để đọc theo":
+      "シャドーイング用に自分の声を録音",
+    "Ghi lại — đè lên bản cũ":
+      "録り直す — 前の録音を上書き",
+    "Không ghi được: ":
+      "録音できません: ",
+    "Không mở được micro. Hãy cho phép quyền micro rồi thử lại.":
+      "マイクを開けません。マイクの使用を許可してからもう一度お試しください。",
+    "Không phát được bản thu.":
+      "録音を再生できません。",
+    "Nghe lại giọng mình":
+      "自分の録音を再生",
+    "Sửa lại lời thoại":
+      "この字幕を修正",
+    "Thấy bảng bản chép lời của YouTube nhưng không đọc được dòng nào — có vẻ họ vừa đổi cách dựng bảng. ":
+      "YouTube の文字起こしパネルは見つかりましたが、行を読み取れません。作りが変わったようです。",
+    "Xoá bản thu này":
+      "この録音を削除",
+    "YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.":
+      "YouTube にマイクの許可がありません。アドレスバーの鍵アイコンから許可してください。",
+    "Ôn ngay {n} mục đến hạn trong “{ten}”":
+      "「{ten}」の期限 {n} 件をすぐ復習",
+    "Đã ghi xong — bấm Nghe để nghe lại.":
+      "録音しました。再生ボタンで聞き返せます。",
+    "“{ten}” không còn mục nào đến hạn":
+      "「{ten}」に期限の項目はありません",
     "Nghe câu tiếng Nhật":
       "日本語の文を再生",
     "Nghĩa đúng với ngữ cảnh / chuyên ngành của bạn…":
