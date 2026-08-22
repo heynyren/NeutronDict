@@ -196,6 +196,73 @@ function trangThai(box, iconTen, chu, phu) {
 }
 
 let toastTimer = null;
+/* ==================================================================== */
+/* Ghi âm để đọc theo                                                    */
+/* ==================================================================== */
+
+/**
+ * Cụm nút ghi âm cho MỘT mục: Ghi · Nghe · Xoá.
+ *
+ * Đọc theo không phải việc làm một lần. Người ta nghe câu mẫu, đọc lại, nghe
+ * lại giọng mình, thấy chỗ vấp, rồi XOÁ ĐI ĐỌC LẠI cho tới lúc vừa ý — nên ba
+ * việc ấy phải nằm cạnh nhau, không chôn cái nào vào menu. Ghi lại đè thẳng lên
+ * bản cũ, đúng như người ta nghĩ khi bấm "Ghi lại".
+ *
+ * Mã bản thu là KHOÁ CỦA MỤC, nên sổ tay và buổi học nhìn thấy cùng một bản thu.
+ *
+ * @param {string} ma khoá của mục
+ */
+function cumGhiAm(ma) {
+  const cum = el("span", "ghiam");
+  let dangThu = null;
+
+  const ve = async () => {
+    cum.textContent = "";
+    if (!window.GhiAm || !window.GhiAm.hoTro()) return;   // máy không ghi âm được thì đừng bày nút ra
+
+    if (dangThu) {
+      const b = nutIcon("stop", T("Dừng ghi"), "dangthu", 17);
+      b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const t = dangThu; dangThu = null;
+        try {
+          await window.GhiAm.luu(ma, await t.dung());
+          toast(T("Đã ghi xong — bấm Nghe để nghe lại."));
+        } catch (err) { toast(T("Không ghi được: ") + ((err && err.message) || err), "bad"); }
+        ve();
+      });
+      cum.appendChild(b);
+      return;
+    }
+
+    const ban = await window.GhiAm.doc(ma);
+    const thu = nutIcon("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"), "", 17);
+    thu.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      try { dangThu = await window.GhiAm.batDau(); ve(); }
+      catch (err) { toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad"); }
+    });
+
+    if (ban) {
+      const nghe = nutIcon("play", T("Nghe lại giọng mình"), "", 16);
+      nghe.addEventListener("click", (e) => {
+        e.stopPropagation();
+        new Audio(window.GhiAm.duong(ban)).play().catch(() => toast(T("Không phát được bản thu."), "bad"));
+      });
+      cum.appendChild(nghe);
+      cum.appendChild(thu);
+      const bo = nutIcon("trash", T("Xoá bản thu này"), "", 16);
+      bo.addEventListener("click", async (e) => { e.stopPropagation(); await window.GhiAm.xoa(ma); ve(); });
+      cum.appendChild(bo);
+    } else {
+      cum.appendChild(thu);
+    }
+  };
+
+  ve();
+  return cum;
+}
+
 function toast(chu, kieu) {
   const t = $("toast");
   t.className = "toast" + (kieu ? " " + kieu : "");
@@ -1947,6 +2014,9 @@ async function drawNotebook() {
     const spk = nutIcon("speaker-high", T("Phát âm"), "", 18);
     spk.addEventListener("click", () => speak(it.word, it.audio));
     head.appendChild(spk);
+    // Ghi âm nằm NGAY CẠNH nút phát âm: nghe mẫu rồi đọc lại là một mạch, tách
+    // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
+    head.appendChild(cumGhiAm(it.key));
     head.appendChild(favButtons(it));
     head.appendChild(el("span", "tag", dirLabel(it.dict)));
     if (it.mEdit) {
@@ -2255,6 +2325,11 @@ function showCard(giuLat) {
   const src = $("stSrc");
   if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
   else { src.style.display = "none"; src.onclick = null; }
+
+  // Cụm ghi âm dùng CHÍNH khoá của mục, nên bản thu ghi ở sổ tay thì mở buổi
+  // học ra là nghe lại được ngay.
+  const oGhi = $("stGhiAm");
+  if (oGhi) { oGhi.textContent = ""; oGhi.appendChild(cumGhiAm(it.key)); }
 
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
