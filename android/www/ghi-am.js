@@ -163,6 +163,14 @@
    * tệp thì không bảo đảm — nên hỏi lúc gọi mới chắc.
    */
   function khoLuu() {
+    // Ưu tiên lớp Song: nó biết đường về nền đã đứt hay chưa (extension vừa bị
+    // nạp lại) và nuốt gọn thay vì ném "Extension context invalidated".
+    if (goc.Song) {
+      return {
+        doc: async () => (await goc.Song.doc(KHOA))[KHOA] || {},
+        ghi: (d) => goc.Song.ghi({ [KHOA]: d }),
+      };
+    }
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
       return {
         doc: async () => (await chrome.storage.local.get(KHOA))[KHOA] || {},

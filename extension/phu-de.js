@@ -647,7 +647,7 @@
    */
   let baoDaDoc;
   const daDocCaiDat = new Promise((giai) => { baoDaDoc = giai; });
-  chrome.storage.local.get("settings", (r) => {
+  self.Song.doc("settings").then((r) => {
     const st = (r && r.settings) || {};
     NGU = self.Ngu.hopLe(st.ngu);
     datChu(st);
@@ -720,7 +720,7 @@
 
   async function docSua(v) {
     try {
-      const { phuDeSua } = await chrome.storage.local.get("phuDeSua");
+      const { phuDeSua } = await self.Song.doc("phuDeSua");
       const kho = (phuDeSua || {})[v];
       return (kho && kho.d) || {};
     } catch (e) { return {}; }
@@ -728,7 +728,7 @@
 
   async function ghiSua(v, d) {
     try {
-      const { phuDeSua } = await chrome.storage.local.get("phuDeSua");
+      const { phuDeSua } = await self.Song.doc("phuDeSua");
       const kho = phuDeSua || {};
       if (Object.keys(d).length) kho[v] = { d: d, ts: Date.now() };
       else delete kho[v];                       // sửa xong lại bỏ hết -> đừng để rác
@@ -737,7 +737,7 @@
         ma.sort((a, b) => (kho[a].ts || 0) - (kho[b].ts || 0));
         for (let i = 0; i < ma.length - TOI_DA_VIDEO; i++) delete kho[ma[i]];
       }
-      await chrome.storage.local.set({ phuDeSua: kho });
+      await self.Song.ghi({ phuDeSua: kho });
     } catch (e) { /* hết chỗ thì thôi, đừng làm hỏng bảng đang đọc */ }
   }
 
@@ -1149,8 +1149,8 @@
     S.veNutNgu = veNutNgu;
     nutNgu.addEventListener("click", async () => {
       const moi = NGU === "ja" ? "en" : "ja";
-      const { settings } = await chrome.storage.local.get("settings");
-      await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { ngu: moi }) });
+      const { settings } = await self.Song.doc("settings");
+      await self.Song.ghi({ settings: Object.assign({}, settings || {}, { ngu: moi }) });
       // Không tự đổi NGU ở đây: onChanged sẽ lo, và chính nó dựng lại bảng.
     });
 
@@ -1208,7 +1208,7 @@
     nutCo.addEventListener("click", () => {
       S.co = (S.co + 1) % CO_CHU.length;
       apDungCo();
-      try { chrome.storage.local.set({ ytCoChu: S.co }); } catch (e) { /* không nhớ được thì thôi */ }
+      self.Song.ghi({ ytCoChu: S.co });   // nhớ không được thì thôi, Song tự nuốt
     });
 
     nutThu.addEventListener("click", () => {
@@ -1835,8 +1835,8 @@
     if (!ids.length) return;
     ids.forEach((i) => S.dich.set(i, ""));      // giữ chỗ, khỏi gửi trùng
     const texts = ids.map((i) => S.cau[i].s.trim());
-    chrome.runtime.sendMessage({ type: "TRANSLATE_MANY", texts: texts, from: nguNguon(), to: "vi" }, (res) => {
-      const ra = (!chrome.runtime.lastError && res && res.ok) ? (res.texts || []) : [];
+    self.Song.gui({ type: "TRANSLATE_MANY", texts: texts, from: nguNguon(), to: "vi" }, (res) => {
+      const ra = (res && res.ok) ? (res.texts || []) : [];
       let truot = 0;
       ids.forEach((i, k) => {
         const t = ra[k] || "";
@@ -1877,7 +1877,7 @@
     if (!c) return;
     nut.disabled = true; nhan.textContent = "…";
     const gui = (nghia) => {
-      chrome.runtime.sendMessage({
+      self.Song.gui({
         type: "SAVE_WORD",
         entry: { word: c.s, reading: "", means: nghia ? [nghia] : [], kind: "sent", src: nguon(i) },
         dict: nganLuu()
@@ -1890,7 +1890,7 @@
     // Lưu kèm luôn bản dịch: một câu trần trụi nằm trong sổ tay thì đến lúc ôn
     // lại chẳng có gì để lật ra cả.
     if (S.dich.get(i)) { gui(S.dich.get(i)); return; }
-    chrome.runtime.sendMessage({ type: "TRANSLATE", text: c.s, from: nguNguon(), to: "vi" }, (res) => {
+    self.Song.gui({ type: "TRANSLATE", text: c.s, from: nguNguon(), to: "vi" }, (res) => {
       gui((!chrome.runtime.lastError && res && res.ok) ? res.text : "");
     });
   }
@@ -1980,11 +1980,9 @@
     return true;
   }
 
-  try {
-    chrome.storage.local.get("ytCoChu", (r) => {
-      if (r && typeof r.ytCoChu === "number" && CO_CHU[r.ytCoChu]) S.co = r.ytCoChu;
-    });
-  } catch (e) { /* chạy được thì tốt, không thì dùng cỡ mặc định */ }
+  self.Song.doc("ytCoChu").then((r) => {
+    if (r && typeof r.ytCoChu === "number" && CO_CHU[r.ytCoChu]) S.co = r.ytCoChu;
+  });   // đọc được thì tốt, không thì dùng cỡ mặc định
 
   function maVideo() {
     if (location.pathname !== "/watch") return "";
@@ -2021,12 +2019,29 @@
   // YouTube là ứng dụng một trang: chuyển video không tải lại trang.
   document.addEventListener("yt-navigate-finish", () => xemLai());
   let urlCu = location.href;
-  setInterval(() => {
+  const vongCanh = setInterval(() => {
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
     // YouTube dựng lại cột phải khá tuỳ hứng và cuốn theo cả bảng này; dựng lại
     // khi thấy nó biến mất, chứ không bắt người dùng tải lại trang.
     if (S.v && S.v !== tatCho && (!S.host || !S.host.isConnected) && choDat()) khoiDong(S.v);
   }, 700);
+
+  /*
+   * Extension bị nạp lại hoặc gỡ đi thì bản content script NÀY vẫn nằm nguyên
+   * trong trang, chỉ mất đường về nền. Nó không được báo, không tự dừng — mà
+   * bảng này lại chạy hẹn giờ 150ms, một vòng canh 700ms và một hàng đợi dịch,
+   * nên nó bắn "Extension context invalidated" hàng chục lần một phút, mãi mãi.
+   *
+   * Nên khi Song phát hiện đường đã đứt: dừng hết, gỡ bảng, và im. Không bày
+   * lỗi ra — người dùng chẳng làm gì sai, và tải lại trang là mọi thứ trở lại.
+   */
+  self.Song.khiChet(() => {
+    clearInterval(vongCanh);
+    clearInterval(dangCho);
+    clearTimeout(henDich);
+    dungTheoDoi();
+    goBang();
+  });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => xemLai());
   else xemLai();
 
