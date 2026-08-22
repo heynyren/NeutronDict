@@ -56,8 +56,11 @@ function nutIcon(iconTen, title, cls, size) {
  *
  * @param {string} ma  mã bản thu (dùng khoá của mục, để sổ tay và buổi học
  *   nhìn thấy CÙNG một bản thu)
+ * @param {boolean} [giuLau] giữ lâu dài, chỉ người dùng mới xoá được. Trang
+ *   Luyện nói dùng cờ này: bản thu ở đó là mốc để vài tuần sau nghe lại xem
+ *   mình khá hơn chưa, máy tự dọn sau một ngày là hỏng cả ý nghĩa.
  */
-function cumGhiAm(ma) {
+function cumGhiAm(ma, giuLau) {
   const cum = el("span", "ghiam");
   let dangThu = null;
 
@@ -71,7 +74,7 @@ function cumGhiAm(ma) {
         e.stopPropagation();
         const t = dangThu; dangThu = null;
         try {
-          await window.GhiAm.luu(ma, await t.dung());
+          await window.GhiAm.luu(ma, await t.dung(), giuLau);
           toast(T("Đã ghi xong — bấm Nghe để nghe lại."));
         } catch (err) { toast(T("Không ghi được: ") + ((err && err.message) || err), "bad"); }
         ve();
@@ -84,6 +87,9 @@ function cumGhiAm(ma) {
     const thu = nutIcon("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"), "", 16);
     thu.addEventListener("click", async (e) => {
       e.stopPropagation();
+      // Tắt tiếng đang phát TRƯỚC khi bật micro: không thì máy thu lại chính
+      // giọng nó vừa phát ra, và bản thu mới lẫn hai giọng.
+      window.GhiAm.dungPhat();
       try {
         dangThu = await window.GhiAm.batDau();
         ve();
@@ -93,11 +99,16 @@ function cumGhiAm(ma) {
     });
 
     if (ban) {
-      const nghe = nutIcon("play", T("Nghe lại giọng mình"), "", 15);
+      // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
+      // chạy, và bấm lần nữa là dừng chứ không chồng thêm một giọng nữa.
+      const dangNghe = window.GhiAm.maDangPhat() === ma;
+      const nghe = nutIcon(dangNghe ? "stop" : "play",
+        dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "", 15);
       nghe.addEventListener("click", (e) => {
         e.stopPropagation();
-        const a = new Audio(window.GhiAm.duong(ban));
-        a.play().catch(() => toast(T("Không phát được bản thu."), "bad"));
+        if (window.GhiAm.maDangPhat() === ma) { window.GhiAm.dungPhat(); ve(); return; }
+        if (!window.GhiAm.phat(ma, ban, ve)) toast(T("Không phát được bản thu."), "bad");
+        ve();
       });
       cum.appendChild(nghe);
       cum.appendChild(thu);
@@ -606,13 +617,20 @@ function getAudio(url) {
  * Đọc to. Giọng chọn theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh
  * thì ra một thứ không ai nghe được.
  */
-function ttsSpeak(text) {
+/** Mã đầy đủ cho từng thứ tiếng mình có thể phải đọc. */
+const GIONG = { vi: "vi-VN", ja: "ja-JP", en: "en-US" };
+
+/**
+ * Đọc bằng giọng máy.
+ * @param {string} [ngu] "vi" | "ja" | "en". Không truyền thì theo ngôn ngữ đang
+ *   tra — trang Luyện nói phải đọc được CẢ HAI chiều nên nó luôn nói rõ.
+ */
+function ttsSpeak(text, ngu) {
   try {
     speechSynthesis.cancel();
-    const ja = (typeof NGU !== "undefined" && NGU === "ja");
-    const ma = ja ? "ja" : "en";
+    const ma = GIONG[ngu] ? ngu : ((typeof NGU !== "undefined" && NGU === "ja") ? "ja" : "en");
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = ja ? "ja-JP" : "en-US";
+    u.lang = GIONG[ma];
     u.rate = 0.9;
     const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
     if (v) u.voice = v;
@@ -1827,19 +1845,160 @@ async function clearCache() {
 }
 
 /* ==================================================================== */
+/* Luyện nói                                                            */
+/* ==================================================================== */
+/*
+ * Nghe rồi đọc theo từng câu lời thoại là một chuyện; nói cả một đoạn của CHÍNH
+ * MÌNH lại là chuyện khác — đó mới là lúc phải tự sắp ý, tự chọn chữ, và vấp ở
+ * đúng những chỗ mình yếu. Nên trang này nhận một đoạn bất kỳ người dùng viết
+ * ra, dịch sang thứ tiếng kia, rồi đặt hai bản cạnh nhau: mỗi bên một nút loa để
+ * nghe giọng máy, một nút thu để đọc lại, và nghe hai giọng nối tiếp nhau là ra
+ * ngay chỗ ngữ điệu lệch.
+ *
+ * Bản thu ở đây GIỮ LÂU DÀI, khác hẳn bản đọc theo ở sổ tay (một ngày là xoá).
+ * Người ta lấy nó làm mốc để vài tuần sau nghe lại xem mình khá hơn chưa, nên
+ * máy tự dọn là hỏng cả ý nghĩa. Chỉ chính họ xoá.
+ */
+
+const HUONG_NOI = {
+  en: [["envi", "Anh→Việt", "en", "vi"], ["vien", "Việt→Anh", "vi", "en"]],
+  ja: [["javi", "Nhật→Việt", "ja", "vi"], ["vija", "Việt→Nhật", "vi", "ja"]],
+};
+
+async function docDoanNoi() {
+  const { luyenNoi } = await chrome.storage.local.get("luyenNoi");
+  return luyenNoi || {};
+}
+async function ghiDoanNoi(d) { await chrome.storage.local.set({ luyenNoi: d }); }
+
+/** Mã bản thu của một mặt trong đoạn. Hai mặt thu riêng, nghe lại riêng. */
+const maThuNoi = (id, mat) => "noi:" + id + ":" + mat;
+
+function veHuongNoi() {
+  const sel = $("spDir");
+  if (!sel) return;
+  const cu = sel.value;
+  sel.innerHTML = "";
+  (HUONG_NOI[NGU] || HUONG_NOI.en).forEach(([v, nhan]) => {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = T(nhan);
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some((o) => o.value === cu)) sel.value = cu;
+}
+
+/** Một mặt của đoạn: chữ + nút loa + cụm ghi âm. */
+function matDoan(nhan, chu, ngu, ma) {
+  const o = el("div", "spside");
+  const dau = el("div", "sphead");
+  dau.appendChild(el("span", "splb", nhan));
+  const loa = nutIcon("speaker-high", T2("Nghe giọng máy đọc ({ngu})", { ngu: nhan }), "", 18);
+  loa.addEventListener("click", () => ttsSpeak(chu, ngu));
+  dau.appendChild(loa);
+  dau.appendChild(cumGhiAm(ma, true));
+  o.appendChild(dau);
+  o.appendChild(el("div", "sptext" + (ngu === "ja" ? " ja" : ""), chu));
+  return o;
+}
+
+async function veLuyenNoi() {
+  const box = $("spList");
+  if (!box) return;
+  veHuongNoi();
+  const kho = await docDoanNoi();
+  // Chỉ những đoạn của ngôn ngữ đang bật: đang học tiếng Nhật mà lẫn vào mấy
+  // đoạn tiếng Anh thì trang này loãng ngay.
+  const ds = Object.values(kho)
+    .filter((x) => x && !x.del && (x.tuNgu === NGU || x.sangNgu === NGU))
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+
+  $("speakCount").textContent = ds.length ? T2("{n} đoạn", { n: ds.length }) : "";
+  box.innerHTML = "";
+  if (!ds.length) {
+    const d = el("div", "empty");
+    d.appendChild(ic("microphone", { size: 40 }));
+    d.appendChild(el("div", null, T("Chưa có đoạn nào. Viết một đoạn ở trên rồi bấm “Dịch và thêm”.")));
+    box.appendChild(d);
+    return;
+  }
+
+  const ten = { vi: T("Tiếng Việt"), ja: T("Tiếng Nhật"), en: T("Tiếng Anh") };
+  for (const x of ds) {
+    const the = el("div", "card spcard");
+    the.appendChild(matDoan(ten[x.tuNgu] || x.tuNgu, x.goc, x.tuNgu, maThuNoi(x.id, "a")));
+    the.appendChild(matDoan(ten[x.sangNgu] || x.sangNgu, x.dich, x.sangNgu, maThuNoi(x.id, "b")));
+
+    const chan = el("div", "rowx", "");
+    chan.style.cssText = "gap:8px;margin-top:10px;align-items:center";
+    chan.appendChild(el("span", "t-tiny faint grow", fmtDate(x.ts)));
+    const xoa = el("button", "btn sm ghost danger");
+    xoa.type = "button";
+    xoa.appendChild(ic("trash", { size: 14 }));
+    xoa.appendChild(el("span", "lb", T("Xoá đoạn")));
+    xoa.addEventListener("click", async () => {
+      if (!confirm(T("Xoá đoạn này và cả bản thu của nó?"))) return;
+      const k = await docDoanNoi();
+      delete k[x.id];
+      await ghiDoanNoi(k);
+      // Bản thu là bản GIỮ LÂU DÀI nên không ai dọn hộ — xoá đoạn thì phải dọn
+      // theo, không thì nó nằm lại chiếm chỗ mà chẳng còn đường nào nghe tới.
+      await window.GhiAm.xoa(maThuNoi(x.id, "a"));
+      await window.GhiAm.xoa(maThuNoi(x.id, "b"));
+      veLuyenNoi();
+    });
+    chan.appendChild(xoa);
+    the.appendChild(chan);
+    box.appendChild(the);
+  }
+}
+
+async function themDoanNoi() {
+  const oChu = $("spText"), nut = $("spAdd"), bao = $("spStatus");
+  const chu = (oChu.value || "").trim();
+  if (!chu) { bao.textContent = T("Hãy viết hoặc dán một đoạn đã."); return; }
+
+  const huong = $("spDir").value;
+  const mo = (HUONG_NOI[NGU] || HUONG_NOI.en).find((x) => x[0] === huong);
+  if (!mo) return;
+  const [, , tuNgu, sangNgu] = mo;
+
+  nut.disabled = true;
+  bao.textContent = T("Đang dịch…");
+  chrome.runtime.sendMessage({ type: "TRANSLATE", text: chu, from: tuNgu, to: sangNgu }, async (res) => {
+    nut.disabled = false;
+    if (chrome.runtime.lastError || !res || res.ok === false || !res.text) {
+      bao.textContent = T("Chưa dịch được — kiểm tra mạng rồi thử lại.");
+      return;
+    }
+    const id = "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const kho = await docDoanNoi();
+    kho[id] = { id, goc: chu, dich: res.text, tuNgu, sangNgu, ts: Date.now() };
+    await ghiDoanNoi(kho);
+    oChu.value = "";
+    bao.textContent = "";
+    veLuyenNoi();
+  });
+}
+
+/* ==================================================================== */
 /* Chuyển màn Sổ tay / Tiến độ                                          */
 /* ==================================================================== */
 
 function moMan(ten) {
-  const laDs = ten === "list";
-  $("viewList").classList.toggle("show", laDs);
-  $("viewProgress").classList.toggle("show", !laDs);
-  $("pageList").classList.toggle("active", laDs);
-  $("pageProgress").classList.toggle("active", !laDs);
-  if (!laDs) veTienDo();
+  $("viewList").classList.toggle("show", ten === "list");
+  $("viewProgress").classList.toggle("show", ten === "progress");
+  $("viewSpeak").classList.toggle("show", ten === "speak");
+  // Hai nút trên đầu chỉ nói về Sổ tay / Tiến độ; Luyện nói vào bằng nút riêng
+  // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
+  $("pageList").classList.toggle("active", ten === "list");
+  $("pageProgress").classList.toggle("active", ten === "progress");
+  if (ten === "progress") veTienDo();
+  if (ten === "speak") veLuyenNoi();
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
+$("speak").addEventListener("click", () => moMan("speak"));
+$("spAdd").addEventListener("click", themDoanNoi);
 
 /* ==================================================================== */
 /* Gắn icon vào phần khung tĩnh của HTML                                */

@@ -196,6 +196,82 @@ function trangThai(box, iconTen, chu, phu) {
 }
 
 let toastTimer = null;
+/* ==================================================================== */
+/* Ghi âm để đọc theo                                                    */
+/* ==================================================================== */
+
+/**
+ * Cụm nút ghi âm cho MỘT mục: Ghi · Nghe · Xoá.
+ *
+ * Đọc theo không phải việc làm một lần. Người ta nghe câu mẫu, đọc lại, nghe
+ * lại giọng mình, thấy chỗ vấp, rồi XOÁ ĐI ĐỌC LẠI cho tới lúc vừa ý — nên ba
+ * việc ấy phải nằm cạnh nhau, không chôn cái nào vào menu. Ghi lại đè thẳng lên
+ * bản cũ, đúng như người ta nghĩ khi bấm "Ghi lại".
+ *
+ * Mã bản thu là KHOÁ CỦA MỤC, nên sổ tay và buổi học nhìn thấy cùng một bản thu.
+ *
+ * @param {string} ma khoá của mục
+ */
+function cumGhiAm(ma) {
+  const cum = el("span", "ghiam");
+  let dangThu = null;
+
+  const ve = async () => {
+    cum.textContent = "";
+    if (!window.GhiAm || !window.GhiAm.hoTro()) return;   // máy không ghi âm được thì đừng bày nút ra
+
+    if (dangThu) {
+      const b = nutIcon("stop", T("Dừng ghi"), "dangthu", 17);
+      b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const t = dangThu; dangThu = null;
+        try {
+          await window.GhiAm.luu(ma, await t.dung());
+          toast(T("Đã ghi xong — bấm Nghe để nghe lại."));
+        } catch (err) { toast(T("Không ghi được: ") + ((err && err.message) || err), "bad"); }
+        ve();
+      });
+      cum.appendChild(b);
+      return;
+    }
+
+    const ban = await window.GhiAm.doc(ma);
+    const thu = nutIcon("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"), "", 17);
+    thu.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      // Tắt tiếng đang phát TRƯỚC khi bật micro: không thì máy thu lại chính
+      // giọng nó vừa phát ra, và bản thu mới lẫn hai giọng.
+      window.GhiAm.dungPhat();
+      try { dangThu = await window.GhiAm.batDau(); ve(); }
+      catch (err) { toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad"); }
+    });
+
+    if (ban) {
+      // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
+      // chạy, và bấm lần nữa là dừng chứ không chồng thêm một giọng nữa.
+      const dangNghe = window.GhiAm.maDangPhat() === ma;
+      const nghe = nutIcon(dangNghe ? "stop" : "play",
+        dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "", 16);
+      nghe.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (window.GhiAm.maDangPhat() === ma) { window.GhiAm.dungPhat(); ve(); return; }
+        if (!window.GhiAm.phat(ma, ban, ve)) toast(T("Không phát được bản thu."), "bad");
+        ve();
+      });
+      cum.appendChild(nghe);
+      cum.appendChild(thu);
+      const bo = nutIcon("trash", T("Xoá bản thu này"), "", 16);
+      bo.addEventListener("click", async (e) => { e.stopPropagation(); await window.GhiAm.xoa(ma); ve(); });
+      cum.appendChild(bo);
+    } else {
+      cum.appendChild(thu);
+    }
+  };
+
+  ve();
+  return cum;
+}
+
 function toast(chu, kieu) {
   const t = $("toast");
   t.className = "toast" + (kieu ? " " + kieu : "");
@@ -553,6 +629,52 @@ async function docKana(word, reading, choPhepMang) {
   return k ? { doc: k, suy: true } : null;
 }
 
+const rubyDem = new Map();
+
+/**
+ * Furigana cho CẢ CÂU: đặt trên từng khúc chữ Hán, không phải một dòng kana
+ * chạy dài ở dưới — dòng đó đọc còn mệt hơn đọc chữ Hán.
+ *
+ * Xin được từ Google chỉ là kana của cả câu, nên phần còn lại là canh: chỗ kana
+ * đã có sẵn trong câu chính là các cọc mốc. Canh không khớp thì trả về rỗng —
+ * furigana đặt sai chỗ còn tệ hơn không có. Xem kana.js.
+ */
+async function rubyCua(text) {
+  const w = (text || "").trim();
+  if (!w || !hasJapanese(w)) return [];
+  if (rubyDem.has(w)) return rubyDem.get(w);
+  let ra = [];
+  try {
+    const kana = window.Kana.tuRomajiCum(await romajiCua(w));
+    ra = kana ? window.Kana.gonRuby(window.Kana.ghepFurigana(w, kana)) : [];
+  } catch (e) { ra = []; }
+  if (rubyDem.size > 400) rubyDem.clear();
+  rubyDem.set(w, ra);
+  return ra;
+}
+
+/**
+ * Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ.
+ *
+ * Chạy SAU khi đã ghi và KHÔNG chờ: bấm Lưu thì phải lưu xong ngay. Bắt cả lượt
+ * lưu đứng chờ một lượt hỏi mạng chỉ để làm đẹp cách đọc là đổi một thứ chắc
+ * chắn lấy một thứ hên xui — mạng chậm thì nút treo, mạng hỏng thì mất luôn cảm
+ * giác "đã lưu". Mốc `ts` của mục cũng không bị đụng tới — đây là máy tự vá,
+ * không phải bạn vừa sửa, nên nó không được kéo cả sổ lên cloud.
+ */
+async function rubyVaSau(key, word) {
+  try {
+    const rb = await rubyCua(word);
+    if (!rb.length) return;
+    await capNhat((nb) => {
+      const it = nb[key];
+      if (!it || it.del || window.Kana.rubyKhop(it.word, it.ruby)) return;
+      it.ruby = rb;
+      it.docSuy = 1;
+    });
+  } catch (e) { /* không ghép được thì thôi, mục vẫn dùng bình thường */ }
+}
+
 /** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
 async function themDoc(entries, soDuocGoiMang) {
   const ds = entries || [];
@@ -573,21 +695,40 @@ async function themDoc(entries, soDuocGoiMang) {
 async function vaFurigana(toiDa) {
   let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
   const nb = await getNB();
-  const doi = {};
+  const doi = {}, doiRuby = {};
   for (const k of Object.keys(nb)) {
     const it = nb[k];
     if (!it || it.del) continue;
-    if (it.dict !== "javi" && it.dict !== "vija") continue;
-    if (it.kind === "sent") continue;
+    // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ
+    // nằm trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
+    if (it.dict !== "javi" && it.dict !== "vija" && it.dict !== "kanji") continue;
     if (it.reading && !window.Kana.laRomaji(it.reading)) continue;
+
+    // Cả câu (và cụm dài quá mức để có MỘT dòng kana) đi đường khác: furigana
+    // đặt trên từng khúc chữ Hán. Trước đây nhánh này bị bỏ qua thẳng, nên câu
+    // lưu trong sổ tay của bản Android không bao giờ có furigana.
+    const coHan = window.Kana.catKhuc(it.word).some((x) => x.han);
+    if (it.kind === "sent" || (coHan && !window.Kana.canDoc(it.word, ""))) {
+      if (!coHan) continue;                        // toàn kana: chẳng có gì để đặt furigana lên
+      // "Đã ghép rồi" chưa đủ: bảng cũ bám theo từng khúc chữ Hán, sửa lại chữ
+      // của mục là nó hết khớp và ruby lặng lẽ biến mất. Hỏi xem còn khớp không
+      // thì mục ấy được ghép lại, thay vì mất furigana vĩnh viễn.
+      if (window.Kana.rubyKhop(it.word, it.ruby)) continue;
+      if (conMang <= 0) continue;                  // để dành cho lượt mở sau
+      const rb = await rubyCua(it.word);
+      conMang--;                                   // trừ cả lượt hỏi hụt
+      if (rb.length) doiRuby[k] = rb;
+      continue;
+    }
+
     const phaiHoi = !it.reading && window.Kana.canDoc(it.word, "");
     if (phaiHoi && conMang <= 0) continue;
     const r = await docKana(it.word, it.reading, phaiHoi);
     if (phaiHoi) conMang--;
     if (r && r.doc && r.doc !== it.reading) doi[k] = r;
   }
-  const keys = Object.keys(doi);
-  if (!keys.length) return 0;
+  const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
+  if (!keys.length && !keysRb.length) return 0;
   await capNhat((moi) => {
     for (const k of keys) {
       const it = moi[k];
@@ -595,8 +736,14 @@ async function vaFurigana(toiDa) {
       it.reading = doi[k].doc;
       if (doi[k].suy) it.docSuy = 1;
     }
+    for (const k of keysRb) {
+      const it = moi[k];
+      if (!it || it.del) continue;
+      it.ruby = doiRuby[k];
+      it.docSuy = 1;
+    }
   });
-  return keys.length;
+  return keys.length + keysRb.length;
 }
 
 /** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
@@ -653,6 +800,32 @@ async function lookup(word, dict) {
         means: [w], pos: (dd ? posFrom(dd) : []).concat(synonyms.filter((s) => s.syn.length)).slice(0, 8), dict: "vien"
       };
       return [entry];
+    }
+    if (dict === "vija") {
+      /*
+       * Việt -> Nhật. Dịch sang tiếng Nhật rồi TRA LẠI chính từ ấy bằng Mazii.
+       *
+       * Vì sao phải tra lại thay vì trả thẳng bản dịch: một từ tiếng Nhật trơ
+       * gần như luôn là chữ Hán, mà chữ Hán không có cách đọc thì người học
+       * không đọc lên được — tức là không dùng được để nói, đúng thứ họ cần.
+       */
+      let gv = null;
+      try { gv = await gtxDict(w, "vi", "ja"); } catch (e) { gv = null; }
+      const ja = gv ? gv.main : "";
+      if (!ja) { lastLookupError = T("Chưa dịch được sang tiếng Nhật (kiểm tra mạng)."); return []; }
+      const ds = await fetchMazii(ja).catch(() => []);
+      const trung = ds.find((x) => x.word === ja);
+      const entry = { word: ja, reading: trung ? trung.reading : "", means: [w], dict: "vija" };
+      if (!entry.reading) {
+        // Không tra được thì vẫn suy cách đọc, còn hơn để một dãy chữ Hán câm.
+        try {
+          const r = await docKana(ja, "", true);
+          if (r) { entry.reading = r.doc; if (r.suy) entry.docSuy = 1; }
+        } catch (e) { /* thôi vậy */ }
+      }
+      // Mấy cách nói khác cho cùng một ý — chọn được sắc thái thì câu mới tự nhiên.
+      const khac = ds.filter((x) => x.word && x.word !== ja).slice(0, 5);
+      return [entry].concat(khac.map((x) => Object.assign({}, x, { dict: "vija" })));
     }
     // Anh -> Việt: nghĩa tiếng Việt NHIỀU TẦNG (dt=bd) + IPA/định nghĩa Anh ở tab Chi tiết.
     const [dd, gv] = await Promise.all([
@@ -1212,6 +1385,11 @@ async function renderWord(entries) {
         return !old2 || old2.del;
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
+      // Còn trắng cách đọc mà vẫn có chữ Hán, tức đây là một cụm dài — thứ mà
+      // docKana cố tình không đụng tới. Ghép furigana theo từng khúc chữ Hán.
+      if ((huong === "javi" || huong === "vija") && !en.reading) {
+        rubyVaSau(key, en.word).then(() => drawNotebook(), () => {});
+      }
       syncSoon(); refreshNotifications();
     };
     head.appendChild(hangHanhDong(!!(daCo && daCo.saved), luuTu, key, () => renderWord(entries)));
@@ -1291,6 +1469,14 @@ function renderDetail() {
 /* Dịch câu                                                             */
 /* ==================================================================== */
 
+/* Hướng dịch của từng lựa chọn trong ô "Hướng". */
+const HUONG_DICH = {
+  envi: { from: "en", to: "vi" },
+  vien: { from: "vi", to: "en" },
+  javi: { from: "ja", to: "vi" },
+  vija: { from: "vi", to: "ja" },
+};
+
 async function translateText(text, dir) {
   const t = (text || "").trim();
   if (!t) throw new Error(T("Chưa có nội dung"));
@@ -1314,8 +1500,16 @@ async function translateText(text, dir) {
       if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
       from = "en"; to = "vi";
     }
-  } else if (dir === "vien") { from = "vi"; to = "en"; }
-  else { from = "en"; to = "vi"; }
+  } else {
+    // Hướng dịch phải tra theo BẢNG, không phải "vien thì Việt→Anh, còn lại
+    // Anh→Việt". Ở chế độ tiếng Nhật thì hướng duy nhất là "javi", mà nó rơi
+    // thẳng vào nhánh còn-lại ấy — thành ra mọi câu tiếng Nhật đều đi xin Google
+    // dịch TỪ TIẾNG ANH, và Google trả lại đúng câu cũ. Đó chính là cảnh "tra ở
+    // tab Dịch mà ra nguyên mẫu".
+    const md = HUONG_DICH[dir];
+    if (!md) return { text: "", target: "vi" };     // hướng lạ thì thà không dịch còn hơn dịch sai
+    from = md.from; to = md.to;
+  }
 
   const key = from + ">" + to + ":" + t;
   const hit = fresh(key);
@@ -1345,7 +1539,12 @@ async function showTranslate(text) {
     box.className = "trbox";
     box.innerHTML = "";
 
-    const key = "envi:" + text;
+    // Hộp dịch này dùng cho CẢ chế độ Nhật, nên câu lưu ra phải mang đúng hướng
+    // đang tra. Đóng đinh "envi" thì một câu tiếng Nhật nằm trong sổ dưới nhãn
+    // Anh–Việt: lượt vá furigana lọc theo hướng nên không bao giờ với tới nó, và
+    // câu ấy vĩnh viễn không có cách đọc.
+    const huongCau = laNhat() ? "javi" : "envi";
+    const key = huongCau + ":" + text;
     const nb0 = await getNB();
     const daCo = window.Muc.banCuaBan(nb0[key]);
     const banDich = ((daCo && daCo.mEdit) ? (daCo.means || []) : [out]).map(meanToStr);
@@ -1359,14 +1558,14 @@ async function showTranslate(text) {
 
     const phai = el("div", "rowx");
     phai.style.gap = "2px";
-    const spk = nutIcon("speaker-high", T("Nghe câu tiếng Anh"), "", 19);
+    const spk = nutIcon("speaker-high", T("Nghe lại câu gốc"), "", 19);
     spk.addEventListener("click", () => speak(engText));
     phai.appendChild(spk);
 
     const luuCau = async () => {
       const laMoi = await capNhat((nb) => {
         const oldS = nb[key];
-        const neS = { word: text, reading: "", means: [out], dict: "envi", kind: "sent", ts: Date.now() };
+        const neS = { word: text, reading: "", means: [out], dict: huongCau, kind: "sent", ts: Date.now() };
         if (srcSnap) neS.src = srcSnap;
         if (oldS && !oldS.del) {
           if (oldS.deck) neS.deck = oldS.deck;
@@ -1383,6 +1582,9 @@ async function showTranslate(text) {
         return !oldS || oldS.del;
       });
       if (laMoi) mung(await theoDoi.ghiLuu(1));
+      // Câu tiếng Nhật thì ghép furigana theo từng khúc chữ Hán. Chạy sau và
+      // KHÔNG chờ: bấm Lưu thì phải lưu xong ngay.
+      if (huongCau === "javi") rubyVaSau(key, text).then(() => drawNotebook(), () => {});
       syncSoon(); refreshNotifications();
       toast(T("Đã lưu — bấm Sửa nếu bản dịch chưa đúng chuyên ngành"));
     };
@@ -1725,20 +1927,48 @@ async function drawNotebook() {
   const bar = $("deckBar");
   bar.innerHTML = "";
   const activeDecks = Object.values(decks).filter((d) => !d.del).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  const countIn = (id) => id === ALL ? activeItems.length
-    : id === NONE ? activeItems.filter((i) => !i.deck).length
-    : id === LIKE ? activeItems.filter((i) => i.fav === 1).length
-    : id === DISLIKE ? activeItems.filter((i) => i.fav === -1).length
-    : id === HANTU ? activeItems.filter((i) => i.dict === "kanji").length
-    : activeItems.filter((i) => i.deck === id).length;
+  const countIn = (id) => setIn(activeItems, id).length;
+  const denHanIn = (id) => { const now = Date.now(); return setIn(activeItems, id).filter((i) => isDue(i, now)).length; };
+  /*
+   * Mỗi ngăn là một CẶP: chip để mở ra xem, và nút học của riêng ngăn đó.
+   *
+   * Buổi học giờ chỉ lấy mục trong ngăn đang mở, nhưng muốn dùng thì phải tự
+   * đoán ra luật ấy: bấm ngăn, rồi sang màn Học bấm tiếp. Nút học nằm ngay trên
+   * ngăn thì "ôn nhanh đúng chỗ mình muốn" chỉ còn một cú chạm.
+   *
+   * Chỉ hiện khi ngăn ấy CÓ mục tới hạn: ngăn nào cũng đeo một nút thì hàng ngăn
+   * dài gấp đôi mà phần lớn chạm vào chỉ nhận được câu "chưa tới hạn".
+   */
   const mk = (id, label, iconTen) => {
+    const cum = el("span", "chipgroup");
     const b = el("button", "chip" + (curDeck === id ? " active" : ""));
     b.type = "button";
     b.appendChild(ic(iconTen, { size: 15, weight: curDeck === id ? "solid" : "line" }));
     b.appendChild(el("span", null, label));
     b.appendChild(el("span", "n", String(countIn(id))));
     b.addEventListener("click", () => { curDeck = id; drawNotebook(); });
-    bar.appendChild(b);
+    cum.appendChild(b);
+
+    const den = denHanIn(id);
+    if (den) {
+      const h = el("button", "chip hoc");
+      h.type = "button";
+      h.title = T2("Ôn ngay {n} mục đến hạn trong “{ten}”", { n: den, ten: label });
+      h.appendChild(ic("graduation-cap", { size: 14, weight: "solid" }));
+      h.appendChild(el("span", "n", String(den)));
+      h.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        // Mở ngăn ra rồi mới sang màn Học: hết buổi quay lại là thấy đúng ngăn
+        // vừa ôn, chứ không rơi về danh sách tất cả.
+        curDeck = id;
+        await drawNotebook();
+        show("Study");
+        await updateDueButton();
+        $("stStart").click();
+      });
+      cum.appendChild(h);
+    }
+    bar.appendChild(cum);
   };
   mk(ALL, T("Tất cả"), "list-bullets");
   mk(NONE, T("Chưa phân loại"), "funnel");
@@ -1819,6 +2049,9 @@ async function drawNotebook() {
     const spk = nutIcon("speaker-high", T("Phát âm"), "", 18);
     spk.addEventListener("click", () => speak(it.word, it.audio));
     head.appendChild(spk);
+    // Ghi âm nằm NGAY CẠNH nút phát âm: nghe mẫu rồi đọc lại là một mạch, tách
+    // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
+    head.appendChild(cumGhiAm(it.key));
     head.appendChild(favButtons(it));
     head.appendChild(el("span", "tag", dirLabel(it.dict)));
     if (it.mEdit) {
@@ -2022,10 +2255,41 @@ $("aboutSheet").addEventListener("click", (e) => {
 let session = { queue: [], done: 0, again: 0, deleted: 0 };
 let lastDeleted = null;
 
+/**
+ * Các mục nằm trong một ngăn. Một chỗ duy nhất trả lời câu "ngăn này có gì", để
+ * cái ĐẾM trên chip, cái HỌC của ngăn đó và danh sách đang hiện không bao giờ
+ * nói ba con số khác nhau.
+ */
+function setIn(list, id) {
+  if (id === ALL) return list;
+  if (id === NONE) return list.filter((i) => !i.deck);
+  if (id === LIKE) return list.filter((i) => i.fav === 1);
+  if (id === DISLIKE) return list.filter((i) => i.fav === -1);
+  if (id === HANTU) return list.filter((i) => i.dict === "kanji");
+  return list.filter((i) => i.deck === id);
+}
+
+/** Tên đọc được của một ngăn dựng sẵn (sổ con thì hỏi deckName). */
+function nhanNgan(id) {
+  if (id === NONE) return T("Chưa phân loại");
+  if (id === LIKE) return T("Thích");
+  if (id === DISLIKE) return T("Không thích");
+  if (id === HANTU) return T("Hán tự");
+  return "";
+}
+
+/**
+ * Các mục đến hạn ôn — CHỈ trong ngăn đang mở.
+ *
+ * Trước đây hàm này đọc cả sổ, nên bấm vào một sổ con rồi sang màn Học vẫn ra
+ * nguyên cả sổ tay: người ta muốn ôn nhanh đúng một thư mục thì không có cách
+ * nào làm được.
+ */
 async function currentDue() {
   const nb = await getNBNgu();
   const now = Date.now();
-  return Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => isDue(it, now));
+  const ds = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
+  return setIn(ds, curDeck).filter((it) => isDue(it, now));
 }
 
 async function updateDueButton() {
@@ -2035,7 +2299,15 @@ async function updateDueButton() {
   const view = await theoDoi.xem();
   $("stIdleIcon").innerHTML = window.Icon(due.length ? "graduation-cap" : "seal-check",
     { size: 52, weight: "duo" });
-  $("stIdleTitle").textContent = due.length ? T2("Có {n} mục đến hạn", { n: due.length }) : T("Không còn mục nào đến hạn");
+  // Nói thẳng buổi học sắp tới lấy mục ở đâu. Chỉ ghi "Có 5 mục đến hạn" thì
+  // đang mở một sổ con mà nhìn vào, người ta vẫn tưởng đó là cả sổ tay.
+  const dsSo = await getDecks();
+  const tenNgan = curDeck === ALL ? "" : (deckName(dsSo, curDeck) || nhanNgan(curDeck));
+  $("stIdleTitle").textContent = due.length
+    ? (tenNgan ? T2("Có {n} mục đến hạn trong “{ten}”", { n: due.length, ten: tenNgan })
+               : T2("Có {n} mục đến hạn", { n: due.length }))
+    : (tenNgan ? T2("“{ten}” không còn mục nào đến hạn", { ten: tenNgan })
+               : T("Không còn mục nào đến hạn"));
   $("stIdleSub").textContent = view.homNay.dat
     ? T2("Hôm nay đã đạt mục tiêu {dich} lượt. Chuỗi {n} ngày.", { dich: view.goal, n: Math.max(1, view.chuoi.hienTai) })
     : T2("Ôn thêm {n} lượt nữa là đạt mục tiêu hôm nay.", { n: view.homNay.conLai });
@@ -2088,6 +2360,11 @@ function showCard(giuLat) {
   const src = $("stSrc");
   if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
   else { src.style.display = "none"; src.onclick = null; }
+
+  // Cụm ghi âm dùng CHÍNH khoá của mục, nên bản thu ghi ở sổ tay thì mở buổi
+  // học ra là nghe lại được ngay.
+  const oGhi = $("stGhiAm");
+  if (oGhi) { oGhi.textContent = ""; oGhi.appendChild(cumGhiAm(it.key)); }
 
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
@@ -2374,7 +2651,7 @@ function gaiIcon() {
 /** Các hướng tra có nghĩa với từng ngôn ngữ. */
 const HUONG_NGU = {
   en: [["auto", T("Tự động")], ["envi", T("Anh→Việt")], ["vien", T("Việt→Anh")]],
-  ja: [["javi", T("Nhật→Việt")]]
+  ja: [["javi", T("Nhật→Việt")], ["vija", T("Việt→Nhật")]]
 };
 
 function veNgu() {

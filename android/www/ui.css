@@ -337,6 +337,32 @@ select { cursor: pointer; }
 .chip.active { background: var(--grad); border-color: transparent; color: var(--accent-ink); }
 .chip.add { border-style: dashed; color: var(--accent); }
 .chip .n { opacity: 0.65; font-variant-numeric: tabular-nums; }
+/* Cụm ghi âm để đọc theo: Ghi · Nghe · Xoá, luôn đứng liền một khối để mỗi
+   vòng đọc lại không phải đi tìm nút. */
+.ghiam { display: inline-flex; align-items: center; gap: 1px; }
+.ghiam .iconbtn { color: var(--ink-3); }
+.ghiam .iconbtn:hover { color: var(--accent); }
+/* Đang PHÁT thì nút đổi hình sang ô vuông và sáng lên: bấm lần nữa là dừng,
+   chứ không phải chồng thêm một giọng nữa. */
+.ghiam .iconbtn.dangphat { color: var(--accent); }
+/* Đang thu thì phải nhìn ra ngay, không thì thu cả buổi mà tưởng đã dừng. */
+.ghiam .iconbtn.dangthu { color: #d33; animation: ndict-thu 1s ease-in-out infinite; }
+@keyframes ndict-thu { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .ghiam .iconbtn.dangthu { animation: none; } }
+
+/* Một ngăn = chip để mở ra xem + nút học của riêng ngăn đó, dính liền nhau nên
+   nhìn ra ngay là hai nút của CÙNG một ngăn chứ không phải hai ngăn rời. */
+.chipgroup { display: inline-flex; align-items: stretch; gap: 2px; flex: none; }
+.chipgroup .chip { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+.chip.hoc {
+  border-top-left-radius: 6px; border-bottom-left-radius: 6px;
+  padding-left: 8px; padding-right: 9px; gap: 4px;
+  color: var(--accent); border-color: var(--line);
+}
+.chip.hoc .n { opacity: 1; font-weight: 700; }
+.chip.hoc:hover { background: var(--grad); border-color: transparent; color: var(--accent-ink); }
+/* Ngăn không có nút học thì chip giữ nguyên góc tròn như cũ. */
+.chipgroup .chip:only-child { border-radius: var(--r-pill); }
 
 /* Thanh phân đoạn kiểu iOS — dùng cho tab con Từ vựng / Chi tiết / Dịch.
    Cái nền trượt là thứ Denken không có; ở đây nó nói rõ "ba mặt của cùng một

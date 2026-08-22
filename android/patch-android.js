@@ -5,7 +5,8 @@
    2. Thêm 2 activity-alias vào AndroidManifest.xml:
         - "Tra bằng NeutronDict"  (ACTION_PROCESS_TEXT) — menu bôi đen.
         - "Lưu vào NeutronDict"   (ACTION_SEND)        — hiện trong bảng Chia sẻ, nhận cả link.
-   3. Đổi tên hiển thị app thành NeutronDict trong strings.xml. */
+   3. Khai quyền RECORD_AUDIO — cần cho nút ghi âm đọc theo (shadowing).
+   4. Đổi tên hiển thị app thành NeutronDict trong strings.xml. */
 const fs = require("fs");
 const path = require("path");
 
@@ -67,6 +68,20 @@ if (!man.includes(".ShareActivity")) {
   console.log("✓ Đã thêm mục 'Lưu vào NeutronDict' vào bảng Chia sẻ (AndroidManifest)");
 } else {
   console.log("• AndroidManifest đã có ShareActivity — bỏ qua");
+}
+
+// 2c) Quyền micro cho nút ghi âm đọc theo.
+//
+// Không khai ở đây thì getUserMedia trong WebView bị từ chối thẳng, mà lại từ
+// chối im lặng: nút bấm vào không lên, chẳng có lỗi nào hiện ra. Capacitor tự
+// lo phần xin quyền lúc chạy, nhưng nó chỉ xin được thứ đã khai trong manifest.
+if (!man.includes("android.permission.RECORD_AUDIO")) {
+  const quyen = '    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n';
+  // Đặt ngay trước <application>, đúng chỗ Android chờ các thẻ uses-permission.
+  man = man.replace("    <application", quyen + "    <application");
+  console.log("✓ Đã khai quyền micro RECORD_AUDIO (AndroidManifest)");
+} else {
+  console.log("• AndroidManifest đã khai RECORD_AUDIO — bỏ qua");
 }
 
 fs.writeFileSync(MANIFEST, man);

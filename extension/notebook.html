@@ -113,6 +113,10 @@
     Học ngay <span id="dueCount" class="tag" style="background:rgba(255,255,255,.22);color:#fff">0</span>
   </button>
 
+  <button id="speak" class="btn block" type="button" style="margin-top:8px" data-chu>
+    Luyện nói
+  </button>
+
   <div class="searchfield">
     <input id="filter" type="text" placeholder="Lọc theo từ, nghĩa hoặc ghi chú…" autocomplete="off" data-chu-ph>
   </div>
@@ -225,6 +229,25 @@
       <div class="card pad-0">
         <div id="list" class="list"></div>
       </div>
+    </section>
+
+    <section id="viewSpeak" class="view">
+      <div class="topbar">
+        <span class="t-title grow" data-chu>Luyện nói</span>
+        <span id="speakCount" class="t-small muted"></span>
+      </div>
+
+      <div class="card">
+        <label class="field-label" for="spText" data-chu>Đoạn bạn muốn tập nói</label>
+        <textarea id="spText" rows="4" placeholder="Dán hoặc gõ một đoạn về chủ đề bạn muốn…" data-chu-ph></textarea>
+        <div class="rowx" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+          <select id="spDir" style="flex:none"></select>
+          <button id="spAdd" class="btn primary grow" type="button" data-chu>Dịch và thêm</button>
+        </div>
+        <span id="spStatus" class="t-tiny faint" style="display:block;margin-top:6px"></span>
+      </div>
+
+      <div id="spList" class="stack" style="margin-top:12px"></div>
     </section>
 
     <section id="viewProgress" class="view">
