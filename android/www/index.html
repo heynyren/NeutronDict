@@ -283,6 +283,25 @@
   </section>
 
   <!-- ======================= TIẾN ĐỘ ======================= -->
+  <section id="viewSpeak" class="view">
+    <div class="rowx between" style="margin-bottom:10px">
+      <span class="t-title" data-chu>Luyện nói</span>
+      <span id="speakCount" class="t-small muted"></span>
+    </div>
+
+    <div class="card">
+      <label class="field-label" for="spText" data-chu>Đoạn bạn muốn tập nói</label>
+      <textarea id="spText" rows="4" placeholder="Dán hoặc gõ một đoạn về chủ đề bạn muốn…" data-chu-ph></textarea>
+      <div class="rowx" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+        <select id="spDir" style="flex:none"></select>
+        <button id="spAdd" class="btn primary grow" type="button" data-chu>Dịch và thêm</button>
+      </div>
+      <span id="spStatus" class="t-tiny faint" style="display:block;margin-top:6px"></span>
+    </div>
+
+    <div id="spList" class="stack" style="margin-top:12px"></div>
+  </section>
+
   <section id="viewProgress" class="view">
     <div id="progressBody" class="stack"></div>
   </section>
@@ -293,6 +312,7 @@
   <button id="navLookup" class="active" type="button"><span class="i"></span><span class="t" data-chu>Tra từ</span></button>
   <button id="navNotebook" type="button"><span class="i"></span><span class="t" data-chu>Sổ tay</span></button>
   <button id="navStudy" type="button"><span class="i"></span><span class="t" data-chu>Học</span></button>
+  <button id="navSpeak" type="button"><span class="i"></span><span class="t" data-chu>Nói</span></button>
   <button id="navProgress" type="button"><span class="i"></span><span class="t" data-chu>Tiến độ</span></button>
 </nav>
 

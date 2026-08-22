@@ -547,6 +547,8 @@
       "Stop playback",
     "Luyện nói":
       "Speaking practice",
+    "Nói":
+      "Speak",
     "Đoạn bạn muốn tập nói":
       "The passage you want to practise",
     "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":
@@ -1245,6 +1247,8 @@
       "再生を停止",
     "Luyện nói":
       "スピーキング練習",
+    "Nói":
+      "話す",
     "Đoạn bạn muốn tập nói":
       "練習したい文章",
     "Dán hoặc gõ một đoạn về chủ đề bạn muốn…":

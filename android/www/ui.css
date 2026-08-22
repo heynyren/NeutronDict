@@ -337,6 +337,16 @@ select { cursor: pointer; }
 .chip.active { background: var(--grad); border-color: transparent; color: var(--accent-ink); }
 .chip.add { border-style: dashed; color: var(--accent); }
 .chip .n { opacity: 0.65; font-variant-numeric: tabular-nums; }
+/* --- trang Luyện nói --- */
+/* Hai mặt của một đoạn nằm chồng lên nhau, cách nhau bằng một vạch mảnh: trên
+   màn điện thoại thì mắt nhảy giữa hai bản dễ hơn hẳn so với xếp ngang. */
+.spcard { padding: 12px 13px; }
+.spside + .spside { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sphead { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.splb { flex: 1; font-size: 11px; font-weight: 700; color: var(--ink-3); letter-spacing: .02em; }
+.sptext { font-size: 15px; line-height: 1.6; color: var(--ink); overflow-wrap: anywhere; white-space: pre-wrap; }
+.sptext.ja { font-size: 17px; line-height: 1.75; }
+
 /* Cụm ghi âm để đọc theo: Ghi · Nghe · Xoá, luôn đứng liền một khối để mỗi
    vòng đọc lại không phải đi tìm nút. */
 .ghiam { display: inline-flex; align-items: center; gap: 1px; }
