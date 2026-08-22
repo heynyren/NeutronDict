@@ -1477,6 +1477,7 @@
       cum.textContent = "";
       if (dangThu) {
         const b = nutNho("stop", T("Dừng ghi"), "dangthu");
+        b.dataset.viec = "dung";
         b.addEventListener("click", async () => {
           const t = dangThu; dangThu = null;
           try { await self.GhiAm.luu(ma, await t.dung()); } catch (e) { /* thu hỏng thì thôi */ }
@@ -1487,6 +1488,7 @@
       }
       const ban = await self.GhiAm.doc(ma);
       const thu = nutNho("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"));
+      thu.dataset.viec = "thu";
       thu.addEventListener("click", () => batThu(thu));
       if (ban) {
         // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
@@ -2027,6 +2029,48 @@
   }, 700);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => xemLai());
   else xemLai();
+
+  /**
+   * Phím R: thu giọng ngay tại câu đang nói.
+   *
+   * Đọc theo thì hai tay đang bận và mắt đang bám chữ — với tới con chuột, tìm
+   * đúng dòng rồi bấm cái nút bé tí là đã lỡ mất câu. Một phím là xong: R bật
+   * micro và dừng video, R lần nữa là thu xong.
+   *
+   * Không được cướp phím của người đang GÕ. Ba lớp chặn, và cả ba đều rẻ:
+   *   - có phím bổ trợ (Ctrl/Alt/Shift/Cmd) thì bỏ qua — đó là phím tắt khác;
+   *   - đang gõ ở bất cứ ô nhập nào trên trang thì bỏ qua. Ô sửa lời thoại và ô
+   *     sửa trong popup đều được đánh dấu contenteditable trong lúc gõ (xem
+   *     phim.js), nên `document.activeElement.isContentEditable` bắt được cả
+   *     hai — đúng chỗ người dùng sợ xung đột nhất;
+   *   - chưa có bảng thì thôi.
+   */
+  function dangGoODau() {
+    const a = document.activeElement;
+    if (!a) return false;
+    const t = (a.tagName || "").toUpperCase();
+    return t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || !!a.isContentEditable;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if ((e.key || "").toLowerCase() !== "r") return;
+    if (dangGoODau()) return;
+    if (!S.root || !S.host || !S.host.isConnected) return;
+    if (!self.GhiAm || !self.GhiAm.hoTro()) return;
+
+    // Câu đang nói; chưa chạy tới đâu thì lấy câu đầu.
+    const i = S.hien >= 0 ? S.hien : 0;
+    const ln = S.root.querySelector('.ln[data-i="' + i + '"]');
+    const nut = ln && ln.querySelector('.ghiam [data-viec="dung"], .ghiam [data-viec="thu"]');
+    if (!nut) return;
+    e.preventDefault();
+    e.stopPropagation();
+    nut.click();
+    // Kéo dòng ấy vào tầm mắt: bấm R rồi mà không thấy dòng nào sáng lên thì
+    // không biết mình đang thu cho câu nào.
+    try { ln.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (er) { /* trình duyệt cũ */ }
+  }, true);
 
   // Sổ tay bảo "về đúng giây đó" -> tua, và sáng đúng dòng.
   chrome.runtime.onMessage.addListener((msg) => {
