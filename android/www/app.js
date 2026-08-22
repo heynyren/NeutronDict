@@ -239,15 +239,24 @@ function cumGhiAm(ma) {
     const thu = nutIcon("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"), "", 17);
     thu.addEventListener("click", async (e) => {
       e.stopPropagation();
+      // Tắt tiếng đang phát TRƯỚC khi bật micro: không thì máy thu lại chính
+      // giọng nó vừa phát ra, và bản thu mới lẫn hai giọng.
+      window.GhiAm.dungPhat();
       try { dangThu = await window.GhiAm.batDau(); ve(); }
       catch (err) { toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad"); }
     });
 
     if (ban) {
-      const nghe = nutIcon("play", T("Nghe lại giọng mình"), "", 16);
+      // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
+      // chạy, và bấm lần nữa là dừng chứ không chồng thêm một giọng nữa.
+      const dangNghe = window.GhiAm.maDangPhat() === ma;
+      const nghe = nutIcon(dangNghe ? "stop" : "play",
+        dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "", 16);
       nghe.addEventListener("click", (e) => {
         e.stopPropagation();
-        new Audio(window.GhiAm.duong(ban)).play().catch(() => toast(T("Không phát được bản thu."), "bad"));
+        if (window.GhiAm.maDangPhat() === ma) { window.GhiAm.dungPhat(); ve(); return; }
+        if (!window.GhiAm.phat(ma, ban, ve)) toast(T("Không phát được bản thu."), "bad");
+        ve();
       });
       cum.appendChild(nghe);
       cum.appendChild(thu);

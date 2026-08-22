@@ -344,6 +344,9 @@ select { cursor: pointer; }
 .ghiam { display: inline-flex; align-items: center; gap: 1px; }
 .ghiam .iconbtn { color: var(--ink-3); }
 .ghiam .iconbtn:hover { color: var(--accent); }
+/* Đang PHÁT thì nút đổi hình sang ô vuông và sáng lên: bấm lần nữa là dừng,
+   chứ không phải chồng thêm một giọng nữa. */
+.ghiam .iconbtn.dangphat { color: var(--accent); }
 /* Đang thu thì phải nhìn ra ngay, không thì thu cả buổi mà tưởng đã dừng. */
 .ghiam .iconbtn.dangthu { color: #d33; animation: ndict-thu 1s ease-in-out infinite; }
 @keyframes ndict-thu { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }

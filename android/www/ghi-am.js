@@ -221,9 +221,54 @@
     return "data:" + (ban.mime || "audio/webm") + ";base64," + ban.b64;
   }
 
+  /* ==================================================================== */
+  /* Phát lại — MỘT bản thu tại một thời điểm                             */
+  /* ==================================================================== */
+  /*
+   * Mỗi lần bấm Nghe mà dựng một `new Audio` rồi thả trôi thì bấm hai lần là
+   * hai giọng chồng lên nhau, bấm ba lần là ba — mà chẳng có cách nào dừng lại,
+   * vì không ai còn giữ cái nào cả. Nên chỗ phát phải nằm ở ĐÂY, một chỗ duy
+   * nhất giữ bản đang vang lên: bấm lần nữa là phát lại từ đầu chứ không chồng
+   * thêm, bấm sang mục khác là mục cũ im, và bấm Ghi thì tiếng đang phát tắt
+   * trước khi micro bật — không thì máy thu lại chính giọng nó vừa phát ra.
+   */
+
+  let dangPhat = null;   // { am, ma, bao }
+
+  /** Mã của bản thu đang vang lên, "" nếu đang im. */
+  function maDangPhat() { return dangPhat ? dangPhat.ma : ""; }
+
+  /** Dừng hẳn bản đang phát và báo cho giao diện vẽ lại. */
+  function dungPhat() {
+    if (!dangPhat) return;
+    const { am, bao } = dangPhat;
+    dangPhat = null;
+    try { am.pause(); am.currentTime = 0; am.src = ""; } catch (e) { /* đã hỏng thì thôi */ }
+    if (bao) { try { bao(); } catch (e) { /* giao diện đi rồi cũng không sao */ } }
+  }
+
+  /**
+   * Phát một bản thu. Trả về true nếu bắt đầu được.
+   * @param {Function} [bao] gọi lại khi ngừng phát (hết bài, bị dừng, hoặc lỗi)
+   *   — để nút đổi lại hình.
+   */
+  function phat(ma, ban, bao) {
+    dungPhat();
+    const d = duong(ban);
+    if (!d) return false;
+    const am = new Audio(d);
+    dangPhat = { am, ma: ma || "", bao: bao };
+    const xong = () => { if (dangPhat && dangPhat.am === am) dungPhat(); };
+    am.onended = xong;
+    am.onerror = xong;
+    am.play().catch(xong);
+    return true;
+  }
+
   /** Mã của một dòng lời thoại: theo video và mốc giây, giống bản sửa lời thoại. */
   function maDongYt(v, giay) { return "yt:" + v + ":" + Math.round(giay || 0); }
 
   goc.GhiAm = { hoTro, batDau, luu, doc, xoa, co, don, duong, maDongYt,
+                phat, dungPhat, maDangPhat,
                 MOT_NGAY, TOI_DA_BAN, TOI_DA_BYTE, DAI_NHAT, locKho };
 })(typeof self !== "undefined" ? self : this);

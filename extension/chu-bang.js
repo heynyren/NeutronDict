@@ -543,6 +543,8 @@
       "{n} items due in “{ten}”",
     "Dừng ghi":
       "Stop recording",
+    "Dừng phát":
+      "Stop playback",
     "Ghi giọng mình để đọc theo":
       "Record yourself for shadowing",
     "Ghi lại — đè lên bản cũ":
@@ -1209,6 +1211,8 @@
       "「{ten}」に期限の項目が {n} 件",
     "Dừng ghi":
       "録音を停止",
+    "Dừng phát":
+      "再生を停止",
     "Ghi giọng mình để đọc theo":
       "シャドーイング用に自分の声を録音",
     "Ghi lại — đè lên bản cũ":

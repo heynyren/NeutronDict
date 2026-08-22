@@ -1009,6 +1009,9 @@
     .acts .ghiam { display: flex; gap: 2px; justify-content: center; }
     .ln .sv.ga { padding: 3px 5px; }
     .ln .sv.ga.dangthu { color: #d33; border-color: #d33; visibility: visible; }
+    /* Đang phát thì nút đổi thành ô vuông và hiện thường trực — bấm lần nữa là
+       dừng, chứ không chồng thêm một giọng nữa. */
+    .ln .sv.ga.dangphat { color: var(--accent); border-color: var(--accent); visibility: visible; }
     .ln .sv.ga.hong { color: var(--ink-3); }
 
     .edbox {
@@ -1447,6 +1450,29 @@
       return b;
     };
 
+    /**
+     * Bắt đầu thu tại dòng này.
+     *
+     * Hai việc phải làm TRƯỚC khi micro bật, và cả hai đều vì cùng một lý do:
+     * đừng để máy thu lại thứ không phải giọng người dùng. Video đang chạy thì
+     * dừng lại — đọc theo mà tiếng mẫu vẫn vang thì bản thu lẫn hai giọng, mà
+     * người đọc cũng bị chính tiếng ấy kéo đi. Bản thu đang phát cũng tắt nốt.
+     */
+    const batThu = async (nut) => {
+      self.GhiAm.dungPhat();
+      const v = video();
+      if (v && !v.paused) { try { v.pause(); } catch (e) { /* trình phát chặn thì thôi */ } }
+      try { dangThu = await self.GhiAm.batDau(); ve(); }
+      catch (e) {
+        // Bảng này chạy trong trang YouTube nên quyền micro là quyền của
+        // YouTube — nói thẳng ra thay vì để cái nút bấm mãi không lên.
+        if (nut) {
+          nut.classList.add("hong");
+          nut.title = T("YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.");
+        }
+      }
+    };
+
     const ve = async () => {
       cum.textContent = "";
       if (dangThu) {
@@ -1461,18 +1487,18 @@
       }
       const ban = await self.GhiAm.doc(ma);
       const thu = nutNho("microphone", ban ? T("Ghi lại — đè lên bản cũ") : T("Ghi giọng mình để đọc theo"));
-      thu.addEventListener("click", async () => {
-        try { dangThu = await self.GhiAm.batDau(); ve(); }
-        catch (e) {
-          // Bảng này chạy trong trang YouTube nên quyền micro là quyền của
-          // YouTube — nói thẳng ra thay vì để cái nút bấm mãi không lên.
-          thu.classList.add("hong");
-          thu.title = T("YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.");
-        }
-      });
+      thu.addEventListener("click", () => batThu(thu));
       if (ban) {
-        const nghe = nutNho("play", T("Nghe lại giọng mình"));
-        nghe.addEventListener("click", () => { new Audio(self.GhiAm.duong(ban)).play().catch(() => {}); });
+        // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
+        // chạy, và bấm lần nữa là dừng chứ không chồng thêm một giọng nữa.
+        const dangNghe = self.GhiAm.maDangPhat() === ma;
+        const nghe = nutNho(dangNghe ? "stop" : "play",
+          dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "");
+        nghe.addEventListener("click", () => {
+          if (self.GhiAm.maDangPhat() === ma) { self.GhiAm.dungPhat(); ve(); return; }
+          self.GhiAm.phat(ma, ban, ve);
+          ve();
+        });
         cum.appendChild(nghe);
         cum.appendChild(thu);
         const bo = nutNho("trash", T("Xoá bản thu này"));
