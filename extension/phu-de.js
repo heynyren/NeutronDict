@@ -1480,8 +1480,15 @@
         b.dataset.viec = "dung";
         b.addEventListener("click", async () => {
           const t = dangThu; dangThu = null;
-          try { await self.GhiAm.luu(ma, await t.dung()); } catch (e) { /* thu hỏng thì thôi */ }
-          ve();
+          let xong = false;
+          try { xong = await self.GhiAm.luu(ma, await t.dung()); } catch (e) { xong = false; }
+          await ve();
+          // Ghi hụt thì phải nói ra ngay trên dòng ấy. Bảng này không có chỗ
+          // hiện thông báo, mà im lặng thì người ta tưởng đã thu xong.
+          if (!xong) {
+            const n = cum.querySelector('[data-viec="thu"]');
+            if (n) { n.classList.add("hong"); n.title = T("Không lưu được bản thu — có lẽ máy đã hết chỗ."); }
+          }
         });
         cum.appendChild(b);
         return;

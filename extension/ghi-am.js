@@ -37,9 +37,23 @@
 
   const KHOA = "ghiAm";
   const MOT_NGAY = 24 * 3600 * 1000;
-  const TOI_DA_BAN = 80;              // số bản thu giữ cùng lúc
-  const TOI_DA_BYTE = 4 * 1024 * 1024; // trần tổng dung lượng (tính trên chuỗi base64)
-  const DAI_NHAT = 30000;             // một bản thu dài nhất 30 giây
+  const TOI_DA_BAN = 80;               // số bản thu NGẮN HẠN giữ cùng lúc
+  const TOI_DA_BYTE = 96 * 1024 * 1024; // trần tổng dung lượng bản ngắn hạn (chuỗi base64)
+  /*
+   * KHÔNG giới hạn độ dài một bản thu.
+   *
+   * Đọc theo một câu thì mươi giây là xong, nhưng luyện nói cả một bài thì có
+   * khi vài phút — cắt ngang giữa chừng là hỏng đúng cái người ta đang tập. Nên
+   * bỏ hẳn đồng hồ tự dừng: thu tới lúc nào bấm Dừng thì thôi.
+   *
+   * Cái giá là bản thu có thể rất nặng, nên ba chỗ dưới đây phải đỡ:
+   *   - manifest xin quyền `unlimitedStorage`, không thì kho chặn ở 10 MB và
+   *     lượt ghi hỏng lặng lẽ;
+   *   - lượt dọn KHÔNG BAO GIỜ vứt bản mới nhất, dù nó có to hơn cả trần;
+   *   - `luu()` trả về true/false thật, và chỗ gọi phải nói ra khi ghi hụt —
+   *     thu xong mười phút rồi báo "đã ghi" trong khi chẳng có gì được lưu là
+   *     kiểu mất mát tệ nhất.
+   */
 
   /** Trình duyệt này có ghi âm được không. */
   function hoTro() {
@@ -96,12 +110,10 @@
     mr.start();
 
     const tatMicro = () => luong.getTracks().forEach((t) => t.stop());
-    let hen = setTimeout(() => { try { if (mr.state !== "inactive") mr.stop(); } catch (e) {} }, DAI_NHAT);
 
     return {
       /** Dừng và trả về bản thu. */
       dung() {
-        clearTimeout(hen);
         return new Promise((xong, hong) => {
           mr.onstop = async () => {
             tatMicro();
@@ -119,7 +131,6 @@
       },
       /** Bỏ giữa chừng: không lấy gì cả, chỉ cần micro tắt đi. */
       bo() {
-        clearTimeout(hen);
         try { if (mr.state !== "inactive") mr.stop(); } catch (e) {}
         tatMicro();
       },
@@ -148,7 +159,10 @@
     const ra = daGiu;
     for (const id of ma) {
       const co = (tam[id].b64 || "").length;
-      if (dem >= TOI_DA_BAN || tong + co > TOI_DA_BYTE) break;
+      // Bản MỚI NHẤT luôn được giữ, dù nó có to hơn cả trần. Người ta vừa bấm
+      // Dừng xong; vứt đúng cái vừa thu rồi báo "đã ghi" là kiểu mất mát tệ
+      // nhất. Trần chỉ dùng để dọn mấy bản CŨ.
+      if (dem > 0 && (dem >= TOI_DA_BAN || tong + co > TOI_DA_BYTE)) break;
       ra[id] = tam[id]; tong += co; dem++;
     }
     return ra;
@@ -185,17 +199,38 @@
     return null;
   }
 
+  /*
+   * Bộ nhớ đệm cho một nhịp vẽ.
+   *
+   * Mỗi cụm ghi âm hỏi kho một lần để biết mục của nó đã có bản thu chưa. Sổ tay
+   * vài trăm mục thì thành vài trăm lượt đọc CẢ KHO cho một lần vẽ — mà giờ kho
+   * có thể chứa những bản thu dài mấy phút, nên mỗi lượt đọc nặng hẳn lên.
+   *
+   * Giữ lại kết quả trong một khoảnh khắc ngắn là đủ: cả nhịp vẽ ấy dùng chung
+   * một lượt đọc. Hạn ngắn nên bản thu vừa ghi ở cửa sổ khác cũng hiện ra ngay
+   * sau đó, còn lượt ghi của CHÍNH mình thì xoá đệm luôn, khỏi phải chờ.
+   */
+  let dem = null, demLuc = 0;
+  const DEM_HAN = 1500;
+
+  function xoaDem() { dem = null; demLuc = 0; }
+
   async function docKho() {
+    const bayGio = Date.now();
+    if (dem && bayGio - demLuc < DEM_HAN) return dem;
     try {
       const k = khoLuu();
       if (!k) return {};
-      return locKho(await k.doc(), Date.now());
+      dem = locKho(await k.doc(), bayGio);
+      demLuc = bayGio;
+      return dem;
     } catch (e) { return {}; }
   }
 
   /** Dọn bản quá hạn. Gọi lúc mở màn hình cũng được, không cần hẹn giờ nền. */
   async function don() {
     const con = await docKho();
+    xoaDem();
     try { const k = khoLuu(); if (k) await k.ghi(con); } catch (e) { /* đầy thì thôi */ }
     return Object.keys(con).length;
   }
@@ -209,6 +244,7 @@
     try {
       const k = khoLuu();
       if (!k) return false;
+      xoaDem();
       await k.ghi(locKho(con, Date.now()));
       return true;
     } catch (e) { return false; }
@@ -224,6 +260,7 @@
     const con = await docKho();
     if (!(id in con)) return false;
     delete con[id];
+    xoaDem();
     try { const k = khoLuu(); if (!k) return false; await k.ghi(con); return true; } catch (e) { return false; }
   }
 
@@ -290,5 +327,5 @@
 
   goc.GhiAm = { hoTro, batDau, luu, doc, xoa, co, don, duong, maDongYt,
                 phat, dungPhat, maDangPhat,
-                MOT_NGAY, TOI_DA_BAN, TOI_DA_BYTE, DAI_NHAT, locKho };
+                MOT_NGAY, TOI_DA_BAN, TOI_DA_BYTE, locKho };
 })(typeof self !== "undefined" ? self : this);
