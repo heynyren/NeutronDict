@@ -217,7 +217,7 @@ let toastTimer = null;
  *
  * @param {string} ma khoá của mục
  */
-function cumGhiAm(ma, giuLau) {
+function cumGhiAm(ma, giuLau, mocSua) {
   const cum = el("span", "ghiam");
   let dangThu = null;
 
@@ -255,8 +255,15 @@ function cumGhiAm(ma, giuLau) {
       // Đang phát chính bản này thì nút đổi thành DỪNG — nhìn ra ngay là đang
       // chạy, và bấm lần nữa là dừng chứ không chồng thêm một giọng nữa.
       const dangNghe = window.GhiAm.maDangPhat() === ma;
+      // Chữ đã sửa sau khi thu thì bản thu này là của chữ CŨ. Không xoá hộ —
+      // đây là bản giữ lâu dài — nhưng phải nói ra, chứ để họ so giọng với một
+      // đoạn không còn tồn tại thì vô nghĩa.
+      const cu = mocSua && ban.ts && ban.ts < mocSua;
       const nghe = nutIcon(dangNghe ? "stop" : "play",
-        dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "", 16);
+        dangNghe ? T("Dừng phát")
+                 : (cu ? T("Nghe lại — bản thu này thu TRƯỚC lần sửa, chữ đã khác")
+                       : T("Nghe lại giọng mình")),
+        (dangNghe ? "dangphat" : "") + (cu ? " thucu" : ""), 16);
       nghe.addEventListener("click", (e) => {
         e.stopPropagation();
         if (window.GhiAm.maDangPhat() === ma) { window.GhiAm.dungPhat(); ve(); return; }
@@ -1015,6 +1022,9 @@ async function refreshNotifications() {
  * máy tự dọn là hỏng cả ý nghĩa. Chỉ chính họ xoá.
  */
 
+/** Tên đọc được của từng thứ tiếng. Một chỗ, để nhãn ở mọi nơi giống nhau. */
+const TEN_NGU = { vi: "Tiếng Việt", ja: "Tiếng Nhật", en: "Tiếng Anh" };
+
 const HUONG_NOI = {
   en: [["envi", "Anh→Việt", "en", "vi"], ["vien", "Việt→Anh", "vi", "en"]],
   ja: [["javi", "Nhật→Việt", "ja", "vi"], ["vija", "Việt→Nhật", "vi", "ja"]],
@@ -1039,17 +1049,109 @@ function veHuongNoi() {
   if ([...sel.options].some((o) => o.value === cu)) sel.value = cu;
 }
 
-/** Một mặt của đoạn: chữ + nút loa + cụm ghi âm. */
-function matDoan(nhan, chu, ngu, ma) {
+/**
+ * Ô soạn thảo tại chỗ: đổi một khối chữ thành ô gõ, có Lưu và Huỷ.
+ * Dùng chung cho cả tiêu đề lẫn hai mặt, nên ba chỗ ấy hành xử giống hệt nhau.
+ */
+function suaTaiCho(oCu, giaTri, motDong, luu) {
+  const hop = el("div", "spedit");
+  const o = document.createElement(motDong ? "input" : "textarea");
+  if (motDong) o.type = "text"; else o.rows = Math.min(8, Math.max(3, Math.ceil(giaTri.length / 40)));
+  o.className = "spedta";
+  o.value = giaTri;
+  hop.appendChild(o);
+
+  const hang = el("div", "rowx");
+  hang.style.cssText = "gap:6px;margin-top:6px";
+  const bLuu = el("button", "btn sm primary");
+  bLuu.type = "button"; bLuu.textContent = T("Lưu");
+  const bHuy = el("button", "btn sm ghost");
+  bHuy.type = "button"; bHuy.textContent = T("Huỷ");
+  hang.appendChild(bLuu); hang.appendChild(bHuy);
+  hop.appendChild(hang);
+
+  const thoi = () => { hop.replaceWith(oCu); };
+  bHuy.addEventListener("click", thoi);
+  bLuu.addEventListener("click", async () => {
+    const moi = o.value.trim();
+    if (!moi || moi === giaTri) { thoi(); return; }
+    bLuu.disabled = true; bLuu.textContent = T("Đang lưu…");
+    await luu(moi);
+  });
+  o.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); thoi(); }
+    if (e.key === "Enter" && (motDong || e.ctrlKey || e.metaKey)) { e.preventDefault(); bLuu.click(); }
+  });
+
+  oCu.replaceWith(hop);
+  o.focus();
+  try { o.setSelectionRange(o.value.length, o.value.length); } catch (e) { /* input kiểu khác */ }
+}
+
+/** Khoá hướng dịch cho một cặp thứ tiếng. */
+function huongTu(tu, sang) {
+  for (const ds of Object.values(HUONG_NOI)) {
+    for (const [k, , a, b] of ds) if (a === tu && b === sang) return k;
+  }
+  return "";
+}
+
+/**
+ * Sửa một mặt của đoạn, rồi DỊCH LẠI mặt kia cho khớp.
+ *
+ * Sửa xong mà để mặt kia y nguyên thì hai bản nói hai chuyện khác nhau — mà cả
+ * trang này dựng lên chỉ để đặt hai bản cạnh nhau mà so.
+ *
+ * Dịch hụt thì VẪN LƯU chữ vừa sửa và nói thẳng là bản kia chưa kịp đổi — nuốt
+ * mất đoạn người ta vừa gõ chỉ vì mạng chập là mất mát thật, còn hai bản lệch
+ * nhau một lúc thì nhìn là thấy.
+ */
+async function suaMatDoan(id, mat, chuMoi) {
+  const kho = await docDoanNoi();
+  const x = kho[id];
+  if (!x) return;
+  const ngu = mat === "a" ? x.tuNgu : x.sangNgu;
+  const nguKia = mat === "a" ? x.sangNgu : x.tuNgu;
+
+  let dich = "";
+  try {
+    const h = huongTu(ngu, nguKia);
+    if (h) { const r = await translateText(chuMoi, h); dich = (r && r.text) || ""; }
+  } catch (e) { dich = ""; }
+
+  if (mat === "a") { x.goc = chuMoi; if (dich) x.dich = dich; }
+  else { x.dich = chuMoi; if (dich) x.goc = dich; }
+  x.suaLuc = Date.now();
+  await ghiDoanNoi(kho);
+  if (!dich) toast(T("Đã lưu, nhưng chưa dịch lại được bản kia — kiểm tra mạng."), "bad");
+  veLuyenNoi();
+}
+
+/** Một mặt của đoạn: chữ + nút loa + nút sửa + cụm ghi âm. */
+function matDoan(x, mat) {
+  const laGoc = mat === "a";
+  const chu = laGoc ? x.goc : x.dich;
+  const ngu = laGoc ? x.tuNgu : x.sangNgu;
+  const nhan = TEN_NGU[ngu] ? T(TEN_NGU[ngu]) : ngu;
+
   const o = el("div", "spside");
   const dau = el("div", "sphead");
   dau.appendChild(el("span", "splb", nhan));
+
   const loa = nutIcon("speaker-high", T2("Nghe giọng máy đọc ({ngu})", { ngu: nhan }), "", 19);
   loa.addEventListener("click", () => speak(chu, "", ngu));
   dau.appendChild(loa);
-  dau.appendChild(cumGhiAm(ma, true));
+
+  const sua = nutIcon("pencil-simple", T("Sửa đoạn này — bản kia sẽ tự dịch lại theo"), "", 18);
+  dau.appendChild(sua);
+  dau.appendChild(cumGhiAm(maThuNoi(x.id, mat), true, x.suaLuc));
   o.appendChild(dau);
-  o.appendChild(el("div", "sptext" + (ngu === "ja" ? " ja" : ""), chu));
+
+  const oChu = el("div", "sptext" + (ngu === "ja" ? " ja" : ""), chu);
+  o.appendChild(oChu);
+  sua.addEventListener("click", () => {
+    suaTaiCho(oChu, chu, false, (moi) => suaMatDoan(x.id, mat, moi));
+  });
   return o;
 }
 
@@ -1074,15 +1176,31 @@ async function veLuyenNoi() {
     return;
   }
 
-  const ten = { vi: T("Tiếng Việt"), ja: T("Tiếng Nhật"), en: T("Tiếng Anh") };
   for (const x of ds) {
     const the = el("div", "card spcard");
-    the.appendChild(matDoan(ten[x.tuNgu] || x.tuNgu, x.goc, x.tuNgu, maThuNoi(x.id, "a")));
-    the.appendChild(matDoan(ten[x.sangNgu] || x.sangNgu, x.dich, x.sangNgu, maThuNoi(x.id, "b")));
+
+    /* Tên bài nói: để mấy chục bài còn phân ra được theo chủ đề. Chạm vào là
+       sửa ngay tại chỗ — đặt tên thường là việc nghĩ lại sau khi đã viết xong. */
+    const hangTen = el("div", "sptophead");
+    const oTen = el("div", "sptitle" + (x.tieuDe ? "" : " trong"), x.tieuDe || T("(chưa đặt tên)"));
+    hangTen.appendChild(oTen);
+    const suaTen = nutIcon("pencil-simple", T("Đổi tên bài nói"), "", 16);
+    suaTen.addEventListener("click", () => {
+      suaTaiCho(oTen, x.tieuDe || "", true, async (moi) => {
+        const k = await docDoanNoi();
+        if (k[x.id]) { k[x.id].tieuDe = moi; await ghiDoanNoi(k); }
+        veLuyenNoi();
+      });
+    });
+    hangTen.appendChild(suaTen);
+    the.appendChild(hangTen);
+
+    the.appendChild(matDoan(x, "a"));
+    the.appendChild(matDoan(x, "b"));
 
     const chan = el("div", "rowx");
     chan.style.cssText = "gap:8px;margin-top:10px;align-items:center";
-    chan.appendChild(el("span", "t-tiny faint grow", new Date(x.ts).toLocaleDateString()));
+    chan.appendChild(el("span", "t-tiny faint grow", new Date(x.suaLuc || x.ts).toLocaleDateString()));
     const xoa = el("button", "btn sm ghost danger");
     xoa.type = "button";
     xoa.appendChild(ic("trash", { size: 14 }));
@@ -1122,8 +1240,11 @@ async function themDoanNoi() {
 
   const id = "n_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const kho = await docDoanNoi();
-  kho[id] = { id, goc: chu, dich: ra.text, tuNgu, sangNgu, ts: Date.now() };
+  const oTen = $("spTitle");
+  kho[id] = { id, tieuDe: (oTen && oTen.value.trim()) || "", goc: chu, dich: ra.text,
+              tuNgu, sangNgu, ts: Date.now() };
   await ghiDoanNoi(kho);
+  if (oTen) oTen.value = "";
   oChu.value = "";
   bao.textContent = "";
   veLuyenNoi();

@@ -343,6 +343,21 @@ select { cursor: pointer; }
 /* Hai mặt của một đoạn nằm chồng lên nhau, cách nhau bằng một vạch mảnh: mắt
    nhảy giữa hai bản dễ hơn hẳn so với xếp ngang trên màn hẹp. */
 .spcard { padding: 12px 13px; }
+/* Tên bài nói đứng trên cùng: vài chục bài rồi thì đây là thứ duy nhất phân
+   biệt được chúng với nhau khi lướt qua. */
+.sptophead { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.sptitle { flex: 1; font-size: 14px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.sptitle.trong { color: var(--ink-3); font-weight: 600; font-style: italic; }
+/* Ô sửa tại chỗ — dùng chung cho tiêu đề và hai mặt của đoạn. */
+.spedit { margin: 2px 0 4px; }
+.spedta {
+  width: 100%; box-sizing: border-box; resize: vertical; display: block;
+  font: inherit; font-size: 15px; line-height: 1.6; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--accent); border-radius: 9px; padding: 8px 10px;
+}
+.spedta:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+/* Bản thu thu TRƯỚC lần sửa: chữ đã khác, nên nút phát phải nói ra. */
+.ghiam .iconbtn.thucu { color: #b26a00; }
 .spside + .spside { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .sphead { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
 .splb { flex: 1; font-size: 11px; font-weight: 700; color: var(--ink-3); letter-spacing: .02em; }
