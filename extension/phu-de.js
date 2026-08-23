@@ -1466,9 +1466,17 @@
       catch (e) {
         // Bảng này chạy trong trang YouTube nên quyền micro là quyền của
         // YouTube — nói thẳng ra thay vì để cái nút bấm mãi không lên.
+        //
+        // Nhưng chỉ nói thế khi lỗi ĐÚNG LÀ chuyện quyền. Micro đang bị app
+        // khác giữ, hay máy không có micro nào, mà cũng bảo người ta đi bấm ổ
+        // khoá thì họ bấm mười lần vẫn hỏng và không hiểu tại sao.
+        const x = self.GhiAm.loiMicro(e);
+        const quyen = x.ten === "NotAllowedError" || x.ten === "PermissionDeniedError";
         if (nut) {
           nut.classList.add("hong");
-          nut.title = T("YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.");
+          nut.title = (quyen
+            ? T("YouTube chưa được cấp quyền micro. Bấm vào ổ khoá trên thanh địa chỉ để bật.")
+            : T(x.loi)) + (x.ten ? " (" + x.ten + ")" : "");
         }
       }
     };

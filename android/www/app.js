@@ -253,7 +253,10 @@ function cumGhiAm(ma, giuLau, mocSua) {
       // giọng nó vừa phát ra, và bản thu mới lẫn hai giọng.
       window.GhiAm.dungPhat();
       try { dangThu = await window.GhiAm.batDau(); ve(); }
-      catch (err) { toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad"); }
+      catch (err) {
+        const x = window.GhiAm.loiMicro(err);
+        toast(T(x.loi) + (x.ten ? " (" + x.ten + ")" : ""), "bad");
+      }
     });
 
     if (ban) {
@@ -1313,6 +1316,9 @@ window.ChamVuot.vuotDoiTab(
 
 /* --- nút Quay lại của Android --- */
 window.ChamVuot.nutQuayLai(() => {
+  // Ảnh nằm trên cùng nên đóng trước tiên — nó mở được từ ngay trong phiếu sửa,
+  // đóng phiếu trước thì ảnh vẫn phủ kín màn và người dùng vẫn kẹt.
+  if (dongAnhXem()) return true;
   // Có gì đang mở đè lên thì đóng cái đó trước, đúng như người ta mong đợi.
   const phu = document.querySelector(".celebrate.show, .sheet.show");
   if (phu) { phu.classList.remove("show"); return true; }
@@ -1896,6 +1902,78 @@ let dangSua = null;
 /** Danh sách ảnh đang sửa trong bảng Sửa. Chốt lại vào mục khi bấm Lưu. */
 let anhSua = [];
 
+/*
+ * Chỗ xem ảnh to, dựng trong app.
+ *
+ * Trước đây chỗ này gọi `window.open(blobUrl)`. Trên máy tính đó là một tab
+ * mới, có thanh địa chỉ và nút đóng, nên không ai để ý. Trong WebView của app
+ * Android thì không có gì như thế: ảnh nạp thẳng vào khung hiện tại, theo đúng
+ * cỡ pixel gốc — ảnh chụp màn hình điện thoại rộng hơn màn nên chỉ thấy được
+ * góc trên bên trái, trông y như bị phóng to — và tuyệt nhiên không có nút nào
+ * để ra. Người dùng kẹt trong đó.
+ *
+ * Nên app tự dựng lấy. Hai điều bắt buộc:
+ *   - ảnh VỪA MÀN HÌNH khi mở, phóng to là do người dùng chủ động chạm;
+ *   - có BỐN đường ra, không chỉ một: nút ✕, chạm nền, phím Esc, nút Quay lại
+ *     của Android (xem chỗ gọi nutQuayLai). Chỉ chừa một đường thì bấm trượt
+ *     một cái là lại kẹt.
+ */
+let anhDangXem = null;   // { id, url } — url do chính chỗ này tạo ra và thu lại
+
+function dongAnhXem() {
+  const h = $("anhXem");
+  if (!h.classList.contains("show")) return false;
+  h.classList.remove("show");
+  h.setAttribute("aria-hidden", "true");
+  $("anhXemKhung").classList.remove("to");
+  $("anhXemImg").removeAttribute("src");
+  // Thu lại blob URL của riêng bộ xem. Không thu thì mỗi lần mở một ảnh là giữ
+  // thêm một bản trong bộ nhớ cho tới lúc đóng app.
+  if (anhDangXem && anhDangXem.url) {
+    try { URL.revokeObjectURL(anhDangXem.url); } catch (e) { /* đã thu rồi thì thôi */ }
+  }
+  anhDangXem = null;
+  return true;
+}
+
+async function moAnh(f) {
+  // Tự lấy blob và tự tạo URL, KHÔNG dùng Anh.url(): kho URL dùng chung bị
+  // Anh.nhaUrl() thu sạch mỗi lần vẽ lại danh sách, mà danh sách hoàn toàn có
+  // thể vẽ lại trong lúc ảnh đang mở — lúc ấy ảnh trắng bóc không rõ vì sao.
+  let ban = null;
+  try { ban = await window.Anh.lay(f.id); } catch (e) { ban = null; }
+  if (!ban || !ban.blob) { toast(T("Không mở được ảnh này."), "bad"); return; }
+  dongAnhXem();
+  anhDangXem = { id: f.id, url: URL.createObjectURL(ban.blob) };
+  $("anhXemImg").src = anhDangXem.url;
+  $("anhXemImg").alt = f.ten || "";
+  $("anhXemTen").textContent = (f.ten || "") + " · " + window.Anh.coChu(f.cd);
+  const h = $("anhXem");
+  h.classList.add("show");
+  h.setAttribute("aria-hidden", "false");
+  $("anhXemDong").focus();
+}
+
+$("anhXemDong").addEventListener("click", dongAnhXem);
+// Bàn phím ngoài (máy tính bảng có bàn phím, hoặc lúc chạy thử trên trình
+// duyệt): Esc phải đóng được. Bắt ở giai đoạn capture để phiếu sửa bên dưới
+// không nuốt mất — ảnh đang nằm trên nó.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (dongAnhXem()) { e.preventDefault(); e.stopPropagation(); }
+}, true);
+// Chạm vào nền (không phải vào chính tấm ảnh) là đóng.
+$("anhXem").addEventListener("click", (e) => {
+  if (e.target === $("anhXemImg") || e.target === $("anhXemDong")) return;
+  dongAnhXem();
+});
+// Chạm vào ảnh: đổi giữa vừa-màn-hình và cỡ thật. Ảnh đính kèm phần lớn là ảnh
+// chụp màn hình có chữ, vừa màn hình thì đọc không nổi.
+$("anhXemImg").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("anhXemKhung").classList.toggle("to");
+});
+
 /** Một ô ảnh: bấm vào là mở to, bấm dấu × là gỡ. */
 function oAnh(f, choGo) {
   const o = el("button", "anh-o");
@@ -1905,9 +1983,7 @@ function oAnh(f, choGo) {
   img.alt = f.ten;
   o.appendChild(img);
   window.Anh.url(f.id).then((u) => { if (u) img.src = u; });
-  o.addEventListener("click", () => {
-    window.Anh.url(f.id).then((u) => { if (u) window.open(u, "_blank", "noopener"); });
-  });
+  o.addEventListener("click", () => { moAnh(f); });
   if (choGo) {
     const x = el("button", "anh-xoa");
     x.type = "button"; x.textContent = "✕"; x.title = T("Gỡ ảnh này");

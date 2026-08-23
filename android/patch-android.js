@@ -5,7 +5,8 @@
    2. Thêm 2 activity-alias vào AndroidManifest.xml:
         - "Tra bằng NeutronDict"  (ACTION_PROCESS_TEXT) — menu bôi đen.
         - "Lưu vào NeutronDict"   (ACTION_SEND)        — hiện trong bảng Chia sẻ, nhận cả link.
-   3. Khai quyền RECORD_AUDIO — cần cho nút ghi âm đọc theo (shadowing).
+   3. Khai quyền RECORD_AUDIO + MODIFY_AUDIO_SETTINGS — cần cho nút ghi âm
+      đọc theo (shadowing). Thiếu quyền thứ hai là micro chết dù đã cho phép.
    4. Đổi tên hiển thị app thành NeutronDict trong strings.xml. */
 const fs = require("fs");
 const path = require("path");
@@ -70,18 +71,38 @@ if (!man.includes(".ShareActivity")) {
   console.log("• AndroidManifest đã có ShareActivity — bỏ qua");
 }
 
-// 2c) Quyền micro cho nút ghi âm đọc theo.
+// 2c) Quyền micro cho nút ghi âm đọc theo. PHẢI đủ CẢ HAI.
 //
-// Không khai ở đây thì getUserMedia trong WebView bị từ chối thẳng, mà lại từ
-// chối im lặng: nút bấm vào không lên, chẳng có lỗi nào hiện ra. Capacitor tự
-// lo phần xin quyền lúc chạy, nhưng nó chỉ xin được thứ đã khai trong manifest.
-if (!man.includes("android.permission.RECORD_AUDIO")) {
-  const quyen = '    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n';
+// Cái bẫy nằm ở chỗ này, và nó là nguyên nhân của lỗi "đã cho phép micro rồi
+// mà vẫn không thu được". Trong WebView, getUserMedia không tự hỏi hệ điều
+// hành; nó gọi ngược lên WebChromeClient.onPermissionRequest, và bản của
+// Capacitor 6 xin MỘT LƯỢT hai quyền:
+//
+//     MODIFY_AUDIO_SETTINGS  +  RECORD_AUDIO
+//
+// rồi chỉ grant() khi CẢ HAI đều trả về "đã cho". Mà Android có luật: quyền
+// không khai trong manifest thì không bao giờ được hỏi, và lượt xin trả về
+// "từ chối" ngay lập tức. Thiếu MODIFY_AUDIO_SETTINGS, chuyện xảy ra đúng như
+// người dùng thấy: hộp thoại micro vẫn hiện, bấm "Cho phép" xong thì Capacitor
+// vẫn nhận về false ở quyền kia, và nó gọi request.deny() — getUserMedia hỏng,
+// còn người dùng thì vừa tự tay bấm đồng ý.
+//
+// MODIFY_AUDIO_SETTINGS là quyền thường (normal), khai vào không thêm hộp
+// thoại nào cho người dùng cả — nó chỉ cần CÓ MẶT để lượt xin kia trả về true.
+const QUYEN_TIENG = [
+  ["android.permission.RECORD_AUDIO", "thu tiếng"],
+  ["android.permission.MODIFY_AUDIO_SETTINGS", "chỉnh đường tiếng"],
+];
+for (const [ten, mo] of QUYEN_TIENG) {
+  if (man.includes(ten)) {
+    console.log("• AndroidManifest đã khai " + ten + " — bỏ qua");
+    continue;
+  }
+  const quyen = '    <uses-permission android:name="' + ten + '" />\n';
   // Đặt ngay trước <application>, đúng chỗ Android chờ các thẻ uses-permission.
   man = man.replace("    <application", quyen + "    <application");
-  console.log("✓ Đã khai quyền micro RECORD_AUDIO (AndroidManifest)");
-} else {
-  console.log("• AndroidManifest đã khai RECORD_AUDIO — bỏ qua");
+  if (!man.includes(ten)) die("Không chèn được " + ten + " vào AndroidManifest.xml.");
+  console.log("✓ Đã khai quyền " + mo + " " + ten + " (AndroidManifest)");
 }
 
 fs.writeFileSync(MANIFEST, man);
