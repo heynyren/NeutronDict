@@ -601,6 +601,18 @@
       "Couldn't record: ",
     "Không mở được micro. Hãy cho phép quyền micro rồi thử lại.":
       "Couldn't open the microphone. Allow microphone access and try again.",
+    "Máy chặn micro. Hãy vào phần Quyền của ứng dụng và bật Micro. Nếu đã bật rồi mà vẫn hỏng thì bản cài này thiếu khai quyền — cần cài lại bản mới.":
+      "The device blocked the microphone. Open the app's Permissions and turn Microphone on. If it is already on and this still fails, this build is missing a permission declaration — reinstall the newer build.",
+    "Không thấy micro nào trên máy.":
+      "No microphone found on this device.",
+    "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.":
+      "Another app is holding the microphone. Close any call or recording app and try again.",
+    "Trang này không được phép dùng micro.":
+      "This page is not allowed to use the microphone.",
+    "Micro của máy không đáp ứng được yêu cầu thu.":
+      "This device's microphone can't meet the recording requirements.",
+    "Không mở được micro.":
+      "Couldn't open the microphone.",
     "Không phát được bản thu.":
       "Couldn't play the recording.",
     "Nghe lại giọng mình":
@@ -1317,6 +1329,18 @@
       "録音できません: ",
     "Không mở được micro. Hãy cho phép quyền micro rồi thử lại.":
       "マイクを開けません。マイクの使用を許可してからもう一度お試しください。",
+    "Máy chặn micro. Hãy vào phần Quyền của ứng dụng và bật Micro. Nếu đã bật rồi mà vẫn hỏng thì bản cài này thiếu khai quyền — cần cài lại bản mới.":
+      "端末がマイクを拒否しました。アプリの「権限」からマイクをオンにしてください。すでにオンなのに直らない場合、このビルドは権限の宣言が抜けています — 新しいビルドを入れ直してください。",
+    "Không thấy micro nào trên máy.":
+      "この端末にマイクが見つかりません。",
+    "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.":
+      "ほかのアプリがマイクを使用中です。通話や録音のアプリを終了してからお試しください。",
+    "Trang này không được phép dùng micro.":
+      "このページはマイクの使用を許可されていません。",
+    "Micro của máy không đáp ứng được yêu cầu thu.":
+      "この端末のマイクは録音の条件を満たせません。",
+    "Không mở được micro.":
+      "マイクを開けません。",
     "Không phát được bản thu.":
       "録音を再生できません。",
     "Nghe lại giọng mình":

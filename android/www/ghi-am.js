@@ -88,6 +88,37 @@
   }
 
   /**
+   * Dịch lỗi của getUserMedia ra câu người đọc hiểu được.
+   *
+   * Câu cũ là "Hãy cho phép quyền micro rồi thử lại" cho MỌI lỗi, và đó đúng là
+   * câu tệ nhất có thể nói với người vừa tự tay bấm Cho phép: nó đổ lỗi cho họ
+   * về việc họ đã làm rồi, nên họ đi làm lại, và lại hỏng. Mỗi lỗi có một
+   * nguyên nhân khác hẳn nhau, phải nói ra cái nào là cái nào.
+   *
+   * Trả về `{ loi, ten }` chứ không phải một câu ghép sẵn: `loi` là khoá của
+   * bảng dịch giao diện (chu-bang.js), chỗ gọi còn phải cho nó qua T(). Ghép
+   * sẵn ở đây thì người dùng giao diện Nhật/Anh sẽ nhận một câu tiếng Việt.
+   *
+   * `ten` là tên lỗi thô của trình duyệt, chỗ gọi kèm vào trong ngoặc. Khi
+   * người dùng chụp màn hình gửi lại, cái tên đó là thứ duy nhất chỉ ra được
+   * vấn đề nằm ở đâu.
+   */
+  function loiMicro(err) {
+    const ten = (err && err.name) || "";
+    const bang = {
+      NotAllowedError: "Máy chặn micro. Hãy vào phần Quyền của ứng dụng và bật Micro. Nếu đã bật rồi mà vẫn hỏng thì bản cài này thiếu khai quyền — cần cài lại bản mới.",
+      PermissionDeniedError: "Máy chặn micro. Hãy vào phần Quyền của ứng dụng và bật Micro. Nếu đã bật rồi mà vẫn hỏng thì bản cài này thiếu khai quyền — cần cài lại bản mới.",
+      NotFoundError: "Không thấy micro nào trên máy.",
+      DevicesNotFoundError: "Không thấy micro nào trên máy.",
+      NotReadableError: "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.",
+      TrackStartError: "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.",
+      SecurityError: "Trang này không được phép dùng micro.",
+      OverconstrainedError: "Micro của máy không đáp ứng được yêu cầu thu.",
+    };
+    return { loi: bang[ten] || "Không mở được micro.", ten: ten };
+  }
+
+  /**
    * Bắt đầu thu. Trả về một tay cầm có `dung()` để kết thúc và `bo()` để huỷ.
    *
    * Micro được TẮT HẲN khi thu xong: giữ luồng lại thì đèn micro của trình duyệt
@@ -325,7 +356,7 @@
   /** Mã của một dòng lời thoại: theo video và mốc giây, giống bản sửa lời thoại. */
   function maDongYt(v, giay) { return "yt:" + v + ":" + Math.round(giay || 0); }
 
-  goc.GhiAm = { hoTro, batDau, luu, doc, xoa, co, don, duong, maDongYt,
+  goc.GhiAm = { hoTro, batDau, loiMicro, luu, doc, xoa, co, don, duong, maDongYt,
                 phat, dungPhat, maDangPhat,
                 MOT_NGAY, TOI_DA_BAN, TOI_DA_BYTE, locKho };
 })(typeof self !== "undefined" ? self : this);

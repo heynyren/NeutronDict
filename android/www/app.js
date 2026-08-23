@@ -253,7 +253,10 @@ function cumGhiAm(ma, giuLau, mocSua) {
       // giọng nó vừa phát ra, và bản thu mới lẫn hai giọng.
       window.GhiAm.dungPhat();
       try { dangThu = await window.GhiAm.batDau(); ve(); }
-      catch (err) { toast(T("Không mở được micro. Hãy cho phép quyền micro rồi thử lại."), "bad"); }
+      catch (err) {
+        const x = window.GhiAm.loiMicro(err);
+        toast(T(x.loi) + (x.ten ? " (" + x.ten + ")" : ""), "bad");
+      }
     });
 
     if (ban) {
