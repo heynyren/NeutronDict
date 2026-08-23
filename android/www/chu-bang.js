@@ -605,6 +605,10 @@
       "The device blocked the microphone. Open the app's Permissions and turn Microphone on. If it is already on and this still fails, this build is missing a permission declaration — reinstall the newer build.",
     "Không thấy micro nào trên máy.":
       "No microphone found on this device.",
+    "Không mở được ảnh này.":
+      "Couldn't open this image.",
+    "Chạm vào ảnh để phóng to · chạm ra ngoài để đóng":
+      "Tap the image to zoom · tap outside to close",
     "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.":
       "Another app is holding the microphone. Close any call or recording app and try again.",
     "Trang này không được phép dùng micro.":
@@ -1333,6 +1337,10 @@
       "端末がマイクを拒否しました。アプリの「権限」からマイクをオンにしてください。すでにオンなのに直らない場合、このビルドは権限の宣言が抜けています — 新しいビルドを入れ直してください。",
     "Không thấy micro nào trên máy.":
       "この端末にマイクが見つかりません。",
+    "Không mở được ảnh này.":
+      "この画像を開けません。",
+    "Chạm vào ảnh để phóng to · chạm ra ngoài để đóng":
+      "画像をタップで拡大 · 外側をタップで閉じる",
     "Micro đang bị ứng dụng khác giữ. Hãy tắt app gọi hoặc ghi âm khác rồi thử lại.":
       "ほかのアプリがマイクを使用中です。通話や録音のアプリを終了してからお試しください。",
     "Trang này không được phép dùng micro.":
