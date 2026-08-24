@@ -291,6 +291,14 @@
       "Google is temporarily throttling translation (too many requests) and the fallback server didn't return anything. Try again in a few minutes.",
     "Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng.":
       "Google is temporarily throttling translation (too many requests). Try again in a few minutes, or set up sync to use a fallback server.",
+    "Đường dịch Azure (khuyên dùng)": "Azure translation (recommended)",
+    "Dán key Azure Translator vào đây thì mọi bản dịch đi qua Azure trước — ổn định, không bị Google chặn giữa chừng. Để trống cũng được: khi đó app dùng thẳng Google. Cách lấy key miễn phí xem hướng dẫn.":
+      "Paste an Azure Translator key here and every translation goes through Azure first — stable, never throttled by Google mid-use. Leave it empty to use Google directly. See the guide for a free key.",
+    "Key Azure Translator": "Azure Translator key",
+    "Vùng (region), vd: southeastasia — bỏ trống nếu key Global": "Region, e.g. southeastasia — leave empty for a Global key",
+    "Lưu key Azure": "Save Azure key",
+    "Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.": "Azure key saved. Translations now go through Azure first.",
+    "Đã xoá key Azure. App sẽ dùng thẳng Google.": "Azure key cleared. The app will use Google directly.",
     "Không lấy được nghĩa.":
       "Could not fetch a meaning.",
     "Không tìm thấy từ này":
@@ -1027,6 +1035,14 @@
       "Google が翻訳を一時的に制限しています（回数が多すぎます）。予備サーバーも応答しませんでした。数分後にもう一度お試しください。",
     "Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng.":
       "Google が翻訳を一時的に制限しています（回数が多すぎます）。数分後に再試行するか、同期を設定して予備サーバーをご利用ください。",
+    "Đường dịch Azure (khuyên dùng)": "Azure 翻訳（推奨）",
+    "Dán key Azure Translator vào đây thì mọi bản dịch đi qua Azure trước — ổn định, không bị Google chặn giữa chừng. Để trống cũng được: khi đó app dùng thẳng Google. Cách lấy key miễn phí xem hướng dẫn.":
+      "Azure Translator のキーをここに貼ると、翻訳はまず Azure を通ります — 安定していて、Google に途中で制限されません。空欄なら Google を直接使います。無料キーの取得方法はガイドをご覧ください。",
+    "Key Azure Translator": "Azure Translator のキー",
+    "Vùng (region), vd: southeastasia — bỏ trống nếu key Global": "リージョン（例: southeastasia）— Global キーなら空欄",
+    "Lưu key Azure": "Azure キーを保存",
+    "Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.": "Azure キーを保存しました。今後は翻訳がまず Azure を通ります。",
+    "Đã xoá key Azure. App sẽ dùng thẳng Google.": "Azure キーを消去しました。アプリは Google を直接使います。",
     "Không lấy được nghĩa.":
       "意味を取得できませんでした。",
     "Không tìm thấy từ này":

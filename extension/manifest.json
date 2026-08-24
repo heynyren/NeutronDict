@@ -17,7 +17,9 @@
     "https://api.dictionaryapi.dev/*",
     "https://script.google.com/*",
     "https://script.googleusercontent.com/*",
-    "https://translate.googleapis.com/*"
+    "https://translate.googleapis.com/*",
+    "https://clients5.google.com/*",
+    "https://api.cognitive.microsofttranslator.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

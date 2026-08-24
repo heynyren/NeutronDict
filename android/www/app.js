@@ -93,6 +93,42 @@ const GTX_HOST = [
   "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd",
   "https://clients5.google.com/translate_a/single?client=gtx&dt=t&dt=bd"
 ];
+// Azure Translator — ĐƯỜNG CHÍNH. Xem chú thích bản extension: API chính thức,
+// hạn mức miễn phí rộng, key riêng nên không bị chặn kiểu IP như gtx, và dịch
+// được cả loạt trong một lượt. Nhận mảng câu, trả mảng { text, detected }.
+async function azureCfg() {
+  const key = String((await Store.get("azureKey")) || "").trim();
+  const region = String((await Store.get("azureRegion")) || "").trim();
+  return { key, region };
+}
+async function azureDich(texts, f, t) {
+  const { key, region } = await azureCfg();
+  if (!key) return null;
+  const url = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0"
+    + (f && f !== "auto" ? "&from=" + encodeURIComponent(f) : "")
+    + "&to=" + encodeURIComponent(t);
+  const headers = { "Ocp-Apim-Subscription-Key": key, "Content-Type": "application/json" };
+  if (region) headers["Ocp-Apim-Subscription-Region"] = region;
+  const body = JSON.stringify((texts || []).map((x) => ({ Text: String(x || "") })));
+  const native = getNativeHttp();
+  let data;
+  if (native && native.post) {
+    const r = await native.post({ url, headers, data: body });
+    if (r && typeof r.status === "number" && (r.status < 200 || r.status >= 300)) throw new Error("azure HTTP " + r.status);
+    data = r && r.data;
+    if (typeof data === "string") data = JSON.parse(data);
+  } else {
+    const r = await fetch(url, { method: "POST", headers, body });
+    if (!r.ok) throw new Error("azure HTTP " + r.status);
+    data = await r.json();
+  }
+  if (!Array.isArray(data)) throw new Error("azure: dữ liệu lạ");
+  return data.map((d) => ({
+    text: (d && d.translations && d.translations[0] && d.translations[0].text) || "",
+    detected: (d && d.detectedLanguage && d.detectedLanguage.language) || ""
+  }));
+}
+
 async function gtxData(from, to, text) {
   const duoi = "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
     + "&q=" + encodeURIComponent(text);
@@ -1808,7 +1844,8 @@ async function translateText(text, dir) {
       const ah = fresh(ak);
       if (ah) return { text: ah.v, target: ah.target || "en" };
       let det = null;
-      try { det = await gtxTranslateDetect(t, "en"); } catch (e) {}
+      try { const a = await azureDich([t], "auto", "en"); if (a && a[0] && a[0].text) det = { text: a[0].text, src: a[0].detected }; } catch (e) {}
+      if (!det || !det.text) { try { det = await gtxTranslateDetect(t, "en"); } catch (e) {} }
       if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
       from = "en"; to = "vi";
     }
@@ -1827,7 +1864,9 @@ async function translateText(text, dir) {
   const hit = fresh(key);
   if (hit) return { text: hit.v, target: to };
   let out = "";
-  try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
+  // 1) Azure (đường chính).  2) gtx (xoay vòng cổng).  3) máy chủ Apps Script.
+  try { const a = await azureDich([t], from, to); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ }
+  if (!out) { try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; } }
   if (!out) {
     const cfg = await layCfg(NGU);
     if (!cfg.url) throw new Error(T("Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng."));
@@ -2563,6 +2602,15 @@ $("saveCfg").addEventListener("click", async () => {
   await datCfg(NGU, { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
   $("syncStatus").textContent = T("Đã lưu cấu hình.");
 });
+if ($("saveAzure")) $("saveAzure").addEventListener("click", async () => {
+  const azureKey = $("azureKey").value.trim();
+  const azureRegion = $("azureRegion").value.trim();
+  await Store.set("azureKey", azureKey);
+  await Store.set("azureRegion", azureRegion);
+  $("azureStatus").textContent = azureKey
+    ? T("Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.")
+    : T("Đã xoá key Azure. App sẽ dùng thẳng Google.");
+});
 $("syncNow").addEventListener("click", async () => {
   $("syncStatus").textContent = T("Đang đồng bộ…");
   try {
@@ -2984,6 +3032,8 @@ function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("translate", { size: 18, weight: "solid" });
   $("icChu").innerHTML = window.Icon("translate", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("icAzure")) $("icAzure").innerHTML = window.Icon("translate", { size: 18 });
+  if ($("crAz")) $("crAz").innerHTML = window.Icon("caret-right", { size: 16 });
   $("icBell").innerHTML = window.Icon("bell-ringing", { size: 18 });
   $("icIpa").innerHTML = window.Icon("text-aa", { size: 18 });
   ["cr0", "cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
@@ -3064,6 +3114,8 @@ $("nguBtn").addEventListener("click", async () => {
   const cfg = await layCfg(NGU);
   $("syncUrl").value = cfg.url || "";
   $("syncToken").value = cfg.token || "";
+  if ($("azureKey")) $("azureKey").value = String((await Store.get("azureKey")) || "");
+  if ($("azureRegion")) $("azureRegion").value = String((await Store.get("azureRegion")) || "");
   await drawNotebook();
   await veChuoiNgay();
   updateDueButton();
