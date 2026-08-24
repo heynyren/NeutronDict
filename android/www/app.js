@@ -74,11 +74,34 @@ async function httpGetJson(url, headers) {
 // Google Dịch (gtx): dt=t (bản dịch) + dt=bd (từ điển nhiều nghĩa theo loại từ).
 // Kèm User-Agent trình duyệt để máy chủ Google không chặn request từ app native.
 const GTX_UA = "Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36";
+// Làm sạch chuỗi trước khi gửi: bôi đen dính công thức MathJax/KaTeX kéo theo
+// MathML ẩn và ký tự vô hình, làm chuỗi phình và lẫn rác.
+function donDich(s) {
+  return String(s || "")
+    .normalize("NFC")
+    .replace(/[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Cổng gtx công khai chặn tần suất theo IP — tra một hồi là 429/403, dịch tắc
+// dù câu ngắn. Xoay sang cổng Google khác (clients5) khi cổng chính bị chặn:
+// hai cổng đếm riêng nên thường một cái còn sống. Cùng đường /translate_a/single
+// nên dạng dữ liệu y hệt.
+const GTX_HOST = [
+  "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd",
+  "https://clients5.google.com/translate_a/single?client=gtx&dt=t&dt=bd"
+];
 async function gtxData(from, to, text) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd"
-    + "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
+  const duoi = "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
     + "&q=" + encodeURIComponent(text);
-  return await httpGetJson(url, { "User-Agent": GTX_UA });
+  let cuoi = null;
+  for (const h of GTX_HOST) {
+    try { return await httpGetJson(h + duoi, { "User-Agent": GTX_UA }); }
+    catch (e) { cuoi = e; }   // cổng này chặn -> thử cổng sau
+  }
+  throw (cuoi || new Error("gtx: mọi cổng đều trượt"));
 }
 function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
 function gtxSenses(data) {
@@ -1767,7 +1790,7 @@ const HUONG_DICH = {
 };
 
 async function translateText(text, dir) {
-  const t = (text || "").trim();
+  const t = donDich(text).slice(0, 5000);
   if (!t) throw new Error(T("Chưa có nội dung"));
   const cache = (await Store.get("trCache")) || {};
   const now = Date.now();
@@ -1807,10 +1830,11 @@ async function translateText(text, dir) {
   try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
   if (!out) {
     const cfg = await layCfg(NGU);
-    if (!cfg.url) throw new Error(T("Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng)."));
-    const r = await httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text: t, from, to }, "text/plain;charset=utf-8");
-    if (!r || r.ok === false || !r.text) throw new Error((r && r.error) || T("Không dịch được"));
-    out = r.text;
+    if (!cfg.url) throw new Error(T("Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng."));
+    let r = null;
+    try { r = await httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text: t, from, to }, "text/plain;charset=utf-8"); } catch (e) { r = null; }
+    out = (r && r.ok !== false) ? String(r.text || r.translation || r.result || "") : "";
+    if (!out) throw new Error(T("Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút."));
   }
   put(key, out, to); await Store.set("trCache", cache);
   return { text: out, target: to };

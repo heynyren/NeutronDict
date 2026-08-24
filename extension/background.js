@@ -316,13 +316,64 @@ function scheduleSync(ngu) {
 
 // ==== Google Dịch (endpoint công khai gtx) ====
 // dt=t (bản dịch) + dt=bd (từ điển nhiều nghĩa theo loại từ).
+//
+// Làm sạch chuỗi TRƯỚC khi gửi. Bôi đen xuyên qua công thức MathJax/KaTeX kéo
+// theo cả phần MathML ẩn và ký tự vô hình (zero-width, ký tự định dạng), làm
+// chuỗi phình ra và lẫn thứ Google không cần. Không dọn thì hoặc URL quá dài,
+// hoặc bản dịch dính rác.
+function donDich(s) {
+  return String(s || "")
+    .normalize("NFC")
+    .replace(/[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, "")  // vô hình / định dạng
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")                  // điều khiển
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Gọi endpoint gtx cho chắc: XOAY VÒNG HOST và chọn cách gửi theo ĐỘ DÀI.
+ *
+ * Hai chuyện hay làm hỏng dịch, cả hai đều không phân biệt tiếng gì:
+ *
+ *  1. Đoạn DÀI: URL GET có trần cứng, Google trả 400 rồi 431 (URL/header quá
+ *     khổ). Nên chuỗi dài đi POST — bỏ hẳn giới hạn URL; chuỗi ngắn vẫn GET.
+ *     Cách này trượt thì thử nốt cách kia (có nơi chặn POST, nơi chặn GET dài).
+ *
+ *  2. Gọi NHIỀU: endpoint gtx công khai giới hạn tần suất theo IP — tra một hồi
+ *     là nó chặn bớt, trả 429/403, và lỗi "Không nhận được bản dịch" hiện ra
+ *     dù câu ngắn tũn. Đây là chặn TẠM THỜI, tự hết. Đỡ bằng cách xoay sang một
+ *     cổng Google khác (clients5) khi cổng chính bị chặn: hai cổng đếm tần suất
+ *     riêng nên thường một cái còn sống. Cùng đường /translate_a/single nên
+ *     dạng dữ liệu trả về y hệt, chỗ đọc khỏi phải đổi.
+ */
+const GTX_HOST = [
+  "https://translate.googleapis.com/translate_a/single?client=gtx&",
+  "https://clients5.google.com/translate_a/single?client=gtx&"
+];
+async function gtxLay(params, enc) {
+  const dai = enc.length > 4000;
+  let cuoi = null;
+  for (const h of GTX_HOST) {
+    const base = h + params;
+    const doGet = () => fetch(base + "&q=" + enc);
+    const doPost = () => fetch(base, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+      body: "q=" + enc
+    });
+    let r = null;
+    try { r = await (dai ? doPost() : doGet()); } catch (e) { r = null; }
+    if (!r || !r.ok) { try { r = await (dai ? doGet() : doPost()); } catch (e) { /* cách kia cũng trượt */ } }
+    if (r && r.ok) { try { return await r.json(); } catch (e) { cuoi = e; } }
+    else cuoi = new Error("gtx HTTP " + (r ? r.status : "mạng"));
+    // Host này chặn/hỏng -> thử host sau.
+  }
+  throw (cuoi || new Error("gtx: mọi cổng đều trượt"));
+}
+
 async function gtxData(from, to, text) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd"
-    + "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
-    + "&q=" + encodeURIComponent(text);
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("gtx HTTP " + r.status);
-  return r.json();
+  const params = "dt=t&dt=bd&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to);
+  return gtxLay(params, encodeURIComponent(text));
 }
 function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
 function gtxSenses(data) {
@@ -401,12 +452,8 @@ function looksVietnamese(s) {
 
 // Google Dịch với nhận diện ngôn ngữ nguồn (sl=auto). Trả về { text, src }.
 async function gtxTranslateDetect(text, to) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t"
-    + "&sl=auto&tl=" + encodeURIComponent(to || "vi")
-    + "&q=" + encodeURIComponent(text);
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("gtx HTTP " + r.status);
-  const data = await r.json();
+  const params = "dt=t&sl=auto&tl=" + encodeURIComponent(to || "vi");
+  const data = await gtxLay(params, encodeURIComponent(text));
   const segs = (data && data[0]) || [];
   const out = segs.map((s) => (s && s[0]) || "").join("").trim();
   const src = (data && data[2]) || "";
@@ -813,6 +860,22 @@ async function handleTranslateMany(rawTexts, from, to) {
     }
   }));
 
+  // gtx chết hẳn (bị chặn tần suất theo IP) thì bảng lời thoại trắng cả loạt —
+  // đúng lúc đó máy chủ Apps Script là lối thoát, vì nó dịch TRÊN máy Google
+  // chứ không từ IP người dùng. Chỉ gọi cho những dòng gtx bỏ lại, và giới hạn
+  // song song để khỏi nện máy chủ nhà.
+  const conThieu = can.filter((i) => !out[i] && texts[i]);
+  if (conThieu.length) {
+    let m = 0;
+    await Promise.all(new Array(Math.min(4, conThieu.length)).fill(0).map(async () => {
+      while (m < conThieu.length) {
+        const i = conThieu[m++];
+        const v = await dichMayChu(texts[i], f, t);
+        if (v) { out[i] = v; c[f + ">" + t + ":" + texts[i]] = { v: v, target: t, ts: now }; }
+      }
+    }));
+  }
+
   const keys = Object.keys(c);
   if (keys.length > TR_MAX) {
     keys.sort((a, b) => (c[a].ts || 0) - (c[b].ts || 0));
@@ -937,8 +1000,35 @@ async function ghiNhanLuu(ngu) {
 const TR_MAX = 1200;
 const TR_TTL = 30 * 86400000;
 
+/**
+ * Dịch qua máy chủ Apps Script của người dùng — đường DỰ PHÒNG không dính IP.
+ *
+ * Khi gtx bị Google chặn tần suất theo IP, đây là lối thoát: LanguageApp chạy
+ * TRÊN máy chủ Google, không phải từ trình duyệt của người dùng, nên không bị
+ * cùng cái chặn ấy. Trả về chuỗi rỗng khi không dùng được (chưa cấu hình, hỏng
+ * mạng, máy chủ báo lỗi) — chỗ gọi tự quyết nói lỗi thế nào; nới cả vài cách
+ * đặt tên trường mà bản Apps Script cũ có thể trả về.
+ */
+async function dichMayChu(text, f, t) {
+  try {
+    const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
+    if (!syncUrl) return "";
+    const r = await fetch(syncUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ token: syncToken || "", action: "translate", text, from: f, to: t })
+    });
+    const data = await r.json().catch(() => null);
+    if (!data || data.ok === false) return "";
+    return String(data.text || data.translation || data.result || "");
+  } catch (e) { return ""; }
+}
+
 async function handleTranslate(rawText, from, to) {
-  const text = (rawText || "").trim();
+  // Dọn ngay đầu vào: vùng chọn dính công thức mang theo ký tự vô hình và
+  // MathML ẩn. Dọn ở đây thì khoá bộ nhớ đệm, chuỗi lưu vào sổ, và chuỗi gửi
+  // Google đều là một bản sạch như nhau.
+  const text = donDich(rawText).slice(0, 5000);
   if (!text) return { ok: false, error: "Chưa có nội dung" };
   let f = from || "en", t = to || "vi";
 
@@ -974,21 +1064,15 @@ async function handleTranslate(rawText, from, to) {
   const hit = fresh(key);
   if (hit) return { ok: true, text: hit.v, target: t, cached: true, saved: await daLuuCau(text) };
 
-  // 1) Nhanh: gọi thẳng Google Dịch.  2) Dự phòng: Apps Script.
+  // 1) Nhanh: gọi thẳng Google Dịch.  2) gtx chặn thì qua máy chủ Apps Script.
   let out = "";
   try { out = await gtxTranslate(text, f, t); } catch (e) { out = ""; }
+  if (!out) out = await dichMayChu(text, f, t);
   if (!out) {
-    const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
-    if (!syncUrl) return { ok: false, error: "Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng)." };
-    const r = await fetch(syncUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ token: syncToken || "", action: "translate", text, from: f, to: t })
-    });
-    const data = await r.json();
-    if (!data || data.ok === false) throw new Error((data && data.error) || "Máy chủ dịch báo lỗi");
-    if (!data.text) throw new Error("Không nhận được bản dịch");
-    out = data.text;
+    const { syncUrl } = await chrome.storage.local.get("syncUrl");
+    return { ok: false, error: syncUrl
+      ? "Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút."
+      : "Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng." };
   }
 
   store(key, out, t);

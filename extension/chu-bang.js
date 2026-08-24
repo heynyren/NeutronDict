@@ -287,6 +287,10 @@
       "Nothing is due. Come back later!",
     "Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng).":
       "Cannot translate right now (and there is no sync set up to fall back on).",
+    "Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút.":
+      "Google is temporarily throttling translation (too many requests) and the fallback server didn't return anything. Try again in a few minutes.",
+    "Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng.":
+      "Google is temporarily throttling translation (too many requests). Try again in a few minutes, or set up sync to use a fallback server.",
     "Không lấy được nghĩa.":
       "Could not fetch a meaning.",
     "Không tìm thấy từ này":
@@ -1019,6 +1023,10 @@
       "復習時期の項目はありません。またあとで！",
     "Không dịch được lúc này (và chưa cấu hình đồng bộ để dùng máy chủ dự phòng).":
       "今は翻訳できません（予備のサーバーを使う同期設定もありません）。",
+    "Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút.":
+      "Google が翻訳を一時的に制限しています（回数が多すぎます）。予備サーバーも応答しませんでした。数分後にもう一度お試しください。",
+    "Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng.":
+      "Google が翻訳を一時的に制限しています（回数が多すぎます）。数分後に再試行するか、同期を設定して予備サーバーをご利用ください。",
     "Không lấy được nghĩa.":
       "意味を取得できませんでした。",
     "Không tìm thấy từ này":
