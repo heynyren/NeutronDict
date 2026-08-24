@@ -622,6 +622,23 @@
   /** Mã video mà bạn đã tự đóng bảng — đừng dựng lại cho tới khi sang video khác. */
   let tatCho = "";
   /*
+   * Tự bật bảng khi mở video, hay đợi người dùng bấm?
+   *
+   * Mặc định là ĐỢI: mỗi lần lấy phụ đề rồi dịch cả bảng là một loạt lượt gọi
+   * API — bật tự động cho MỌI video, kể cả video chỉ lướt qua, là đốt hạn mức
+   * dịch vô ích. Nên video mới chỉ hiện một nút mời; bấm vào mới lấy phụ đề và
+   * gọi dịch. Ai thích bật sẵn thì mở lại trong Cài đặt.
+   */
+  let tuBat = false;
+  /** Mã video đang chờ người dùng bấm nút mời (chế độ đợi). "" là không chờ ai. */
+  let choBat = "";
+  const datBat = (st) => {
+    const moi = !!(st && st.ytTuBat);
+    if (moi === tuBat) return false;
+    tuBat = moi;
+    return true;
+  };
+  /*
    * Ngôn ngữ giao diện. Bảng nằm trong shadow DOM do JS dựng ra nên không có
    * lượt quét data-chu nào chạm tới — chữ trên đó sinh ra MỘT LẦN lúc dựng.
    *
@@ -651,12 +668,18 @@
     const st = (r && r.settings) || {};
     NGU = self.Ngu.hopLe(st.ngu);
     datChu(st);
+    datBat(st);
     baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area !== "local" || !ch.settings) return;
     const st = ch.settings.newValue || {};
     datChu(st);
+    if (datBat(st)) {
+      // Bật/tắt chế độ tự-bật giữa chừng: dựng lại cho khớp kiểu mới.
+      const v = maVideo();
+      if (v && v !== tatCho) xemLai(true);
+    }
     const moi = self.Ngu.hopLe(st.ngu);
     if (moi === NGU) return;
     NGU = moi;
@@ -677,7 +700,8 @@
     co: 2,              // nấc cỡ chữ đang dùng
     dich: new Map(),    // chỉ số câu -> bản dịch
     sua: {},            // bản chép lời bạn tự sửa: mốc giây -> câu đúng
-    host: null, root: null, oList: null, oTrong: null
+    host: null, root: null, oList: null, oTrong: null,
+    hostBat: null       // nút mời "Hiện phụ đề" ở chế độ đợi (khác host của bảng)
   };
 
   /**
@@ -1959,6 +1983,53 @@
     } finally { dangNgong = false; }
   }
 
+  /** Gỡ nút mời (nếu có). Nút mời tách khỏi bảng chính nên phải dọn riêng. */
+  function goMoiBat() { if (S.hostBat) { S.hostBat.remove(); S.hostBat = null; } }
+
+  /**
+   * Chế độ ĐỢI: thay vì lấy phụ đề và dịch ngay, chỉ hiện một nút mời. Bấm vào
+   * mới chạy khoiDong — tức là mới tốn lượt gọi API. Nút nằm đúng chỗ bảng sẽ
+   * hiện (cột phải, trên video gợi ý), mang cùng khung để nhìn liền mạch.
+   */
+  function moiBat(v) {
+    goMoiBat(); goBang();
+    const noi = choDat();
+    if (!noi) return;
+    choBat = v;
+    const host = document.createElement("div");
+    host.setAttribute("data-ndict-yt", "1");
+    host.style.cssText = "all:initial;display:block;margin-bottom:16px";
+    const root = host.attachShadow({ mode: "open" });
+    const stEl = document.createElement("style"); stEl.textContent = CSS; root.appendChild(stEl);
+    const box = document.createElement("div"); box.className = "box"; root.appendChild(box);
+
+    const top = document.createElement("div"); top.className = "top";
+    const lg = document.createElement("img"); lg.className = "lg"; lg.src = LOGO; lg.alt = ""; lg.width = 18; lg.height = 18;
+    top.appendChild(lg);
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = T("NeutronDict · Lời thoại");
+    top.appendChild(nm);
+    const spacer = document.createElement("span"); spacer.className = "n"; top.appendChild(spacer);
+    const nutX = nutChip("x", "", T("Ẩn cho video này"));
+    top.appendChild(nutX);
+    box.appendChild(top);
+
+    const body = document.createElement("div");
+    body.style.cssText = "padding:16px;display:flex;flex-direction:column;gap:10px;align-items:flex-start";
+    const nutBat = nutChip("subtitles", T("Hiện phụ đề & dịch"), "");
+    nutBat.style.cssText = "padding:9px 15px;font-size:14px";
+    const tip = document.createElement("div");
+    tip.style.cssText = "font-size:12px;opacity:.66;line-height:1.5";
+    tip.textContent = T("Để tiết kiệm, bảng chỉ lấy phụ đề và gọi dịch khi bạn bấm.");
+    body.appendChild(nutBat); body.appendChild(tip);
+    box.appendChild(body);
+
+    noi.insertBefore(host, noi.firstChild);
+    S.hostBat = host;
+
+    nutBat.addEventListener("click", () => { choBat = ""; goMoiBat(); khoiDong(v); });
+    nutX.addEventListener("click", () => { choBat = ""; tatCho = v; goMoiBat(); });
+  }
+
   async function khoiDong(v) {
     await daDocCaiDat;      // đừng dựng bảng bằng thứ tiếng chưa biết là gì
     S.v = v; S.cau = []; S.hien = -1; S.dich.clear(); S.bam = true;
@@ -2010,7 +2081,8 @@
     const v = maVideo();
     if (ep) tatCho = "";              // tự bấm Nạp lại thì tất nhiên là muốn bảng hiện lại
     if (v && v === tatCho) return;    // video này bạn đã đóng bảng
-    if (!v) { dungTheoDoi(); goBang(); S.v = ""; return; }
+    if (!v) { dungTheoDoi(); goBang(); goMoiBat(); choBat = ""; S.v = ""; return; }
+    goMoiBat(); if (v !== choBat) choBat = "";
     if (!ep && v === S.v && S.host && S.host.isConnected) return;
     if (ep) S.v = "";
     dungTheoDoi();
@@ -2024,7 +2096,18 @@
       // trượt hết mọi đường, rồi rơi xuống đường đọc DOM và vớ nhầm thứ khác.
       // Đây chính là lý do vào video có quảng cáo thì phải F5 mới ra bảng đúng.
       if (dangQuangCao() && lan < 240) { lan++; return; }
-      if (choDat()) { clearInterval(dangCho); await khoiDong(v); return; }
+      if (choDat()) {
+        clearInterval(dangCho);
+        // Phải ĐỢI đọc xong cài đặt rồi mới quyết: `tuBat` mặc định là false,
+        // mà lượt đọc cài đặt là bất đồng bộ — quyết sớm thì video nào cũng rơi
+        // vào nhánh "đợi" kể cả khi người dùng đã bật tự-động. (khoiDong tự đợi
+        // daDocCaiDat, nhưng quyết định RẼ NHÁNH này thì ở ngoài nó.)
+        await daDocCaiDat;
+        if (maVideo() !== v) return;
+        if (tuBat) await khoiDong(v);
+        else moiBat(v);
+        return;
+      }
       if (++lan > 240) clearInterval(dangCho);
     };
     dangCho = setInterval(thu, 500);
@@ -2039,6 +2122,10 @@
     // YouTube dựng lại cột phải khá tuỳ hứng và cuốn theo cả bảng này; dựng lại
     // khi thấy nó biến mất, chứ không bắt người dùng tải lại trang.
     if (S.v && S.v !== tatCho && (!S.host || !S.host.isConnected) && choDat()) khoiDong(S.v);
+    // Chế độ đợi: nút mời cũng bị YouTube cuốn mất như bảng — dựng lại cho video
+    // đang chờ, miễn là chưa mở bảng và chưa bị đóng.
+    if (!tuBat && choBat && choBat === maVideo() && !S.host
+        && (!S.hostBat || !S.hostBat.isConnected) && choBat !== tatCho && choDat()) moiBat(choBat);
   }, 700);
 
   /*
@@ -2051,6 +2138,7 @@
    * lỗi ra — người dùng chẳng làm gì sai, và tải lại trang là mọi thứ trở lại.
    */
   self.Song.khiChet(() => {
+    goMoiBat();
     clearInterval(vongCanh);
     clearInterval(dangCho);
     clearTimeout(henDich);

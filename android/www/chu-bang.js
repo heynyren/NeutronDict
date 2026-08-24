@@ -481,6 +481,12 @@
       "Expand",
     "NeutronDict · Lời thoại":
       "NeutronDict · Transcript",
+    "Hiện phụ đề & dịch": "Show transcript & translate",
+    "Để tiết kiệm, bảng chỉ lấy phụ đề và gọi dịch khi bạn bấm.":
+      "To save quota, the panel only fetches the transcript and translates when you tap.",
+    "Ẩn cho video này": "Hide for this video",
+    "Tự bật bảng lời thoại khi mở video YouTube (tắt để tiết kiệm: video mới chỉ hiện nút, bấm mới lấy phụ đề và dịch)":
+      "Auto-open the transcript panel when a YouTube video loads (off saves quota: a new video only shows a button; tap it to fetch the transcript and translate)",
     "Nạp lại bảng":
       "Reload the panel",
     "Nạp lại bảng (lần {n}/2 — lần nữa sẽ tải lại cả trang)":
@@ -1225,6 +1231,12 @@
       "展開",
     "NeutronDict · Lời thoại":
       "NeutronDict · 文字起こし",
+    "Hiện phụ đề & dịch": "文字起こしを表示して翻訳",
+    "Để tiết kiệm, bảng chỉ lấy phụ đề và gọi dịch khi bạn bấm.":
+      "節約のため、タップしたときだけ字幕を取得して翻訳します。",
+    "Ẩn cho video này": "この動画では隠す",
+    "Tự bật bảng lời thoại khi mở video YouTube (tắt để tiết kiệm: video mới chỉ hiện nút, bấm mới lấy phụ đề và dịch)":
+      "YouTube 動画を開いたら文字起こしパネルを自動表示（オフで節約：新しい動画ではボタンのみ、タップで字幕取得と翻訳）",
     "Nạp lại bảng":
       "パネルを再読み込み",
     "Nạp lại bảng (lần {n}/2 — lần nữa sẽ tải lại cả trang)":
