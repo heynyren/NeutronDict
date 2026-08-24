@@ -1797,6 +1797,23 @@ async function saveConfig() {
     ? T2("Đã lưu cấu hình đồng bộ cho tiếng {ngu}.", { ngu: T(window.Ngu.ten(NGU)) })
     : T2("Đã xoá cấu hình tiếng {ngu}.", { ngu: T(window.Ngu.ten(NGU)) }));
 }
+
+// Azure là toàn cục (một key dùng cho MỌI hướng dịch), không theo ngôn ngữ như
+// đồng bộ — nên khoá lưu là "azureKey"/"azureRegion", không kèm nhãn ngôn ngữ.
+async function loadAzure() {
+  const kho = await chrome.storage.local.get(["azureKey", "azureRegion"]);
+  $("azureKey").value = kho.azureKey || "";
+  $("azureRegion").value = kho.azureRegion || "";
+}
+async function saveAzure() {
+  const azureKey = $("azureKey").value.trim();
+  const azureRegion = $("azureRegion").value.trim();
+  await chrome.storage.local.set({ azureKey, azureRegion });
+  const st = $("azureStatus");
+  if (st) st.textContent = azureKey
+    ? T("Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.")
+    : T("Đã xoá key Azure. App sẽ dùng thẳng Google.");
+}
 function syncNow() {
   setStatus(T("Đang đồng bộ…"));
   const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
@@ -2137,6 +2154,8 @@ function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("icAzure")) $("icAzure").innerHTML = window.Icon("translate", { size: 18 });
+  if ($("crAz")) $("crAz").innerHTML = window.Icon("caret-right", { size: 16 });
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
   ["cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
 
@@ -2199,6 +2218,7 @@ $("clear").addEventListener("click", clearAll);
 $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
+$("saveAzure").addEventListener("click", saveAzure);
 $("syncNow").addEventListener("click", syncNow);
 /**
  * Nói thật về phím tắt.
@@ -2329,6 +2349,7 @@ async function doiNgu(ngu) {
   await theoDoi.nap(true);
   await load();
   await loadConfig();
+  await loadAzure();
   if (NGU === "ja") vaFurigana();
   if ($("viewProgress").classList.contains("show")) veTienDo();
 }
