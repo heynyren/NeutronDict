@@ -156,6 +156,23 @@
     </div>
   </details>
 
+  <details class="box" id="libreBox">
+    <summary data-chu><span id="icLibre"></span> Dịch bằng LibreTranslate (thoát khỏi Google) <span class="caret" id="crLb"></span></summary>
+    <div class="boxbody">
+      <div class="t-tiny faint" style="margin-bottom:6px" data-chu>
+        Trỏ vào một máy chủ LibreTranslate (bạn tự dựng, hoặc một máy chủ mở) thì bản dịch đi thẳng qua đó, không còn qua Google — hết cảnh bị chặn. Dán địa chỉ dạng http://192.168.1.10:5000 hoặc https://libretranslate.com. Cách dựng máy chủ xem hướng dẫn.
+      </div>
+      <input id="libreUrl" type="text" placeholder="Địa chỉ máy chủ LibreTranslate (vd http://localhost:5000)" autocomplete="off" data-chu-ph>
+      <input id="libreKey" type="text" placeholder="API key (nếu máy chủ yêu cầu — bỏ trống nếu không)" autocomplete="off" data-chu-ph>
+      <label class="check" style="margin-top:6px">
+        <input type="checkbox" id="libreChi">
+        <span data-chu>Chỉ dùng LibreTranslate — không mượn Google kể cả khi máy chủ này hỏng</span>
+      </label>
+      <button id="saveLibre" class="btn sm primary block" type="button" data-chu>Lưu máy chủ LibreTranslate</button>
+      <span id="libreStatus" class="t-tiny faint"></span>
+    </div>
+  </details>
+
   <details class="box" id="azureBox">
     <summary data-chu><span id="icAzure"></span> Đường dịch Azure (khuyên dùng) <span class="caret" id="crAz"></span></summary>
     <div class="boxbody">

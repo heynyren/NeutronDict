@@ -93,6 +93,37 @@ const GTX_HOST = [
   "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd",
   "https://clients5.google.com/translate_a/single?client=gtx&dt=t&dt=bd"
 ];
+// LibreTranslate / Argos — ĐƯỜNG THOÁT KHỎI GOOGLE. Trỏ vào máy chủ
+// LibreTranslate của người dùng; bản dịch không còn qua Google, hết bị chặn.
+// Nhận mảng câu, dịch một lượt, trả mảng { text, detected }. `chi` = chỉ dùng
+// LibreTranslate (không mượn Google khi máy chủ hỏng).
+async function libreCfg() {
+  const url = String((await Store.get("libreUrl")) || "").trim().replace(/\/+$/, "");
+  const key = String((await Store.get("libreKey")) || "").trim();
+  const chi = !!(await Store.get("libreChi"));
+  return { url, key, chi };
+}
+async function libreDich(texts, f, t) {
+  const { url, key } = await libreCfg();
+  if (!url) return null;
+  const payload = {
+    q: (texts || []).map((x) => String(x || "")),
+    source: (f && f !== "auto") ? f : "auto",
+    target: t,
+    format: "text"
+  };
+  if (key) payload.api_key = key;
+  const data = await httpPostJson(url + "/translate", payload, "application/json");
+  let tt = data && data.translatedText;
+  if (typeof tt === "string") tt = [tt];
+  if (!Array.isArray(tt)) throw new Error("libre: dữ liệu lạ");
+  const det = data && data.detectedLanguage;
+  return tt.map((x, i) => ({
+    text: typeof x === "string" ? x : ((x && x.translatedText) || ""),
+    detected: Array.isArray(det) ? ((det[i] && det[i].language) || "") : ((det && det.language) || "")
+  }));
+}
+
 // Azure Translator — ĐƯỜNG CHÍNH. Xem chú thích bản extension: API chính thức,
 // hạn mức miễn phí rộng, key riêng nên không bị chặn kiểu IP như gtx, và dịch
 // được cả loạt trong một lượt. Nhận mảng câu, trả mảng { text, detected }.
@@ -1844,7 +1875,8 @@ async function translateText(text, dir) {
       const ah = fresh(ak);
       if (ah) return { text: ah.v, target: ah.target || "en" };
       let det = null;
-      try { const a = await azureDich([t], "auto", "en"); if (a && a[0] && a[0].text) det = { text: a[0].text, src: a[0].detected }; } catch (e) {}
+      try { const l = await libreDich([t], "auto", "en"); if (l && l[0] && l[0].text) det = { text: l[0].text, src: l[0].detected }; } catch (e) {}
+      if (!det || !det.text) { try { const a = await azureDich([t], "auto", "en"); if (a && a[0] && a[0].text) det = { text: a[0].text, src: a[0].detected }; } catch (e) {} }
       if (!det || !det.text) { try { det = await gtxTranslateDetect(t, "en"); } catch (e) {} }
       if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
       from = "en"; to = "vi";
@@ -1864,8 +1896,12 @@ async function translateText(text, dir) {
   const hit = fresh(key);
   if (hit) return { text: hit.v, target: to };
   let out = "";
-  // 1) Azure (đường chính).  2) gtx (xoay vòng cổng).  3) máy chủ Apps Script.
-  try { const a = await azureDich([t], from, to); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ }
+  // 0) LibreTranslate (đường thoát khỏi Google).  1) Azure.  2) gtx.  3) Apps Script.
+  try { const l = await libreDich([t], from, to); if (l && l[0] && l[0].text) out = l[0].text; } catch (e) { /* Libre trượt */ }
+  const lib = await libreCfg();
+  const chiLibre = !!(lib.url && lib.chi);
+  if (!out && chiLibre) throw new Error(T("Máy chủ LibreTranslate không phản hồi (và bạn đã chọn CHỈ dùng LibreTranslate). Kiểm tra lại địa chỉ máy chủ, hoặc tắt tuỳ chọn 'chỉ LibreTranslate' để mượn tạm Google."));
+  if (!out) { try { const a = await azureDich([t], from, to); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ } }
   if (!out) { try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; } }
   if (!out) {
     const cfg = await layCfg(NGU);
@@ -2611,6 +2647,15 @@ if ($("saveAzure")) $("saveAzure").addEventListener("click", async () => {
     ? T("Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.")
     : T("Đã xoá key Azure. App sẽ dùng thẳng Google.");
 });
+if ($("saveLibre")) $("saveLibre").addEventListener("click", async () => {
+  const libreUrl = $("libreUrl").value.trim().replace(/\/+$/, "");
+  await Store.set("libreUrl", libreUrl);
+  await Store.set("libreKey", $("libreKey").value.trim());
+  await Store.set("libreChi", $("libreChi").checked);
+  $("libreStatus").textContent = libreUrl
+    ? T("Đã lưu máy chủ LibreTranslate. Từ giờ bản dịch đi qua đó trước.")
+    : T("Đã xoá máy chủ LibreTranslate. App sẽ dùng Google như cũ.");
+});
 $("syncNow").addEventListener("click", async () => {
   $("syncStatus").textContent = T("Đang đồng bộ…");
   try {
@@ -3032,6 +3077,8 @@ function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("translate", { size: 18, weight: "solid" });
   $("icChu").innerHTML = window.Icon("translate", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("icLibre")) $("icLibre").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("crLb")) $("crLb").innerHTML = window.Icon("caret-right", { size: 16 });
   if ($("icAzure")) $("icAzure").innerHTML = window.Icon("translate", { size: 18 });
   if ($("crAz")) $("crAz").innerHTML = window.Icon("caret-right", { size: 16 });
   $("icBell").innerHTML = window.Icon("bell-ringing", { size: 18 });
@@ -3116,6 +3163,9 @@ $("nguBtn").addEventListener("click", async () => {
   $("syncToken").value = cfg.token || "";
   if ($("azureKey")) $("azureKey").value = String((await Store.get("azureKey")) || "");
   if ($("azureRegion")) $("azureRegion").value = String((await Store.get("azureRegion")) || "");
+  if ($("libreUrl")) $("libreUrl").value = String((await Store.get("libreUrl")) || "");
+  if ($("libreKey")) $("libreKey").value = String((await Store.get("libreKey")) || "");
+  if ($("libreChi")) $("libreChi").checked = !!(await Store.get("libreChi"));
   await drawNotebook();
   await veChuoiNgay();
   updateDueButton();

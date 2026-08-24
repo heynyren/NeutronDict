@@ -299,6 +299,15 @@
     "Lưu key Azure": "Save Azure key",
     "Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.": "Azure key saved. Translations now go through Azure first.",
     "Đã xoá key Azure. App sẽ dùng thẳng Google.": "Azure key cleared. The app will use Google directly.",
+    "Dịch bằng LibreTranslate (thoát khỏi Google)": "Translate with LibreTranslate (leave Google)",
+    "Trỏ vào một máy chủ LibreTranslate (bạn tự dựng, hoặc một máy chủ mở) thì bản dịch đi thẳng qua đó, không còn qua Google — hết cảnh bị chặn. Dán địa chỉ dạng http://192.168.1.10:5000 hoặc https://libretranslate.com. Cách dựng máy chủ xem hướng dẫn.": "Point this at a LibreTranslate server (self-hosted or an open one) and translations go straight through it, no longer via Google — no more throttling. Paste an address like http://192.168.1.10:5000 or https://libretranslate.com. See the guide to set up a server.",
+    "Địa chỉ máy chủ LibreTranslate (vd http://localhost:5000)": "LibreTranslate server address (e.g. http://localhost:5000)",
+    "API key (nếu máy chủ yêu cầu — bỏ trống nếu không)": "API key (if the server requires one — leave empty otherwise)",
+    "Chỉ dùng LibreTranslate — không mượn Google kể cả khi máy chủ này hỏng": "LibreTranslate only — never fall back to Google, even if this server is down",
+    "Lưu máy chủ LibreTranslate": "Save LibreTranslate server",
+    "Đã lưu máy chủ LibreTranslate. Từ giờ bản dịch đi qua đó trước.": "LibreTranslate server saved. Translations now go through it first.",
+    "Đã xoá máy chủ LibreTranslate. App sẽ dùng Google như cũ.": "LibreTranslate server cleared. The app will use Google as before.",
+    "Máy chủ LibreTranslate không phản hồi (và bạn đã chọn CHỈ dùng LibreTranslate). Kiểm tra lại địa chỉ máy chủ, hoặc tắt tuỳ chọn 'chỉ LibreTranslate' để mượn tạm Google.": "The LibreTranslate server didn't respond (and you chose LibreTranslate only). Check the server address, or turn off 'LibreTranslate only' to borrow Google for now.",
     "Không lấy được nghĩa.":
       "Could not fetch a meaning.",
     "Không tìm thấy từ này":
@@ -1049,6 +1058,15 @@
     "Lưu key Azure": "Azure キーを保存",
     "Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.": "Azure キーを保存しました。今後は翻訳がまず Azure を通ります。",
     "Đã xoá key Azure. App sẽ dùng thẳng Google.": "Azure キーを消去しました。アプリは Google を直接使います。",
+    "Dịch bằng LibreTranslate (thoát khỏi Google)": "LibreTranslate で翻訳（Google から離れる）",
+    "Trỏ vào một máy chủ LibreTranslate (bạn tự dựng, hoặc một máy chủ mở) thì bản dịch đi thẳng qua đó, không còn qua Google — hết cảnh bị chặn. Dán địa chỉ dạng http://192.168.1.10:5000 hoặc https://libretranslate.com. Cách dựng máy chủ xem hướng dẫn.": "LibreTranslate サーバー（自前または公開サーバー）を指定すると、翻訳はそこを直接通り、Google を経由しなくなります — 制限もなくなります。http://192.168.1.10:5000 や https://libretranslate.com のような住所を貼ってください。構築方法はガイドをご覧ください。",
+    "Địa chỉ máy chủ LibreTranslate (vd http://localhost:5000)": "LibreTranslate サーバーの住所（例: http://localhost:5000）",
+    "API key (nếu máy chủ yêu cầu — bỏ trống nếu không)": "API キー（サーバーが必要とする場合 — 不要なら空欄）",
+    "Chỉ dùng LibreTranslate — không mượn Google kể cả khi máy chủ này hỏng": "LibreTranslate のみ — このサーバーが落ちても Google に切り替えない",
+    "Lưu máy chủ LibreTranslate": "LibreTranslate サーバーを保存",
+    "Đã lưu máy chủ LibreTranslate. Từ giờ bản dịch đi qua đó trước.": "LibreTranslate サーバーを保存しました。今後は翻訳がまずそこを通ります。",
+    "Đã xoá máy chủ LibreTranslate. App sẽ dùng Google như cũ.": "LibreTranslate サーバーを消去しました。アプリは従来どおり Google を使います。",
+    "Máy chủ LibreTranslate không phản hồi (và bạn đã chọn CHỈ dùng LibreTranslate). Kiểm tra lại địa chỉ máy chủ, hoặc tắt tuỳ chọn 'chỉ LibreTranslate' để mượn tạm Google.": "LibreTranslate サーバーが応答しませんでした（「LibreTranslate のみ」を選択中）。サーバーの住所を確認するか、「LibreTranslate のみ」をオフにして一時的に Google を利用してください。",
     "Không lấy được nghĩa.":
       "意味を取得できませんでした。",
     "Không tìm thấy từ này":

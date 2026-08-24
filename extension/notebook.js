@@ -1814,6 +1814,34 @@ async function saveAzure() {
     ? T("Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.")
     : T("Đã xoá key Azure. App sẽ dùng thẳng Google.");
 }
+
+async function loadLibre() {
+  const kho = await chrome.storage.local.get(["libreUrl", "libreKey", "libreChi"]);
+  $("libreUrl").value = kho.libreUrl || "";
+  $("libreKey").value = kho.libreKey || "";
+  $("libreChi").checked = !!kho.libreChi;
+}
+async function saveLibre() {
+  const libreUrl = $("libreUrl").value.trim().replace(/\/+$/, "");
+  const libreKey = $("libreKey").value.trim();
+  const libreChi = $("libreChi").checked;
+  await chrome.storage.local.set({ libreUrl, libreKey, libreChi });
+  const st = $("libreStatus");
+  // Máy chủ do người dùng gõ vào là host lạ, service worker cần quyền mới gọi
+  // được. Nhiều máy chủ LibreTranslate có mở CORS nên không cần, nhưng xin
+  // trước cho chắc — xin trong lượt bấm nút (cử chỉ người dùng) mới được phép.
+  if (libreUrl) {
+    try {
+      const o = new URL(libreUrl).origin + "/*";
+      if (chrome.permissions && chrome.permissions.request) {
+        await new Promise((xong) => chrome.permissions.request({ origins: [o] }, () => xong()));
+      }
+    } catch (e) { /* địa chỉ lỗi thì thôi, để lúc dịch báo */ }
+  }
+  if (st) st.textContent = libreUrl
+    ? T("Đã lưu máy chủ LibreTranslate. Từ giờ bản dịch đi qua đó trước.")
+    : T("Đã xoá máy chủ LibreTranslate. App sẽ dùng Google như cũ.");
+}
 function syncNow() {
   setStatus(T("Đang đồng bộ…"));
   const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
@@ -2160,6 +2188,8 @@ function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("icLibre")) $("icLibre").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
+  if ($("crLb")) $("crLb").innerHTML = window.Icon("caret-right", { size: 16 });
   if ($("icAzure")) $("icAzure").innerHTML = window.Icon("translate", { size: 18 });
   if ($("crAz")) $("crAz").innerHTML = window.Icon("caret-right", { size: 16 });
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
@@ -2225,6 +2255,7 @@ $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
 $("saveAzure").addEventListener("click", saveAzure);
+$("saveLibre").addEventListener("click", saveLibre);
 $("syncNow").addEventListener("click", syncNow);
 /**
  * Nói thật về phím tắt.
@@ -2356,6 +2387,7 @@ async function doiNgu(ngu) {
   await load();
   await loadConfig();
   await loadAzure();
+  await loadLibre();
   if (NGU === "ja") vaFurigana();
   if ($("viewProgress").classList.contains("show")) veTienDo();
 }

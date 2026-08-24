@@ -838,13 +838,25 @@ async function handleTranslateMany(rawTexts, from, to) {
   // chừng. Bỏ luôn câu hỏng thì trên bảng nó nằm mãi ở dấu "—" trong khi hàng
   // xóm hai bên đều có nghĩa — trông như mình bỏ sót, mà thật ra chỉ là một
   // lượt gọi trượt.
-  // Azure trước: dịch CẢ LOẠT trong một lượt (đường chính). Câu nào Azure làm
-  // được thì gtx khỏi đụng tới nữa.
-  if (can.length) {
+  // LibreTranslate trước: dịch CẢ LOẠT trong MỘT lượt — đường thoát khỏi Google.
+  const libM = await libreCfg();
+  const chiLibreM = !!(libM.url && libM.chi);
+  if (can.length && libM.url) {
     try {
-      const a = await azureDich(can.map((i) => texts[i]), f, t);
-      if (a) a.forEach((x, j) => {
+      const l = await libreDich(can.map((i) => texts[i]), f, t);
+      if (l) l.forEach((x, j) => {
         if (x && x.text) { const i = can[j]; out[i] = x.text; c[f + ">" + t + ":" + texts[i]] = { v: x.text, target: t, ts: now }; }
+      });
+    } catch (e) { /* Libre trượt -> đường sau lo, trừ khi chỉ-Libre */ }
+  }
+
+  // Azure: dịch cả loạt trong một lượt. Bỏ qua khi đã chọn chỉ-LibreTranslate.
+  if (can.length && !chiLibreM && can.some((i) => !out[i])) {
+    try {
+      const a = await azureDich(can.filter((i) => !out[i]).map((i) => texts[i]), f, t);
+      const conAz = can.filter((i) => !out[i]);
+      if (a) a.forEach((x, j) => {
+        if (x && x.text) { const i = conAz[j]; out[i] = x.text; c[f + ">" + t + ":" + texts[i]] = { v: x.text, target: t, ts: now }; }
       });
     } catch (e) { /* Azure trượt -> để gtx lo */ }
   }
@@ -854,7 +866,7 @@ async function handleTranslateMany(rawTexts, from, to) {
   await Promise.all(new Array(Math.min(SONG, can.length)).fill(0).map(async () => {
     while (ke < can.length) {
       const i = can[ke++];
-      if (out[i]) continue;                 // Azure lo rồi thì bỏ qua
+      if (out[i] || chiLibreM) continue;    // đã có, hoặc chỉ-Libre thì không đụng Google
       for (let lan = 0; lan < 3; lan++) {
         try {
           // gtxTranslate ở đây trả về CHUỖI (khác NJDict trả về object) — bộ đệm
@@ -876,7 +888,7 @@ async function handleTranslateMany(rawTexts, from, to) {
   // đúng lúc đó máy chủ Apps Script là lối thoát, vì nó dịch TRÊN máy Google
   // chứ không từ IP người dùng. Chỉ gọi cho những dòng gtx bỏ lại, và giới hạn
   // song song để khỏi nện máy chủ nhà.
-  const conThieu = can.filter((i) => !out[i] && texts[i]);
+  const conThieu = chiLibreM ? [] : can.filter((i) => !out[i] && texts[i]);
   if (conThieu.length) {
     let m = 0;
     await Promise.all(new Array(Math.min(4, conThieu.length)).fill(0).map(async () => {
@@ -1013,6 +1025,57 @@ const TR_MAX = 1200;
 const TR_TTL = 30 * 86400000;
 
 /**
+ * Dịch qua LibreTranslate / Argos — ĐƯỜNG THOÁT KHỎI GOOGLE.
+ *
+ * Argos là bộ máy dịch chạy ngoại tuyến; LibreTranslate là máy chủ web bọc
+ * quanh nó. Người dùng tự dựng một máy chủ LibreTranslate (hoặc trỏ vào một máy
+ * chủ mở), rồi khai địa chỉ vào đây — từ đó bản dịch KHÔNG còn đi qua Google,
+ * nên không dính cái chặn tần suất theo IP mà người dùng đang khổ vì nó.
+ *
+ * Nhận một MẢNG câu, dịch trong MỘT lượt (LibreTranslate cho `q` là mảng), trả
+ * mảng { text, detected } đúng thứ tự. Chưa khai địa chỉ thì trả null để chỗ
+ * gọi đi tiếp đường khác.
+ *
+ * `chi` = "chỉ dùng LibreTranslate": bật thì khi máy chủ này hỏng, KHÔNG lặng
+ * lẽ quay về Google — đúng ý người muốn dứt hẳn với Google, thà báo lỗi để họ
+ * biết mà sửa máy chủ.
+ */
+async function libreCfg() {
+  const { libreUrl, libreKey, libreChi } = await chrome.storage.local.get(["libreUrl", "libreKey", "libreChi"]);
+  return {
+    url: (libreUrl || "").trim().replace(/\/+$/, ""),
+    key: (libreKey || "").trim(),
+    chi: !!libreChi
+  };
+}
+async function libreDich(texts, f, t) {
+  const { url, key } = await libreCfg();
+  if (!url) return null;
+  const body = {
+    q: (texts || []).map((x) => String(x || "")),
+    source: (f && f !== "auto") ? f : "auto",
+    target: t,
+    format: "text"
+  };
+  if (key) body.api_key = key;
+  const r = await fetch(url + "/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error("libre HTTP " + r.status);
+  const d = await r.json();
+  let tt = d && d.translatedText;
+  if (typeof tt === "string") tt = [tt];             // gửi một câu thì trả chuỗi
+  if (!Array.isArray(tt)) throw new Error("libre: dữ liệu lạ");
+  const det = d && d.detectedLanguage;
+  return tt.map((x, i) => ({
+    text: typeof x === "string" ? x : ((x && x.translatedText) || ""),
+    detected: Array.isArray(det) ? ((det[i] && det[i].language) || "") : ((det && det.language) || "")
+  }));
+}
+
+/**
  * Dịch qua Azure Translator — ĐƯỜNG CHÍNH.
  *
  * Vì sao Azure chứ không phải cửa gtx của Google: gtx là cửa nội bộ không chính
@@ -1105,7 +1168,8 @@ async function handleTranslate(rawText, from, to) {
       const ah = fresh(ak);
       if (ah) return { ok: true, text: ah.v, target: ah.target || "en", cached: true, saved: await daLuuCau(text) };
       let detected = null;
-      try { const a = await azureDich([text], "auto", "en"); if (a && a[0] && a[0].text) detected = { text: a[0].text, src: a[0].detected }; } catch (e) {}
+      try { const l = await libreDich([text], "auto", "en"); if (l && l[0] && l[0].text) detected = { text: l[0].text, src: l[0].detected }; } catch (e) {}
+      if (!detected || !detected.text) { try { const a = await azureDich([text], "auto", "en"); if (a && a[0] && a[0].text) detected = { text: a[0].text, src: a[0].detected }; } catch (e) {} }
       if (!detected || !detected.text) { try { detected = await gtxTranslateDetect(text, "en"); } catch (e) {} }
       if (detected && detected.text && detected.src && !detected.src.startsWith("en")) {
         store(ak, detected.text, "en");
@@ -1124,10 +1188,18 @@ async function handleTranslate(rawText, from, to) {
   //   1) Azure (đường chính, key của người dùng — ổn định, không chặn kiểu IP)
   //   2) gtx của Google (xoay vòng cổng)   3) máy chủ Apps Script
   let out = "";
-  try { const a = await azureDich([text], f, t); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ }
-  if (!out) { try { out = await gtxTranslate(text, f, t); } catch (e) { out = ""; } }
-  if (!out) out = await dichMayChu(text, f, t);
+  // LibreTranslate trước — đường thoát khỏi Google. Rồi mới tới Azure/gtx/Apps
+  // Script. Bật "chỉ LibreTranslate" thì dừng hẳn ở đây, không đụng Google.
+  try { const l = await libreDich([text], f, t); if (l && l[0] && l[0].text) out = l[0].text; } catch (e) { /* Libre trượt */ }
+  const lib = await libreCfg();
+  const chiLibre = !!(lib.url && lib.chi);
+  if (!out && !chiLibre) {
+    try { const a = await azureDich([text], f, t); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ }
+    if (!out) { try { out = await gtxTranslate(text, f, t); } catch (e) { out = ""; } }
+    if (!out) out = await dichMayChu(text, f, t);
+  }
   if (!out) {
+    if (chiLibre) return { ok: false, error: "Máy chủ LibreTranslate không phản hồi (và bạn đã chọn CHỈ dùng LibreTranslate). Kiểm tra lại địa chỉ máy chủ, hoặc tắt tuỳ chọn 'chỉ LibreTranslate' để mượn tạm Google." };
     const { syncUrl } = await chrome.storage.local.get("syncUrl");
     return { ok: false, error: syncUrl
       ? "Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút."

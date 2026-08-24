@@ -13,6 +13,10 @@
     "audioCapture",
     "unlimitedStorage"
   ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",
     "https://script.google.com/*",
