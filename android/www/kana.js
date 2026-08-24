@@ -180,29 +180,46 @@
   }
 
   /**
-   * Đưa một chuỗi kana về DẠNG SO SÁNH. Áp cho cả hai bên nên phép đổi nào cũng
+   * Đưa một chuỗi kana về DẠNG SO SÁNH, kèm bảng trỏ ngược về chuỗi GỐC.
+   *
+   * Bản chuẩn hoá này CHỈ để canh khớp: áp cho cả hai bên nên phép đổi nào cũng
    * an toàn, miễn là đổi giống nhau:
    *   - katakana -> hiragana, ー -> nguyên âm đứng trước
    *   - は/へ/を -> わ/え/お  (Google phiên âm trợ từ theo cách ĐỌC, "wa" chứ
    *     không phải "ha"; đổi cả hai bên thì 花 はな vẫn khớp)
    *   - づ/ぢ -> ず/じ        (romaji không phân biệt)
    *   - bỏ hết dấu câu, khoảng trắng, chữ số, chữ La-tinh
+   *
+   * Cạm bẫy: chuỗi chuẩn hoá này TUYỆT ĐỐI không được đem ra hiển thị. Trước
+   * đây ghepFurigana cắt thẳng furigana từ nó, nên chữ 発売 đọc はつばい lại đội
+   * furigana わつばい — đúng cái lỗi は→わ người dùng thấy. Vì thế trả về thêm
+   * `viTri`: viTri[i] là vị trí trong chuỗi GỐC của ký tự chuẩn-hoá thứ i, và
+   * viTri[cuối] = độ dài chuỗi gốc. Có nó thì canh bằng bản chuẩn hoá nhưng cắt
+   * furigana ra bằng chữ THẬT.
    */
-  function soSanh(s) {
-    let r = veHira(s);
-    let ra = "";
-    for (const c of r) {
+  function soSanhViTri(s) {
+    const goc = String(s || "");
+    const hira = veHira(goc);          // cùng độ dài, cùng vị trí với goc (kana đều BMP)
+    let chuan = "";
+    const viTri = [];
+    for (let i = 0; i < hira.length; i++) {
+      let c = hira[i];
       if (c === "ー" || c === "－" || c === "—") {
-        const v = nguyenCua(ra.slice(-1));
-        if (v) ra += VE_NGUYEN[v];
+        const v = nguyenCua(chuan.slice(-1));
+        if (v) { chuan += VE_NGUYEN[v]; viTri.push(i); }   // giữ vị trí ー gốc
         continue;
       }
-      ra += c;
+      if (c === "は") c = "わ"; else if (c === "へ") c = "え"; else if (c === "を") c = "お";
+      else if (c === "づ") c = "ず"; else if (c === "ぢ") c = "じ";
+      if (c >= "\u3041" && c <= "\u3096") { chuan += c; viTri.push(i); }
+      // ký tự không phải hiragana (dấu câu, số, La-tinh): bỏ, như replace cũ
     }
-    ra = ra.split("は").join("わ").split("へ").join("え").split("を").join("お")
-           .split("づ").join("ず").split("ぢ").join("じ");
-    return ra.replace(/[^ぁ-ゖ]/g, "");
+    viTri.push(goc.length);            // cọc cuối, để cắt tới hết chuỗi gốc
+    return { chuan, viTri, goc };
   }
+
+  /** Chỉ cần chuỗi so sánh: dùng ở chỗ canh khớp, không cắt chữ hiển thị. */
+  function soSanh(s) { return soSanhViTri(s).chuan; }
 
   const LA_HAN = /[㐀-䶿一-鿿〆々]/;
 
@@ -229,8 +246,13 @@
     const khuc = catKhuc(text);
     if (!khuc.length) return [];
     if (!khuc.some((k) => k.han)) return [];        // không có chữ Hán thì khỏi ruby
-    const d = soSanh(doc);
+    // Canh bằng bản chuẩn hoá, NHƯNG cắt furigana ra bằng chữ gốc: `viTri` trỏ
+    // mỗi vị trí chuẩn-hoá về đúng vị trí trong `doc`. Không thế thì は/へ/を/
+    // づ/ぢ trong cách đọc bị chuẩn-hoá đè lên chính furigana hiển thị.
+    const dm = soSanhViTri(doc);
+    const d = dm.chuan;
     if (!d) return [];
+    const cat = (a, b) => doc.slice(dm.viTri[a], dm.viTri[b]);
 
     const ra = [];
     let j = 0;                                       // đang đọc tới đâu trong cách đọc
@@ -258,7 +280,7 @@
         } else het = d.indexOf(moc, j + 1);
       }
       if (het < 0 || het <= j) return [];            // không tìm ra mốc, hoặc chữ Hán đọc rỗng
-      ra.push({ t: k.t, r: d.slice(j, het) });
+      ra.push({ t: k.t, r: cat(j, het) });           // chữ THẬT, không phải bản chuẩn hoá
       j = het;
     }
     if (j !== d.length) return [];                   // còn dư cách đọc -> canh sai ở đâu đó
@@ -318,5 +340,5 @@
   }
 
   goc.Kana = { tuRomaji, tuRomajiCum, canDoc, docSan, chuanRomaji, laRomaji,
-                ghepFurigana, gonRuby, dungRuby, htmlRuby, rubyKhop, catKhuc, soSanh, veHira };
+                ghepFurigana, gonRuby, dungRuby, htmlRuby, rubyKhop, catKhuc, soSanh, soSanhViTri, veHira };
 })(typeof self !== "undefined" ? self : this);

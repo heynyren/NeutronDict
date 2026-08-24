@@ -722,7 +722,9 @@ async function vaFurigana(toiDa) {
     // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ
     // nằm trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
     if (it.dict !== "javi" && it.dict !== "vija" && it.dict !== "kanji") continue;
-    if (it.reading && !window.Kana.laRomaji(it.reading)) continue;
+    // CHÚ Ý: không bỏ qua mục đã có kana ở đây. Cách đọc thì đã xong, nhưng
+    // furigana của nó vẫn có thể lệch (ruby cũ suy từ romaji Google) — phải để
+    // lọt xuống dưới mà soát lại. Việc soát là ghép chuỗi thuần, không tốn mạng.
 
     // Cả câu (và cụm dài quá mức để có MỘT dòng kana) đi đường khác: furigana
     // đặt trên từng khúc chữ Hán. Trước đây nhánh này bị bỏ qua thẳng, nên câu
@@ -737,15 +739,33 @@ async function vaFurigana(toiDa) {
       if (conMang <= 0) continue;                  // để dành cho lượt mở sau
       const rb = await rubyCua(it.word);
       conMang--;                                   // trừ cả lượt hỏi hụt
-      if (rb.length) doiRuby[k] = rb;
+      if (rb.length) doiRuby[k] = { rb: rb, suy: true };   // ruby cả câu suy từ Google
       continue;
     }
 
+    // Cách đọc: có phải đi hỏi mạng không — chỉ khi trắng cách đọc và có chữ
+    // Hán. Hết lượt mạng thì để lần mở sau, NHƯNG vẫn soát ruby ở dưới.
     const phaiHoi = !it.reading && window.Kana.canDoc(it.word, "");
-    if (phaiHoi && conMang <= 0) continue;
-    const r = await docKana(it.word, it.reading, phaiHoi);
-    if (phaiHoi) conMang--;
-    if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+    if (!(phaiHoi && conMang <= 0)) {
+      const r = await docKana(it.word, it.reading, phaiHoi);
+      if (phaiHoi) conMang--;
+      if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+    }
+
+    // Furigana của TỪ ĐƠN suy TỪ CHÍNH cách đọc của mục — không hỏi Google lần
+    // nữa. Đây là chỗ chữa lỗi "furigana lệch với phiên âm": trước đây ruby đi
+    // qua romaji của Google, một nguồn TÁCH khỏi cách đọc từ điển đã cho, nên
+    // có ngày lệch — 発売 phiên âm はつばい mà furigana lại ra わっぱい. Một
+    // nguồn thì không tự lệch với mình. Ghép lại rẻ (chuỗi thuần), chỉ ghi khi
+    // khác thật để cloud khỏi tưởng cả sổ vừa đổi; ghép hụt thì GIỮ ruby cũ.
+    const docChot = (doi[k] && doi[k].doc) || it.reading || "";
+    if (docChot && !window.Kana.laRomaji(docChot) && window.Kana.canDoc(it.word, "")) {
+      const rb2 = window.Kana.gonRuby(window.Kana.ghepFurigana(it.word, docChot));
+      if (rb2.length && rb2.join("\u241f") !== ((it.ruby || []).join("\u241f"))) {
+        const suy = !!(doi[k] && doi[k].suy) || !!it.docSuy;
+        doiRuby[k] = { rb: rb2, suy: suy };
+      }
+    }
   }
   const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
   if (!keys.length && !keysRb.length) return 0;
@@ -759,8 +779,8 @@ async function vaFurigana(toiDa) {
     for (const k of keysRb) {
       const it = moi[k];
       if (!it || it.del) continue;
-      it.ruby = doiRuby[k];
-      it.docSuy = 1;
+      it.ruby = doiRuby[k].rb;
+      if (doiRuby[k].suy) it.docSuy = 1;   // ruby chuẩn từ từ điển thì không gạch "suy ra"
     }
   });
   return keys.length + keysRb.length;
