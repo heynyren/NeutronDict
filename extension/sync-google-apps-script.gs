@@ -12,7 +12,9 @@
  * 4. Copy "Web app URL" (kết thúc bằng /exec).
  * 5. Mở trang Sổ tay của extension -> mục "Đồng bộ Google Drive" -> dán URL + TOKEN -> Lưu cấu hình.
  *
- * LƯU Ý: file này còn lo cả chức năng DỊCH CÂU (dùng Google Dịch qua LanguageApp) làm dự phòng
+ * LƯU Ý: file này còn lo cả chức năng DỊCH CÂU (dùng Google Dịch qua LanguageApp) làm dự phòng.
+ *        Có hai lối: 'translate' (một câu) và 'translateMany' (cả loạt trong MỘT lượt —
+ *        bảng lời thoại YouTube dùng lối này, nhanh hơn hẳn).
  * khi gọi thẳng Google Dịch không được. Nếu đã deploy bản cũ, dán đè code mới rồi Deploy
  * -> Manage deployments -> sửa deployment hiện có -> "New version" -> Deploy. URL giữ nguyên.
  *
@@ -43,6 +45,32 @@ function doPost(e) {
       var to = req.to || "vi";
       var out = LanguageApp.translate(text, from, to);
       return _json({ ok: true, text: out });
+    }
+    /*
+     * Dịch CẢ LOẠT trong MỘT lượt gọi.
+     *
+     * Đây là chỗ chữa cái chậm mà người dùng kêu. Mỗi lượt gọi Apps Script mất
+     * một hai giây chỉ để dựng máy — bảng lời thoại YouTube có bốn chục dòng,
+     * gọi riêng từng dòng là bốn chục lần cái phí ấy, ngồi đợi cả phút. Gộp lại
+     * thì vẫn bấy nhiêu câu, nhưng chỉ trả phí dựng máy MỘT lần.
+     *
+     * Câu nào dịch hỏng thì trả chuỗi rỗng ở đúng ô của nó, chứ không kéo cả
+     * loạt xuống theo — mất một dòng còn hơn mất cả bảng.
+     */
+    if (req.action === "translateMany") {
+      var ds = req.texts || [];
+      if (!ds.length) return _json({ ok: true, texts: [] });
+      if (ds.length > 100) ds = ds.slice(0, 100);
+      var f2 = req.from || "en", t2 = req.to || "vi";
+      var ra = [];
+      for (var i = 0; i < ds.length; i++) {
+        var x = String(ds[i] || "");
+        if (x.length > 5000) x = x.substring(0, 5000);
+        if (!x) { ra.push(""); continue; }
+        try { ra.push(LanguageApp.translate(x, f2, t2)); }
+        catch (e2) { ra.push(""); }
+      }
+      return _json({ ok: true, texts: ra });
     }
     return _json({ ok: false, error: "unknown action" });
   } catch (err) {

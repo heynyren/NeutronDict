@@ -117,10 +117,14 @@ function cumGhiAm(ma, giuLau, mocSua) {
                  : (cu ? T("Nghe lại — bản thu này thu TRƯỚC lần sửa, chữ đã khác")
                        : T("Nghe lại giọng mình")),
         (dangNghe ? "dangphat" : "") + (cu ? " thucu" : ""), 15);
-      nghe.addEventListener("click", (e) => {
+      nghe.addEventListener("click", async (e) => {
         e.stopPropagation();
         if (window.GhiAm.maDangPhat() === ma) { window.GhiAm.dungPhat(); ve(); return; }
-        if (!window.GhiAm.phat(ma, ban, ve)) toast(T("Không phát được bản thu."), "bad");
+        // Lấy tiếng nói ĐÚNG LÚC SẮP PHÁT. Lúc vẽ danh sách thì `ban` chỉ là
+        // phần mô tả (không có base64) — cố tình thế, để vẽ một danh sách dài
+        // không phải kéo cả kho thu mấy chục MB.
+        const day = await window.GhiAm.docBan(ma);
+        if (!day || !window.GhiAm.phat(ma, day, ve)) toast(T("Không phát được bản thu."), "bad");
         ve();
       });
       cum.appendChild(nghe);
@@ -1341,13 +1345,25 @@ async function grade(remembered) {
 
   // Mọi lượt chấm đều được ghi vào tiến độ, kể cả lượt "quên": công sức bỏ ra là
   // như nhau, mà đếm cả lượt quên mới khuyến khích người ta dám chấm thật.
-  await load();
   const moi = await theoDoi.ghiLuotOn(remembered);
   syncSoon();
 
-  // Nói ngay kết quả của lượt vừa chấm. Không có dòng này thì bấm Nhớ/Quên
-  // xong chỉ thấy thẻ nhảy sang cái khác, chẳng biết mình vừa đẩy nó đi đâu.
-  const sau = (items.find((x) => x.key === it.key) || {}).srs;
+  /*
+   * KHÔNG gọi load() ở đây.
+   *
+   * load() quét cả sổ rồi VẼ LẠI TOÀN BỘ danh sách phía sau — trong khi màn học
+   * đang phủ kín màn hình, chẳng ai nhìn thấy danh sách ấy. Đo trên sổ 300 mục:
+   * mỗi lượt bấm Nhớ mất trung bình 7,3 GIÂY (lượt đầu 33 giây); bỏ đi còn 46ms.
+   * Đó đúng là chuyện "bấm xong lâu mới sang từ khác".
+   *
+   * Thứ duy nhất thật sự cần sau lượt chấm là CẤP MỚI của đúng thẻ vừa chấm, để
+   * nói ra trong lời báo. Đọc mỗi mục đó rồi vá vào `items` tại chỗ; danh sách
+   * được vẽ lại một lần lúc đóng buổi học (closeStudy đã gọi load()).
+   */
+  const nbSau = (await chrome.storage.local.get("notebook")).notebook || {};
+  const sau = (nbSau[it.key] || {}).srs;
+  const oCu = items.find((x) => x.key === it.key);
+  if (oCu && nbSau[it.key]) Object.assign(oCu, nbSau[it.key]);
   toast((remembered ? T("Nhớ") : T("Quên")) + " → " +
     tenCap(sau) + " · " + khiNaoOn(sau && sau.due, Date.now()));
 
@@ -1798,22 +1814,6 @@ async function saveConfig() {
     : T2("Đã xoá cấu hình tiếng {ngu}.", { ngu: T(window.Ngu.ten(NGU)) }));
 }
 
-// Azure là toàn cục (một key dùng cho MỌI hướng dịch), không theo ngôn ngữ như
-// đồng bộ — nên khoá lưu là "azureKey"/"azureRegion", không kèm nhãn ngôn ngữ.
-async function loadAzure() {
-  const kho = await chrome.storage.local.get(["azureKey", "azureRegion"]);
-  $("azureKey").value = kho.azureKey || "";
-  $("azureRegion").value = kho.azureRegion || "";
-}
-async function saveAzure() {
-  const azureKey = $("azureKey").value.trim();
-  const azureRegion = $("azureRegion").value.trim();
-  await chrome.storage.local.set({ azureKey, azureRegion });
-  const st = $("azureStatus");
-  if (st) st.textContent = azureKey
-    ? T("Đã lưu key Azure. Từ giờ bản dịch đi qua Azure trước.")
-    : T("Đã xoá key Azure. App sẽ dùng thẳng Google.");
-}
 function syncNow() {
   setStatus(T("Đang đồng bộ…"));
   const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
@@ -2160,8 +2160,6 @@ function gaiIcon() {
   $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
-  if ($("icAzure")) $("icAzure").innerHTML = window.Icon("translate", { size: 18 });
-  if ($("crAz")) $("crAz").innerHTML = window.Icon("caret-right", { size: 16 });
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
   ["cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
 
@@ -2224,7 +2222,6 @@ $("clear").addEventListener("click", clearAll);
 $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
-$("saveAzure").addEventListener("click", saveAzure);
 $("syncNow").addEventListener("click", syncNow);
 /**
  * Nói thật về phím tắt.
@@ -2355,7 +2352,6 @@ async function doiNgu(ngu) {
   await theoDoi.nap(true);
   await load();
   await loadConfig();
-  await loadAzure();
   if (NGU === "ja") vaFurigana();
   if ($("viewProgress").classList.contains("show")) veTienDo();
 }

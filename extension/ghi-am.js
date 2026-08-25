@@ -243,26 +243,130 @@
    */
   let dem = null, demLuc = 0;
   const DEM_HAN = 1500;
+  /** Lượt đọc kho ĐANG BAY. Xem docKho() để biết vì sao phải có. */
+  let dangDoc = null;
+  /** Lượt đọc CHỈ MỤC đang bay. */
+  let dangDocMuc = null;
 
-  function xoaDem() { dem = null; demLuc = 0; }
+  /*
+   * CHỈ MỤC NHẸ — thứ cứu giao diện khỏi chết cứng.
+   *
+   * Kho `ghiAm` chứa cả chuỗi base64 của từng bản thu; bỏ giới hạn độ dài rồi
+   * thì nó nặng hàng chục MB. Mà giao diện thì hỏi kho liên tục, chỉ để biết
+   * đúng một chuyện vặt: "mục này CÓ bản thu chưa, để vẽ nút Nghe hay nút Ghi".
+   * Mỗi câu hỏi vặt ấy lại kéo cả mấy chục MB qua ranh giới tiến trình rồi dựng
+   * lại thành object — vẽ một danh sách vài trăm mục là vài trăm lần như thế.
+   * Đó chính là lúc bấm Nhớ/Quên xong phải đợi hàng giây.
+   *
+   * Nên tách làm hai: bản thu nặng vẫn nằm ở `ghiAm`, còn `ghiAmMuc` chỉ giữ
+   * phần mô tả (mốc giờ, độ dài, có giữ lâu không) — vài KB, đọc bao nhiêu lần
+   * cũng không sao. Giao diện hỏi chỉ mục; chỉ khi người ta BẤM NGHE mới đụng
+   * tới kho nặng.
+   */
+  const KHOA_MUC = KHOA + "Muc";
+  let demMuc = null, demMucLuc = 0;
 
+  function xoaDem() { dem = null; demLuc = 0; demMuc = null; demMucLuc = 0; }
+
+  /** Rút phần mô tả (bỏ b64) của cả kho. */
+  function rutMuc(kho) {
+    const ra = {};
+    for (const id in (kho || {})) {
+      const b = kho[id];
+      if (!b) continue;
+      ra[id] = { ts: b.ts || 0, dai: b.dai || 0, mime: b.mime || "", cd: (b.b64 || "").length };
+      if (b.giu) ra[id].giu = 1;
+    }
+    return ra;
+  }
+
+  function khoMuc() {
+    const k = khoLuu();
+    if (!k) return null;
+    if (goc.Song) return {
+      doc: async () => (await goc.Song.doc(KHOA_MUC))[KHOA_MUC] || null,
+      ghi: (d) => goc.Song.ghi({ [KHOA_MUC]: d }),
+    };
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) return {
+      doc: async () => (await chrome.storage.local.get(KHOA_MUC))[KHOA_MUC] || null,
+      ghi: (d) => chrome.storage.local.set({ [KHOA_MUC]: d }),
+    };
+    const S = goc.Store || (typeof Store !== "undefined" ? Store : null);
+    if (S) return { doc: async () => (await S.get(KHOA_MUC)) || null, ghi: (d) => S.set(KHOA_MUC, d) };
+    return null;
+  }
+
+  /**
+   * Đọc CHỈ MỤC. Đây là đường mà giao diện phải đi.
+   *
+   * Chưa có chỉ mục (sổ cũ, hoặc vừa nâng cấp) thì dựng nó một lần từ kho nặng
+   * rồi cất lại — lần sau khỏi phải đụng kho nữa.
+   */
+  async function docMuc() {
+    const bayGio = Date.now();
+    if (demMuc && bayGio - demMucLuc < DEM_HAN) return demMuc;
+    // Gộp lượt đang bay — CÙNG LÝ DO như docKho, và ở đây còn nặng hơn: vẽ một
+    // danh sách vài trăm mục thì cả vài trăm lời gọi cùng thấy chỉ mục trống,
+    // rồi mỗi lời gọi lại đi dựng chỉ mục từ kho nặng và ghi lại một lượt.
+    if (dangDocMuc) return dangDocMuc;
+    dangDocMuc = (async () => {
+      try {
+        const km = khoMuc();
+        if (!km) return {};
+        let m = await km.doc();
+        if (!m) {                     // chưa có -> dựng từ kho nặng, một lần thôi
+          m = rutMuc(await docKho());
+          try { await km.ghi(m); } catch (e) { /* ghi hụt thì lần sau dựng lại */ }
+        }
+        demMuc = m; demMucLuc = Date.now();
+        return m;
+      } catch (e) { return {}; }
+      finally { dangDocMuc = null; }
+    })();
+    return dangDocMuc;
+  }
+
+  /** Ghi lại chỉ mục cho khớp kho. Gọi sau MỌI lượt ghi kho. */
+  async function capMuc(kho) {
+    try {
+      const km = khoMuc();
+      if (!km) return;
+      const m = rutMuc(kho);
+      demMuc = m; demMucLuc = Date.now();
+      await km.ghi(m);
+    } catch (e) { /* chỉ mục hụt thì lần đọc sau tự dựng lại */ }
+  }
+
+  /**
+   * Đọc kho NẶNG (có cả base64).
+   *
+   * Gộp lượt đang bay: không gộp thì vẽ một danh sách vài trăm mục sẽ bắn ra
+   * vài trăm lượt đọc SONG SONG — lượt nào cũng thấy bộ nhớ đệm còn trống vì
+   * lượt đầu chưa kịp về — và mỗi lượt kéo trọn cả kho. Vài trăm lần mấy chục
+   * MB là trình duyệt đứng hình. Một lượt đang bay thì mọi người dùng chung.
+   */
   async function docKho() {
     const bayGio = Date.now();
     if (dem && bayGio - demLuc < DEM_HAN) return dem;
-    try {
-      const k = khoLuu();
-      if (!k) return {};
-      dem = locKho(await k.doc(), bayGio);
-      demLuc = bayGio;
-      return dem;
-    } catch (e) { return {}; }
+    if (dangDoc) return dangDoc;
+    dangDoc = (async () => {
+      try {
+        const k = khoLuu();
+        if (!k) return {};
+        dem = locKho(await k.doc(), Date.now());
+        demLuc = Date.now();
+        return dem;
+      } catch (e) { return {}; }
+      finally { dangDoc = null; }
+    })();
+    return dangDoc;
   }
 
   /** Dọn bản quá hạn. Gọi lúc mở màn hình cũng được, không cần hẹn giờ nền. */
   async function don() {
     const con = await docKho();
     xoaDem();
-    try { const k = khoLuu(); if (k) await k.ghi(con); } catch (e) { /* đầy thì thôi */ }
+    try { const k = khoLuu(); if (k) { await k.ghi(con); await capMuc(con); } } catch (e) { /* đầy thì thôi */ }
     return Object.keys(con).length;
   }
 
@@ -276,12 +380,27 @@
       const k = khoLuu();
       if (!k) return false;
       xoaDem();
-      await k.ghi(locKho(con, Date.now()));
+      const sach = locKho(con, Date.now());
+      await k.ghi(sach);
+      await capMuc(sach);
       return true;
     } catch (e) { return false; }
   }
 
+  /**
+   * "Mục này có bản thu chưa?" — trả về phần MÔ TẢ, không có base64.
+   *
+   * Giao diện chỉ cần chừng này để chọn vẽ nút Ghi hay nút Nghe, nên nó đi qua
+   * chỉ mục nhẹ. Muốn chính tiếng nói thì gọi docBan().
+   */
   async function doc(id) {
+    if (!id) return null;
+    const m = await docMuc();
+    return m[id] || null;
+  }
+
+  /** Bản thu ĐẦY ĐỦ (có base64) — chỉ gọi lúc thật sự sắp phát. */
+  async function docBan(id) {
     if (!id) return null;
     const con = await docKho();
     return con[id] || null;
@@ -292,11 +411,11 @@
     if (!(id in con)) return false;
     delete con[id];
     xoaDem();
-    try { const k = khoLuu(); if (!k) return false; await k.ghi(con); return true; } catch (e) { return false; }
+    try { const k = khoLuu(); if (!k) return false; await k.ghi(con); await capMuc(con); return true; } catch (e) { return false; }
   }
 
   /** Danh sách mã của những bản thu còn sống — để giao diện biết chỗ nào có. */
-  async function co() { return Object.keys(await docKho()); }
+  async function co() { return Object.keys(await docMuc()); }
 
   /**
    * Đường phát cho một bản thu.
@@ -356,7 +475,7 @@
   /** Mã của một dòng lời thoại: theo video và mốc giây, giống bản sửa lời thoại. */
   function maDongYt(v, giay) { return "yt:" + v + ":" + Math.round(giay || 0); }
 
-  goc.GhiAm = { hoTro, batDau, loiMicro, luu, doc, xoa, co, don, duong, maDongYt,
+  goc.GhiAm = { hoTro, batDau, loiMicro, luu, doc, docBan, xoa, co, don, duong, maDongYt,
                 phat, dungPhat, maDangPhat,
                 MOT_NGAY, TOI_DA_BAN, TOI_DA_BYTE, locKho };
 })(typeof self !== "undefined" ? self : this);

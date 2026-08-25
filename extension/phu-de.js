@@ -1535,9 +1535,11 @@
         const dangNghe = self.GhiAm.maDangPhat() === ma;
         const nghe = nutNho(dangNghe ? "stop" : "play",
           dangNghe ? T("Dừng phát") : T("Nghe lại giọng mình"), dangNghe ? "dangphat" : "");
-        nghe.addEventListener("click", () => {
+        nghe.addEventListener("click", async () => {
           if (self.GhiAm.maDangPhat() === ma) { self.GhiAm.dungPhat(); ve(); return; }
-          self.GhiAm.phat(ma, ban, ve);
+          // Lấy tiếng nói đúng lúc sắp phát — lúc vẽ chỉ có phần mô tả.
+          const day = await self.GhiAm.docBan(ma);
+          if (day) self.GhiAm.phat(ma, day, ve);
           ve();
         });
         cum.appendChild(nghe);

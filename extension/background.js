@@ -838,23 +838,11 @@ async function handleTranslateMany(rawTexts, from, to) {
   // chừng. Bỏ luôn câu hỏng thì trên bảng nó nằm mãi ở dấu "—" trong khi hàng
   // xóm hai bên đều có nghĩa — trông như mình bỏ sót, mà thật ra chỉ là một
   // lượt gọi trượt.
-  // Azure trước: dịch CẢ LOẠT trong một lượt (đường chính). Câu nào Azure làm
-  // được thì gtx khỏi đụng tới nữa.
-  if (can.length) {
-    try {
-      const a = await azureDich(can.map((i) => texts[i]), f, t);
-      if (a) a.forEach((x, j) => {
-        if (x && x.text) { const i = can[j]; out[i] = x.text; c[f + ">" + t + ":" + texts[i]] = { v: x.text, target: t, ts: now }; }
-      });
-    } catch (e) { /* Azure trượt -> để gtx lo */ }
-  }
-
   const SONG = 6;
   let ke = 0;
   await Promise.all(new Array(Math.min(SONG, can.length)).fill(0).map(async () => {
     while (ke < can.length) {
       const i = can[ke++];
-      if (out[i]) continue;                 // Azure lo rồi thì bỏ qua
       for (let lan = 0; lan < 3; lan++) {
         try {
           // gtxTranslate ở đây trả về CHUỖI (khác NJDict trả về object) — bộ đệm
@@ -878,14 +866,25 @@ async function handleTranslateMany(rawTexts, from, to) {
   // song song để khỏi nện máy chủ nhà.
   const conThieu = can.filter((i) => !out[i] && texts[i]);
   if (conThieu.length) {
-    let m = 0;
-    await Promise.all(new Array(Math.min(4, conThieu.length)).fill(0).map(async () => {
-      while (m < conThieu.length) {
-        const i = conThieu[m++];
-        const v = await dichMayChu(texts[i], f, t);
-        if (v) { out[i] = v; c[f + ">" + t + ":" + texts[i]] = { v: v, target: t, ts: now }; }
-      }
-    }));
+    // MỘT lượt gọi cho cả loạt. Máy chủ cũ chưa hiểu lối gộp thì trả null, lúc
+    // đó mới lùi về gọi từng câu (chậm, nhưng vẫn ra chữ).
+    const gop = await dichMayChuNhieu(conThieu.map((i) => texts[i]), f, t);
+    if (gop) {
+      gop.forEach((v, j) => {
+        if (!v) return;
+        const i = conThieu[j];
+        out[i] = v; c[f + ">" + t + ":" + texts[i]] = { v: v, target: t, ts: now };
+      });
+    } else {
+      let m = 0;
+      await Promise.all(new Array(Math.min(4, conThieu.length)).fill(0).map(async () => {
+        while (m < conThieu.length) {
+          const i = conThieu[m++];
+          const v = await dichMayChu(texts[i], f, t);
+          if (v) { out[i] = v; c[f + ">" + t + ":" + texts[i]] = { v: v, target: t, ts: now }; }
+        }
+      }));
+    }
   }
 
   const keys = Object.keys(c);
@@ -1013,49 +1012,6 @@ const TR_MAX = 1200;
 const TR_TTL = 30 * 86400000;
 
 /**
- * Dịch qua Azure Translator — ĐƯỜNG CHÍNH.
- *
- * Vì sao Azure chứ không phải cửa gtx của Google: gtx là cửa nội bộ không chính
- * thức, chặn tần suất theo IP, tra một hồi là tắc. Azure có API chính thức, hạn
- * mức miễn phí rộng (2 triệu ký tự/tháng), key riêng của người dùng nên không
- * ai tranh phần — và nó dịch được CẢ LOẠT trong một lượt, đúng thứ bảng lời
- * thoại YouTube cần.
- *
- * Nhận một MẢNG câu, trả một mảng { text, detected } đúng thứ tự — dùng chung
- * cho cả dịch một câu (mảng một phần tử) lẫn dịch cả loạt. Chưa cấu hình key
- * thì trả null để chỗ gọi rơi xuống đường sau; lỗi thì ném ra, cũng để rơi
- * xuống đường sau.
- *
- * `from` để trống hoặc "auto" thì Azure tự nhận ngôn ngữ nguồn (trường
- * detectedLanguage), nhờ vậy tab Dịch tự-đoán vẫn chạy qua Azure.
- */
-async function azureCfg() {
-  const { azureKey, azureRegion } = await chrome.storage.local.get(["azureKey", "azureRegion"]);
-  return { key: (azureKey || "").trim(), region: (azureRegion || "").trim() };
-}
-async function azureDich(texts, f, t) {
-  const { key, region } = await azureCfg();
-  if (!key) return null;                       // chưa cấu hình -> để đường khác lo
-  const url = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0"
-    + (f && f !== "auto" ? "&from=" + encodeURIComponent(f) : "")
-    + "&to=" + encodeURIComponent(t);
-  const headers = { "Ocp-Apim-Subscription-Key": key, "Content-Type": "application/json" };
-  // Key theo VÙNG thì bắt buộc gửi kèm; key "Global" thì bỏ trống, gửi vào lại hỏng.
-  if (region) headers["Ocp-Apim-Subscription-Region"] = region;
-  const r = await fetch(url, {
-    method: "POST", headers,
-    body: JSON.stringify((texts || []).map((x) => ({ Text: String(x || "") })))
-  });
-  if (!r.ok) throw new Error("azure HTTP " + r.status);
-  const data = await r.json();
-  if (!Array.isArray(data)) throw new Error("azure: dữ liệu lạ");
-  return data.map((d) => ({
-    text: (d && d.translations && d.translations[0] && d.translations[0].text) || "",
-    detected: (d && d.detectedLanguage && d.detectedLanguage.language) || ""
-  }));
-}
-
-/**
  * Dịch qua máy chủ Apps Script của người dùng — đường DỰ PHÒNG không dính IP.
  *
  * Khi gtx bị Google chặn tần suất theo IP, đây là lối thoát: LanguageApp chạy
@@ -1077,6 +1033,36 @@ async function dichMayChu(text, f, t) {
     if (!data || data.ok === false) return "";
     return String(data.text || data.translation || data.result || "");
   } catch (e) { return ""; }
+}
+
+/**
+ * Dịch CẢ LOẠT qua Apps Script — MỘT lượt gọi cho tất cả.
+ *
+ * Vì sao phải có: mỗi lượt gọi Apps Script tốn một hai giây chỉ để Google dựng
+ * máy chạy script. Bảng lời thoại YouTube có bốn chục dòng; gọi riêng từng dòng
+ * là trả cái phí ấy bốn chục lần — đúng cảnh "app script phản hồi rất lâu".
+ * Gộp lại thì chỉ trả một lần.
+ *
+ * Máy chủ CŨ chưa có lối "translateMany" sẽ trả "unknown action"; lúc đó lùi về
+ * gọi từng câu như trước. Người dùng không phải deploy lại mới dùng được app —
+ * chỉ là chưa nhanh lên thôi.
+ *
+ * @returns {Promise<string[]|null>} mảng đúng thứ tự, hoặc null nếu máy chủ
+ *   không hiểu lối gộp (để chỗ gọi tự lùi).
+ */
+async function dichMayChuNhieu(texts, f, t) {
+  try {
+    const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
+    if (!syncUrl || !texts || !texts.length) return null;
+    const r = await fetch(syncUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ token: syncToken || "", action: "translateMany", texts, from: f, to: t })
+    });
+    const data = await r.json().catch(() => null);
+    if (!data || data.ok === false || !Array.isArray(data.texts)) return null;
+    return data.texts.map((x) => String(x || ""));
+  } catch (e) { return null; }
 }
 
 async function handleTranslate(rawText, from, to) {
@@ -1105,8 +1091,7 @@ async function handleTranslate(rawText, from, to) {
       const ah = fresh(ak);
       if (ah) return { ok: true, text: ah.v, target: ah.target || "en", cached: true, saved: await daLuuCau(text) };
       let detected = null;
-      try { const a = await azureDich([text], "auto", "en"); if (a && a[0] && a[0].text) detected = { text: a[0].text, src: a[0].detected }; } catch (e) {}
-      if (!detected || !detected.text) { try { detected = await gtxTranslateDetect(text, "en"); } catch (e) {} }
+      try { detected = await gtxTranslateDetect(text, "en"); } catch (e) {}
       if (detected && detected.text && detected.src && !detected.src.startsWith("en")) {
         store(ak, detected.text, "en");
         await chrome.storage.local.set({ trCache: c });
@@ -1121,11 +1106,9 @@ async function handleTranslate(rawText, from, to) {
   if (hit) return { ok: true, text: hit.v, target: t, cached: true, saved: await daLuuCau(text) };
 
   // Chuỗi đường dịch, dừng ở cái ĐẦU TIÊN ra kết quả:
-  //   1) Azure (đường chính, key của người dùng — ổn định, không chặn kiểu IP)
-  //   2) gtx của Google (xoay vòng cổng)   3) máy chủ Apps Script
+  //   1) gtx của Google (xoay vòng cổng)   2) máy chủ Apps Script của người dùng
   let out = "";
-  try { const a = await azureDich([text], f, t); if (a && a[0] && a[0].text) out = a[0].text; } catch (e) { /* Azure trượt -> gtx */ }
-  if (!out) { try { out = await gtxTranslate(text, f, t); } catch (e) { out = ""; } }
+  try { out = await gtxTranslate(text, f, t); } catch (e) { out = ""; }
   if (!out) out = await dichMayChu(text, f, t);
   if (!out) {
     const { syncUrl } = await chrome.storage.local.get("syncUrl");
