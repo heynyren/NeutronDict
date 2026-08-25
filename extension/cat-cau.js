@@ -277,6 +277,40 @@
   // đó có một nhịp nghỉ thì thuật toán tưởng hết câu, cắt đôi ngay giữa tên
   // riêng. Bắt lấy đúng cặp này rồi chặn.
   const JA_GHEP_DUOI = /[ァ-ヿーA-Za-z0-9]$/;
+  /*
+   * Mẩu SAU mở đầu bằng trợ từ ⇒ mẩu TRƯỚC chưa hết câu.
+   *
+   * YouTube cắt mẩu theo thời gian chứ không theo ngữ pháp, nên 「〜ですが」 hay
+   * bị xé thành 「〜です」 + 「が〜」, 「〜ですよ」 thành 「〜です」 + 「よ〜」. Đuôi
+   * 〜です là dấu hiệu hết câu mạnh nhất mà tiếng Nhật có, nên chỗ ấy được chấm
+   * điểm rất cao và bị cắt — ra một câu cụt và một câu mở đầu bằng trợ từ, thứ
+   * không tồn tại trong tiếng Nhật.
+   *
+   * (JA_HAT_TREO đã có mấy trợ từ này nhưng nó dùng ^…$ nên chỉ bắt được khi
+   * CẢ MẨU đúng bằng một chữ 「が」. Mẩu thật thì là 「が無人タクシーが…」.)
+   *
+   * Cái bẫy: nhiều TỪ cũng mở đầu bằng đúng những chữ ấy — 「よく」「ような」
+   * 「ねえ」「かれ」「なぜ」… Chặn bừa thì lại dính hai câu rời vào nhau. Nên mỗi
+   * trợ từ đi kèm một danh sách từ hay gặp để loại trừ; ngoài danh sách đó mới
+   * coi là trợ từ. Ưu tiên nhóm nhiều ký tự (けど・ので・から) vì chúng gần như
+   * không thể là gì khác.
+   */
+  const JA_DAU_DINH = new RegExp(
+    "^(?:" +
+      // nhiều ký tự: an toàn, gần như chắc chắn là trợ từ nối
+      "けれども|けれど|けど|ので|のに|から|よね|ですね|ますね|かな|" +
+      // một ký tự, kèm chốt chặn "không phải mở đầu một từ thông dụng"
+      "が(?!っ|ん|い|く|ぞう)|" +
+      "よ(?!く|う|り|ろ|かっ|けい|てい|そ|び|み|る|っ)|" +
+      "ね(?!え|こ|る|ん|が)|" +
+      "か(?!れ|なり|ん|た|い|お|ず|のう|んが)|" +
+      "な(?!に|ん|ぜ|ど|る|か|が|つ)|" +
+      "さ(?!らに|ん|っ|れ|い|き|く|ま)|" +
+      "わ(?!た|け|れ|か|る)|" +
+      "し(?!か|て|ま|ょ|ゅ|ん)|" +
+      "[ぞ]" +
+    ")");
+
   const JA_GHEP_HAT = /^[ァ-ヿーA-Za-z0-9]/;
 
   const JA_VUN = new RegExp(
@@ -363,13 +397,17 @@
       phayTruoc: null,          // tiếng Nhật đặt 、 SAU vế nối, không phải trước
       vun: JA_VUN,
       cham: "。", phay: "、", dai: 60, ngan: 14, cachPhay: 8, duoiPhay: 6,
+      dauDinh: JA_DAU_DINH,     // mẩu sau mở đầu bằng trợ từ -> mẩu trước chưa hết
       xeKet: new RegExp(
         "(?:ませんでした|でしょう|でした|ました|ません|ましょう|です|ます|ください)" +
         "(?!ます|ませ)(?![かがねよのけしとにをでもやっー、，。．！？!?])", "g"),
       // Ranh giới VẾ lọt trong một mẩu: xé ra chỉ để có chỗ mà đặt 、 vào.
       xeVe: new RegExp(
         "(?:ますが|ですが|ましたが|でしたが|ませんが|ますので|ますから|ですので|" +
-        "けれども|けれど|けど|ので|のに)(?![はも、，。．])", "g")
+        // ので là liên từ "vì thế" — NHƯNG 「〜のです」「〜のでした」 thì の+です,
+        // không phải nó. Không chặn thì 「なっているのです」 bị chèn phẩy thành
+        // 「なっているので、す」, cắt đôi đúng giữa một đuôi vị ngữ.
+        "けれども|けれど|けど|ので(?!す|し)|のに)(?![はも、，。．])", "g")
     },
     vi: {
       ma: "vi",
@@ -627,6 +665,13 @@
         !!cs[i].ev,
         L);
       ketRo[i] = !!((L.khongTreo && L.khongTreo.test(duoi)) || (L.ket && L.ket.test(duoi)));
+      // Mẩu kế tiếp mở đầu bằng trợ từ thì ranh giới này KHÔNG phải hết câu,
+      // dù đuôi có là 〜です đi nữa: đó là 〜ですが / 〜ですよ bị xé đôi.
+      const sauDo = cs[i + 1] ? cs[i + 1].s.trim() : "";
+      if (L.dauDinh && sauDo && L.dauDinh.test(sauDo)) {
+        ketRo[i] = false;
+        diem[i] -= 20;          // dìm hẳn xuống dưới ngưỡng, như mọi chốt chặn khác
+      }
     }
 
     // Lượt 2: chọn chỗ ngắt.
