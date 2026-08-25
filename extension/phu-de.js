@@ -765,6 +765,98 @@
     } catch (e) { /* hết chỗ thì thôi, đừng làm hỏng bảng đang đọc */ }
   }
 
+  /* ================================================================== */
+  /* Kho phụ đề của từng video — xem một lần, lần sau khỏi gọi mạng      */
+  /* ================================================================== */
+  /*
+   * Vì sao phải có kho này.
+   *
+   * Mỗi lần mở lại một video đã xem, bảng lại đi xin YouTube bản chép lời rồi
+   * xin dịch lại từng dòng — trong khi chữ y hệt lần trước. Bản dịch thì rơi
+   * xuống Apps Script, mà Apps Script có hạn mức lượt gọi mỗi ngày; tiêu vào
+   * việc dịch lại thứ đã dịch rồi là phí đúng cái quý nhất.
+   *
+   * Nên xem xong là cất: cả bản chép lời lẫn bản dịch, theo từng video. Lần
+   * sau quay lại thì lấy từ máy, không một lượt gọi mạng nào.
+   *
+   * Khoá phải kèm MÃ BẢN phụ đề: một video có thể có bản tiếng Nhật, bản tiếng
+   * Anh, bản tự động — chữ khác nhau hoàn toàn, trộn vào nhau là hiện nhầm.
+   *
+   * Hạn 100 ngày, đúng như đã hẹn: quá hạn thì bỏ, để kho không phình mãi và
+   * để bản chép lời của YouTube có cơ hội được lấy lại nếu họ sửa.
+   */
+  const KHO_HAN = 100 * 86400000;     // 100 ngày
+  const KHO_VIDEO = 300;              // giữ nhiều nhất bấy nhiêu video
+  const KHO_CHU = 6 * 1000 * 1000;    // trần thô: tổng số chữ trong kho
+
+  const khoaKho = (v, maBan) => v + "|" + (maBan || "");
+
+  /** Bỏ mục quá hạn, rồi bỏ mục cũ nhất cho tới khi lọt hai cái trần. */
+  function locKhoYt(kho, bayGio) {
+    const song = {};
+    for (const k in (kho || {})) {
+      const m = kho[k];
+      if (m && typeof m.ts === "number" && bayGio - m.ts < KHO_HAN) song[k] = m;
+    }
+    const ma = Object.keys(song).sort((a, b) => (song[b].ts || 0) - (song[a].ts || 0));
+    const ra = {};
+    let chu = 0, dem = 0;
+    for (const k of ma) {
+      const co = JSON.stringify(song[k]).length;
+      // Mục MỚI NHẤT luôn được giữ — vừa xem xong mà đã bị vứt thì vô nghĩa.
+      if (dem > 0 && (dem >= KHO_VIDEO || chu + co > KHO_CHU)) break;
+      ra[k] = song[k]; chu += co; dem++;
+    }
+    return ra;
+  }
+
+  async function docKhoYt(v, maBan) {
+    try {
+      const { ytKho } = await self.Song.doc("ytKho");
+      const m = (ytKho || {})[khoaKho(v, maBan)];
+      if (!m || Date.now() - (m.ts || 0) >= KHO_HAN) return null;
+      return m;
+    } catch (e) { return null; }
+  }
+
+  /**
+   * Cất (hoặc cập nhật) phần của một video.
+   *
+   * `vá` chứ không ghi đè cả mục: bản chép lời cất lúc nạp xong, còn bản dịch
+   * nhỏ giọt về sau từng loạt — ghi đè thì loạt sau xoá mất loạt trước.
+   */
+  async function ghiKhoYt(v, maBan, va) {
+    try {
+      const { ytKho } = await self.Song.doc("ytKho");
+      const kho = ytKho || {};
+      const k = khoaKho(v, maBan);
+      const cu = kho[k] || {};
+      kho[k] = Object.assign({}, cu, va, {
+        ts: Date.now(),
+        dich: Object.assign({}, cu.dich || {}, va.dich || {})
+      });
+      await self.Song.ghi({ ytKho: locKhoYt(kho, Date.now()) });
+    } catch (e) { /* hết chỗ thì thôi, đừng làm hỏng bảng đang đọc */ }
+  }
+
+  /** Bỏ bản dịch đã cất của MỘT dòng — dùng khi người dùng vừa sửa dòng đó. */
+  async function boDichTrongKho(v, maBan, i) {
+    try {
+      const { ytKho } = await self.Song.doc("ytKho");
+      const kho = ytKho || {};
+      const m = kho[khoaKho(v, maBan)];
+      if (!m || !m.dich || !(i in m.dich)) return;
+      delete m.dich[i];
+      await self.Song.ghi({ ytKho: kho });
+    } catch (e) { /* không bỏ được thì lượt dịch mới sẽ ghi đè lên */ }
+  }
+
+  /** Mã nhận dạng bản phụ đề đang chọn — để không trộn bản nọ với bản kia. */
+  function maBanHienTai() {
+    const b = S.ban[S.iBan];
+    return b ? ((b.ma || "") + (b.tuDong ? ":auto" : "")) : "";
+  }
+
   /**
    * Dời bảng mốc giờ trong câu sang bản chữ vừa sửa.
    *
@@ -1666,8 +1758,11 @@
         c.manh = tinhLaiManh(c);
       }
       // Bản dịch cũ là bản dịch của CÂU CŨ — giữ lại là hiện một câu tiếng Việt
-      // chẳng ăn nhập gì với dòng tiếng Nhật ngay bên trên nó.
+      // chẳng ăn nhập gì với dòng tiếng Nhật ngay bên trên nó. Phải bỏ ở CẢ HAI
+      // chỗ: trong phiên đang xem, và trong kho — không thì lần sau mở lại video
+      // này, kho lại dọn ra đúng bản dịch cũ đã sai ấy.
       S.dich.delete(i);
+      boDichTrongKho(S.v, maBanHienTai(), i);
       await ghiSua(S.v, S.sua);
       veDanhSach();
       if (S.songNgu) { hangCho.add(i); henGui(); }
@@ -1901,6 +1996,11 @@
         // Đang rê chuột đúng dòng này mà bản dịch vừa về -> thay chữ "Đang dịch…"
         if (S.veTip && S.dongDangRe && S.dongDangRe() === i) S.veTip(i);
       });
+      // Cất những dòng vừa dịch được. Lần sau mở lại video này là có sẵn, khỏi
+      // nhờ Apps Script dịch lại — hạn mức để dành cho video mới.
+      const caiMoi = {};
+      ids.forEach((i) => { const t = S.dich.get(i); if (t && t !== "—") caiMoi[i] = t; });
+      if (Object.keys(caiMoi).length) ghiKhoYt(S.v, maBanHienTai(), { dich: caiMoi });
       // Trượt thì lùi lại một nhịp cho bên kia thở, đừng nã lại ngay lập tức.
       if (hangCho.size) truot ? setTimeout(henGui, 1200) : henGui();
     });
@@ -1943,8 +2043,32 @@
   async function napCue() {
     const ban = S.ban[S.iBan];
     if (!ban) { trangThai(T("Video này không có phụ đề nào."), "subtitles-slash"); return; }
-    trangThai(T("Đang tải lời thoại…"));
     S.dich.clear(); hangCho.clear();
+    const maBan = maBanHienTai();
+
+    /*
+     * Xem lại video cũ: lấy thẳng từ kho, KHÔNG gọi mạng lần nào.
+     *
+     * Cất cả bản chép lời lẫn bản dịch nên lần này không phải xin YouTube, cũng
+     * không phải nhờ Apps Script dịch lại — thứ tốn hạn mức nhất.
+     */
+    const daCo = await docKhoYt(S.v, maBan);
+    if (daCo && daCo.cau && daCo.cau.length) {
+      S.cau = daCo.cau;
+      dapSua();
+      if (daCo.dich) for (const i in daCo.dich) {
+        const t = daCo.dich[i];
+        if (t && t !== "—") S.dich.set(+i, t);
+      }
+      S.uiBan.disabled = false;
+      S.uiBan.title = T("Chọn bản phụ đề");
+      soLanNap = 0;
+      veDanhSach();
+      batTheoDoi();
+      return;
+    }
+
+    trangThai(T("Đang tải lời thoại…"));
     try {
       const kq = await layCue(ban);
       S.cau = ghepCau(kq.cue);
@@ -1959,6 +2083,8 @@
       soLanNap = 0;              // đã ra chữ -> lần bấm Nạp lại sau lại tính từ đầu
       veDanhSach();
       batTheoDoi();
+      // Cất bản chép lời ngay: từ giờ mở lại video này là khỏi hỏi YouTube nữa.
+      ghiKhoYt(S.v, maBan, { cau: S.cau, tieuDe: S.tieuDe, kenh: S.kenh });
     } catch (e) {
       trangThai((e && e.message) || T("Không tải được lời thoại."), "warning-circle", napCue);
       ngongBangYouTube();
