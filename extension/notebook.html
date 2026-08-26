@@ -160,6 +160,16 @@
     <summary data-chu><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr2"></span></summary>
     <div class="boxbody">
       <div id="syncNhan" class="t-tiny faint" style="margin-bottom:6px"></div>
+      <label class="check" style="margin-bottom:6px">
+        <input type="checkbox" id="syncChungBat">
+        <span data-chu>Dùng MỘT kho chung cho mọi ngôn ngữ (khuyên dùng — thêm tiếng mới sau này khỏi dựng thêm cloud)</span>
+      </label>
+      <div id="syncChungO" style="display:none">
+        <input id="syncUrlChung" type="text" placeholder="URL Web App dùng chung (…/exec)" autocomplete="off" data-chu-ph>
+        <input id="syncTokenChung" type="text" placeholder="Mã bí mật dùng chung" autocomplete="off" data-chu-ph>
+        <button id="gopCloud" class="btn sm block" type="button" data-chu>Gộp dữ liệu từ hai cloud cũ về kho chung</button>
+        <span id="gopStatus" class="t-tiny faint"></span>
+      </div>
     <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" autocomplete="off" data-chu-ph>
       <input id="syncToken" type="text" placeholder="Mã bí mật (token bạn tự đặt)" autocomplete="off" data-chu-ph>
       <div class="rowx" style="gap:8px">

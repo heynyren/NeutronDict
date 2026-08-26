@@ -1797,21 +1797,75 @@ function setStatus(t) { $("syncStatus").textContent = t; }
  */
 async function loadConfig() {
   const k = window.Ngu.khoaSync(NGU);
-  const kho = await chrome.storage.local.get([k.url, k.token]);
+  const c = window.Ngu.KHOA_CHUNG;
+  const kho = await chrome.storage.local.get([k.url, k.token, c.url, c.token]);
   $("syncUrl").value = kho[k.url] || "";
   $("syncToken").value = kho[k.token] || "";
+  if ($("syncUrlChung")) {
+    $("syncUrlChung").value = kho[c.url] || "";
+    $("syncTokenChung").value = kho[c.token] || "";
+    $("syncChungBat").checked = !!kho[c.url];
+    veKhoChung();
+  }
   const nh = $("syncNhan");
   if (nh) nh.textContent = T2("Đang cấu hình cloud tiếng {ngu}", { ngu: T(window.Ngu.ten(NGU)) });
   return { syncUrl: kho[k.url], syncToken: kho[k.token] };
 }
+/*
+ * Bật kho chung thì ô riêng của từng ngôn ngữ mờ đi — không xoá, chỉ mờ. Người
+ * dùng có thể tắt kho chung để về nếp cũ, và lúc ấy cấu hình cũ vẫn còn nguyên.
+ */
+function veKhoChung() {
+  const bat = $("syncChungBat") && $("syncChungBat").checked;
+  if ($("syncChungO")) $("syncChungO").style.display = bat ? "" : "none";
+  [$("syncUrl"), $("syncToken")].forEach((o) => {
+    if (!o) return;
+    o.disabled = !!bat;
+    o.style.opacity = bat ? "0.45" : "";
+    o.title = bat ? T("Đang dùng kho chung — ô này tạm nghỉ") : "";
+  });
+}
+
 async function saveConfig() {
   const k = window.Ngu.khoaSync(NGU);
+  const c = window.Ngu.KHOA_CHUNG;
+  if ($("syncChungBat")) {
+    const bat = $("syncChungBat").checked;
+    await chrome.storage.local.set({
+      [c.url]: bat ? $("syncUrlChung").value.trim() : "",
+      [c.token]: bat ? $("syncTokenChung").value.trim() : ""
+    });
+  }
   const syncUrl = $("syncUrl").value.trim();
   const syncToken = $("syncToken").value.trim();
   await chrome.storage.local.set({ [k.url]: syncUrl, [k.token]: syncToken });
   setStatus(syncUrl
     ? T2("Đã lưu cấu hình đồng bộ cho tiếng {ngu}.", { ngu: T(window.Ngu.ten(NGU)) })
     : T2("Đã xoá cấu hình tiếng {ngu}.", { ngu: T(window.Ngu.ten(NGU)) }));
+}
+
+/**
+ * Gộp dữ liệu từ hai cloud cũ về kho chung.
+ *
+ * Đọc cả hai cloud cũ, hợp với sổ đang có trên máy, rồi ghi vào kho chung. Phép
+ * hợp dùng đúng Muc.tron của lượt đồng bộ thường, nên KHÔNG bên nào bị đè mất:
+ * máy này giữ tiếng Nhật, máy kia giữ tiếng Anh, gộp xong có cả hai.
+ *
+ * Chạy trong service worker chứ không ở đây, vì chỉ bên ấy mới có driveRequest
+ * và biết đường ra Drive.
+ */
+async function gopCloudCu() {
+  const st = $("gopStatus");
+  const url = $("syncUrlChung").value.trim();
+  if (!url) { if (st) st.textContent = T("Hãy điền URL kho chung trước đã."); return; }
+  await saveConfig();
+  if (st) st.textContent = T("Đang gộp…");
+  chrome.runtime.sendMessage({ type: "GOP_CLOUD" }, async (res) => {
+    if (chrome.runtime.lastError) { if (st) st.textContent = T2("Lỗi: {loi}", { loi: chrome.runtime.lastError.message }); return; }
+    if (!res || !res.ok) { if (st) st.textContent = T2("Lỗi: {loi}", { loi: (res && res.error) || "?" }); return; }
+    if (st) st.textContent = T2("Xong — kho chung giờ có {n} mục.", { n: res.n });
+    await load();
+  });
 }
 
 function syncNow() {
@@ -2224,6 +2278,8 @@ $("clear").addEventListener("click", clearAll);
 $("renameDeck").addEventListener("click", renameDeck);
 $("deleteDeck").addEventListener("click", deleteDeck);
 $("saveCfg").addEventListener("click", saveConfig);
+if ($("syncChungBat")) $("syncChungBat").addEventListener("change", veKhoChung);
+if ($("gopCloud")) $("gopCloud").addEventListener("click", gopCloudCu);
 $("syncNow").addEventListener("click", syncNow);
 /**
  * Nói thật về phím tắt.

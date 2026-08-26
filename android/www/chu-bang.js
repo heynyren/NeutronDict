@@ -219,6 +219,14 @@
       "Configuring the {ngu} cloud",
     "Đã lưu cấu hình đồng bộ cho tiếng {ngu}.":
       "Sync settings saved for {ngu}.",
+    "Dùng MỘT kho chung cho mọi ngôn ngữ (khuyên dùng — thêm tiếng mới sau này khỏi dựng thêm cloud)": "Use ONE shared store for every language (recommended — adding a language later needs no new cloud)",
+    "URL Web App dùng chung (…/exec)": "Shared Web App URL (…/exec)",
+    "Mã bí mật dùng chung": "Shared secret",
+    "Gộp dữ liệu từ hai cloud cũ về kho chung": "Merge the two old clouds into the shared store",
+    "Đang dùng kho chung — ô này tạm nghỉ": "Shared store is on — this field is paused",
+    "Hãy điền URL kho chung trước đã.": "Fill in the shared store URL first.",
+    "Đang gộp…": "Merging…",
+    "Xong — kho chung giờ có {n} mục.": "Done — the shared store now holds {n} items.",
     "Đã xoá cấu hình tiếng {ngu}.":
       "Sync settings for {ngu} cleared.",
     "Đang đồng bộ…":
@@ -962,6 +970,14 @@
       "{ngu}のクラウドを設定中",
     "Đã lưu cấu hình đồng bộ cho tiếng {ngu}.":
       "{ngu}の同期設定を保存しました。",
+    "Dùng MỘT kho chung cho mọi ngôn ngữ (khuyên dùng — thêm tiếng mới sau này khỏi dựng thêm cloud)": "すべての言語で共通のストアを1つ使う（推奨 — 後で言語を追加してもクラウドを増やさずに済みます）",
+    "URL Web App dùng chung (…/exec)": "共通の Web App URL（…/exec）",
+    "Mã bí mật dùng chung": "共通の秘密キー",
+    "Gộp dữ liệu từ hai cloud cũ về kho chung": "既存の2つのクラウドを共通ストアに統合",
+    "Đang dùng kho chung — ô này tạm nghỉ": "共通ストアを使用中 — この欄は休止します",
+    "Hãy điền URL kho chung trước đã.": "先に共通ストアの URL を入力してください。",
+    "Đang gộp…": "統合中…",
+    "Xong — kho chung giờ có {n} mục.": "完了 — 共通ストアに {n} 件あります。",
     "Đã xoá cấu hình tiếng {ngu}.":
       "{ngu}の同期設定を消去しました。",
     "Đang đồng bộ…":
