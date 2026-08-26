@@ -24,6 +24,24 @@ ND_SYNC_TOKEN=<mã bí mật bạn đặt trong Code.gs>
 ND_FILE=/duong/dan/sotay.json
 ```
 
+## Bước 0 — tự kiểm trước khi cài
+
+Cài MCP mà sai một chữ trong đường dẫn hay token thì Claude chỉ im lặng không
+hiện công cụ nào, chẳng nói vì sao. Chạy cái này trước để biết hỏng ở khâu nào:
+
+```
+node /duong/dan/NeutronDict/mcp/neutrondict-mcp.mjs --tu-kiem
+```
+
+Trên Windows (PowerShell), đặt biến rồi chạy:
+
+```powershell
+$env:ND_FILE="C:\Users\Ban\Downloads\sotay.json"
+node C:\NeutronDict\mcp\neutrondict-mcp.mjs --tu-kiem
+```
+
+Phải thấy đủ dấu ✓ và dòng "Đọc sổ tay: ✓ N mục". Nếu chưa, nó nói rõ thiếu gì.
+
 ## Cài vào Claude Desktop / Cowork
 
 Mở tệp cấu hình MCP rồi thêm:

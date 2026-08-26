@@ -264,6 +264,42 @@ async function chay(ten, dl) {
   throw new Error("Không có công cụ tên " + ten);
 }
 
+/* ==================== tự kiểm ==================== */
+/*
+ * `node neutrondict-mcp.mjs --tu-kiem` — chạy TRƯỚC khi nạp vào Claude.
+ *
+ * Cài MCP mà sai một chữ trong đường dẫn hay token thì Claude chỉ im lặng
+ * không hiện công cụ nào, chẳng nói vì sao. Chạy cái này thì biết ngay hỏng ở
+ * khâu nào: đọc được sổ chưa, có bao nhiêu mục, mấy tệp logic có nạp đủ không.
+ */
+if (process.argv.includes("--tu-kiem")) {
+  (async () => {
+    const in_ = (x) => process.stdout.write(x + "\n");
+    in_("NeutronDict MCP — tự kiểm\n");
+    in_("  Node:            " + process.version + (Number(process.version.slice(1).split(".")[0]) >= 18
+      ? "  ✓" : "  ✗ CẦN Node 18 trở lên (bản cũ không có fetch)"));
+    in_("  Nguồn dữ liệu:   " + (SYNC_URL ? "cloud Apps Script" : FILE ? "tệp " + FILE : "✗ CHƯA ĐẶT"));
+    for (const [ten, co] of [["kana.js", !!Kana], ["cat-cau.js", !!CatCau], ["han-tu.js", !!HanTu], ["muc.js", !!Muc]]) {
+      in_("  " + (ten + ":").padEnd(17) + (co ? "✓ nạp được" : "✗ KHÔNG nạp được — đặt thư mục mcp/ cạnh extension/"));
+    }
+    if (!SYNC_URL && !FILE) {
+      in_("\n  ✗ Chưa có nguồn dữ liệu. Đặt ND_SYNC_URL (+ND_SYNC_TOKEN) hoặc ND_FILE.");
+      process.exit(1);
+    }
+    try {
+      const nb = await docSo();
+      const song = Object.keys(nb).filter((k) => nb[k] && !nb[k].del).length;
+      in_("  Đọc sổ tay:      ✓ " + song + " mục");
+      in_("\n  Xong. Nạp vào Claude được rồi.");
+      process.exit(0);
+    } catch (e) {
+      in_("  Đọc sổ tay:      ✗ " + ((e && e.message) || e));
+      in_("\n  Kiểm lại URL/token (cloud) hoặc đường dẫn tệp.");
+      process.exit(1);
+    }
+  })();
+} else {
+
 /* ==================== JSON-RPC qua stdio ==================== */
 function guiDi(o) { process.stdout.write(JSON.stringify(o) + "\n"); }
 
@@ -303,3 +339,5 @@ process.stdin.on("data", async (mieng) => {
     }
   }
 });
+
+}
