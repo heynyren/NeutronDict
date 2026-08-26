@@ -630,6 +630,14 @@
    * gọi dịch. Ai thích bật sẵn thì mở lại trong Cài đặt.
    */
   let tuBat = false;
+  /* Có phơi lời thoại ra DOM thường cho trợ lý AI khác đọc không. */
+  let phoiRa = true;
+  const datPhoi = (st) => {
+    const moi = !st || st.ytPhoi !== false;    // mặc định BẬT
+    if (moi === phoiRa) return false;
+    phoiRa = moi;
+    return true;
+  };
   /** Mã video đang chờ người dùng bấm nút mời (chế độ đợi). "" là không chờ ai. */
   let choBat = "";
   const datBat = (st) => {
@@ -669,12 +677,14 @@
     NGU = self.Ngu.hopLe(st.ngu);
     datChu(st);
     datBat(st);
+    datPhoi(st);
     baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area !== "local" || !ch.settings) return;
     const st = ch.settings.newValue || {};
     datChu(st);
+    if (datPhoi(st)) veKhoPhoi();
     if (datBat(st)) {
       // Bật/tắt chế độ tự-bật giữa chừng: dựng lại cho khớp kiểu mới.
       const v = maVideo();
@@ -1198,6 +1208,7 @@
   }
 
   function goBang() {
+    goPhoi();
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
     hangCho.clear(); clearTimeout(henDich);
     if (S.host) { S.host.remove(); S.host = null; S.root = null; S.oList = null; }
@@ -1476,7 +1487,67 @@
   }
 
   /* --- vẽ danh sách --- */
+  /* ================================================================== */
+  /* Phơi lời thoại ra DOM thường — để trợ lý AI khác đọc được           */
+  /* ================================================================== */
+  /*
+   * Bảng này nằm trong shadow DOM. Đo ra thì shadow DOM KHÔNG có trong
+   * `document.body.innerText`, mà innerText chính là thứ các tiện ích trợ lý
+   * (ChatGPT, Gemini for Chrome…) đọc khi chúng "xem trang này". Nghĩa là bảng
+   * đang hiện rành rành trên màn hình nhưng với chúng thì vô hình — hỏi gì về
+   * video cũng chịu.
+   *
+   * Nên đặt thêm một bản chữ ở DOM THƯỜNG. Ba điều phải giữ:
+   *
+   *   1. Mắt không được thấy. Nhưng `display:none`, `visibility:hidden` và
+   *      thuộc tính `hidden` đều bị innerText bỏ qua — đo rồi, cả ba đều trượt.
+   *      Chỉ lối "sr-only" (đẩy ra ngoài, cắt còn 1px) là vừa khuất mắt vừa còn
+   *      trong innerText. Đây cũng đúng là lối mà trình đọc màn hình dùng.
+   *   2. `aria-hidden` để trình đọc màn hình KHÔNG đọc nó lên — người khiếm thị
+   *      đã nghe bảng chính rồi, nghe lại lần nữa là tra tấn.
+   *   3. Gắn ở CUỐI body và có `data-` riêng, để trang chủ nhà không nhầm nó là
+   *      nội dung của họ.
+   */
+  const MA_PHOI = "neutrondict-loi-thoai";
+  let choPhoi = null;
+
+  function goPhoi() {
+    if (choPhoi) { choPhoi.remove(); choPhoi = null; }
+    const cu = document.getElementById(MA_PHOI);
+    if (cu) cu.remove();
+  }
+
+  function veKhoPhoi() {
+    if (!phoiRa) { goPhoi(); return; }
+    if (!S.cau.length) { goPhoi(); return; }
+    let o = document.getElementById(MA_PHOI);
+    if (!o) {
+      o = document.createElement("div");
+      o.id = MA_PHOI;
+      o.setAttribute("data-ndict-phoi", "1");
+      o.setAttribute("aria-hidden", "true");
+      // Khuất mắt nhưng vẫn nằm trong innerText — xem chú thích ở trên.
+      o.style.cssText = "position:absolute!important;left:-9999px!important;top:auto!important;" +
+        "width:1px!important;height:1px!important;overflow:hidden!important;" +
+        "clip:rect(0 0 0 0)!important;white-space:pre-wrap!important";
+      document.body.appendChild(o);
+      choPhoi = o;
+    }
+    const dong = [];
+    dong.push("### Lời thoại video (NeutronDict)");
+    if (S.tieuDe) dong.push("Tiêu đề: " + S.tieuDe);
+    if (S.kenh) dong.push("Kênh: " + S.kenh);
+    dong.push("Nguồn: https://www.youtube.com/watch?v=" + S.v);
+    dong.push("");
+    S.cau.forEach((c, i) => {
+      const vi = S.dich.get(i);
+      dong.push("[" + dem(c.t) + "] " + c.s + (vi && vi !== "—" ? "\n    → " + vi : ""));
+    });
+    o.textContent = dong.join("\n");
+  }
+
   function veDanhSach() {
+    veKhoPhoi();            // giữ bản cho trợ lý AI khớp với bảng đang hiện
     const list = S.oList;
     if (!list) return;
     // Vẽ lại là xoá sạch mọi ô sửa đang mở. Phải trả lại dấu "đang gõ" cho từng
@@ -1996,6 +2067,7 @@
         // Đang rê chuột đúng dòng này mà bản dịch vừa về -> thay chữ "Đang dịch…"
         if (S.veTip && S.dongDangRe && S.dongDangRe() === i) S.veTip(i);
       });
+      veKhoPhoi();          // bản dịch vừa về -> bản cho trợ lý AI cũng phải có
       // Cất những dòng vừa dịch được. Lần sau mở lại video này là có sẵn, khỏi
       // nhờ Apps Script dịch lại — hạn mức để dành cho video mới.
       const caiMoi = {};

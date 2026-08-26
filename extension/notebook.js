@@ -1847,7 +1847,7 @@ document.addEventListener("visibilitychange", async () => {
 /* Cài đặt tra nhanh                                                    */
 /* ==================================================================== */
 
-const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400, ytTuBat: false };
+const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400, ytTuBat: false, ytPhoi: true };
 
 async function loadSettings() {
   const { settings } = await chrome.storage.local.get("settings");
@@ -1857,6 +1857,7 @@ async function loadSettings() {
   $("setLen").value = S.maxLen || 30;
   $("setTrans").checked = S.translate !== false;
   if ($("setYtAuto")) $("setYtAuto").checked = !!S.ytTuBat;
+  if ($("setYtPhoi")) $("setYtPhoi").checked = S.ytPhoi !== false;
 }
 async function saveSettings() {
   // GỘP lên cấu hình cũ, không ghi đè cả cục: ngôn ngữ tra (ngu) và ngôn ngữ
@@ -1870,7 +1871,8 @@ async function saveSettings() {
       maxLen: Math.max(5, Math.min(200, parseInt($("setLen").value, 10) || 30)),
       translate: $("setTrans").checked,
       maxSent: 400,
-      ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false
+      ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false,
+      ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true
     })
   });
   $("setStatus").textContent = T("Đã lưu. Tải lại trang web đang mở để áp dụng ngay.");
