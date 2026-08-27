@@ -202,6 +202,14 @@
     <details class="box" id="syncBox">
       <summary data-chu><span id="icSync"></span> Đồng bộ Google Drive <span class="caret" id="cr1"></span></summary>
       <div class="boxbody">
+        <label class="check" style="margin-bottom:6px">
+          <input type="checkbox" id="syncChungBat">
+          <span data-chu>Dùng MỘT kho chung cho mọi ngôn ngữ (khuyên dùng — thêm tiếng mới sau này khỏi dựng thêm cloud)</span>
+        </label>
+        <div id="syncChungO" style="display:none">
+          <input id="syncUrlChung" type="text" placeholder="URL Web App dùng chung (…/exec)" data-chu-ph>
+          <input id="syncTokenChung" type="text" placeholder="Mã bí mật dùng chung" data-chu-ph>
+        </div>
         <input id="syncUrl" type="text" placeholder="URL Web App Apps Script (…/exec)" data-chu-ph>
         <input id="syncToken" type="text" placeholder="Mã bí mật (token)" data-chu-ph>
         <div class="rowx" style="gap:8px">

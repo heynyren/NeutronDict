@@ -207,6 +207,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === "SYNC_SOON") { scheduleSync(msg.ngu); return; }
+  if (msg.type === "IPA_CAU") {
+    ipaCua(msg.text).then((ds) => sendResponse({ ok: true, ipa: ds }),
+                          () => sendResponse({ ok: false, ipa: [] }));
+    return true;
+  }
+  if (msg.type === "RUBY_CAU") {
+    // Furigana cho câu đang xem ở popup. rubyCua có bộ nhớ đệm riêng nên mở lại
+    // cùng một câu không tốn thêm lượt gọi nào.
+    rubyCua(msg.text).then((rb) => sendResponse({ ok: true, ruby: rb }),
+                           () => sendResponse({ ok: false, ruby: [] }));
+    return true;
+  }
   if (msg.type === "GOP_CLOUD") {
     gopCloudCu().then((n) => sendResponse({ ok: true, n }),
                       (e) => sendResponse({ ok: false, error: (e && e.message) || String(e) }));
@@ -274,7 +286,11 @@ async function vaFurigana(toiDa) {
     // khác thật để cloud khỏi tưởng cả sổ vừa đổi; ghép hụt thì GIỮ ruby cũ.
     const docChot = (doi[k] && doi[k].doc) || it.reading || "";
     if (docChot && !self.Kana.laRomaji(docChot) && self.Kana.canDoc(it.word, "")) {
-      const rb2 = self.Kana.gonRuby(self.Kana.ghepFurigana(it.word, docChot));
+      // MỘT cách đọc thôi: từ điển hay trả "せい/しょう/なま" trong một chuỗi, mà
+      // nhét cả cụm lên đỉnh chữ thì furigana dài gấp mấy lần chữ nó chú.
+      // canDoc() ở trên đã chốt đây là TỪ ĐƠN (≤12 chữ) nên cắt được an toàn.
+      const docMot = self.Kana.motCachDoc(docChot);
+      const rb2 = self.Kana.gonRuby(self.Kana.ghepFurigana(it.word, docMot));
       if (rb2.length && rb2.join("\u241f") !== ((it.ruby || []).join("\u241f"))) {
         // Cách đọc từ điển thì furigana theo nó cũng chuẩn — đừng gắn dấu "suy
         // ra". Chỉ đánh dấu khi chính cách đọc là suy (docKana trả suy, hoặc
@@ -588,6 +604,52 @@ async function themDoc(entries, soDuocGoiMang) {
     if (r) { e.reading = r.doc; if (r.suy) e.docSuy = 1; else delete e.docSuy; }
   }
   return ds;
+}
+
+/**
+ * Cách đọc IPA cho từng từ của một câu TIẾNG ANH.
+ *
+ * Câu tiếng Nhật đã có furigana; câu tiếng Anh thì trước giờ trơ ra một dòng
+ * chữ Latin, mà chữ Latin đọc được không có nghĩa là đọc ĐÚNG — "vows",
+ * "seeking", "funding" mỗi chữ một kiểu. Nên chú IPA lên trên, đúng chỗ và
+ * đúng vai như furigana.
+ *
+ * Từ điển chỉ tra được TỪNG TỪ, nên câu dài là nhiều lượt gọi. Ba chốt để nó
+ * không thành gánh nặng:
+ *   - Đệm theo TỪ, không theo câu: "the", "of", "is" tra một lần rồi dùng mãi,
+ *     nên càng dùng càng ít phải hỏi mạng.
+ *   - Mỗi câu chỉ cho phép một số lượt hỏi mạng nhất định; phần còn lại lấy
+ *     những gì đã có trong đệm, chữ nào chưa có thì để trần.
+ *   - Từ nào từ điển không có IPA thì BỎ TRỐNG, không bịa.
+ */
+const ipaDem = new Map();
+const IPA_TOI_DA_HOI = 14;      // số từ được phép hỏi mạng trong MỘT câu
+
+async function ipaCua(text) {
+  const cau = String(text || "").trim();
+  if (!cau) return [];
+  // Tách giữ nguyên dấu câu: chỉ những mẩu có chữ cái mới đi tra.
+  const mieng = cau.split(/(\s+)/);
+  let conHoi = IPA_TOI_DA_HOI;
+  const ra = [];
+  for (const m of mieng) {
+    if (!m.trim()) { ra.push({ t: m, r: "" }); continue; }
+    const sach = m.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
+    const khoa = sach.toLowerCase();
+    if (!khoa || !/[a-z]/.test(khoa)) { ra.push({ t: m, r: "" }); continue; }
+    if (ipaDem.has(khoa)) { ra.push({ t: m, r: ipaDem.get(khoa) }); continue; }
+    if (conHoi <= 0) { ra.push({ t: m, r: "" }); continue; }
+    conHoi--;
+    let ip = "";
+    try {
+      const d = await fetchDictionary(khoa);
+      if (d) ip = ipaFrom(d) || "";
+    } catch (e) { ip = ""; }
+    if (ipaDem.size > 3000) ipaDem.clear();
+    ipaDem.set(khoa, ip);
+    ra.push({ t: m, r: ip });
+  }
+  return ra;
 }
 
 /**

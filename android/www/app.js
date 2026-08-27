@@ -785,7 +785,11 @@ async function vaFurigana(toiDa) {
     // khác thật để cloud khỏi tưởng cả sổ vừa đổi; ghép hụt thì GIỮ ruby cũ.
     const docChot = (doi[k] && doi[k].doc) || it.reading || "";
     if (docChot && !window.Kana.laRomaji(docChot) && window.Kana.canDoc(it.word, "")) {
-      const rb2 = window.Kana.gonRuby(window.Kana.ghepFurigana(it.word, docChot));
+      // MỘT cách đọc thôi: từ điển hay trả "せい/しょう/なま" trong một chuỗi, mà
+      // nhét cả cụm lên đỉnh chữ thì furigana dài gấp mấy lần chữ nó chú.
+      // canDoc() ở trên đã chốt đây là TỪ ĐƠN (≤12 chữ) nên cắt được an toàn.
+      const docMot = window.Kana.motCachDoc(docChot);
+      const rb2 = window.Kana.gonRuby(window.Kana.ghepFurigana(it.word, docMot));
       if (rb2.length && rb2.join("\u241f") !== ((it.ruby || []).join("\u241f"))) {
         const suy = !!(doi[k] && doi[k].suy) || !!it.docSuy;
         doiRuby[k] = { rb: rb2, suy: suy };
@@ -931,6 +935,10 @@ function syncNow(ngu) {
  * dùng ngăn mới, khai một lần.
  */
 async function layCfg(ngu) {
+  // KHO CHUNG trước: khai rồi thì mọi ngôn ngữ đi chung một máy chủ, và cờ
+  // `chung` báo cho doSync biết thôi lọc theo ngôn ngữ. Xem KHOA_CHUNG/ngu.js.
+  const c = (await Store.get("syncChung")) || {};
+  if (c.url) return { url: c.url, token: c.token || "", chung: true };
   const cfg = (await Store.get("syncCfg")) || {};
   if (cfg.ja !== undefined || cfg.en !== undefined) return cfg[window.Ngu.hopLe(ngu)] || {};
   return window.Ngu.hopLe(ngu) === "en" ? cfg : {};
@@ -963,20 +971,32 @@ async function doSync(rawNgu) {
   }
   // Cloud cũ có thể lẫn khoá của ngôn ngữ khác; vẫn nhận về máy, nhưng khi gửi
   // lên thì lọc lại cho sạch.
-  const remoteCuaToi = window.Ngu.locSo(remoteNb, ngu);
-  const mergedNb = mergeByTs(window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
+  const dungChung = !!cfg.chung;
+  const remoteCuaToi = dungChung ? remoteNb : window.Ngu.locSo(remoteNb, ngu);
+  const mergedNb = mergeByTs(
+    dungChung ? await getNB() : window.Ngu.locSo(await getNB(), ngu), remoteCuaToi);
   // Ảnh đính kèm KHÔNG đi lên Drive: byte nằm trong IndexedDB của từng máy, nên
   // bản mô tả gửi lên chỉ là con trỏ trỏ vào ổ đĩa máy này — sang máy khác nó
   // là con trỏ chết, hiện ra một ô ảnh trắng không ai giải thích được.
   const guiDi = boAnh(mergedNb);
   // Sổ con cũng tách theo ngôn ngữ, đúng như hồi còn là hai app.
   const nbTatCa = await getNB();
-  const mergedDecks = mergeByTs(
-    window.Ngu.locSoCon(await getDecks(), nbTatCa, ngu),
-    window.Ngu.locSoCon(remoteDecks, remoteNb, ngu));
+  const mergedDecks = dungChung
+    ? mergeByTs(await getDecks(), remoteDecks)
+    : mergeByTs(window.Ngu.locSoCon(await getDecks(), nbTatCa, ngu),
+                window.Ngu.locSoCon(remoteDecks, remoteNb, ngu));
   // Tiến độ học trộn theo luật riêng — xem TienDo.tron().
   const hocTach = window.Ngu.tachHoc(await Store.get("hoc"));
-  const mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
+  // Kho chung giữ CẢ HAI nhánh tiến độ trong một gói { ja, en }; gộp riêng từng
+  // nhánh vì tron() làm việc trên một nhánh chứ không hiểu cái vỏ ngoài.
+  let mergedHoc;
+  if (dungChung) {
+    const xa = window.Ngu.tachHoc(remoteHoc);
+    mergedHoc = {};
+    for (const n of window.Ngu.DS) mergedHoc[n] = window.TienDo.tron(hocTach[n], xa[n]);
+  } else {
+    mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
+  }
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
@@ -998,14 +1018,21 @@ async function doSync(rawNgu) {
   });
   const finalDecks = mergeByTs(await getDecks(), mergedDecks);
   const freshHoc = window.Ngu.tachHoc(await Store.get("hoc"));
-  const finalHocNgu = window.TienDo.tron(freshHoc[ngu], mergedHoc);
-  const finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
+  let finalHoc, finalHocNgu;
+  if (dungChung) {
+    finalHoc = Object.assign({}, freshHoc);
+    for (const n of window.Ngu.DS) finalHoc[n] = window.TienDo.tron(freshHoc[n], (mergedHoc || {})[n]);
+    finalHocNgu = finalHoc[ngu];
+  } else {
+    finalHocNgu = window.TienDo.tron(freshHoc[ngu], mergedHoc);
+    finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
+  }
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
   theoDoi.dat(finalHocNgu);
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác nhau
   // và lượt đồng bộ này tự hẹn lượt sau, mãi mãi.
-  if (JSON.stringify(boAnh(window.Ngu.locSo(finalNb, ngu))) !== JSON.stringify(guiDi) ||
-      JSON.stringify(finalHocNgu) !== JSON.stringify(mergedHoc)) syncSoon();
+  if (JSON.stringify(boAnh(dungChung ? finalNb : window.Ngu.locSo(finalNb, ngu))) !== JSON.stringify(guiDi) ||
+      JSON.stringify(dungChung ? finalHoc : finalHocNgu) !== JSON.stringify(mergedHoc)) syncSoon();
 
   let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
   return n;
@@ -2562,7 +2589,24 @@ $("deleteDeck").addEventListener("click", async () => {
 });
 
 /* --- cấu hình đồng bộ --- */
+function veKhoChung() {
+  const bat = $("syncChungBat") && $("syncChungBat").checked;
+  if ($("syncChungO")) $("syncChungO").style.display = bat ? "" : "none";
+  [$("syncUrl"), $("syncToken")].forEach((o) => {
+    if (!o) return;
+    o.disabled = !!bat;
+    o.style.opacity = bat ? "0.45" : "";
+  });
+}
+if ($("syncChungBat")) $("syncChungBat").addEventListener("change", veKhoChung);
+
 $("saveCfg").addEventListener("click", async () => {
+  if ($("syncChungBat")) {
+    const bat = $("syncChungBat").checked;
+    await Store.set("syncChung", bat
+      ? { url: $("syncUrlChung").value.trim(), token: $("syncTokenChung").value.trim() }
+      : {});
+  }
   await datCfg(NGU, { url: $("syncUrl").value.trim(), token: $("syncToken").value.trim() });
   $("syncStatus").textContent = T("Đã lưu cấu hình.");
 });
@@ -3067,6 +3111,13 @@ $("nguBtn").addEventListener("click", async () => {
   const cfg = await layCfg(NGU);
   $("syncUrl").value = cfg.url || "";
   $("syncToken").value = cfg.token || "";
+  if ($("syncChungBat")) {
+    const c = (await Store.get("syncChung")) || {};
+    $("syncUrlChung").value = c.url || "";
+    $("syncTokenChung").value = c.token || "";
+    $("syncChungBat").checked = !!c.url;
+    veKhoChung();
+  }
   await drawNotebook();
   await veChuoiNgay();
   updateDueButton();

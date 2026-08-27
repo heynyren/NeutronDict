@@ -102,6 +102,11 @@
       .tr { font-size: 15px; line-height: 1.55; }
       .src { color: var(--ink-2); font-size: 12.5px; margin-top: 9px; padding: 9px 11px;
         background: var(--surface-2); border-radius: 12px; max-height: 76px; overflow: hidden; }
+      /* Câu gốc có furigana thì dòng phải nới ra, và trần cao phải nâng theo —
+         để nguyên 76px thì chú thích vừa hiện lên đã bị cắt mất nửa trên. */
+      .src.co-ruby { line-height: 2.05; max-height: 132px; font-size: 13.5px; }
+      .src.co-ruby ruby > rt { font-size: 0.52em; font-weight: 500; color: var(--ink-3);
+        letter-spacing: 0; user-select: none; }
       .lbl { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700;
         color: var(--accent); background: var(--accent-soft); border-radius: 8px;
         padding: 3px 8px; margin-bottom: 8px; }
@@ -704,6 +709,55 @@
       phu: (el) => {
         const s = document.createElement("div"); s.className = "src"; s.textContent = text;
         el.appendChild(s);
+        /*
+         * Câu tiếng Nhật ở đây cũng phải có furigana.
+         *
+         * Đang ở tab Dịch nghĩa là người ta đọc một câu chưa hiểu; chữ Hán không
+         * đọc được thì có bản dịch cũng chỉ hiểu nghĩa chứ không học được cách
+         * đọc. Bảng lời thoại YouTube đã có furigana, chỗ này thì chưa — cùng
+         * một người dùng, cùng một nhu cầu.
+         *
+         * Xin ở nền vì nó có bộ nhớ đệm: mở lại cùng câu không tốn lượt gọi nào.
+         * Canh không khớp thì để nguyên chữ trần — furigana đặt sai chỗ còn tệ
+         * hơn không có.
+         */
+        if (laNhat()) {
+          if (!window.Kana) return;
+          self.Song.gui({ type: "RUBY_CAU", text: text }, (res) => {
+            if (!res || !res.ok || !res.ruby || !res.ruby.length) return;
+            if (!s.isConnected) return;               // popup đã đóng trước khi mạng về
+            const html = window.Kana.htmlRuby(text, res.ruby);
+            if (!html) return;
+            s.innerHTML = html;
+            s.classList.add("co-ruby");
+          });
+          return;
+        }
+        /*
+         * Câu tiếng Anh cũng cần cách đọc.
+         *
+         * Chữ Latin đọc được không có nghĩa là đọc ĐÚNG — "vows", "seeking",
+         * "funding" mỗi chữ một kiểu. Nên chú IPA lên trên từng từ, đúng chỗ và
+         * đúng vai như furigana của tiếng Nhật.
+         *
+         * Từ nào từ điển không có IPA thì để trần, không bịa ra.
+         */
+        self.Song.gui({ type: "IPA_CAU", text: text }, (res) => {
+          if (!res || !res.ok || !res.ipa || !res.ipa.length) return;
+          if (!s.isConnected) return;
+          if (!res.ipa.some((m) => m.r)) return;      // chẳng tra được chữ nào -> để nguyên
+          s.textContent = "";
+          res.ipa.forEach((m) => {
+            if (!m.r) { s.appendChild(document.createTextNode(m.t)); return; }
+            const rb = document.createElement("ruby");
+            rb.appendChild(document.createTextNode(m.t));
+            const rt = document.createElement("rt");
+            rt.textContent = m.r.replace(/^\/|\/$/g, "");   // bỏ hai gạch chéo bao ngoài
+            rb.appendChild(rt);
+            s.appendChild(rb);
+          });
+          s.classList.add("co-ruby");
+        });
       },
       gui: (moi, coSua, xong) => guiLuu(muc, nganLuu(), moi, coSua, goc, xong)
     });

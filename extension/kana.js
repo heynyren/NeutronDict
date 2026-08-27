@@ -131,6 +131,33 @@
     return CO_KANJI.test(w);
   }
 
+  /**
+   * MỘT cách đọc đại diện, cho furigana.
+   *
+   * Từ điển hay trả về nhiều cách đọc trong cùng một chuỗi: 「せい/しょう/なま」,
+   * 「でんりゅう、でんりゅうけい」, 「ほうしき; ホウシキ」. Nhét nguyên cái ấy lên
+   * đỉnh chữ thì furigana dài gấp mấy lần chữ nó chú, chữ bị kéo giãn ra, đọc
+   * không nổi — trên màn hình điện thoại thì thành một hàng vụn.
+   *
+   * Furigana là thứ để LIẾC khi bí, nên chỉ cần một cách đọc. Lấy cách đầu —
+   * từ điển xếp cách thông dụng nhất lên trước.
+   *
+   * CHỈ cắt ở dấu ngăn cách rõ ràng, TUYỆT ĐỐI không cắt ở 、 khi đang là câu:
+   * trong câu thì 、 là dấu phẩy thật. Vì thế hàm này chỉ dùng cho cách đọc của
+   * MỘT MỤC từ điển, đừng gọi cho cả câu — chỗ gọi phải tự biết mình đang cầm gì.
+   */
+  function motCachDoc(doc) {
+    let s = String(doc || "").trim();
+    if (!s) return "";
+    // Dấu ngăn cách hay gặp ở các bản từ điển. Chữ Nhật không dùng "/" hay ";"
+    // giữa câu, nên gặp chúng là chắc chắn đang ngăn cách nhiều cách đọc.
+    const i = s.search(/[\/／;；|｜・･,，、]/);
+    if (i > 0) s = s.slice(0, i);
+    // Ngoặc chú thêm: 「でんりゅう（電流）」 -> bỏ phần trong ngoặc.
+    s = s.replace(/[（(\[【].*$/, "");
+    return s.trim();
+  }
+
   /** Từ toàn kana thì chính nó là cách đọc — khỏi gọi mạng. */
   function docSan(word) {
     const w = String(word || "").trim();
@@ -340,5 +367,6 @@
   }
 
   goc.Kana = { tuRomaji, tuRomajiCum, canDoc, docSan, chuanRomaji, laRomaji,
-                ghepFurigana, gonRuby, dungRuby, htmlRuby, rubyKhop, catKhuc, soSanh, soSanhViTri, veHira };
+                ghepFurigana, gonRuby, dungRuby, htmlRuby, rubyKhop, catKhuc, soSanh, soSanhViTri, veHira,
+                motCachDoc };
 })(typeof self !== "undefined" ? self : this);

@@ -44,6 +44,24 @@
     en: { url: "syncUrl", token: "syncToken" }
   };
 
+  /*
+   * MỘT KHO CHUNG cho mọi ngôn ngữ.
+   *
+   * Mỗi ngôn ngữ một cloud riêng là nếp cũ, từ hồi đây còn là hai extension
+   * tách rời. Nếp ấy có hai chỗ đau: hai nhà hai máy thì mỗi bên phải khai hai
+   * lần, và thêm một ngôn ngữ mới là thêm một cloud nữa phải dựng, phải nhớ.
+   *
+   * Mà dữ liệu thì VỐN ĐÃ sẵn sàng nằm chung: khoá sổ tay đã mang tiền tố
+   * ngôn ngữ ("javi:", "envi:", "kanji:") nên không đụng nhau, tiến độ học đã
+   * tách sẵn thành { ja, en }, sổ con thì có nhãn ngôn ngữ. Nghĩa là không cần
+   * đổi cấu trúc gì cả — chỉ cần thôi lọc theo ngôn ngữ lúc gửi lên.
+   *
+   * Khai cặp này thì MỌI ngôn ngữ đi chung một máy chủ, và thêm ngôn ngữ mới
+   * sau này chỉ là thêm một tiền tố vào NGAN, không phải dựng thêm cloud nào.
+   * Bỏ trống thì vẫn chạy nếp cũ — người đang dùng không phải đổi gì.
+   */
+  const KHOA_CHUNG = { url: "syncUrlChung", token: "syncTokenChung" };
+
   function hopLe(ngu) { return DS.indexOf(ngu) >= 0 ? ngu : "en"; }
 
   /** Tiền tố khoá sổ tay của một ngôn ngữ: ["javi:", "kanji:"]. */
@@ -178,7 +196,7 @@
   }
 
   goc.Ngu = {
-    DS, NGAN, TEN, KHOA_SYNC,
+    DS, NGAN, TEN, KHOA_SYNC, KHOA_CHUNG,
     hopLe, tienTo, thuoc, nguCuaKhoa, locSo, boPhanKhac, tachHoc, donHuyHieuLac,
     nguCuaSo, locSoCon, ganNguChoSo,
     nganChinh: (ngu) => NGAN_CHINH[hopLe(ngu)],
