@@ -692,6 +692,56 @@ select { cursor: pointer; }
   font-size: 12px; line-height: 20px; cursor: pointer; padding: 0; }
 .entry .anh-hang { margin-top: 8px; }
 
+/* --- Chỗ xem ảnh to, dựng trong app --- */
+/*
+ * Nằm TRÊN cả phiếu sửa (280) và màn chúc mừng (300): ảnh mở được từ ngay trong
+ * phiếu sửa, mà mở ra ở phía sau tấm phủ thì coi như không mở. Dưới toast (400)
+ * để lời báo lỗi vẫn đọc được.
+ */
+.anhxem {
+  position: fixed; inset: 0; z-index: 350; display: none;
+  flex-direction: column; background: rgba(0, 0, 0, .92);
+  /* Chừa tai thỏ và thanh điều hướng, không thì nút ✕ chui lên dưới đồng hồ. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.anhxem.show { display: flex; }
+.anhxem-thanh {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 8px 16px; flex: 0 0 auto;
+}
+.anhxem-ten {
+  flex: 1; min-width: 0; color: rgba(255, 255, 255, .82); font-size: 13.5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Nút đóng to hẳn 44px: đây là đường ra duy nhất chắc chắn có, bấm trượt nó
+   trên điện thoại là quay lại đúng cái cảm giác bị kẹt. */
+.anhxem-dong {
+  flex: 0 0 auto; width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .14); color: #fff; font-size: 19px;
+  line-height: 44px; padding: 0; cursor: pointer;
+}
+.anhxem-dong:active { background: rgba(255, 255, 255, .28); }
+.anhxem-khung {
+  flex: 1; min-height: 0; display: flex; align-items: center;
+  justify-content: center; overflow: auto; padding: 0 8px;
+  -webkit-overflow-scrolling: touch;
+}
+/* VỪA MÀN HÌNH là mặc định. Người dùng báo "ảnh hiện ra như bị zoom" — đó là
+   window.open thả ảnh vào WebView theo đúng cỡ pixel gốc, ảnh chụp màn hình
+   điện thoại thì rộng hơn màn nên chỉ thấy được góc trên bên trái. */
+.anhxem-khung img {
+  max-width: 100%; max-height: 100%; width: auto; height: auto;
+  object-fit: contain; cursor: zoom-in; display: block;
+}
+/* Chạm vào ảnh thì mới phóng to — lúc đó khung mới cuộn được để xem chữ nhỏ. */
+.anhxem-khung.to { align-items: flex-start; justify-content: flex-start; }
+.anhxem-khung.to img { max-width: none; max-height: none; cursor: zoom-out; }
+.anhxem-nhac {
+  flex: 0 0 auto; text-align: center; color: rgba(255, 255, 255, .5);
+  font-size: 12.5px; padding: 10px 16px 16px;
+}
+
 .entry .r { color: var(--accent); font-size: 13.5px; font-weight: 600; }
 /* Cách đọc SUY RA từ phiên âm chứ không phải từ điển cho — gạch chấm nhẹ để
    người học biết mà kiểm lại, chứ không tô đỏ làm sổ thành rối. */

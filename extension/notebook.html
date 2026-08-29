@@ -397,6 +397,22 @@
   </div>
 </div>
 
+<!-- Xem ảnh to.
+     Chỗ này trước gọi window.open. Trên máy tính thì đó là một tab mới có nút
+     đóng; trong WebView của app thì KHÔNG — ảnh chiếm kín màn hình, không thanh
+     địa chỉ, không nút đóng, và người dùng kẹt trong đó. Nên app phải tự dựng
+     lấy chỗ xem, với đủ đường ra: nút ✕, chạm nền, phím Esc, nút Quay lại. -->
+<div id="anhXem" class="anhxem" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="anhxem-thanh">
+    <span class="anhxem-ten" id="anhXemTen"></span>
+    <button class="anhxem-dong" id="anhXemDong" type="button"
+            aria-label="Đóng" title="Đóng" data-chu-title="Đóng">✕</button>
+  </div>
+  <div class="anhxem-khung" id="anhXemKhung">
+    <img id="anhXemImg" alt="">
+  </div>
+  <div class="anhxem-nhac" data-chu>Chạm vào ảnh để phóng to · chạm ra ngoài để đóng</div>
+
 <div id="toast" class="toast"></div>
 
 <script src="chu-bang.js"></script>
