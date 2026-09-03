@@ -1,6 +1,6 @@
 {
   "name": "neutrondict-app",
-  "version": "3.9.1",
+  "version": "3.10.0",
   "description": "NeutronDict — tra từ Nhật–Việt và Anh–Việt, sổ tay và học SRS trên Android",
   "private": true,
   "scripts": {

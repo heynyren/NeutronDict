@@ -220,6 +220,31 @@
       </div>
     </details>
 
+    <details class="box" id="nhipBox">
+      <summary data-chu><span id="icNhip"></span> Nhịp đọc &amp; nhắc tập trung <span class="caret" id="cr4"></span></summary>
+      <div class="boxbody">
+        <label class="check" style="margin-bottom:6px">
+          <input type="checkbox" id="setNhip">
+          <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
+        </label>
+        <label class="field-label" data-chu>Tốc độ nhịp đọc</label>
+        <div class="rowx" style="gap:8px">
+          <input type="number" id="setNhipToc" min="80" max="2000" step="20" style="max-width:110px">
+          <span class="t-small muted" data-chu>mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)</span>
+        </div>
+        <label class="field-label" style="margin-top:6px" data-chu>Nhắc tập trung bằng loa, kể từ lúc mở app</label>
+        <div class="rowx" style="gap:8px">
+          <input type="number" id="setNhac" min="0" max="240" style="max-width:110px">
+          <span class="t-small muted" data-chu>phút một lần — 0 là tắt</span>
+        </div>
+        <div class="rowx" style="gap:8px">
+          <button id="saveNhip" class="btn sm primary grow" type="button" data-chu>Lưu</button>
+        </div>
+        <span id="nhipStatus" class="t-tiny faint"></span>
+        <span class="t-tiny faint" data-chu>Tới hẹn máy đọc to 「集中します」 khi đang học tiếng Nhật, "Concentrate please" khi đang học tiếng Anh.</span>
+      </div>
+    </details>
+
     <details class="box" id="notifBox">
       <summary data-chu><span id="icBell"></span> Nhắc học hằng ngày <span class="caret" id="cr2"></span></summary>
       <div class="boxbody">
@@ -413,6 +438,7 @@
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
   <script src="kana.js"></script>
+  <script src="nhip-doc.js"></script>
   <script src="ngu.js"></script>
   <script src="muc.js"></script>
   <script src="ghi-am.js"></script>

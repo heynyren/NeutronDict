@@ -1359,6 +1359,7 @@ function show(view, huong) {
   $("scroller").scrollTop = 0;
   veNav();
 
+  if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
@@ -2776,7 +2777,64 @@ function renderStudyFav(it) {
 }
 
 /** @param {boolean} giuLat  true = vẽ lại thẻ nhưng giữ nguyên trạng thái đã lật */
+/* ==================================================================== */
+/* Nhịp đọc & lời nhắc tập trung                                        */
+/* ==================================================================== */
+
+/** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0 };
+let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
+
+function nhipTocHopLe(v) {
+  const n = parseInt(v, 10);
+  if (!n) return NHIP_MAC_DINH.nhipToc;
+  return Math.max(window.NhipDoc.TOC_MIN, Math.min(window.NhipDoc.TOC_MAX, n));
+}
+
+/** Chạy nhịp trên câu ở mặt trước thẻ, nếu người dùng có bật. */
+function batNhip() {
+  if (!window.NhipDoc) return 0;
+  if (CAI_NHIP.nhip === false) { window.NhipDoc.dung(); return 0; }
+  return window.NhipDoc.batDau($("stWord"), { ngu: laNhat() ? "ja" : "en", toc: nhipTocHopLe(CAI_NHIP.nhipToc) });
+}
+
+/**
+ * Hẹn lại đồng hồ nhắc tập trung. Mốc đếm tính từ lúc gọi — tức là từ lúc mở
+ * app, và từ lúc bấm Lưu nếu vừa đổi số phút.
+ */
+function datLoiNhac() {
+  if (!window.NhipDoc) return;
+  window.NhipDoc.datNhac(CAI_NHIP.nhacPhut, () => {
+    const ngu = laNhat() ? "ja" : "en";
+    const chu = window.NhipDoc.loiNhac(ngu);
+    speak(chu, null, ngu);
+    // Kèm một dòng chữ: tai nghe đang rút, hay máy không có giọng thứ tiếng
+    // đó, thì ít ra mắt vẫn nhận được lời nhắc.
+    toast(chu);
+  });
+}
+
+async function napNhip() {
+  CAI_NHIP = Object.assign({}, NHIP_MAC_DINH, (await Store.get("nhip")) || {});
+  if ($("setNhip")) $("setNhip").checked = CAI_NHIP.nhip !== false;
+  if ($("setNhipToc")) $("setNhipToc").value = CAI_NHIP.nhipToc || NHIP_MAC_DINH.nhipToc;
+  if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
+  datLoiNhac();
+}
+
+async function luuNhip() {
+  await Store.set("nhip", {
+    nhip: $("setNhip").checked,
+    nhipToc: nhipTocHopLe($("setNhipToc").value),
+    nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0))
+  });
+  await napNhip();
+  $("nhipStatus").textContent = T("Đã lưu.");
+}
+if ($("saveNhip")) $("saveNhip").addEventListener("click", luuNhip);
+
 function showCard(giuLat) {
+  if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   const it = session.queue[0];
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
@@ -2813,6 +2871,7 @@ function revealCard() {
   const rbS = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
   const oW = $("stWord");
   if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
+  batNhip();            // lật thẻ xong mới chạy nhịp — mặt úp thì chưa có gì để đọc
   $("stMean").innerHTML = "";
   if (it.dict === "kanji") {
     const km = window.HanTu.META(it.kanji);
@@ -2898,6 +2957,7 @@ function ketThucSom() {
 }
 
 async function finishStudy() {
+  if (window.NhipDoc) window.NhipDoc.dung();
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";
@@ -3033,7 +3093,8 @@ function gaiIcon() {
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
   $("icBell").innerHTML = window.Icon("bell-ringing", { size: 18 });
   $("icIpa").innerHTML = window.Icon("text-aa", { size: 18 });
-  ["cr0", "cr1", "cr2", "cr3"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
+  $("icNhip").innerHTML = window.Icon("lightning", { size: 18 });
+  ["cr0", "cr1", "cr2", "cr3", "cr4"].forEach((id) => { $(id).innerHTML = window.Icon("caret-right", { size: 16 }); });
   $("q").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("q"));
   $("filter").parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), $("filter"));
   $("stSpk").innerHTML = window.Icon("speaker-high", { size: 22 });
@@ -3057,6 +3118,7 @@ function gaiIcon() {
   gan("deleteDeck", "trash", "Xoá sổ", 15);
   gan("saveCfg", "floppy-disk", "Lưu cấu hình", 15);
   gan("syncNow", "arrows-clockwise", "Đồng bộ ngay", 15);
+  gan("saveNhip", "floppy-disk", "Lưu", 15);
   gan("notifOn", "bell-ringing", "Bật nhắc nhở", 15);
   gan("notifOff", "bell-slash", "Tắt", 15);
 
@@ -3151,6 +3213,7 @@ async function donHuyHieu() {
       drawNotebook(); veChuoiNgay(); refreshNotifications();
     }).catch(() => {});
   }
+  await napNhip();      // đồng hồ nhắc tập trung đếm từ đây — lúc mở app
   const ncfg = (await Store.get("notifCfg")) || {};
   if (ncfg.time) $("notifTime").value = ncfg.time;
 

@@ -1332,12 +1332,47 @@ function startStudy() {
   showCard();
 }
 
+/* ==================================================================== */
+/* Nhịp đọc & lời nhắc tập trung                                        */
+/* ==================================================================== */
+
+/** Giữ tốc độ trong khoảng nhịp-doc.js chấp nhận; số rác thì về mặc định. */
+function nhipTocHopLe(v) {
+  const n = parseInt(v, 10);
+  if (!n) return SET_DEFAULTS.nhipToc;
+  return Math.max(window.NhipDoc.TOC_MIN, Math.min(window.NhipDoc.TOC_MAX, n));
+}
+
+/** Chạy nhịp đọc trên câu ở mặt trước thẻ, nếu người dùng có bật. */
+function batNhip() {
+  if (!window.NhipDoc) return 0;
+  if (CAI.nhip === false) { window.NhipDoc.dung(); return 0; }
+  return window.NhipDoc.batDau($("stWord"), { ngu: NGU, toc: nhipTocHopLe(CAI.nhipToc) });
+}
+
+/**
+ * Hẹn lại đồng hồ nhắc tập trung theo số phút trong cài đặt.
+ * Mốc đếm tính từ lúc gọi — tức là từ lúc mở sổ tay, và từ lúc bấm Lưu nếu
+ * người dùng vừa đổi số phút.
+ */
+function datLoiNhac() {
+  if (!window.NhipDoc) return;
+  window.NhipDoc.datNhac(CAI.nhacPhut, () => {
+    const chu = window.NhipDoc.loiNhac(NGU);
+    ttsSpeak(chu, NGU === "ja" ? "ja" : "en");
+    // Nói kèm một dòng chữ: tai nghe đang rút, hoặc máy không có giọng thứ
+    // tiếng đó, thì ít ra mắt vẫn nhận được lời nhắc.
+    toast(chu);
+  });
+}
+
 /**
  * @param {boolean} [giuLat] thẻ đang lật rồi thì vẽ lại luôn ở trạng thái đã
  *   lật. Dùng khi sửa nghĩa ngay giữa buổi học: úp thẻ lại lúc đó chẳng khác
  *   gì bắt đoán lại một câu vừa mới đọc đáp án.
  */
 function showCard(giuLat) {
+  if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   const it = theCardHienTai();
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
@@ -1383,6 +1418,7 @@ function revealCard() {
   if (oW) {
     if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
     else { oW.textContent = it.word; oW.classList.remove("co-ruby"); }
+    batNhip();          // lật thẻ xong mới chạy nhịp — mặt úp thì chưa có gì để đọc
   }
   if (it.dict === "kanji") {
     const meta = window.HanTu.META(it.kanji);
@@ -1478,6 +1514,7 @@ async function undoDelete() {
 }
 
 async function finishStudy() {
+  if (window.NhipDoc) window.NhipDoc.dung();
   $("stBody").style.display = "none";
   $("stDone").style.display = "";
   $("stProg").textContent = "";
@@ -1497,6 +1534,7 @@ async function finishStudy() {
 }
 
 function closeStudy() {
+  if (window.NhipDoc) window.NhipDoc.dung();
   ovl.classList.remove("show");
   load();
   if ($("viewProgress").classList.contains("show")) veTienDo();
@@ -1971,11 +2009,26 @@ document.addEventListener("visibilitychange", async () => {
 /* Cài đặt tra nhanh                                                    */
 /* ==================================================================== */
 
-const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400, ytTuBat: false, ytPhoi: true };
+const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0 };
+
+/**
+ * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
+ *
+ * `revealCard()` chạy đồng bộ ngay lúc bấm — không thể đợi một lượt đọc
+ * chrome.storage rồi mới bật hiệu ứng, đợi là thẻ lật xong mới thấy nhịp chạy.
+ * Nên bản cài đặt được nạp một lần lúc mở trang và cập nhật lại mỗi lần Lưu.
+ */
+let CAI = Object.assign({}, SET_DEFAULTS);
 
 async function loadSettings() {
   const { settings } = await chrome.storage.local.get("settings");
   const S = Object.assign({}, SET_DEFAULTS, settings || {});
+  CAI = S;
+  if ($("setNhip")) $("setNhip").checked = S.nhip !== false;
+  if ($("setNhipToc")) $("setNhipToc").value = S.nhipToc || 320;
+  if ($("setNhac")) $("setNhac").value = S.nhacPhut || 0;
+  datLoiNhac();
   $("setInline").checked = !!S.inline;
   $("setCtrl").checked = !!S.requireCtrl;
   $("setLen").value = S.maxLen || 30;
@@ -1996,9 +2049,15 @@ async function saveSettings() {
       translate: $("setTrans").checked,
       maxSent: 400,
       ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false,
-      ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true
+      ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true,
+      nhip: $("setNhip") ? $("setNhip").checked : true,
+      nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
+      nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0))
     })
   });
+  // Đọc lại để CAI và đồng hồ nhắc khớp với thứ vừa lưu — sửa số phút xong mà
+  // vẫn phải chờ nốt chu kỳ cũ thì rất khó hiểu.
+  await loadSettings();
   $("setStatus").textContent = T("Đã lưu. Tải lại trang web đang mở để áp dụng ngay.");
 }
 async function clearCache() {

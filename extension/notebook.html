@@ -211,6 +211,21 @@
         <input type="checkbox" id="setYtPhoi">
         <span data-chu>Cho trợ lý AI khác (ChatGPT, Gemini…) đọc được lời thoại: đặt thêm một bản chữ khuất mắt vào trang YouTube</span>
       </label>
+      <label class="check">
+        <input type="checkbox" id="setNhip">
+        <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
+      </label>
+      <label class="field-label" style="margin-top:4px" data-chu>Tốc độ nhịp đọc</label>
+      <div class="rowx" style="gap:8px">
+        <input type="number" id="setNhipToc" min="80" max="2000" step="20" style="max-width:110px">
+        <span class="t-small muted" data-chu>mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)</span>
+      </div>
+      <label class="field-label" style="margin-top:4px" data-chu>Nhắc tập trung bằng loa, kể từ lúc mở sổ tay</label>
+      <div class="rowx" style="gap:8px">
+        <input type="number" id="setNhac" min="0" max="240" style="max-width:110px">
+        <span class="t-small muted" data-chu>phút một lần — 0 là tắt</span>
+      </div>
+      <span class="t-tiny faint" data-chu>Tới hẹn máy đọc to 「集中します」 khi đang học tiếng Nhật, "Concentrate please" khi đang học tiếng Anh.</span>
       <label class="field-label" style="margin-top:4px" data-chu>Bỏ qua tra từ điển khi bôi đen dài hơn</label>
       <div class="rowx" style="gap:8px">
         <input type="number" id="setLen" min="5" max="200" style="max-width:110px">
@@ -424,6 +439,7 @@
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
   <script src="kana.js"></script>
+  <script src="nhip-doc.js"></script>
   <script src="muc.js"></script>
   <script src="ghi-am.js"></script>
 <script src="tien-do.js"></script>

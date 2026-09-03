@@ -485,6 +485,17 @@
     "Hiện phụ đề & dịch": "Show transcript & translate",
     "Để tiết kiệm, bảng chỉ lấy phụ đề và gọi dịch khi bạn bấm.":
       "To save quota, the panel only fetches the transcript and translates when you tap.",
+    "Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại":
+      "Study mode: after flipping a card, run the reading rhythm — each chunk of the sentence grows and changes colour in turn, on a loop",
+    "Nhịp đọc & nhắc tập trung": "Reading rhythm & focus reminder",
+    "Nhắc tập trung bằng loa, kể từ lúc mở app": "Spoken focus reminder, counted from when the app opens",
+    "Đã lưu.": "Saved.",
+    "Tốc độ nhịp đọc": "Reading rhythm speed",
+    "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
+    "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
+    "phút một lần — 0 là tắt": "minutes apart — 0 turns it off",
+    "Tới hẹn máy đọc to 「集中します」 khi đang học tiếng Nhật, \"Concentrate please\" khi đang học tiếng Anh.":
+      "At each interval the device says 「集中します」 while you study Japanese, \"Concentrate please\" while you study English.",
     "Ẩn cho video này": "Hide for this video",
     "Tự bật bảng lời thoại khi mở video YouTube (tắt để tiết kiệm: video mới chỉ hiện nút, bấm mới lấy phụ đề và dịch)":
       "Auto-open the transcript panel when a YouTube video loads (off saves quota: a new video only shows a button; tap it to fetch the transcript and translate)",
@@ -1236,6 +1247,17 @@
     "Hiện phụ đề & dịch": "文字起こしを表示して翻訳",
     "Để tiết kiệm, bảng chỉ lấy phụ đề và gọi dịch khi bạn bấm.":
       "節約のため、タップしたときだけ字幕を取得して翻訳します。",
+    "Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại":
+      "学習モード：カードをめくったら読みのリズムを再生——文の各まとまりが順に大きくなり色が変わり、繰り返します",
+    "Nhịp đọc & nhắc tập trung": "読みのリズムと集中リマインド",
+    "Nhắc tập trung bằng loa, kể từ lúc mở app": "音声での集中リマインド（アプリを開いた時点から）",
+    "Đã lưu.": "保存しました。",
+    "Tốc độ nhịp đọc": "読みのリズムの速さ",
+    "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
+    "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",
+    "phút một lần — 0 là tắt": "分おき——0で停止",
+    "Tới hẹn máy đọc to 「集中します」 khi đang học tiếng Nhật, \"Concentrate please\" khi đang học tiếng Anh.":
+      "時間になると、日本語学習中は「集中します」、英語学習中は \"Concentrate please\" と読み上げます。",
     "Ẩn cho video này": "この動画では隠す",
     "Tự bật bảng lời thoại khi mở video YouTube (tắt để tiết kiệm: video mới chỉ hiện nút, bấm mới lấy phụ đề và dịch)":
       "YouTube 動画を開いたら文字起こしパネルを自動表示（オフで節約：新しい動画ではボタンのみ、タップで字幕取得と翻訳）",

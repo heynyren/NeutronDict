@@ -672,6 +672,19 @@ select { cursor: pointer; }
 .entry.sent .w.co-ruby { line-height: 2.25; }
 .studycard .cw.co-ruby { line-height: 1.9; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
+
+/* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
+   Phóng to bằng `transform` chứ không bằng `font-size` — đổi cỡ chữ là cả câu
+   dồn lại giãn ra theo, đọc mấy giây là chóng mặt. */
+.studycard .cw .nd-dv {
+  display: inline-block;
+  transition: transform .13s ease, color .13s ease;
+  transform-origin: center bottom;
+}
+.studycard .cw .nd-dv.sang { color: var(--accent); transform: scale(1.22); }
+@media (prefers-reduced-motion: reduce) {
+  .studycard .cw .nd-dv { transition: none; }
+}
 /* Ghi công tác giả, nằm cuối cột cài đặt bên trái. Bản Android căn giữa và làm
    chìm màu đi; ở đây trước giờ không có luật nào nên nó lệch hẳn so với bên kia. */
 .credit { text-align: center; margin-top: 18px; color: var(--ink-3); font-size: 12.5px; }
