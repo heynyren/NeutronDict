@@ -2795,7 +2795,8 @@ function nhipTocHopLe(v) {
 function batNhip() {
   if (!window.NhipDoc) return 0;
   if (CAI_NHIP.nhip === false) { window.NhipDoc.dung(); return 0; }
-  return window.NhipDoc.batDau($("stWord"), { ngu: laNhat() ? "ja" : "en", toc: nhipTocHopLe(CAI_NHIP.nhipToc) });
+  // Câu trước, nghĩa sau — đúng thứ tự mắt cần đi.
+  return window.NhipDoc.batDau([$("stWord"), $("stMean")], { toc: nhipTocHopLe(CAI_NHIP.nhipToc) });
 }
 
 /**
@@ -2871,7 +2872,6 @@ function revealCard() {
   const rbS = (it.ruby && it.ruby.length && window.Kana) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
   const oW = $("stWord");
   if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
-  batNhip();            // lật thẻ xong mới chạy nhịp — mặt úp thì chưa có gì để đọc
   $("stMean").innerHTML = "";
   if (it.dict === "kanji") {
     const km = window.HanTu.META(it.kanji);
@@ -2892,6 +2892,9 @@ function revealCard() {
   }
   $("stReveal").style.display = "none";
   $("stGrade").style.display = "";
+  // Chạy nhịp SAU CÙNG: nó bọc cụm cho cả câu lẫn phần nghĩa, nên phải đợi
+  // nghĩa được vẽ xong đã.
+  batNhip();
 }
 
 $("stReveal").addEventListener("click", revealCard);

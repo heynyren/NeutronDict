@@ -10,6 +10,15 @@
  * đang tới lượt được phóng to và đổi màu, chạy lần lượt hết câu rồi quay lại
  * từ đầu; tốc độ chỉnh trong Cài đặt.
  *
+ * Chạy trên những ô nào
+ * ----------------------
+ * Cả câu ở mặt trước LẪN phần nghĩa tiếng Việt, đi liền một mạch: hết câu thì
+ * nhịp chuyển xuống bản dịch, hết bản dịch thì quay lại đầu câu. Chỉ chạy mặt
+ * trước thì đọc nhanh được nửa việc — nghĩa mới là chỗ phải nhớ.
+ *
+ * Vẫn giữ đúng một cụm sáng tại một thời điểm. Hai vòng chạy song song ở hai ô
+ * thì mắt lại phải chọn xem nhìn cái nào, mất sạch cái lợi của việc có điểm neo.
+ *
  * Cụm là gì
  * ---------
  * Tiếng Nhật cắt theo khúc chữ Hán / khúc kana — đúng cái ranh giới `catKhuc`
@@ -66,33 +75,62 @@
     return ra;
   }
 
+  const CO_NHAT = /[\u3040-\u30ff\u3005\u3006\u3400-\u4dbf\u4e00-\u9fff]/;
+
+  /**
+   * Đoạn chữ này cắt theo luật tiếng Nhật hay theo khoảng trắng.
+   *
+   * Đoán theo CHÍNH đoạn chữ chứ không theo "ngôn ngữ đang tra": một thẻ có mặt
+   * trước tiếng Nhật và bản dịch tiếng Việt, mà thẻ dịch ngược thì hai bên đổi
+   * chỗ cho nhau. Nhìn chữ thì không bao giờ lẫn.
+   */
+  function nguCua(s) { return CO_NHAT.test(String(s == null ? "" : s)) ? "ja" : "vi"; }
+
   /**
    * Bọc nội dung của một ô thành các cụm `<span class="nd-dv">`.
-   * Giữ nguyên thứ tự và giữ nguyên mọi phần tử con (nhất là `<ruby>`).
+   *
+   * Đi sâu vào các thẻ con — phần nghĩa là một `<ul><li>`, coi cả cục `<ul>` là
+   * một cụm thì chẳng còn nhịp nào nữa. Chỉ `<ruby>` là ngoại lệ: nó phải trọn
+   * một cụm, xé ra là mất luôn phần đọc trên đỉnh chữ.
+   *
+   * @param {HTMLElement} o
+   * @param {string} [ngu] "ja" để cắt theo khúc Hán/kana; bỏ trống thì tự đoán
+   *   theo chữ trong ô.
    * @returns {Array<HTMLElement>} danh sách cụm, theo đúng thứ tự đọc.
    */
   function bocCum(o, ngu) {
     if (!o) return [];
-    const con = Array.prototype.slice.call(o.childNodes);
+    const l = ngu || nguCua(o.textContent);
     const ra = [];
+    boc(o, l, ra);
+    return ra;
+  }
+
+  function boc(o, ngu, ra) {
+    const tai = o.ownerDocument;
+    const con = Array.prototype.slice.call(o.childNodes);
     o.textContent = "";
     for (const n of con) {
-      if (n.nodeType !== 3) {                       // <ruby> hoặc thẻ khác: trọn một cụm
-        const s = o.ownerDocument.createElement("span");
+      if (n.nodeType === 1 && n.tagName === "RUBY") {   // trọn một cụm
+        const s = tai.createElement("span");
         s.className = "nd-dv";
         s.appendChild(n);
         o.appendChild(s); ra.push(s);
         continue;
       }
+      if (n.nodeType !== 3) {                           // thẻ khác: giữ thẻ, đi vào trong
+        o.appendChild(n);
+        if (n.nodeType === 1) boc(n, ngu, ra);
+        continue;
+      }
       for (const manh of xeChu(n.nodeValue, ngu)) {
-        if (!manh.dv) { o.appendChild(o.ownerDocument.createTextNode(manh.t)); continue; }
-        const s = o.ownerDocument.createElement("span");
+        if (!manh.dv) { o.appendChild(tai.createTextNode(manh.t)); continue; }
+        const s = tai.createElement("span");
         s.className = "nd-dv";
         s.textContent = manh.t;
         o.appendChild(s); ra.push(s);
       }
     }
-    return ra;
   }
 
   const TOC_MIN = 80, TOC_MAX = 2000;
@@ -107,16 +145,22 @@
   }
 
   /**
-   * Bật hiệu ứng trên một ô đã có sẵn nội dung.
-   * @param {HTMLElement} o ô chứa câu (đã đặt chữ hoặc HTML ruby vào rồi)
-   * @param {{ngu?:string, toc?:number}} [opt] `toc` = mili-giây mỗi cụm
-   * @returns {number} số cụm; 0 là không chạy (câu chỉ có một cụm thì nhấp
-   *   nháy chẳng nói lên điều gì, để yên còn dễ đọc hơn).
+   * Bật hiệu ứng, đi liền một mạch qua các ô được đưa vào.
+   * @param {HTMLElement|Array<HTMLElement|{o:HTMLElement,ngu?:string}>} muc một
+   *   ô, hoặc danh sách ô theo ĐÚNG thứ tự muốn đọc (câu trước, nghĩa sau)
+   * @param {{ngu?:string, toc?:number}} [opt] `toc` = mili-giây mỗi cụm; `ngu`
+   *   áp cho ô nào không tự nói rõ
+   * @returns {number} số cụm; 0 là không chạy (chỉ một cụm thì nhấp nháy chẳng
+   *   nói lên điều gì, để yên còn dễ đọc hơn).
    */
-  function batDau(o, opt) {
+  function batDau(muc, opt) {
     dung();
     const c = opt || {};
-    const ds = bocCum(o, c.ngu);
+    const oDs = (Array.isArray(muc) ? muc : [muc])
+      .map((m) => (m && m.nodeType ? { o: m, ngu: c.ngu } : m))
+      .filter((m) => m && m.o);
+    const ds = [];
+    for (const m of oDs) for (const s of bocCum(m.o, m.ngu)) ds.push(s);
     if (ds.length < 2) return 0;
     cum = ds;
     const toc = Math.max(TOC_MIN, Math.min(TOC_MAX, Number(c.toc) || 320));
@@ -159,6 +203,6 @@
 
   function dangNhac() { return !!mayNhac; }
 
-  goc.NhipDoc = { xeChu, bocCum, batDau, dung, dangChay, loiNhac, datNhac, dangNhac,
+  goc.NhipDoc = { xeChu, nguCua, bocCum, batDau, dung, dangChay, loiNhac, datNhac, dangNhac,
                   TOC_MIN, TOC_MAX };
 })(typeof self !== "undefined" ? self : this);

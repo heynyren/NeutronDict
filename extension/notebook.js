@@ -1347,7 +1347,8 @@ function nhipTocHopLe(v) {
 function batNhip() {
   if (!window.NhipDoc) return 0;
   if (CAI.nhip === false) { window.NhipDoc.dung(); return 0; }
-  return window.NhipDoc.batDau($("stWord"), { ngu: NGU, toc: nhipTocHopLe(CAI.nhipToc) });
+  // Câu trước, nghĩa sau — đúng thứ tự mắt cần đi.
+  return window.NhipDoc.batDau([$("stWord"), $("stMean")], { toc: nhipTocHopLe(CAI.nhipToc) });
 }
 
 /**
@@ -1418,7 +1419,6 @@ function revealCard() {
   if (oW) {
     if (rbS) { oW.innerHTML = rbS; oW.classList.add("co-ruby"); }
     else { oW.textContent = it.word; oW.classList.remove("co-ruby"); }
-    batNhip();          // lật thẻ xong mới chạy nhịp — mặt úp thì chưa có gì để đọc
   }
   if (it.dict === "kanji") {
     const meta = window.HanTu.META(it.kanji);
@@ -1440,6 +1440,9 @@ function revealCard() {
   }
   $("stReveal").style.display = "none";
   $("stGrade").style.display = "";
+  // Chạy nhịp SAU CÙNG: nó bọc cụm cho cả câu lẫn phần nghĩa, nên phải đợi
+  // nghĩa được vẽ xong đã.
+  batNhip();
 }
 
 async function grade(remembered) {

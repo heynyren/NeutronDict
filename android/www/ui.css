@@ -676,14 +676,17 @@ select { cursor: pointer; }
 /* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
    Phóng to bằng `transform` chứ không bằng `font-size` — đổi cỡ chữ là cả câu
    dồn lại giãn ra theo, đọc mấy giây là chóng mặt. */
-.studycard .cw .nd-dv {
+.studycard .nd-dv {
   display: inline-block;
   transition: transform .13s ease, color .13s ease;
   transform-origin: center bottom;
 }
 .studycard .cw .nd-dv.sang { color: var(--accent); transform: scale(1.22); }
+/* Chữ trong phần nghĩa nhỏ hơn hẳn chữ mặt trước, phóng cùng một tỉ lệ thì
+   nhìn như không nhích — nên ở đây phóng mạnh hơn và đậm thêm. */
+.studycard .cm .nd-dv.sang { color: var(--accent); font-weight: 700; transform: scale(1.32); }
 @media (prefers-reduced-motion: reduce) {
-  .studycard .cw .nd-dv { transition: none; }
+  .studycard .nd-dv { transition: none; }
 }
 /* Ghi công tác giả, nằm cuối cột cài đặt bên trái. Bản Android căn giữa và làm
    chìm màu đi; ở đây trước giờ không có luật nào nên nó lệch hẳn so với bên kia. */
