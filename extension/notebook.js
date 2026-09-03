@@ -1335,12 +1335,27 @@ function startStudy() {
   $("stBody").style.display = "";
   $("stDone").style.display = "none";
   ovl.classList.add("show");
+  batNhacTau();
   showCard();
 }
 
 /* ==================================================================== */
 /* Nhịp đọc & lời nhắc tập trung                                        */
 /* ==================================================================== */
+
+/**
+ * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
+ *
+ * `duoc()` được hỏi lại ở TỪNG lượt chứ không chỉ lúc bật: buổi học có thể đã
+ * đóng, hoặc người ta đã chuyển sang tab khác — lúc đó nhạc vang lên là quấy rầy.
+ */
+function batNhacTau() {
+  if (!window.NhacTau) return;
+  if (CAI.nhacTau === false) { window.NhacTau.tat(); return; }
+  window.NhacTau.bat({
+    duoc: () => ovl.classList.contains("show") && !document.hidden
+  });
+}
 
 /**
  * Cổ vũ một lượt chấm: tiếng chuông ngay, câu nói sau một nhịp ngắn.
@@ -1541,6 +1556,7 @@ async function undoDelete() {
 
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
   $("stDone").style.display = "";
   $("stProg").textContent = "";
@@ -1561,6 +1577,7 @@ async function finishStudy() {
 
 function closeStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  if (window.NhacTau) window.NhacTau.tat();
   ovl.classList.remove("show");
   load();
   if ($("viewProgress").classList.contains("show")) veTienDo();
@@ -2036,7 +2053,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -2055,6 +2072,7 @@ async function loadSettings() {
   if ($("setNhipToc")) $("setNhipToc").value = S.nhipToc || 320;
   if ($("setNhac")) $("setNhac").value = S.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = S.coVu !== false;
+  if ($("setNhacTau")) $("setNhacTau").checked = S.nhacTau !== false;
   datLoiNhac();
   $("setInline").checked = !!S.inline;
   $("setCtrl").checked = !!S.requireCtrl;
@@ -2080,7 +2098,8 @@ async function saveSettings() {
       nhip: $("setNhip") ? $("setNhip").checked : true,
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),
-      coVu: $("setCoVu") ? $("setCoVu").checked : true
+      coVu: $("setCoVu") ? $("setCoVu").checked : true,
+      nhacTau: $("setNhacTau") ? $("setNhacTau").checked : true
     })
   });
   // Đọc lại để CAI và đồng hồ nhắc khớp với thứ vừa lưu — sửa số phút xong mà
@@ -2478,6 +2497,12 @@ veChuPhimTat();
 
 $("saveSet").addEventListener("click", saveSettings);
 $("clearCache").addEventListener("click", clearCache);
+// Nghe thử: chỉnh âm lượng loa cho vừa tai TRƯỚC khi vào học, chứ đang học mà
+// nhạc vang to quá thì lúc mò nút đã mất mạch rồi.
+if ($("nghThu")) $("nghThu").addEventListener("click", () => {
+  const t = window.NhacTau && window.NhacTau.phatMot();
+  if (t) $("setStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
+});
 
 $("ipaGuide").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") });

@@ -492,6 +492,10 @@
     "Đã lưu.": "Saved.",
     "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
       "A cheer after each grade — 「すごいね」 for remembered, 「がんばって」 for forgotten, plus a short chime",
+    "Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào":
+      "Yamanote-line station jingles while you study — they come up sparsely, on no fixed cycle",
+    "Nghe thử một đoạn": "Play one now",
+    "Đang phát: nhạc ga {ten}": "Now playing: {ten} station jingle",
     "Tốc độ nhịp đọc": "Reading rhythm speed",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
@@ -1256,6 +1260,10 @@
     "Đã lưu.": "保存しました。",
     "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
       "採点のあとに応援の声——覚えていたら「すごいね」、忘れていたら「がんばって」、短いチャイム付き",
+    "Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào":
+      "学習中に山手線の発車メロディ——一定の周期ではなく、たまに鳴ります",
+    "Nghe thử một đoạn": "1曲だけ試聴",
+    "Đang phát: nhạc ga {ten}": "再生中：{ten}駅の発車メロディ",
     "Tốc độ nhịp đọc": "読みのリズムの速さ",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",

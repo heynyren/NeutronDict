@@ -1375,6 +1375,7 @@ function show(view, huong) {
   veNav();
 
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
+  if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
@@ -2769,6 +2770,7 @@ $("stStart").addEventListener("click", async () => {
   $("stIdle").style.display = "none";
   $("stBody").style.display = "";
   $("stStart").style.display = "none";
+  batNhacTau();
   showCard();
 });
 
@@ -2797,7 +2799,7 @@ function renderStudyFav(it) {
 /* ==================================================================== */
 
 /** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
-const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true };
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true };
 let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
 
 function nhipTocHopLe(v) {
@@ -2831,6 +2833,20 @@ function datLoiNhac() {
 }
 
 /**
+ * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
+ *
+ * `duoc()` được hỏi lại ở TỪNG lượt chứ không chỉ lúc bật: người ta có thể đã
+ * sang màn khác, đóng buổi học, hay tắt màn hình — lúc đó nhạc vang lên là quấy rầy.
+ */
+function batNhacTau() {
+  if (!window.NhacTau) return;
+  if (CAI_NHIP.nhacTau === false) { window.NhacTau.tat(); return; }
+  window.NhacTau.bat({
+    duoc: () => manHienTai === "Study" && $("stBody").style.display !== "none" && !document.hidden
+  });
+}
+
+/**
  * Cổ vũ một lượt chấm: tiếng chuông ngay, câu nói sau một nhịp ngắn.
  *
  * Gọi TRƯỚC mọi thứ khác trong grade() và không `await`: người ta bấm là muốn
@@ -2850,6 +2866,7 @@ async function napNhip() {
   if ($("setNhipToc")) $("setNhipToc").value = CAI_NHIP.nhipToc || NHIP_MAC_DINH.nhipToc;
   if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = CAI_NHIP.coVu !== false;
+  if ($("setNhacTau")) $("setNhacTau").checked = CAI_NHIP.nhacTau !== false;
   datLoiNhac();
 }
 
@@ -2858,12 +2875,19 @@ async function luuNhip() {
     nhip: $("setNhip").checked,
     nhipToc: nhipTocHopLe($("setNhipToc").value),
     nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0)),
-    coVu: $("setCoVu").checked
+    coVu: $("setCoVu").checked,
+    nhacTau: $("setNhacTau").checked
   });
   await napNhip();
   $("nhipStatus").textContent = T("Đã lưu.");
 }
 if ($("saveNhip")) $("saveNhip").addEventListener("click", luuNhip);
+// Nghe thử: chỉnh âm lượng loa cho vừa tai TRƯỚC khi vào học, chứ đang học mà
+// nhạc vang to quá thì lúc mò nút đã mất mạch rồi.
+if ($("nghThu")) $("nghThu").addEventListener("click", () => {
+  const t = window.NhacTau && window.NhacTau.phatMot();
+  if (t) $("nhipStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
+});
 
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
@@ -2993,6 +3017,7 @@ function ketThucSom() {
 
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";
