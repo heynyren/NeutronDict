@@ -2799,7 +2799,7 @@ function renderStudyFav(it) {
 /* ==================================================================== */
 
 /** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
-const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true };
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true };
 let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
 
 function nhipTocHopLe(v) {
@@ -2831,6 +2831,10 @@ function datLoiNhac() {
     toast(chu);
   });
 }
+
+// Tiếng tách khi bấm nút: gắn MỘT người nghe cho cả trang, hỏi lại cài đặt ở
+// từng lượt bấm. Gắn từng nút một thì mỗi nút mới dựng ra sau này lại câm.
+if (window.CoVu) window.CoVu.ngheNut(document, () => CAI_NHIP.tach !== false);
 
 /**
  * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
@@ -2867,6 +2871,7 @@ async function napNhip() {
   if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = CAI_NHIP.coVu !== false;
   if ($("setNhacTau")) $("setNhacTau").checked = CAI_NHIP.nhacTau !== false;
+  if ($("setTach")) $("setTach").checked = CAI_NHIP.tach !== false;
   datLoiNhac();
 }
 
@@ -2876,7 +2881,8 @@ async function luuNhip() {
     nhipToc: nhipTocHopLe($("setNhipToc").value),
     nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0)),
     coVu: $("setCoVu").checked,
-    nhacTau: $("setNhacTau").checked
+    nhacTau: $("setNhacTau").checked,
+    tach: $("setTach").checked
   });
   await napNhip();
   $("nhipStatus").textContent = T("Đã lưu.");

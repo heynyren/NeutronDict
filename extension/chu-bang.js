@@ -496,6 +496,8 @@
       "Yamanote-line station jingles while you study — they come up sparsely, on no fixed cycle",
     "Nghe thử một đoạn": "Play one now",
     "Đang phát: nhạc ga {ten}": "Now playing: {ten} station jingle",
+    "Bấm nút thì có tiếng tách nhẹ, như các app Android":
+      "A soft click when you tap a button, the way Android apps do",
     "Tốc độ nhịp đọc": "Reading rhythm speed",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
@@ -1264,6 +1266,8 @@
       "学習中に山手線の発車メロディ——一定の周期ではなく、たまに鳴ります",
     "Nghe thử một đoạn": "1曲だけ試聴",
     "Đang phát: nhạc ga {ten}": "再生中：{ten}駅の発車メロディ",
+    "Bấm nút thì có tiếng tách nhẹ, như các app Android":
+      "ボタンを押すと軽いクリック音——Android アプリと同じ感じ",
     "Tốc độ nhịp đọc": "読みのリズムの速さ",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",

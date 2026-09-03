@@ -11,7 +11,7 @@
  * theo cài đặt hệ điều hành, không ăn theo trang bên dưới được.
  */
 (() => {
-  const DEFAULTS = { ngu: "en", inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400 };
+  const DEFAULTS = { ngu: "en", inline: true, requireCtrl: false, maxLen: 40, translate: true, maxSent: 400, tach: true };
   let S = Object.assign({}, DEFAULTS);
   /** Đang ở chế độ tiếng Nhật phải không. Mọi nhánh rẽ đều hỏi qua đây. */
   const laNhat = () => self.Ngu.hopLe(S.ngu) === "ja";
@@ -48,6 +48,10 @@
     host = document.createElement("div");
     host.style.cssText = "all:initial;position:fixed;z-index:2147483647;left:" + x + "px;top:" + y + "px;";
     root = host.attachShadow({ mode: "open" });
+    // Tiếng tách khi bấm: nghe ngay trên shadow root này. Sự kiện trong shadow
+    // DOM có ra tới document, nhưng lúc đó đích đã bị quy về thẻ chủ nên không
+    // còn biết người ta bấm vào nút nào — phải nghe ở trong.
+    if (self.CoVu) self.CoVu.ngheNut(root, () => S.tach !== false);
     const style = document.createElement("style");
     style.textContent = `
       :host { all: initial; }

@@ -1343,6 +1343,10 @@ function startStudy() {
 /* Nhịp đọc & lời nhắc tập trung                                        */
 /* ==================================================================== */
 
+// Tiếng tách khi bấm nút: gắn MỘT người nghe cho cả trang, hỏi lại cài đặt ở
+// từng lượt bấm. Gắn từng nút một thì mỗi nút mới dựng ra sau này lại câm.
+if (window.CoVu) window.CoVu.ngheNut(document, () => CAI.tach !== false);
+
 /**
  * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
  *
@@ -2053,7 +2057,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -2073,6 +2077,7 @@ async function loadSettings() {
   if ($("setNhac")) $("setNhac").value = S.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = S.coVu !== false;
   if ($("setNhacTau")) $("setNhacTau").checked = S.nhacTau !== false;
+  if ($("setTach")) $("setTach").checked = S.tach !== false;
   datLoiNhac();
   $("setInline").checked = !!S.inline;
   $("setCtrl").checked = !!S.requireCtrl;
@@ -2099,7 +2104,8 @@ async function saveSettings() {
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),
       coVu: $("setCoVu") ? $("setCoVu").checked : true,
-      nhacTau: $("setNhacTau") ? $("setNhacTau").checked : true
+      nhacTau: $("setNhacTau") ? $("setNhacTau").checked : true,
+      tach: $("setTach") ? $("setTach").checked : true
     })
   });
   // Đọc lại để CAI và đồng hồ nhắc khớp với thứ vừa lưu — sửa số phút xong mà

@@ -136,5 +136,90 @@
   /** Khoảng chờ trước khi đọc, để tiếng chuông kịp vang xong phần đầu. */
   const CHO_NOI = 170;
 
-  goc.CoVu = { loi, giongTot, diemGiong, chuong, CHO_NOI };
+  /* ------------------------------------------------------------------ */
+  /* Tiếng "tách" khi bấm nút                                            */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Bấm mà máy đáp lại một tiếng thì tay biết ngay là máy đã nhận — không phải
+   * chuyện trang trí, đó là lý do Android bật tiếng chạm theo mặc định.
+   *
+   * Tiếng này KHÔNG phải một nốt nhạc. Nốt sin nghe ra cao độ, bấm mười cái là
+   * thành một điệu nhạc lởm khởm; tiếng chạm thật là một nhúm NHIỄU rất ngắn
+   * lọc quanh 2,6 kHz — tai nghe ra "vật gõ vào vật", không ra nốt nào cả.
+   *
+   * 30 mili-giây và rất khẽ (0.075). Tiếng chạm mà nghe rõ hơn nội dung thì
+   * sau mười phút người ta đi tắt nó.
+   */
+  const TACH_DAI = 0.03;
+  let demNhieu = null;
+
+  function boNhieu(c) {
+    if (demNhieu && demNhieu.sampleRate === c.sampleRate) return demNhieu;
+    const n = Math.max(1, Math.round(c.sampleRate * TACH_DAI));
+    const b = c.createBuffer(1, n, c.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    demNhieu = b;
+    return b;
+  }
+
+  /**
+   * Một tiếng tách.
+   * @param {number} [to] 0–1; bỏ trống là mức mặc định
+   * @returns {boolean} có kêu được không
+   */
+  function tach(to) {
+    const c = moMay();
+    if (!c) return false;
+    if (c.state === "suspended" && c.resume) { try { c.resume(); } catch (e) {} }
+    try {
+      const src = c.createBufferSource();
+      src.buffer = boNhieu(c);
+      const loc = c.createBiquadFilter();
+      loc.type = "bandpass"; loc.frequency.value = 2600; loc.Q.value = 0.9;
+      const g = c.createGain();
+      const t = c.currentTime;
+      const dinh = to == null ? 0.075 : to;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(dinh, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0004, t + TACH_DAI);
+      src.connect(loc); loc.connect(g); g.connect(c.destination);
+      src.start(t); src.stop(t + TACH_DAI + 0.02);
+    } catch (e) { return false; }
+    return true;
+  }
+
+  /** Những thứ bấm vào thì đáng kêu. Ô nhập chữ KHÔNG nằm trong này: gõ phím
+      mà mỗi ký tự một tiếng tách thì không ai chịu nổi. */
+  const NUT = 'button, summary, .btn, .iconbtn, .chip, [role="button"],' +
+              ' input[type="checkbox"], input[type="radio"], label.check, a[href]';
+
+  /**
+   * Gắn tiếng tách cho MỌI nút trong một cây DOM, bằng một người nghe duy nhất.
+   *
+   * Nghe ở `pointerdown` chứ không phải `click`: Android kêu ngay lúc ngón tay
+   * chạm xuống, và đó chính là thứ làm nút có cảm giác "ăn tay". Đợi tới click
+   * là đã trễ mất một nhịp.
+   *
+   * Nghe ở pha BẮT (capture) để nút nào có chặn sự kiện riêng thì vẫn kêu.
+   *
+   * @param {Document|ShadowRoot|HTMLElement} cay
+   * @param {function} duoc hỏi lại mỗi lượt bấm — trả false khi người dùng đã
+   *   tắt trong cài đặt
+   * @returns {function} gọi để gỡ người nghe ra
+   */
+  function ngheNut(cay, duoc) {
+    const tay = function (e) {
+      if (duoc && !duoc()) return;
+      const t = e.target;
+      if (!t || !t.closest) return;
+      const n = t.closest(NUT);
+      if (!n || n.disabled) return;
+      tach();
+    };
+    cay.addEventListener("pointerdown", tay, true);
+    return function () { cay.removeEventListener("pointerdown", tay, true); };
+  }
+
+  goc.CoVu = { loi, giongTot, diemGiong, chuong, tach, ngheNut, NUT, CHO_NOI };
 })(typeof self !== "undefined" ? self : this);

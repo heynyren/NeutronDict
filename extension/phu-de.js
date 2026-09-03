@@ -670,6 +670,10 @@
    * dùng đã chọn tiếng Nhật. Nút "dựng lại khi đổi ngôn ngữ" cũng không cứu
    * được, vì lúc câu trả lời về thì bảng còn chưa kịp ghi mã video vào S.
    */
+  /** Bấm nút có kêu không — cùng một khoá `tach` với sổ tay và popup. */
+  let tuTach = true;
+  const datTach = (st) => { tuTach = (st || {}).tach !== false; };
+
   let baoDaDoc;
   const daDocCaiDat = new Promise((giai) => { baoDaDoc = giai; });
   self.Song.doc("settings").then((r) => {
@@ -678,12 +682,14 @@
     datChu(st);
     datBat(st);
     datPhoi(st);
+    datTach(st);
     baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
     if (area !== "local" || !ch.settings) return;
     const st = ch.settings.newValue || {};
     datChu(st);
+    datTach(st);
     if (datPhoi(st)) veKhoPhoi();
     if (datBat(st)) {
       // Bật/tắt chế độ tự-bật giữa chừng: dựng lại cho khớp kiểu mới.
@@ -1223,6 +1229,7 @@
     host.setAttribute("data-ndict-yt", "1");   // content.js nhìn dấu này để không cướp sự kiện
     host.style.cssText = "all:initial;display:block;margin-bottom:16px";
     const root = host.attachShadow({ mode: "open" });
+    if (self.CoVu) self.CoVu.ngheNut(root, () => tuTach);
     const st = document.createElement("style"); st.textContent = CSS;
     root.appendChild(st);
 
@@ -2200,6 +2207,7 @@
     host.setAttribute("data-ndict-yt", "1");
     host.style.cssText = "all:initial;display:block;margin-bottom:16px";
     const root = host.attachShadow({ mode: "open" });
+    if (self.CoVu) self.CoVu.ngheNut(root, () => tuTach);
     const stEl = document.createElement("style"); stEl.textContent = CSS; root.appendChild(stEl);
     const box = document.createElement("div"); box.className = "box"; root.appendChild(box);
 
