@@ -490,6 +490,8 @@
     "Nhịp đọc & nhắc tập trung": "Reading rhythm & focus reminder",
     "Nhắc tập trung bằng loa, kể từ lúc mở app": "Spoken focus reminder, counted from when the app opens",
     "Đã lưu.": "Saved.",
+    "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
+      "A cheer after each grade — 「すごいね」 for remembered, 「がんばって」 for forgotten, plus a short chime",
     "Tốc độ nhịp đọc": "Reading rhythm speed",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
@@ -1252,6 +1254,8 @@
     "Nhịp đọc & nhắc tập trung": "読みのリズムと集中リマインド",
     "Nhắc tập trung bằng loa, kể từ lúc mở app": "音声での集中リマインド（アプリを開いた時点から）",
     "Đã lưu.": "保存しました。",
+    "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
+      "採点のあとに応援の声——覚えていたら「すごいね」、忘れていたら「がんばって」、短いチャイム付き",
     "Tốc độ nhịp đọc": "読みのリズムの速さ",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",

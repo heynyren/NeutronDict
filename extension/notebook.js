@@ -642,14 +642,20 @@ const GIONG = { vi: "vi-VN", ja: "ja-JP", en: "en-US" };
  * @param {string} [ngu] "vi" | "ja" | "en". Không truyền thì theo ngôn ngữ đang
  *   tra — trang Luyện nói phải đọc được CẢ HAI chiều nên nó luôn nói rõ.
  */
-function ttsSpeak(text, ngu) {
+function ttsSpeak(text, ngu, tuy) {
   try {
     speechSynthesis.cancel();
     const ma = GIONG[ngu] ? ngu : ((typeof NGU !== "undefined" && NGU === "ja") ? "ja" : "en");
+    const t = tuy || {};
     const u = new SpeechSynthesisUtterance(text);
     u.lang = GIONG[ma];
-    u.rate = 0.9;
-    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma));
+    u.rate = t.rate != null ? t.rate : 0.9;
+    if (t.pitch != null) u.pitch = t.pitch;
+    // Chọn giọng bằng CoVu.giongTot chứ không lấy giọng đầu danh sách: thứ tự
+    // mặc định của trình duyệt hay trả về giọng nén nhỏ, nghe rất "robot".
+    const ds = speechSynthesis.getVoices();
+    const v = (window.CoVu && window.CoVu.giongTot(ma, ds))
+      || ds.find((x) => x.lang && x.lang.startsWith(ma));
     if (v) u.voice = v;
     speechSynthesis.speak(u);
   } catch (e) { /* máy không có giọng thứ tiếng đó */ }
@@ -1336,6 +1342,22 @@ function startStudy() {
 /* Nhịp đọc & lời nhắc tập trung                                        */
 /* ==================================================================== */
 
+/**
+ * Cổ vũ một lượt chấm: tiếng chuông ngay, câu nói sau một nhịp ngắn.
+ *
+ * Gọi TRƯỚC mọi thứ khác trong grade() và không `await`: người ta bấm là muốn
+ * nghe ngay, chờ ghi sổ với đồng bộ xong mới kêu thì tiếng lạc hẳn khỏi cái bấm.
+ */
+function coVu(nho) {
+  if (!window.CoVu || CAI.coVu === false) return;
+  window.CoVu.chuong(nho);
+  const ngu = NGU === "ja" ? "ja" : "en";
+  // Đọc nhanh hơn và cao giọng hơn lúc đọc từ vựng: đây là một tiếng reo, đọc
+  // đúng nhịp tra từ điển thì nghe như đang thông báo ở sân bay.
+  setTimeout(() => ttsSpeak(window.CoVu.loi(nho, ngu), ngu, { rate: 1.02, pitch: 1.12 }),
+             window.CoVu.CHO_NOI);
+}
+
 /** Giữ tốc độ trong khoảng nhịp-doc.js chấp nhận; số rác thì về mặc định. */
 function nhipTocHopLe(v) {
   const n = parseInt(v, 10);
@@ -1448,6 +1470,7 @@ function revealCard() {
 async function grade(remembered) {
   const it = session.queue.shift();
   if (!it) return;
+  coVu(remembered);
   await gradeWord(it.key, remembered);
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
@@ -2013,7 +2036,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0 };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -2031,6 +2054,7 @@ async function loadSettings() {
   if ($("setNhip")) $("setNhip").checked = S.nhip !== false;
   if ($("setNhipToc")) $("setNhipToc").value = S.nhipToc || 320;
   if ($("setNhac")) $("setNhac").value = S.nhacPhut || 0;
+  if ($("setCoVu")) $("setCoVu").checked = S.coVu !== false;
   datLoiNhac();
   $("setInline").checked = !!S.inline;
   $("setCtrl").checked = !!S.requireCtrl;
@@ -2055,7 +2079,8 @@ async function saveSettings() {
       ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true,
       nhip: $("setNhip") ? $("setNhip").checked : true,
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
-      nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0))
+      nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),
+      coVu: $("setCoVu") ? $("setCoVu").checked : true
     })
   });
   // Đọc lại để CAI và đồng hồ nhắc khớp với thứ vừa lưu — sửa số phút xong mà

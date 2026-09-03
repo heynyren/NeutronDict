@@ -157,23 +157,38 @@ function preloadAudio(url) { if (url) { try { getAudioEl(url); } catch (e) {} } 
 /** Mã đầy đủ cho từng thứ tiếng mình có thể phải đọc. */
 const GIONG = { vi: "vi-VN", ja: "ja-JP", en: "en-US" };
 
-/** @param {string} [ngu] "vi" | "ja" | "en"; không truyền thì theo ngôn ngữ đang tra. */
-async function speak(text, audio, ngu) {
+/**
+ * @param {string} [ngu] "vi" | "ja" | "en"; không truyền thì theo ngôn ngữ đang tra.
+ * @param {{rate?:number, pitch?:number}} [tuy] một tiếng reo cần đọc nhanh và
+ *   cao hơn lúc đọc từ vựng, nên chỗ gọi nói rõ được.
+ */
+async function speak(text, audio, ngu, tuy) {
   if (audio) {
     try { const a = getAudioEl(audio); a.currentTime = 0; await a.play(); return; } catch (e) { /* rơi xuống TTS */ }
   }
+  const t = tuy || {};
   // Giọng theo ngôn ngữ đang bật — đọc 「犬」 bằng giọng tiếng Anh thì ra một
   // thứ không ai nghe được. Trang Luyện nói phải đọc được CẢ HAI chiều nên nó
   // luôn nói rõ thứ tiếng, khỏi đoán.
   const ma = GIONG[ngu] || (laNhat() ? "ja-JP" : "en-US");
+  const nhip = t.rate != null ? t.rate : 0.9;
   try {
-    if (Plugins.TextToSpeech) { await Plugins.TextToSpeech.speak({ text, lang: ma, rate: 0.9 }); return; }
+    if (Plugins.TextToSpeech) {
+      const o = { text, lang: ma, rate: nhip };
+      if (t.pitch != null) o.pitch = t.pitch;
+      await Plugins.TextToSpeech.speak(o); return;
+    }
   } catch (e) { /* thử fallback */ }
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = ma; u.rate = 0.9;
-    const v = speechSynthesis.getVoices().find((x) => x.lang && x.lang.startsWith(ma.slice(0, 2)));
+    u.lang = ma; u.rate = nhip;
+    if (t.pitch != null) u.pitch = t.pitch;
+    // Chọn giọng bằng CoVu.giongTot chứ không lấy giọng đầu danh sách: thứ tự
+    // mặc định hay trả về giọng nén nhỏ, nghe rất "robot".
+    const ds = speechSynthesis.getVoices();
+    const v = (window.CoVu && window.CoVu.giongTot(ma.slice(0, 2), ds))
+      || ds.find((x) => x.lang && x.lang.startsWith(ma.slice(0, 2)));
     if (v) u.voice = v;
     speechSynthesis.speak(u);
   } catch (e) { /* máy không có giọng thứ tiếng đó */ }
@@ -2782,7 +2797,7 @@ function renderStudyFav(it) {
 /* ==================================================================== */
 
 /** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
-const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0 };
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true };
 let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
 
 function nhipTocHopLe(v) {
@@ -2815,11 +2830,26 @@ function datLoiNhac() {
   });
 }
 
+/**
+ * Cổ vũ một lượt chấm: tiếng chuông ngay, câu nói sau một nhịp ngắn.
+ *
+ * Gọi TRƯỚC mọi thứ khác trong grade() và không `await`: người ta bấm là muốn
+ * nghe ngay, chờ ghi sổ với đồng bộ xong mới kêu thì tiếng lạc hẳn khỏi cái bấm.
+ */
+function coVu(nho) {
+  if (!window.CoVu || CAI_NHIP.coVu === false) return;
+  window.CoVu.chuong(nho);
+  const ngu = laNhat() ? "ja" : "en";
+  setTimeout(() => speak(window.CoVu.loi(nho, ngu), null, ngu, { rate: 1.02, pitch: 1.12 }),
+             window.CoVu.CHO_NOI);
+}
+
 async function napNhip() {
   CAI_NHIP = Object.assign({}, NHIP_MAC_DINH, (await Store.get("nhip")) || {});
   if ($("setNhip")) $("setNhip").checked = CAI_NHIP.nhip !== false;
   if ($("setNhipToc")) $("setNhipToc").value = CAI_NHIP.nhipToc || NHIP_MAC_DINH.nhipToc;
   if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
+  if ($("setCoVu")) $("setCoVu").checked = CAI_NHIP.coVu !== false;
   datLoiNhac();
 }
 
@@ -2827,7 +2857,8 @@ async function luuNhip() {
   await Store.set("nhip", {
     nhip: $("setNhip").checked,
     nhipToc: nhipTocHopLe($("setNhipToc").value),
-    nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0))
+    nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0)),
+    coVu: $("setCoVu").checked
   });
   await napNhip();
   $("nhipStatus").textContent = T("Đã lưu.");
@@ -2905,6 +2936,7 @@ $("stNote").addEventListener("click", () => { const it = session.queue[0]; if (i
 async function grade(remembered) {
   const it = session.queue.shift();
   if (!it) return;
+  coVu(remembered);
   await gradeWord(it.key, remembered);
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng

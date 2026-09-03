@@ -220,6 +220,10 @@
         <input type="number" id="setNhipToc" min="80" max="2000" step="20" style="max-width:110px">
         <span class="t-small muted" data-chu>mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)</span>
       </div>
+      <label class="check">
+        <input type="checkbox" id="setCoVu">
+        <span data-chu>Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn</span>
+      </label>
       <label class="field-label" style="margin-top:4px" data-chu>Nhắc tập trung bằng loa, kể từ lúc mở sổ tay</label>
       <div class="rowx" style="gap:8px">
         <input type="number" id="setNhac" min="0" max="240" style="max-width:110px">
@@ -439,6 +443,7 @@
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
   <script src="kana.js"></script>
+  <script src="co-vu.js"></script>
   <script src="nhip-doc.js"></script>
   <script src="muc.js"></script>
   <script src="ghi-am.js"></script>
