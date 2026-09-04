@@ -57,14 +57,20 @@ function grabSelCtx() {
   return { sel: text, prefix: prefix.replace(/\s+/g, " ").trim(), suffix: suffix.replace(/\s+/g, " ").trim() };
 }
 
-async function translateToVi(text) {
-  try { const v = await gtxTranslate(text, "auto", "vi"); if (v) return v; } catch (e) {}
+/**
+ * @param {string} [tu] mã ngôn ngữ nguồn. Nói rõ chứ đừng để "auto": một chữ
+ *   Hán trơ như 丘 thì máy dịch hay nhận nhầm là tiếng Trung rồi trả về CHÍNH
+ *   chữ ấy — và thế là mục sổ tay có "nghĩa" là đúng cái từ cần học.
+ */
+async function translateToVi(text, tu) {
+  const from = tu || "auto";
+  try { const v = await gtxTranslate(text, from, "vi"); if (v) return v; } catch (e) {}
   const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
   if (syncUrl) {
     try {
       const r = await fetch(syncUrl, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ token: syncToken || "", action: "translate", text, from: "", to: "vi" })
+        body: JSON.stringify({ token: syncToken || "", action: "translate", text, from: from === "auto" ? "" : from, to: "vi" })
       });
       const d = await r.json();
       if (d && d.text) return d.text;
@@ -98,21 +104,67 @@ async function handleContextSave(info, tab) {
     } catch (e) { /* trang chặn tiêm -> dùng selectionText */ }
   }
 
-  const vi = await translateToVi(ctx.sel).catch(() => "");
   const src = { url, title, sel: ctx.sel.slice(0, 400) };
   if (ctx.prefix) src.prefix = ctx.prefix.slice(-80);
   if (ctx.suffix) src.suffix = ctx.suffix.slice(0, 80);
   if (isPdf) src.pdf = true;
 
-  const entry = { word: ctx.sel.slice(0, 400), reading: "", means: vi ? [vi] : [], kind: "sent", src };
   try {
     const ngu = await nguHienTai();
-    await saveWord(entry, self.Ngu.nganChinh(ngu));
+    const ngan = self.Ngu.nganChinh(ngu);
+    const laTu = laMotTu(ctx.sel, ngu);
+
+    /*
+     * MỘT TỪ thì phải tra TỪ ĐIỂN, không phải đưa cho máy dịch.
+     *
+     * Lối cũ ném thẳng đoạn bôi đen cho Google Dịch rồi lấy kết quả làm nghĩa.
+     * Với một câu thì đúng; với một từ thì hỏng hai đường: không có cách đọc
+     * (nên không có furigana), và với một chữ Hán trơ, máy dịch trả về chính
+     * chữ ấy — mục sổ tay thành ra "丘 nghĩa là 丘". Đây chính là lỗi người
+     * dùng gặp khi lưu từ trong PDF.
+     */
+    let entry = null;
+    if (laTu) {
+      try {
+        const kq = await handleLookup(ctx.sel, ngan);
+        const e0 = ((kq && kq.entries) || [])[0];
+        if (e0 && (e0.means || []).length) entry = Object.assign({}, e0, { src });
+      } catch (e) { /* từ điển trượt -> rơi xuống đường máy dịch */ }
+    }
+
+    if (!entry) {
+      const vi = await translateToVi(ctx.sel, ngu).catch(() => "");
+      // Máy dịch trả về ĐÚNG chữ vừa gửi tức là nó không dịch được gì. Lấy cái
+      // đó làm nghĩa thì mục ấy vô dụng mà lại trông như đã xong — thà để trống
+      // rồi tự điền, ít ra còn biết là đang thiếu.
+      const nghia = (vi && vi.trim() && vi.trim() !== ctx.sel.trim()) ? [vi] : [];
+      entry = { word: ctx.sel.slice(0, 400), reading: "", means: nghia, src };
+      // `kind: "sent"` cũng là thứ chặn saveWord đi hỏi cách đọc. Một TỪ thì
+      // không được mang nhãn đó, kể cả khi từ điển không ra gì.
+      if (!laTu) entry.kind = "sent";
+    }
+
+    await saveWord(entry, ngan);
     scheduleSync(ngu);
     flashBadge("✓", "#1a9d5a");
   } catch (e) {
     flashBadge("!", "#d33");
   }
+}
+
+/**
+ * Đoạn bôi đen này là MỘT TỪ hay là một CÂU?
+ *
+ * Không có câu trả lời hoàn hảo, nhưng ba dấu hiệu này đủ chắc: có dấu kết câu
+ * thì là câu; tiếng Nhật viết liền nên một từ hiếm khi quá 12 chữ và không có
+ * khoảng trắng; tiếng Anh thì một từ (hoặc một cụm hai từ như "look up").
+ */
+function laMotTu(s, ngu) {
+  const t = (s || "").trim();
+  if (!t) return false;
+  if (/[.!?;…。！？；\n]/.test(t)) return false;
+  if (self.Ngu.hopLe(ngu) === "ja") return t.length <= 12 && !/\s/.test(t);
+  return t.length <= 32 && t.split(/\s+/).length <= 2;
 }
 
 async function openPopupWindow(rawText, tab) {
@@ -376,12 +428,12 @@ async function gtxLay(params, enc) {
   let cuoi = null;
   for (const h of GTX_HOST) {
     const base = h + params;
-    const doGet = () => fetch(base + "&q=" + enc);
-    const doPost = () => fetch(base, {
+    const doGet = () => layCoHan(base + "&q=" + enc, null, 8000);
+    const doPost = () => layCoHan(base, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
       body: "q=" + enc
-    });
+    }, 8000);
     let r = null;
     try { r = await (dai ? doPost() : doGet()); } catch (e) { r = null; }
     if (!r || !r.ok) { try { r = await (dai ? doGet() : doPost()); } catch (e) { /* cách kia cũng trượt */ } }
@@ -500,11 +552,28 @@ async function savedKanji(list) {
   return out;
 }
 
+/**
+ * fetch có HẠN GIỜ.
+ *
+ * Không có cái này thì một cổng treo là cả lượt tra treo theo: trình duyệt chờ
+ * tới hạn mặc định của nó (hàng chục giây) rồi mới báo hỏng, mà `fetchMazii`
+ * còn thử tiếp cổng thứ hai — người dùng ngồi nhìn vòng quay không biết bao lâu.
+ * Thà chịu mất một lượt tra còn hơn treo: từ điển không ra thì vẫn còn đường
+ * suy cách đọc và bản dịch máy.
+ */
+async function layCoHan(url, opt, hanMs) {
+  const bo = new AbortController();
+  const dong = setTimeout(() => bo.abort(), hanMs || 6000);
+  try {
+    return await fetch(url, Object.assign({}, opt || {}, { signal: bo.signal }));
+  } finally { clearTimeout(dong); }
+}
+
 async function fetchMazii(word, dict) {
   const payload = { dict, type: "word", query: word, limit: 20, page: 1 };
   for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
     try {
-      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const r = await layCoHan(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }, 6000);
       if (!r.ok) continue;
       const data = await r.json();
       let arr = (data && (data.results || data.data)) || [];
@@ -554,7 +623,7 @@ const kanaDem = new Map();
 async function romajiCua(text) {
   const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=rm"
     + "&sl=ja&tl=vi&q=" + encodeURIComponent(text);
-  const r = await fetch(url);
+  const r = await layCoHan(url, null, 5000);
   if (!r.ok) throw new Error("gtx HTTP " + r.status);
   const data = await r.json();
   // Google để phiên âm nguồn ở phần tử [3] của đoạn cuối (chỗ [0] rỗng).
@@ -572,6 +641,9 @@ async function romajiCua(text) {
  *   chục kết quả thì không, lúc BẤM LƯU một từ thì có — chỗ đó chỉ một từ, mà
  *   lại đúng là chỗ người dùng cần có furigana nhất.
  */
+/** Những chữ đang có một lượt hỏi mạng bay dở — xem chú thích trong docKana. */
+const kanaBay = new Map();
+
 async function docKana(word, reading, choPhepMang) {
   const K = self.Kana;
   const w = (word || "").trim();
@@ -589,20 +661,39 @@ async function docKana(word, reading, choPhepMang) {
   if (!K.canDoc(w, reading) || !choPhepMang) return null;
 
   if (kanaDem.has(w)) { const c = kanaDem.get(w); return c ? { doc: c, suy: true } : null; }
-  let k = "";
-  try { k = self.Kana.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
-  kanaDem.set(w, k);
+  // Chạy song song rồi thì hai kết quả cùng một chữ sẽ cùng lúc thấy đệm rỗng
+  // và cùng đi hỏi mạng. Giữ lại lời hứa đang bay để lượt sau bám vào.
+  if (kanaBay.has(w)) { const c = await kanaBay.get(w); return c ? { doc: c, suy: true } : null; }
+  const hua = (async () => {
+    let k = "";
+    try { k = self.Kana.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
+    kanaDem.set(w, k);
+    kanaBay.delete(w);
+    return k;
+  })();
+  kanaBay.set(w, hua);
+  const k = await hua;
   return k ? { doc: k, suy: true } : null;
 }
 
 /** Vá cách đọc cho cả danh sách kết quả tra. Chỉ vài mục đầu mới được gọi mạng. */
 async function themDoc(entries, soDuocGoiMang) {
   const ds = entries || [];
-  for (let i = 0; i < ds.length; i++) {
-    const e = ds[i];
-    const r = await docKana(e.word, e.reading, i < (soDuocGoiMang || 0));
+  const n = soDuocGoiMang || 0;
+  /*
+   * SONG SONG, không nối đuôi.
+   *
+   * Bốn kết quả đầu đều được phép hỏi mạng, mà mỗi lượt hỏi là một vòng đi-về
+   * tới Google. Vòng `for … await` cũ bắt chúng xếp hàng: đo trên một lượt tra
+   * 丘 với độ trễ 300ms mỗi lượt thì mất 1.510ms, các lượt bắt đầu cách nhau
+   * đúng 300ms — nối đuôi thấy rõ. Chúng chẳng phụ thuộc gì vào nhau cả.
+   *
+   * Đây đúng là lỗi tôi từng mắc ở phần IPA và đã sửa; chỗ này sót lại.
+   */
+  await Promise.all(ds.map(async (e, i) => {
+    const r = await docKana(e.word, e.reading, i < n);
     if (r) { e.reading = r.doc; if (r.suy) e.docSuy = 1; else delete e.docSuy; }
-  }
+  }));
   return ds;
 }
 
