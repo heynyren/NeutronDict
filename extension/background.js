@@ -127,8 +127,19 @@ async function handleContextSave(info, tab) {
     if (laTu) {
       try {
         const kq = await handleLookup(ctx.sel, ngan);
-        const e0 = ((kq && kq.entries) || [])[0];
-        if (e0 && (e0.means || []).length) entry = Object.assign({}, e0, { src });
+        const k = ketQuaKhop((kq && kq.entries) || [], ctx.sel);
+        if (k) {
+          // Chữ lưu vào sổ LUÔN LÀ CHỮ NGƯỜI TA BÔI. Từ điển chỉ được cho mượn
+          // nghĩa và cách đọc, không được quyền đổi từ.
+          entry = { word: ctx.sel, means: k.e.means, reading: "", src };
+          if (k.khop === "dung") {
+            entry.reading = k.e.reading || "";
+            if (k.e.pos && k.e.pos.length) entry.pos = k.e.pos;
+            if (k.e.audio) entry.audio = k.e.audio;
+          }
+          // Khớp kiểu "dạng gốc" thì để trống cách đọc: かすか là của 微か, chữ
+          // đang lưu là 微かな. saveWord sẽ suy đúng cách đọc cho chữ này.
+        }
       } catch (e) { /* từ điển trượt -> rơi xuống đường máy dịch */ }
     }
 
@@ -150,6 +161,33 @@ async function handleContextSave(info, tab) {
   } catch (e) {
     flashBadge("!", "#d33");
   }
+}
+
+/**
+ * Kết quả từ điển nào ĐÚNG là chữ người ta vừa bôi đen?
+ *
+ * Mazii tìm theo chuỗi, nên tra 微かな nó trả về cả 微かな笑み, 微かな音 … và
+ * không hứa hẹn gì về thứ tự. Lấy bừa kết quả đầu tiên là chuyện đã xảy ra:
+ * người dùng bôi 微かな, bấm Lưu, mở sổ tay ra thấy 微かな笑み — một từ họ chưa
+ * hề nhìn thấy bao giờ. Lỗi này do tôi viết ra ở bản 3.13.1.
+ *
+ * Hai kiểu khớp được chấp nhận:
+ *   "dung" — trùng khít.
+ *   "goc"  — chữ đã bôi là DẠNG CHIA của kết quả: 微かな→微か, 食べた→食べる.
+ *            Phần dôi ra phải là kana và ngắn.
+ * Và tuyệt đối không nhận kết quả DÀI HƠN chữ đã bôi: dài hơn nghĩa là nó mang
+ * thêm chữ mà người ta không hề chọn.
+ */
+function ketQuaKhop(ds, sel) {
+  const s = (sel || "").trim();
+  if (!s) return null;
+  const co = (ds || []).filter((e) => e && e.word && (e.means || []).length);
+  const dung = co.find((e) => e.word === s);
+  if (dung) return { e: dung, khop: "dung" };
+  const goc = co.find((e) => e.word.length < s.length
+    && s.indexOf(e.word) === 0
+    && /^[\u3041-\u3096\u30a1-\u30fa\u30fc]{1,3}$/.test(s.slice(e.word.length)));
+  return goc ? { e: goc, khop: "goc" } : null;
 }
 
 /**
