@@ -289,7 +289,20 @@
 
     <div id="stBody" style="display:none">
       <div class="studycard" id="stCard">
-        <div class="rowx" style="justify-content:center;gap:4px">
+        <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
+             là mắt đọc mất, tai không phải làm gì — hỏng đúng thứ đang kiểm. -->
+        <div id="stNgheMat" style="display:none;text-align:center;padding:16px 0">
+          <button class="btn primary lg" id="stNghePhat" type="button" style="min-width:180px" data-chu>Nghe câu</button>
+          <div class="t-tiny faint" id="stNgheToc" style="margin-top:10px"></div>
+        </div>
+        <!-- Bài liên kết: một mớ lộn xộn, nhặt cho hết tập cùng ý (hoặc ngược ý). -->
+        <div id="stLienMat" style="display:none">
+          <div class="t-small muted" id="stLienDe" style="text-align:center;margin-bottom:12px"></div>
+          <div id="stLienO" class="lien-o"></div>
+          <button class="btn primary block lg" id="stLienXong" type="button" style="margin-top:16px" data-chu>Xong</button>
+          <div class="t-small" id="stLienKq" style="text-align:center;margin-top:12px"></div>
+        </div>
+        <div class="rowx" style="justify-content:center;gap:4px" id="stMatChu">
           <span class="cw ja" id="stWord"></span>
           <button class="iconbtn" id="stSpk" type="button"></button>
         </div>
@@ -300,10 +313,25 @@
         </div>
         <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
           <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px" id="stGhiAm"></div>
+        <div id="stNgheCau" class="cr" style="display:none"></div>
         <div class="cr" id="stRead"></div>
         <div class="cm" id="stMean"></div>
         <div id="stMyNote"></div>
         <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px" data-chu>Hiện nghĩa</button>
+        <!-- Cửa sổ 5 giây sau khi bấm Nhớ: có muốn quay lại nguồn nghe không. -->
+        <div id="stHoiNguon" style="display:none;margin-top:16px">
+          <div class="t-small" style="text-align:center;margin-bottom:10px">
+            <span data-chu>Mở lại nguồn và nghe câu này?</span>
+            <b id="stDem" style="margin-left:6px"></b>
+          </div>
+          <div class="rowx" style="gap:10px">
+            <button class="btn grow" id="stKhongNghe" type="button" data-chu>Không, từ tiếp theo</button>
+            <button class="btn primary grow" id="stCoNghe" type="button" data-chu>Có, nghe lại</button>
+          </div>
+        </div>
+        <div id="stDaNghe" style="display:none;margin-top:16px">
+          <button class="btn primary block lg" id="stTiep" type="button" data-chu>Từ tiếp theo</button>
+        </div>
         <div class="grade" id="stGrade" style="display:none">
           <button class="btn no" id="gForgot" type="button" data-chu>Quên</button>
           <button class="btn yes" id="gKnow" type="button" data-chu>Nhớ</button>
@@ -452,6 +480,9 @@
 <script src="anh.js"></script>
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
+  <script src="srs.js"></script>
+  <script src="cau-nghe.js"></script>
+  <script src="tu-lien.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
   <script src="nhac-tau.js"></script>

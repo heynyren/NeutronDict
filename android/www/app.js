@@ -481,22 +481,57 @@ function dueInDays(days) {
   d.setHours(0, 0, 0, 0);
   return d.getTime();
 }
+/**
+ * Mục này có ĐƯỜNG nào đang tới hạn không.
+ *
+ * Hỏi thẳng bộ não đa-đường (srs.js) chứ không tự đọc `srs.due`: từ khi một mục
+ * có bốn đường, `srs` chỉ còn là bản gộp, mà con số trên nút "Học ngay" phải
+ * khớp với hàng đợi thật — lệch nhau thì nút báo 5 mục mà mở ra 8 thẻ.
+ */
 function isDue(it, now) {
   if (it.del) return false;
-  if (!it.srs || !it.srs.due) return true;
-  return it.srs.due <= now;
+  return window.Srs.denHan(it, now || Date.now()).length > 0;
 }
-async function gradeWord(key, remembered) {
+
+/**
+ * Nhịp bấm của CHÍNH người học, riêng cho từng đường. Để ở đây chứ không nhét
+ * vào từng mục: đây là thống kê về TAY người dùng (ngón cái trên điện thoại
+ * chậm hơn chuột cả giây), không phải thuộc tính của từ — mà một từ chỉ ôn dăm
+ * lần thì không bao giờ đủ mẫu.
+ */
+let nhipMs = null;
+async function docNhipMs() {
+  if (nhipMs) return nhipMs;
+  nhipMs = (await Store.get("nhipMs")) || {};
+  return nhipMs;
+}
+
+/**
+ * Chấm một lượt ôn.
+ * @param {number} [ms] thời gian truy xuất, đo từ lúc hiện thẻ tới lúc bấm
+ * @param {string} [duong] đường nào đang được kiểm; mặc định "nhin"
+ */
+async function gradeWord(key, remembered, ms, duong) {
+  const d = duong || "nhin";
+  const tkAll = await docNhipMs();
+  let kq = null;
   await capNhat((nb) => {
     const e = nb[key]; if (!e) return;
-    const now = Date.now();
-    const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
-    let lv, due;
-    if (remembered) { lv = Math.min(cur + 1, SRS_STEPS.length - 1); due = dueInDays(SRS_STEPS[lv]); }
-    else { lv = -1; due = now; }
-    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục. Xem Muc.gopSrs.
-    nb[key] = Object.assign({}, e, { srs: { lv, due, ts: now }, ts: now });
+    const cu = (e.duong && e.duong[d]) || null;
+    // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
+    // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
+    const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
+    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now());
+    const moi = Object.assign({}, e);
+    moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
+    // `srs` vẫn được ghi, và vẫn là thứ đồng bộ Drive / bản extension / máy chủ
+    // MCP đọc. Nó là bản GỘP của các đường — xem Srs.gomSrs.
+    moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    moi.ts = Date.now();
+    nb[key] = moi;
   });
+  if (kq) { nhipMs[d] = kq.tk; await Store.set("nhipMs", nhipMs); }
+  return kq;
 }
 /**
  * Cấp của một mục, nói theo cách người học đọc được. Bên trong đếm từ -1, ra
@@ -1376,6 +1411,7 @@ function show(view, huong) {
 
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
+  if (view !== "Study") goHoiNguon();
   if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
@@ -1729,6 +1765,11 @@ async function renderWord(entries) {
         if (old2 && !old2.del) {
           if (old2.deck) ne2.deck = old2.deck;
           if (old2.srs) ne2.srs = old2.srs;
+          // Tiến độ đa-đường và dữ liệu máy tự bồi: tra lại cùng một từ không
+          // được xoá công ôn tập, cũng không được bắt moi lại câu ngữ cảnh.
+          if (old2.duong) ne2.duong = old2.duong;
+          if (old2.cauNghe) ne2.cauNghe = old2.cauNghe;
+          if (old2.lien) ne2.lien = old2.lien;
           if (old2.kind) ne2.kind = old2.kind;
           if (old2.fav) ne2.fav = old2.fav;
           if (old2.note) ne2.note = old2.note;
@@ -1747,6 +1788,7 @@ async function renderWord(entries) {
       // docKana cố tình không đụng tới. Ghép furigana theo từng khúc chữ Hán.
       if ((huong === "javi" || huong === "vija") && !en.reading) {
         rubyVaSau(key, en.word).then(() => drawNotebook(), () => {});
+        boiThem(key);         // câu ngữ cảnh + tập từ liên, chạy ngầm
       }
       syncSoon(); refreshNotifications();
     };
@@ -1930,6 +1972,9 @@ async function showTranslate(text) {
         if (oldS && !oldS.del) {
           if (oldS.deck) neS.deck = oldS.deck;
           if (oldS.srs) neS.srs = oldS.srs;
+          if (oldS.duong) neS.duong = oldS.duong;
+          if (oldS.cauNghe) neS.cauNghe = oldS.cauNghe;
+          if (oldS.lien) neS.lien = oldS.lien;
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
@@ -1945,6 +1990,7 @@ async function showTranslate(text) {
       // Câu tiếng Nhật thì ghép furigana theo từng khúc chữ Hán. Chạy sau và
       // KHÔNG chờ: bấm Lưu thì phải lưu xong ngay.
       if (huongCau === "javi") rubyVaSau(key, text).then(() => drawNotebook(), () => {});
+      boiThem(key);           // câu ngữ cảnh + tập từ liên, chạy ngầm
       syncSoon(); refreshNotifications();
       toast(T("Đã lưu — bấm Sửa nếu bản dịch chưa đúng chuyên ngành"));
     };
@@ -2732,11 +2778,19 @@ function nhanNgan(id) {
  * nguyên cả sổ tay: người ta muốn ôn nhanh đúng một thư mục thì không có cách
  * nào làm được.
  */
+/**
+ * Hàng đợi của một buổi học: mỗi phần tử là một cặp (mục, ĐƯỜNG), không phải
+ * một mục. Một từ có thể đến hạn ở đường nhìn mà chưa đến hạn ở đường nghe.
+ */
 async function currentDue() {
   const nb = await getNBNgu();
   const now = Date.now();
   const ds = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
-  return setIn(ds, curDeck).filter((it) => isDue(it, now));
+  const ra = [];
+  for (const it of setIn(ds, curDeck)) {
+    for (const d of window.Srs.denHan(it, now)) ra.push(Object.assign({}, it, { _d: d }));
+  }
+  return ra;
 }
 
 async function updateDueButton() {
@@ -2764,6 +2818,12 @@ async function updateDueButton() {
 $("stStart").addEventListener("click", async () => {
   const due = await currentDue();
   if (!due.length) { toast(T("Không có mục nào đến hạn. Quay lại sau nhé!"), "bad"); return; }
+  // Kho từ nhiễu cho bài liên kết: lấy một lần ở đây thay vì mỗi thẻ đọc lại
+  // cả sổ tay — buổi học nào cũng đọc mấy chục lần thì máy yếu thấy ngay.
+  try {
+    const nbAll = await getNBNgu();
+    tuNhieu = Object.keys(nbAll).map((k) => nbAll[k]).filter((x) => x && !x.del && x.word).map((x) => x.word);
+  } catch (e) { tuNhieu = []; }
   session = { queue: due.sort(() => Math.random() - 0.5), done: 0, again: 0, deleted: 0 };
   lastDeleted = null;
   $("stUndo").style.display = "none";
@@ -2895,11 +2955,33 @@ if ($("nghThu")) $("nghThu").addEventListener("click", () => {
   if (t) $("nhipStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
 });
 
+/*
+ * Bấm giờ truy xuất — đo từ lúc thẻ hiện ra tới lúc bấm Nhớ. Quãng này gồm cả
+ * thời gian ĐỌC đáp án sau khi lật, nên nó là thời gian truy xuất cộng một hằng
+ * số; muốn tín hiệu sạch hơn thì đo tới lúc bấm "Hiện nghĩa".
+ */
+let mocHienThe = 0;
+
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
+  goHoiNguon();
   const it = session.queue[0];
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
+  mocHienThe = performance.now();
+
+  const laNghe = it._d === "nghe";
+  const laLien = it._d === "dong" || it._d === "trai";
+  $("stNgheMat").style.display = laNghe ? "" : "none";
+  $("stLienMat").style.display = laLien ? "" : "none";
+  $("stMatChu").style.display = laNghe ? "none" : "";
+  $("stNgheCau").style.display = "none";
+  $("stNgheCau").textContent = "";
+  if (laNghe) {
+    const lv = ((it.duong || {}).nghe || {}).lv;
+    $("stNgheToc").textContent = T2("Tốc độ ×{t} — nhanh dần theo cấp", { t: window.Srs.tocDoNghe(lv) });
+  }
+  if (laLien) veBaiLien(it);
 
   $("stProg").textContent = T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done });
   $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
@@ -2919,14 +3001,233 @@ function showCard(giuLat) {
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
   $("stMyNote").innerHTML = "";
-  $("stReveal").style.display = "";
+  $("stReveal").style.display = laLien ? "none" : "";
   $("stGrade").style.display = "none";
+  // Thẻ nghe tự phát một lượt ngay: bắt bấm thêm một nút nữa mới nghe là thừa.
+  //
+  // Nhớ lại hẹn giờ để HUỶ nó ở thẻ sau: bấm Nhớ trong vòng 120ms kể từ lúc thẻ
+  // hiện ra thì hẹn cũ nổ trên thẻ mới, và người ta nghe câu của từ trước.
+  if (henPhat) { clearTimeout(henPhat); henPhat = null; }
+  if (laNghe && !daLat) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
   if (daLat) revealCard();
 }
+
+/* ==================================================================== */
+/* Bồi thêm sau khi lưu: câu ngữ cảnh và tập từ liên                    */
+/* ==================================================================== */
+/*
+ * Cả hai đều phải gọi mạng, nên chạy SAU khi đã lưu và KHÔNG chờ — cùng nếp với
+ * việc ghép furigana. Bấm Lưu thì phải lưu xong ngay; bắt nút Lưu đứng chờ một
+ * lượt hỏi mạng chỉ để làm đẹp dữ liệu là đổi một thứ chắc chắn lấy một thứ hên
+ * xui. Ghi qua `capNhat` nên chúng tự xếp hàng, không giẫm lên nhau.
+ */
+async function boiThem(key) {
+  try {
+    const nb = await getNB();
+    const e = nb[key];
+    if (!e || e.del) return;
+    const laJa = String(e.dict || "").indexOf("ja") === 0;
+
+    if (!e.cauNghe) {
+      const c = window.CauNghe.tuNguon(e.src, e.word);
+      if (c) {
+        let dich = "";
+        try { dich = await gtxTranslate(c.cau, laJa ? "ja" : "en", "vi"); } catch (er) { dich = ""; }
+        if (dich && dich.trim() === c.cau.trim()) dich = "";
+        await capNhat((n2) => {
+          const x = n2[key];
+          if (!x || x.del || x.cauNghe) return;
+          n2[key] = Object.assign({}, x, { cauNghe: { cau: c.cau, dich: dich, ts: Date.now() } });
+        });
+      }
+    }
+
+    if (!e.lien) {
+      let ra = window.TuLien.tuBang(e.word);
+      if (laJa && !ra.dong.length) {
+        // Không có API 類語 nào cho gọi từ trình duyệt. Nhưng dịch sang tiếng
+        // Việt rồi dịch NGƯỢC lại thì Google trả về cả danh sách ứng viên cho
+        // cùng một ý — đó chính là tập đồng nghĩa.
+        try {
+          const g1 = await gtxDict(e.word, "ja", "vi");
+          if (g1 && g1.main) {
+            const g2 = await gtxDict(g1.main, "vi", "ja");
+            let ds = [];
+            for (const t of (g2 && g2.senses) || []) ds = ds.concat(t.terms || []);
+            if (g2 && g2.main) ds.unshift(g2.main);
+            ra = window.TuLien.gop(ra, { dong: window.TuLien.gonDs(ds, e.word), trai: [] });
+          }
+        } catch (er) { /* thôi vậy */ }
+      } else if (!laJa) {
+        ra = window.TuLien.gop(window.TuLien.tuPos(e.pos, e.word), ra);
+      }
+      if (ra.dong.length || ra.trai.length) {
+        await capNhat((n2) => {
+          const x = n2[key];
+          if (!x || x.del || x.lien) return;
+          n2[key] = Object.assign({}, x, { lien: { dong: ra.dong, trai: ra.trai, ts: Date.now() } });
+        });
+      }
+    }
+  } catch (er) { /* không bồi được thì mục vẫn dùng bình thường */ }
+}
+
+/* ==================================================================== */
+/* Cửa sổ 5 giây: quay lại nguồn nghe lại                               */
+/* ==================================================================== */
+/*
+ * Nhớ được một từ xong là lúc dễ tiếp thu nhất — vừa moi nó ra thì cả cụm liên
+ * kết quanh nó đang sáng. Nhưng KHÔNG được bắt buộc và không được cản: năm giây
+ * đếm ngược, không bấm gì thì tự sang thẻ kế. Đã chọn nghe thì DỪNG LẠI — mở
+ * nguồn ra là mắt rời khỏi app, tự nhảy thẻ lúc đó chỉ làm mất chỗ.
+ */
+const CHO_NGUON = 5;
+let demNguon = null, xongNguon = null;
+
+function goHoiNguon() {
+  if (demNguon) { clearInterval(demNguon); demNguon = null; }
+  xongNguon = null;
+  if ($("stHoiNguon")) $("stHoiNguon").style.display = "none";
+  if ($("stDaNghe")) $("stDaNghe").style.display = "none";
+}
+
+/** @returns {boolean} có mở cửa sổ hỏi không. false = cứ sang thẻ kế như cũ. */
+function hoiNguon(it) {
+  if (!it || !it.src || !it.src.url) return false;
+  const o = $("stHoiNguon");
+  if (!o) return false;
+  goHoiNguon();
+  $("stGrade").style.display = "none";
+  o.style.display = "";
+  xongNguon = it;
+  let con = CHO_NGUON;
+  $("stDem").textContent = "(" + con + ")";
+  demNguon = setInterval(() => {
+    con -= 1;
+    if (con > 0) { $("stDem").textContent = "(" + con + ")"; return; }
+    goHoiNguon();
+    showCard();
+  }, 1000);
+  return true;
+}
+
+function coNgheLai() {
+  const it = xongNguon;
+  if (demNguon) { clearInterval(demNguon); demNguon = null; }
+  $("stHoiNguon").style.display = "none";
+  if (!it) { showCard(); return; }
+  $("stDaNghe").style.display = "";
+  openSourceExt(it);
+  speak(it.word, it.audio);
+}
+if ($("stCoNghe")) $("stCoNghe").addEventListener("click", coNgheLai);
+if ($("stKhongNghe")) $("stKhongNghe").addEventListener("click", () => { goHoiNguon(); showCard(); });
+if ($("stTiep")) $("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });
+
+/**
+ * Phát câu nghe. Tốc độ theo cấp của chính đường nghe — cấp thấp nghe chậm cho
+ * rõ từng chữ, lên cấp thì đẩy về tốc độ nói thật.
+ */
+let henPhat = null;
+
+function phatCauNghe() {
+  const it = session.queue[0];
+  if (!it || !it.cauNghe || !it.cauNghe.cau) return;
+  const lv = ((it.duong || {}).nghe || {}).lv;
+  speak(it.cauNghe.cau, null, laNhat() ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
+}
+if ($("stNghePhat")) $("stNghePhat").addEventListener("click", phatCauNghe);
+
+/* ==================================================================== */
+/* Bài liên kết: nhặt cho hết tập đồng nghĩa / trái nghĩa               */
+/* ==================================================================== */
+/*
+ * Não cất từ theo LÁNG GIỀNG chứ không theo khoá: muốn nói "cải thiện" thì
+ * 改善 / 改良 / 向上 / 進歩 cùng sáng lên rồi tranh nhau. Biết từ mà vẫn nói
+ * nhầm từ không phải vì quên, mà vì chọn sai giữa mấy ứng viên gần nhau — thẻ
+ * từ đơn không luyện được chuyện đó vì nó giả vờ mỗi từ đứng một mình.
+ */
+let baiLien = null;
+/** Kho từ dùng làm NHIỄU cho bài liên kết — nạp một lần lúc mở buổi học. */
+let tuNhieu = [];
+
+function veBaiLien(it) {
+  const d = it._d;
+  const l = it.lien || {};
+  const dung = (d === "dong" ? l.dong : l.trai) || [];
+  const kia = (d === "dong" ? l.trai : l.dong) || [];
+  // Nhiễu lấy từ CHÍNH sổ tay: là từ đang học nên nhìn quen mắt — nhiễu thật,
+  // không phải nhiễu loại được ngay từ cái nhìn đầu.
+  const xa = tuNhieu.filter((w) => w && w !== it.word);
+  const o = window.TuLien.dungDe(dung, kia, xa);
+
+  baiLien = { it: it, duong: d, dung: new Set(dung), chon: new Set(), moc: performance.now() };
+  $("stLienDe").textContent = d === "dong"
+    ? T2("Nhặt cho hết những từ CÙNG NGHĨA với {t}", { t: it.word })
+    : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
+  $("stLienKq").textContent = "";
+  $("stLienXong").style.display = "";
+
+  const khung = $("stLienO");
+  khung.textContent = "";
+  for (const chu of o) {
+    const b = el("button", null, chu);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      if (b.disabled) return;
+      if (baiLien.chon.has(chu)) { baiLien.chon.delete(chu); b.classList.remove("chon"); }
+      else { baiLien.chon.add(chu); b.classList.add("chon"); }
+    });
+    khung.appendChild(b);
+  }
+}
+
+async function xongBaiLien() {
+  if (!baiLien) return;
+  const b = baiLien;
+  baiLien = null;                                  // chặn bấm Xong hai lần
+  const ms = Math.round(performance.now() - b.moc);
+  let dung = 0, sai = 0;
+  for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
+  const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
+
+  // Xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt = BỎ SÓT. Bỏ sót mới là thứ
+  // đáng nhìn lại nhất nên nó phải có dấu riêng.
+  for (const nut of $("stLienO").querySelectorAll("button")) {
+    const chu = nut.textContent;
+    nut.disabled = true;
+    nut.classList.remove("chon");
+    if (b.chon.has(chu)) nut.classList.add(b.dung.has(chu) ? "dung" : "sai");
+    else if (b.dung.has(chu)) nut.classList.add("sot");
+  }
+  $("stLienXong").style.display = "none";
+  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
+    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+
+  coVu(kq.nho);
+  session.queue.shift();
+  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong);
+  if (kq.nho) session.done++; else { session.again++; session.queue.push(Object.assign({}, b.it)); }
+  const moi = await theoDoi.ghiLuotOn(kq.nho);
+  veChuoiNgay();
+  syncSoon();
+  // Cho hai giây nhìn lại bài mình vừa làm rồi mới sang thẻ kế.
+  setTimeout(() => mung(moi, showCard), 2000);
+}
+if ($("stLienXong")) $("stLienXong").addEventListener("click", xongBaiLien);
 
 function revealCard() {
   const it = session.queue[0];
   if (!it) return;
+  if (it._d === "nghe") {
+    // Lật thẻ nghe: hiện CHỮ của câu vừa nghe + bản dịch.
+    $("stMatChu").style.display = "";
+    const o = $("stNgheCau");
+    o.style.display = "";
+    o.innerHTML = "";
+    o.appendChild(el("div", "t-lead", (it.cauNghe || {}).cau || ""));
+    if ((it.cauNghe || {}).dich) o.appendChild(el("div", "t-small muted", it.cauNghe.dich));
+  }
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
   // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
@@ -2964,10 +3265,15 @@ $("stEdit").addEventListener("click", () => { const it = session.queue[0]; if (i
 $("stNote").addEventListener("click", () => { const it = session.queue[0]; if (it) moSua(it, "note"); });
 
 async function grade(remembered) {
+  // Bài liên kết tự chấm bằng nút Xong; đừng để nút Nhớ/Quên cướp lượt.
+  if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
   const it = session.queue.shift();
   if (!it) return;
   coVu(remembered);
-  await gradeWord(it.key, remembered);
+  // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
+  const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
+  mocHienThe = 0;
+  await gradeWord(it.key, remembered, ms, it._d || "nhin");
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
 
@@ -2978,7 +3284,9 @@ async function grade(remembered) {
   syncSoon();
   // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che mất
   // thẻ mới và người dùng bấm nhầm.
-  mung(moi, showCard);
+  // Sau khi NHỚ, mục có nguồn thì hỏi có muốn quay lại nghe không.
+  const tiep = () => { if (!hoiNguon(it)) showCard(); };
+  mung(moi, tiep);
 }
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
@@ -3024,6 +3332,7 @@ function ketThucSom() {
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
   if (window.NhacTau) window.NhacTau.tat();
+  goHoiNguon();
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";

@@ -1528,7 +1528,11 @@ function showCard(giuLat) {
   $("stReveal").style.display = laLien ? "none" : "";
   $("stGrade").style.display = "none";
   // Thẻ nghe tự phát một lượt ngay: bắt bấm thêm một nút nữa mới nghe là thừa.
-  if (laNghe && !daLat) setTimeout(phatCauNghe, 120);
+  //
+  // Nhớ lại hẹn giờ để HUỶ nó ở thẻ sau: bấm Nhớ trong vòng 120ms kể từ lúc thẻ
+  // hiện ra thì hẹn cũ nổ trên thẻ mới, và người ta nghe câu của từ trước.
+  if (henPhat) { clearTimeout(henPhat); henPhat = null; }
+  if (laNghe && !daLat) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
   if (daLat) revealCard();
 }
 
@@ -1697,10 +1701,15 @@ async function xongBaiLien() {
     { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
 
   coVu(kq.nho);
+  // BỎ thẻ này ra khỏi hàng đợi. Thiếu dòng này thì hai giây sau showCard() vẽ
+  // lại đúng cái đề vừa làm, và buổi học kẹt ở đó vĩnh viễn.
+  session.queue.shift();
   await gradeWord(b.it.key, kq.nho, kq.ms, b.duong);
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
-  if (kq.nho) session.done++; else session.again++;
+  // Quên thì học lại cuối hàng, y như thẻ thường.
+  if (kq.nho) session.done++;
+  else { session.again++; session.queue.push(Object.assign({}, b.it)); }
   // Cho hai giây nhìn lại bài mình vừa làm rồi mới sang thẻ kế.
   setTimeout(() => {
     if (moi.length) window.TienDo.anMung(moi, showCard); else showCard();
@@ -1835,6 +1844,8 @@ $("stReveal").addEventListener("click", revealCard);
  * Phát câu nghe. Tốc độ theo cấp của chính đường nghe — xem Srs.tocDoNghe.
  * Cấp thấp nghe chậm cho rõ từng chữ, lên cấp thì đẩy về tốc độ nói thật.
  */
+let henPhat = null;
+
 function phatCauNghe() {
   const it = theCardHienTai();
   if (!it || !it.cauNghe || !it.cauNghe.cau) return;
