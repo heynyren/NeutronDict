@@ -673,6 +673,28 @@ select { cursor: pointer; }
 .studycard .cw.co-ruby { line-height: 1.9; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
 
+/* Bảng phím tắt trong màn học: nép góc dưới-trái, chìm màu, không tranh chỗ với
+   thẻ. Trên màn hẹp thì ẩn hẳn — ở đó vốn không có bàn phím. */
+.stphim {
+  position: fixed; left: 16px; bottom: 16px; z-index: 5;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 12px 9px; font-size: 11.5px; color: var(--ink-3); line-height: 1.85;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.stphim-t { font-weight: 700; color: var(--ink-2); margin-bottom: 2px; letter-spacing: .02em; }
+.stphim kbd {
+  display: inline-block; min-width: 17px; text-align: center;
+  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px;
+  padding: 0 4px; margin-right: 2px; font: inherit; font-size: 11px; color: var(--ink-2);
+  background: var(--surface-2);
+}
+.stphim-an {
+  position: absolute; top: 2px; right: 5px; border: 0; background: none; cursor: pointer;
+  color: var(--ink-3); font-size: 15px; line-height: 1; padding: 2px 3px;
+}
+.stphim-an:hover { color: var(--ink); }
+@media (max-width: 900px) { .stphim { display: none; } }
+
 /* Bài liên kết từ: một mớ ô bấm được. Ô đủ to để bấm bằng ngón cái, và xếp
    theo lưới co giãn — mớ có 8 ô hay 16 ô đều phải nhìn ra là một mớ. */
 .lien-o { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }

@@ -81,10 +81,42 @@
   const MS_TOI_DA = 60000;
   /** Dưới ngưỡng này là bấm nhầm / bấm trước khi kịp đọc, không tính. */
   const MS_TOI_THIEU = 250;
+  /**
+   * Trần dùng RIÊNG cho thống kê.
+   *
+   * Vì sao phải tách khỏi MS_TOI_DA: một lượt 55 giây vẫn là một lượt trả lời
+   * thật (đáng chấm là "rất chậm"), nhưng nếu để nguyên nó vào trung bình thì
+   * nó phá nát bộ hiệu chỉnh. Đo được: 30 lượt đều 1,5 giây, thêm ĐÚNG MỘT
+   * lượt 55 giây là trung bình vọt lên 3,2 giây và độ lệch lên 9,6 giây — sau
+   * đó một lượt 1,5 giây không còn được coi là nhanh nữa. Một lần mất tập trung
+   * làm hỏng cách chấm của cả tuần sau.
+   *
+   * Nên lượt quá chậm vẫn được ĐẾM, chỉ bị kẹp lại trước khi vào trung bình.
+   */
+  const MS_THONG_KE = 15000;
+  /** Đủ ngần này mẫu thì bỏ mốc cứng, so với chính mình. */
+  const DU_MAU = 5;
 
   function themMau(tk, ms) {
     const cu = tk && typeof tk.n === "number" ? tk : { n: 0, tb: 0, m2: 0 };
     if (!(ms >= MS_TOI_THIEU && ms <= MS_TOI_DA)) return cu;   // lượt rác: bỏ
+    ms = Math.min(ms, MS_THONG_KE);
+    /*
+     * Kẹp thêm một lần nữa, lần này THEO CHÍNH NGƯỜI HỌC.
+     *
+     * Trần cứng 15 giây vẫn chưa đủ: người bấm đều đặn 1,5 giây mà dính một
+     * lượt bị phân tâm thì trần 15 giây vẫn gấp mười lần nhịp thường của họ, và
+     * độ lệch vọt lên đủ để mấy lượt nhanh sau đó không còn được tính là nhanh.
+     *
+     * Nên khi đã đủ mẫu thì kẹp lượt mới ở "trung bình + 2 độ lệch" — nó vẫn
+     * được ĐẾM là một lượt chậm, chỉ không được phép kéo cả bộ hiệu chỉnh theo.
+     * Đây là cách xử lý giá trị lạc kinh điển, và ở đây nó cần thật: bộ hiệu
+     * chỉnh là thứ mọi phép chấm sau đều dựa vào.
+     */
+    if (cu.n >= DU_MAU) {
+      const sd = Math.sqrt(cu.m2 / (cu.n - 1)) || cu.tb * 0.25;
+      ms = Math.min(ms, cu.tb + 2 * sd);
+    }
     const n = cu.n + 1;
     const d = ms - cu.tb;
     const tb = cu.tb + d / n;
@@ -112,7 +144,6 @@
   /* Nhanh hay chậm                                                      */
   /* ------------------------------------------------------------------ */
 
-  const DU_MAU = 5;              // đủ mẫu thì bỏ mốc cứng, so với chính mình
   const NHANH_MS = 2500;         // mốc tạm lúc chưa đủ mẫu — lựa chọn kỹ thuật
   const CHAM_MS = 6000;
   const RAT_CHAM_MS = 12000;
@@ -160,11 +191,23 @@
   /* Chấm một lượt                                                       */
   /* ------------------------------------------------------------------ */
 
-  /** Đến hạn vào ĐẦU NGÀY mục tiêu, để hôm sau mở app lúc nào cũng thấy. */
+  /**
+   * Đến hạn vào ĐẦU NGÀY mục tiêu, để hôm sau mở app lúc nào cũng thấy.
+   *
+   * Cái chốt ở cuối là bắt buộc, không phải phòng xa. Giãn cách có thể co xuống
+   * dưới một ngày (rất chậm ở cấp thấp: 1 ngày × 0,35 = 0,35 ngày), mà lùi về
+   * đầu ngày thì cái mốc ấy rơi vào QUÁ KHỨ — chấm lúc 10 giờ sáng, hạn thành
+   * 0 giờ sáng CÙNG NGÀY. Thẻ lập tức đến hạn lại, và người học gặp đúng nó
+   * ngay lượt sau, mãi mãi. Bộ soát bắt được 4 lượt như vậy.
+   */
   function hanSauNgay(songay, now) {
-    const d = new Date((now || Date.now()) + songay * NGAY);
+    const bayGio = now || Date.now();
+    const n = (typeof songay === "number" && isFinite(songay)) ? songay : 1;
+    const d = new Date(bayGio + n * NGAY);
     d.setHours(0, 0, 0, 0);
-    return d.getTime();
+    let h = d.getTime();
+    while (h <= bayGio) h += NGAY;          // không bao giờ trả về mốc đã qua
+    return h;
   }
 
   /**
@@ -179,7 +222,12 @@
    */
   function cham(cu, nho, ms, tk, now) {
     const bayGio = now || Date.now();
-    const lvCu = (cu && typeof cu.lv === "number") ? cu.lv : -1;
+    // Kẹp cấp về khoảng hợp lệ. `lv` là số ĐỌC TỪ KHO — sổ tay đồng bộ từ máy
+    // khác, bản cũ, hay một lượt sửa tay đều có thể đưa vào NaN hoặc số ngoài
+    // thang, và lúc đó MOC[lv] là undefined, giãn cách thành NaN, `due` thành
+    // NaN — mục hỏng vĩnh viễn mà không có gì báo.
+    const thoLv = cu && typeof cu.lv === "number" && isFinite(cu.lv) ? cu.lv : -1;
+    const lvCu = Math.max(-1, Math.min(MOC.length - 1, Math.round(thoLv)));
 
     if (!nho) {
       // Quên thì y như cũ: về đầu, học lại ngay trong buổi. KHÔNG đưa thời gian
@@ -320,13 +368,13 @@
    * Chặn trên 1,5 vì quá đó giọng máy méo tới mức không còn giống tiếng người.
    */
   function tocDoNghe(lv) {
-    const n = typeof lv === "number" ? lv : -1;
+    const n = (typeof lv === "number" && isFinite(lv)) ? lv : -1;   // NaN vào thì NaN ra
     return Math.min(1.5, Math.round((0.8 + Math.max(0, n + 1) * 0.1) * 100) / 100);
   }
 
   goc.Srs = {
     DUONG, TEN_DUONG, MOC, NGAY,
-    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, HE_SO, MO_DUONG,
+    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, MS_THONG_KE, HE_SO, MO_DUONG,
     themMau, doLech, heSoBienThien, nhipDo, cham,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
     tocDoNghe

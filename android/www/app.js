@@ -2214,8 +2214,9 @@ async function luuSua() {
   dongSua();
   drawNotebook();
   if (veLai) { try { veLai(); } catch (e) { /* thẻ đã biến mất thì thôi */ } }
-  if (session.queue.length && session.queue[0] && session.queue[0].key === key) {
-    Object.assign(session.queue[0], kq.ne);
+  const dangHoc = theCardHienTai();
+  if (dangHoc && dangHoc.key === key) {
+    Object.assign(dangHoc, kq.ne);
     showCard(true);
   }
   syncSoon();
@@ -2962,10 +2963,20 @@ if ($("nghThu")) $("nghThu").addEventListener("click", () => {
  */
 let mocHienThe = 0;
 
+/**
+ * Thẻ ĐANG HIỆN TRÊN MÀN — không phải đầu hàng đợi. Hai thứ đó lệch nhau đúng
+ * từ lúc bấm Nhớ (đã rút thẻ khỏi hàng) tới lúc vẽ thẻ kế; trong khoảng đó cửa
+ * sổ "nghe lại nguồn?" đang mở, mặt thẻ vẫn là từ vừa chấm, mà mấy nút Sửa /
+ * Ghi chú / loa / Xoá lại đọc đầu hàng, tức là từ KẾ TIẾP.
+ */
+let theTrenMan = null;
+function theCardHienTai() { return theTrenMan || session.queue[0]; }
+
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   goHoiNguon();
   const it = session.queue[0];
+  theTrenMan = it;
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
   mocHienThe = performance.now();
@@ -3083,7 +3094,9 @@ async function boiThem(key) {
  * đếm ngược, không bấm gì thì tự sang thẻ kế. Đã chọn nghe thì DỪNG LẠI — mở
  * nguồn ra là mắt rời khỏi app, tự nhảy thẻ lúc đó chỉ làm mất chỗ.
  */
-const CHO_NGUON = 5;
+// Ba giây, không phải năm. Năm giây đủ dài để thành ra đang CHỜ, mà việc này
+// vốn chỉ là một cái cửa mở hé — ai muốn nghe thì bấm, không thì đi tiếp.
+const CHO_NGUON = 3;
 let demNguon = null, xongNguon = null;
 
 function goHoiNguon() {
@@ -3133,7 +3146,7 @@ if ($("stTiep")) $("stTiep").addEventListener("click", () => { goHoiNguon(); sho
 let henPhat = null;
 
 function phatCauNghe() {
-  const it = session.queue[0];
+  const it = theCardHienTai();
   if (!it || !it.cauNghe || !it.cauNghe.cau) return;
   const lv = ((it.duong || {}).nghe || {}).lv;
   speak(it.cauNghe.cau, null, laNhat() ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
@@ -3219,7 +3232,7 @@ async function xongBaiLien() {
 if ($("stLienXong")) $("stLienXong").addEventListener("click", xongBaiLien);
 
 function revealCard() {
-  const it = session.queue[0];
+  const it = theCardHienTai();
   if (!it) return;
   if (it._d === "nghe") {
     // Lật thẻ nghe: hiện CHỮ của câu vừa nghe + bản dịch.
@@ -3262,15 +3275,18 @@ function revealCard() {
 }
 
 $("stReveal").addEventListener("click", revealCard);
-$("stSpk").addEventListener("click", () => { const it = session.queue[0]; if (it) speak(it.word, it.audio); });
-$("stEdit").addEventListener("click", () => { const it = session.queue[0]; if (it) moSua(it, "trans"); });
-$("stNote").addEventListener("click", () => { const it = session.queue[0]; if (it) moSua(it, "note"); });
+$("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
+$("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
+$("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
 async function grade(remembered) {
   // Bài liên kết tự chấm bằng nút Xong; đừng để nút Nhớ/Quên cướp lượt.
   if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
-  const it = session.queue.shift();
+  // Chấm ĐÚNG thẻ đang hiện trên màn, rồi mới rút nó ra khỏi hàng.
+  const it = theCardHienTai();
   if (!it) return;
+  const vt = session.queue.indexOf(it);
+  if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
   const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
@@ -3335,6 +3351,7 @@ async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
   if (window.NhacTau) window.NhacTau.tat();
   goHoiNguon();
+  theTrenMan = null;
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";

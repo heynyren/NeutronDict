@@ -350,7 +350,8 @@ async function docNhipMs() {
 async function gradeWord(key, remembered, ms, duong) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
-  let kq = null;
+  const tkTruoc = Object.assign({}, tkAll[d] || {});
+  let kq = null, truoc = null;
   await capNhat((nb) => {
     const e = nb[key];
     if (!e) return;
@@ -358,6 +359,7 @@ async function gradeWord(key, remembered, ms, duong) {
     // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
     // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
+    truoc = cu ? Object.assign({}, cu) : null;      // để phím ← hoàn tác được
     kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now());
     const moi = Object.assign({}, e);
     moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
@@ -372,7 +374,7 @@ async function gradeWord(key, remembered, ms, duong) {
     nhipMs[d] = kq.tk;
     await chrome.storage.local.set({ nhipMs: nhipMs });
   }
-  return kq;
+  return kq ? Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc }) : null;
 }
 
 /* ==================================================================== */
@@ -976,7 +978,7 @@ async function luuSua() {
   // Sửa ngay giữa buổi học thì thẻ đang mở phải đổi theo luôn: `session.queue`
   // giữ một bản chụp của mục, `load()` không đụng tới nó, nên không cập nhật ở
   // đây thì thẻ vẫn nằm đó với nghĩa cũ — đúng cái nghĩa vừa sửa vì nó sai.
-  const dangHoc = session.queue[0];
+  const dangHoc = theCardHienTai();
   if (dangHoc && dangHoc.key === key) {
     const s2 = await getStore();
     if (s2.nb[key]) { Object.assign(dangHoc, s2.nb[key]); showCard(true); }
@@ -1090,13 +1092,14 @@ function giay(t) {
  * nào đó thì nhảy sang thẻ đó rồi tua — mở thêm một thẻ nữa cho cùng một video
  * là thừa, mà lại mất chỗ đang xem dở.
  */
-function openYoutube(yt) {
+function openYoutube(yt, chiaDoi) {
   const t = Math.max(0, Math.floor(yt.t || 0));
   const url = "https://www.youtube.com/watch?v=" + encodeURIComponent(yt.v) + "&t=" + t + "s";
+  const mo = () => { if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url }); };
   try {
     chrome.tabs.query({ url: ["https://www.youtube.com/watch*", "https://m.youtube.com/watch*"] }, (tabs) => {
       const hit = (tabs || []).find((tb) => (tb.url || "").indexOf("v=" + yt.v) >= 0);
-      if (!hit) { chrome.tabs.create({ url }); return; }
+      if (!hit) { mo(); return; }
       chrome.tabs.update(hit.id, { active: true });
       if (hit.windowId != null) chrome.windows.update(hit.windowId, { focused: true });
       chrome.tabs.sendMessage(hit.id, { type: "YT_SEEK", v: yt.v, t: t }, () => {
@@ -1105,13 +1108,17 @@ function openYoutube(yt) {
         if (chrome.runtime.lastError) chrome.tabs.update(hit.id, { url: url });
       });
     });
-  } catch (e) { chrome.tabs.create({ url }); }
+  } catch (e) { mo(); }
 }
 
-function openSource(it) {
+/**
+ * @param {boolean} [chiaDoi] mở kèm chia đôi màn hình. Chỉ bật từ chế độ học —
+ *   bấm link trong danh sách sổ tay mà cửa sổ tự nhảy sang nửa màn thì khó chịu.
+ */
+function openSource(it, chiaDoi) {
   const src = it.src;
   if (!src || !src.url) return;
-  if (src.yt && src.yt.v) { openYoutube(src.yt); return; }
+  if (src.yt && src.yt.v) { openYoutube(src.yt, chiaDoi); return; }
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
   const url = fragUrl(src);
   if (src.pdf) {
@@ -1119,12 +1126,14 @@ function openSource(it) {
     // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì Ctrl+F dán tìm nhanh.
     const q = text.split(" ").slice(0, 10).join(" ");
     try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
-    chrome.tabs.create({ url });
+    if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url });
     return;
   }
   chrome.storage.local.set({
     pendingHighlight: { url: src.url, text: text, prefix: src.prefix || "", suffix: src.suffix || "", ts: Date.now() }
-  }, () => { chrome.tabs.create({ url }); });
+  }, () => {
+    if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url });
+  });
 }
 
 /* ==================================================================== */
@@ -1353,7 +1362,20 @@ let session = { queue: [], done: 0, again: 0, deleted: 0 };
 let lastDeleted = null;
 const ovl = $("studyOverlay");
 
-function theCardHienTai() { return session.queue[0]; }
+/**
+ * Thẻ ĐANG HIỆN TRÊN MÀN HÌNH — không phải đầu hàng đợi.
+ *
+ * Hai thứ đó lệch nhau ở đúng một khoảng, và khoảng ấy là lúc dễ bấm nhầm nhất:
+ * từ lúc bấm Nhớ (grade() đã `shift()` thẻ ra khỏi hàng) cho tới lúc showCard()
+ * vẽ thẻ kế. Trong khoảng đó cửa sổ "nghe lại nguồn?" đang mở, mặt thẻ vẫn là
+ * từ vừa chấm, mà mọi nút trên mặt thẻ — Sửa bản dịch, Ghi chú, loa, Xoá, tim —
+ * lại đọc đầu hàng đợi, tức là từ KẾ TIẾP.
+ *
+ * Đó chính là "bấm Sửa bản dịch rồi Lưu thì nó trôi sang từ khác": bản dịch mới
+ * ghi vào một mục người dùng chưa hề nhìn thấy.
+ */
+let theTrenMan = null;
+function theCardHienTai() { return theTrenMan || session.queue[0]; }
 
 function renderStudyFav(it) {
   const box = $("stFav");
@@ -1481,7 +1503,8 @@ let mocHienThe = 0;
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   goHoiNguon();
-  const it = theCardHienTai();
+  const it = session.queue[0];
+  theTrenMan = it;
   if (!it) { finishStudy(); return; }
   mocHienThe = performance.now();
   const daLat = giuLat && $("stGrade").style.display !== "none";
@@ -1586,15 +1609,31 @@ function revealCard() {
 async function grade(remembered) {
   // Bài liên kết tự chấm bằng nút Xong; phím tắt 1/2 không được cướp lượt.
   if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
-  const it = session.queue.shift();
+  // Chấm ĐÚNG thẻ đang hiện trên màn, rồi mới rút nó ra khỏi hàng.
+  const it = theCardHienTai();
   if (!it) return;
+  const vt = session.queue.indexOf(it);
+  if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
   const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
   mocHienThe = 0;
-  await gradeWord(it.key, remembered, ms, it._d || "nhin");
+  const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin");
+  let banSao = null;
   if (remembered) session.done++;
-  else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
+  else {
+    session.again++;
+    banSao = Object.assign({}, it);
+    session.queue.push(banSao);                     // quên -> học lại cuối hàng
+  }
+  // Nhớ lại lượt chấm này để phím ← lấy về được. Chỉ giữ vài lượt gần nhất:
+  // đây là để chữa bấm nhầm, không phải để đi ngược cả buổi học.
+  if (kqCham) {
+    session.lichSu = (session.lichSu || []).concat([{
+      the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
+      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, banSao: banSao
+    }]).slice(-20);
+  }
 
   // Mọi lượt chấm đều được ghi vào tiến độ, kể cả lượt "quên": công sức bỏ ra là
   // như nhau, mà đếm cả lượt quên mới khuyến khích người ta dám chấm thật.
@@ -1717,6 +1756,80 @@ async function xongBaiLien() {
 }
 
 /* ==================================================================== */
+/* Đi lui, đi tới giữa các thẻ                                          */
+/* ==================================================================== */
+
+/**
+ * Phím ←: lấy lại thẻ vừa chấm và HOÀN TÁC lượt chấm đó.
+ *
+ * Bấm nhầm Nhớ thành Quên là chuyện xảy ra thật, và với bản cũ thì không có
+ * đường chữa: cấp đã tụt, lịch đã đổi. Nên hoàn tác phải trả lại ĐÚNG trạng
+ * thái cũ của đường đó — kể cả thống kê nhịp bấm, nếu không thì một lượt bấm
+ * nhầm 20 giây còn nằm lại làm lệch mọi lượt chấm sau.
+ */
+async function quayLaiThe() {
+  const ds = session.lichSu || [];
+  const b = ds.pop();
+  if (!b) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
+  await capNhat((nb) => {
+    const e = nb[b.key];
+    if (!e) return;
+    const d = Object.assign({}, e.duong || {});
+    if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
+    const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
+    moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    nb[b.key] = moi;
+  });
+  if (b.tkTruoc && typeof b.tkTruoc.n === "number") {
+    nhipMs[b.duong] = b.tkTruoc;
+    await chrome.storage.local.set({ nhipMs: nhipMs });
+  }
+  if (b.nho) session.done = Math.max(0, session.done - 1);
+  else {
+    session.again = Math.max(0, session.again - 1);
+    // Lượt "quên" đã xếp một bản sao xuống cuối hàng — bỏ nó đi, không thì thẻ
+    // này còn hiện lại một lần nữa dù lượt chấm đã bị huỷ.
+    const i = session.queue.indexOf(b.banSao);
+    if (i >= 0) session.queue.splice(i, 1);
+  }
+  session.queue.unshift(b.the);
+  goHoiNguon();
+  showCard();
+  toast(T("Đã lấy lại thẻ trước và huỷ lượt chấm"));
+}
+
+/** Phím →: để dành thẻ này lại cuối hàng, KHÔNG chấm. */
+function boQuaThe() {
+  const it = theCardHienTai();
+  if (!it || session.queue.length < 2) return;
+  const i = session.queue.indexOf(it);
+  if (i >= 0) session.queue.splice(i, 1);
+  session.queue.push(it);
+  goHoiNguon();
+  showCard();
+}
+
+/**
+ * Mở nguồn ra CHIA ĐÔI MÀN HÌNH.
+ *
+ * Chrome không cho nhét một trang web bất kỳ vào bảng bên (side panel) — bảng
+ * bên chỉ nhận trang của chính extension, mà nhúng trang ngoài vào iframe thì
+ * phần lớn website chặn thẳng bằng X-Frame-Options. Nên làm bằng CỬA SỔ: thu
+ * cửa sổ sổ tay về nửa trái, mở nguồn ở nửa phải. Kết quả nhìn giống hệt chia
+ * đôi màn hình, mà không phụ thuộc vào website có cho nhúng hay không.
+ */
+async function chiaDoiMan(url) {
+  try {
+    const W = screen.availWidth, H = screen.availHeight;
+    const nua = Math.max(360, Math.floor(W / 2));
+    const w = await chrome.windows.getCurrent();
+    await chrome.windows.update(w.id, { state: "normal", left: 0, top: 0, width: nua, height: H });
+    await chrome.windows.create({ url: url, left: nua, top: 0, width: W - nua, height: H, focused: true });
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ==================================================================== */
 /* Cửa sổ 5 giây: quay lại nguồn nghe lại                               */
 /* ==================================================================== */
 /*
@@ -1731,7 +1844,9 @@ async function xongBaiLien() {
  * Đã chọn nghe thì KHÔNG tự chuyển thẻ nữa: mở nguồn ra là mắt rời khỏi app,
  * tự nhảy thẻ lúc đó chỉ làm mất chỗ.
  */
-const CHO_NGUON = 5;                  // giây
+// Ba giây, không phải năm. Năm giây đủ dài để thành ra đang CHỜ, mà việc này
+// vốn chỉ là một cái cửa mở hé — ai muốn nghe thì bấm, không thì đi tiếp.
+const CHO_NGUON = 3;
 let demNguon = null, xongNguon = null;
 
 function goHoiNguon() {
@@ -1770,7 +1885,7 @@ function coNgheLai() {
   $("stHoiNguon").style.display = "none";
   if (!it) { showCard(); return; }
   $("stDaNghe").style.display = "";
-  openSource(it);
+  openSource(it, true);          // từ chế độ học thì chia đôi màn hình
   speak(it.word, it.audio);
 }
 
@@ -1809,6 +1924,7 @@ async function undoDelete() {
 
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  theTrenMan = null;
   goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
@@ -1831,6 +1947,7 @@ async function finishStudy() {
 
 function closeStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  theTrenMan = null;
   goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   ovl.classList.remove("show");
@@ -1854,6 +1971,12 @@ function phatCauNghe() {
 }
 $("stNghePhat").addEventListener("click", phatCauNghe);
 $("stLienXong").addEventListener("click", xongBaiLien);
+// Bảng phím tắt: ẩn được, và nhớ lựa chọn đó.
+if ($("stPhimAn")) $("stPhimAn").addEventListener("click", async () => {
+  $("stPhim").style.display = "none";
+  const { settings } = await chrome.storage.local.get("settings");
+  await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { anPhim: true }) });
+});
 $("stCoNghe").addEventListener("click", coNgheLai);
 $("stKhongNghe").addEventListener("click", khongNgheLai);
 $("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });
@@ -1877,9 +2000,21 @@ document.addEventListener("keydown", (e) => {
   if (!ovl.classList.contains("show")) return;
   if (e.key === "Escape") closeStudy();
   else if (e.key === " " || e.key === "Enter") {
+    /*
+     * Space làm ba việc, theo đúng thứ tự người ta cần chúng:
+     *   thẻ đang úp   -> lật ra
+     *   cửa sổ 3 giây -> mở nguồn nghe lại (khỏi phải với chuột trong 3 giây)
+     *   đã lật rồi    -> mở nguồn
+     * Một phím cho cả mạch thao tác, tay không phải rời bàn phím.
+     */
     e.preventDefault();
-    if ($("stReveal").style.display !== "none") revealCard();
-  } else if (e.key === "1" && $("stGrade").style.display !== "none") grade(false);
+    if ($("stReveal").style.display !== "none") { revealCard(); return; }
+    if ($("stHoiNguon").style.display !== "none") { coNgheLai(); return; }
+    const it = theCardHienTai();
+    if (it && it.src && it.src.url) openSource(it, true);
+  } else if (e.key === "ArrowLeft") { e.preventDefault(); quayLaiThe(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); boQuaThe(); }
+  else if (e.key === "1" && $("stGrade").style.display !== "none") grade(false);
   else if (e.key === "2" && $("stGrade").style.display !== "none") grade(true);
   else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
 });
@@ -2325,7 +2460,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true, chiaDoi: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -2346,6 +2481,8 @@ async function loadSettings() {
   if ($("setCoVu")) $("setCoVu").checked = S.coVu !== false;
   if ($("setNhacTau")) $("setNhacTau").checked = S.nhacTau !== false;
   if ($("setTach")) $("setTach").checked = S.tach !== false;
+  if ($("setChiaDoi")) $("setChiaDoi").checked = S.chiaDoi !== false;
+  if ($("stPhim")) $("stPhim").style.display = S.anPhim ? "none" : "";
   datLoiNhac();
   $("setInline").checked = !!S.inline;
   $("setCtrl").checked = !!S.requireCtrl;
@@ -2373,7 +2510,8 @@ async function saveSettings() {
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),
       coVu: $("setCoVu") ? $("setCoVu").checked : true,
       nhacTau: $("setNhacTau") ? $("setNhacTau").checked : true,
-      tach: $("setTach") ? $("setTach").checked : true
+      tach: $("setTach") ? $("setTach").checked : true,
+      chiaDoi: $("setChiaDoi") ? $("setChiaDoi").checked : true
     })
   });
   // Đọc lại để CAI và đồng hồ nhắc khớp với thứ vừa lưu — sửa số phút xong mà
