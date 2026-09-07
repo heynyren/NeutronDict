@@ -129,13 +129,71 @@
    */
   function tuBang(tu) {
     const t = String(tu || "").trim();
-    const bo = goc.TuLienBo || null;         // chỗ cắm 日本語WordNet vào
-    const ngoai = bo && bo[t] ? bo[t] : {};
+    const ngoai = boNho.get(t) || (goc.TuLienBo && goc.TuLienBo[t]) || {};
+    // Bảng HẠT GIỐNG đứng TRƯỚC bộ WordNet, không phải sau.
+    //
+    // WordNet gộp mọi nghĩa của một từ lại, nên 大きい kéo theo cả 低い và 短い
+    // (từ nghĩa "cao/dài") bên cạnh 小さい. Mấy chục cặp viết tay ở trên là cặp
+    // ai cũng nghĩ tới đầu tiên; để chúng lên trước thì đề bài hỏi đúng cái
+    // người học mong đợi, phần WordNet chỉ bồi thêm.
     return {
-      dong: gonDs((ngoai.dong || []).concat(BANG_DONG.get(t) || []), t),
-      trai: gonDs((ngoai.trai || []).concat(BANG_TRAI.get(t) || []), t)
+      dong: gonDs((BANG_DONG.get(t) || []).concat(ngoai.dong || []), t),
+      trai: gonDs((BANG_TRAI.get(t) || []).concat(ngoai.trai || []), t)
     };
   }
+
+  /* ------------------------------------------------------------------ */
+  /* Bộ 日本語WordNet — nạp theo mảnh, chỉ khi cần                       */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Bộ đầy đủ là 56.527 từ, 3,6 MB. Nạp cả cục lúc mở app thì điện thoại phải
+   * nuốt 3,6 MB rồi dựng một bảng mấy chục nghìn khoá — trong khi mỗi lượt lưu
+   * từ chỉ tra ĐÚNG MỘT từ.
+   *
+   * Nên cắt thành 32 mảnh theo mã của chữ đầu (~116 KB mỗi mảnh) và chỉ nạp
+   * mảnh chứa từ đang cần. Học một buổi chạm tới vài mảnh là cùng.
+   */
+  const SO_MANH = 32;
+  const boNho = new Map();               // từ -> {dong, trai}, của các mảnh đã nạp
+  const manhDaNap = new Set();
+  const manhDangNap = new Map();
+
+  function soManh(tu) {
+    const t = String(tu || "");
+    return t ? (t.charCodeAt(0) % SO_MANH) : -1;
+  }
+
+  /**
+   * Nạp mảnh chứa từ này, nếu chưa nạp. Gọi bao nhiêu lần cũng được — lượt sau
+   * bám vào lời hứa đang bay của lượt trước, không tải lại.
+   * @param {function} layUrl dựng đường dẫn tới mảnh thứ i
+   */
+  function napBo(tu, layUrl) {
+    const i = soManh(tu);
+    if (i < 0 || manhDaNap.has(i)) return Promise.resolve(false);
+    if (manhDangNap.has(i)) return manhDangNap.get(i);
+    const hua = fetch(layUrl(i))
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((txt) => {
+        for (const dong of txt.split("\n")) {
+          if (!dong) continue;
+          const [t, d, a] = dong.split("\t");
+          if (!t) continue;
+          const o = {};
+          if (d) o.dong = d.split(",");
+          if (a) o.trai = a.split(",");
+          boNho.set(t, o);
+        }
+        manhDaNap.add(i);
+        manhDangNap.delete(i);
+        return true;
+      })
+      .catch(() => { manhDangNap.delete(i); return false; });
+    manhDangNap.set(i, hua);
+    return hua;
+  }
+
+  function daNap() { return manhDaNap.size; }
 
   /**
    * Nhặt đồng nghĩa và trái nghĩa ra khỏi kết quả từ điển tiếng Anh.
@@ -236,6 +294,7 @@
 
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
-    tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu
+    tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
+    napBo, soManh, daNap, SO_MANH
   };
 })(typeof self !== "undefined" ? self : this);

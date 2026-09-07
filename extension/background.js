@@ -865,6 +865,8 @@ async function dongNghiaJa(word) {
 async function lienVaSau(key, e, dict) {
   return vaSau(async () => {
     const laJa = (dict === "javi" || dict === "vija");
+    // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
+    if (laJa) await self.TuLien.napBo(e.word, (i) => chrome.runtime.getURL("tu-lien/" + i + ".txt"));
     let ra = self.TuLien.tuBang(e.word);
     if (laJa) {
       if (!ra.dong.length) ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });

@@ -1,38 +1,63 @@
-# Nạp 日本語WordNet vào bài liên kết từ
+# Bộ từ liên tiếng Nhật (đồng nghĩa / trái nghĩa)
 
-Bài "nhặt tập đồng nghĩa / trái nghĩa" lấy dữ liệu theo ba tầng (xem
-`extension/tu-lien.js`):
+Bộ dữ liệu **đã có sẵn trong kho** — `extension/tu-lien/` và
+`android/www/tu-lien/`. Bạn không phải làm gì cả. Thư mục này chỉ để dựng lại
+khi có bản 日本語WordNet mới.
 
-1. **Bộ dữ liệu bạn tự nạp** — `window.TuLienBo`. Trống sẵn.
-2. **Bảng hạt giống** viết tay trong `tu-lien.js`: ~70 cặp trái nghĩa và ~12
-   nhóm đồng nghĩa thông dụng. Đây là hạt giống, không phải từ điển.
-3. **Vòng dịch ngược** qua Google: ra được đồng nghĩa, KHÔNG ra được trái nghĩa.
+## Trong đó có gì
 
-Muốn phủ rộng thì cắm 日本語WordNet vào tầng 1. Tôi không dựng sẵn tệp đó trong
-kho vì máy chạy phiên làm việc bị chặn mạng ra ngoài GitHub — bạn chạy một lần
-trên máy mình:
+56.527 từ tiếng Nhật, trong đó 10.245 từ có trái nghĩa. Tổng 3,6 MB, cắt thành
+32 mảnh ~116 KB. App chỉ nạp **đúng một mảnh** chứa từ đang tra, và chỉ một
+lần — xem `napBo()` trong `extension/tu-lien.js`.
+
+Nghĩa là bài liên kết **chạy được khi không có mạng**, và không tốn lượt gọi
+Apps Script nào.
+
+## Dựng từ đâu
+
+Hai nguồn, vì mỗi nguồn thiếu một nửa:
+
+* **日本語WordNet 1.1** (`wnjpn.db`) cho **đồng nghĩa** — các từ tiếng Nhật cùng
+  nằm trong một synset.
+* **Princeton WordNet 3.0** (`data.noun/verb/adj/adv`) cho **trái nghĩa**. Cần
+  tới nó vì trong `wnjpn.db`, bảng `synlink` **không có một dòng `ants` nào** —
+  quan hệ trái nghĩa của WordNet nằm ở mức TỪ chứ không ở mức synset, và bản
+  SQLite tiếng Nhật không kèm phần đó. Con trỏ `!` trong tệp Princeton nối
+  synset A ↔ synset B, rồi ánh xạ ngược về lemma tiếng Nhật qua chính mã synset
+  (wnjpn dùng mã offset của Princeton 3.0).
+
+## Xếp hạng
+
+Một từ tiếng Nhật ứng với nhiều synset. Gom hết ứng viên rồi cắt lấy 6 cái đầu
+thì thứ tự là ngẫu nhiên — 始まる mất 終わる mà lại giữ 立休らう. Nên **đếm xem
+mỗi ứng viên được bao nhiêu synset ủng hộ** rồi xếp theo đó, nghĩa trung tâm mới
+nổi lên trước. So sánh:
+
+```
+trước:  改善 → 進展/進歩/前進/プログレス   · trái: 衰微/減衰/衰勢/凋残
+sau:    改善 → 改良/向上/進歩/改める      · trái: 低下/後退/下落/減退
+```
+
+## Còn bảng hạt giống viết tay thì sao
+
+`tu-lien.js` vẫn giữ ~70 cặp trái nghĩa viết tay, và chúng đứng **TRƯỚC** bộ
+WordNet. Vì WordNet gộp mọi nghĩa của một từ: 大きい kéo theo cả 低い và 短い
+(từ nghĩa "cao/dài") bên cạnh 小さい. Mấy chục cặp viết tay là cặp ai cũng nghĩ
+tới đầu tiên; để chúng lên trước thì đề bài hỏi đúng cái người học mong đợi,
+phần WordNet chỉ bồi thêm.
+
+## Dựng lại
 
 ```bash
-# 1. Tải 日本語WordNet (SQLite, giấy phép kiểu BSD — dùng và phát hành lại tự do)
-curl -LO https://bond-lab.github.io/wnja/data/wnjpn.db.gz
+curl -LO https://github.com/bond-lab/wnja/releases/download/v1.1/wnjpn.db.gz
 gunzip wnjpn.db.gz
-
-# 2. Dựng tệp dữ liệu, CHỈ cho những từ đang có trong sổ tay của bạn
-node cong-cu/dung-tulien.mjs wnjpn.db so-tay.json > extension/tu-lien-bo.js
+curl -LO https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/wordnet.zip
+unzip wordnet.zip
+python3 cong-cu/dung-tulien.py        # ghi thẳng vào cả hai thư mục tu-lien/
 ```
 
-`so-tay.json` là tệp bạn xuất ra từ **Sổ tay → Xuất & sao lưu → Sao lưu .json**.
+## Giấy phép
 
-Cắt theo sổ tay chứ không lấy trọn bộ là cố ý: trọn 日本語WordNet nặng khoảng 90
-MB, nhét vào extension thì vừa phình gói cài vừa chậm lúc nạp, mà 99% số từ
-trong đó bạn không học. Vài trăm từ trong sổ tay của bạn thì tệp ra chỉ vài chục
-KB.
-
-Nạp xong, thêm một dòng vào `extension/notebook.html` (ngay trước `tu-lien.js`):
-
-```html
-<script src="tu-lien-bo.js"></script>
-```
-
-Nếu trích dẫn trong nghiên cứu, 日本語WordNet đề nghị dẫn nguồn — xem
-<https://bond-lab.github.io/wnja/>.
+日本語WordNet phát hành theo giấy phép kiểu BSD (dùng, sửa, phát hành lại tự
+do), Princeton WordNet cũng vậy. Nếu trích dẫn trong nghiên cứu thì xem
+<https://bond-lab.github.io/wnja/> và <https://wordnet.princeton.edu/>.

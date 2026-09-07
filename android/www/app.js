@@ -3043,6 +3043,8 @@ async function boiThem(key) {
     }
 
     if (!e.lien) {
+      // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
+      if (laJa) await window.TuLien.napBo(e.word, (i) => "tu-lien/" + i + ".txt");
       let ra = window.TuLien.tuBang(e.word);
       if (laJa && !ra.dong.length) {
         // Không có API 類語 nào cho gọi từ trình duyệt. Nhưng dịch sang tiếng
