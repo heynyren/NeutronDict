@@ -4,6 +4,7 @@ importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một exte
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
+importScripts("tu-lien.js");   // self.TuLien — tập đồng nghĩa / trái nghĩa
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
@@ -548,7 +549,10 @@ function posFrom(dictData) {
   for (const d of dictData) for (const m of (d.meanings || [])) {
     const defs = (m.definitions || []).slice(0, 4).map((x) => ({ def: x.definition || "", ex: x.example || "" })).filter((x) => x.def);
     const syn = (m.synonyms || []).slice(0, 6);
-    if (defs.length || syn.length) out.push({ p: m.partOfSpeech || "", defs, syn });
+    // Free Dictionary trả về CẢ trái nghĩa; trước giờ chỗ này vứt đi vì chưa có
+    // ai dùng. Bài liên kết dùng tới, nên giữ lại.
+    const ant = (m.antonyms || []).slice(0, 6);
+    if (defs.length || syn.length || ant.length) out.push({ p: m.partOfSpeech || "", defs, syn, ant });
   }
   return out.slice(0, 6);
 }
@@ -831,6 +835,59 @@ async function rubyCua(text) {
 }
 
 /**
+ * Tìm tập đồng nghĩa tiếng Nhật bằng VÒNG DỊCH NGƯỢC.
+ *
+ * Không có API 類語 nào miễn phí mà cho gọi từ trình duyệt. Nhưng dịch một từ
+ * sang tiếng Việt rồi dịch NGƯỢC lại thì Google trả về cả một danh sách ứng
+ * viên cho cùng một ý — đó đúng là tập đồng nghĩa. App đã dùng chính cơ chế
+ * này ở chế độ Việt→Nhật (xem lookupEntry "vija").
+ *
+ * Cách này KHÔNG ra được trái nghĩa; trái nghĩa tiếng Nhật chỉ có bảng hạt
+ * giống trong tu-lien.js và bộ dữ liệu người dùng tự nạp.
+ */
+async function dongNghiaJa(word) {
+  try {
+    const g1 = await gtxDict(word, "ja", "vi");
+    const nghia = g1 && g1.main;
+    if (!nghia) return [];
+    const g2 = await gtxDict(nghia, "vi", "ja");
+    let ds = [];
+    for (const s of (g2 && g2.senses) || []) ds = ds.concat(s.terms || []);
+    if (g2 && g2.main) ds.unshift(g2.main);
+    return self.TuLien.gonDs(ds, word);
+  } catch (e) { return []; }
+}
+
+/**
+ * Dựng tập đồng nghĩa / trái nghĩa cho một mục ĐÃ nằm trong sổ, vá tại chỗ.
+ * Không đụng `ts`, không đụng `srs` — máy tự bồi thêm, không phải người sửa.
+ */
+async function lienVaSau(key, e, dict) {
+  return vaSau(async () => {
+    const laJa = (dict === "javi" || dict === "vija");
+    let ra = self.TuLien.tuBang(e.word);
+    if (laJa) {
+      if (!ra.dong.length) ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
+    } else {
+      // Tiếng Anh: từ điển đã có sẵn cả hai chiều trong `pos`.
+      let pos = e.pos;
+      if (!pos || !pos.length) {
+        const dd = await fetchDictionary(e.word);
+        pos = dd ? posFrom(dd) : [];
+      }
+      ra = self.TuLien.gop(self.TuLien.tuPos(pos, e.word), ra);
+    }
+    if (!ra.dong.length && !ra.trai.length) return;
+    const { notebook } = await chrome.storage.local.get("notebook");
+    const nb = notebook || {};
+    const cu = nb[key];
+    if (!cu || cu.del || cu.lien) return;
+    nb[key] = Object.assign({}, cu, { lien: { dong: ra.dong, trai: ra.trai, ts: Date.now() } });
+    await chrome.storage.local.set({ notebook: nb });
+  });
+}
+
+/**
  * Dựng câu ngữ cảnh + bản dịch cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ.
  *
  * Không đụng `ts` và không đụng `srs`: đây là máy tự bồi thêm dữ liệu, không
@@ -838,7 +895,7 @@ async function rubyCua(text) {
  * sửa và đem nó đi đè lên bản ở máy kia.
  */
 async function cauNgheVaSau(key, e, dict) {
-  try {
+  return vaSau(async () => {
     const c = self.CauNghe.tuNguon(e.src, e.word);
     if (!c) return;
     const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
@@ -851,12 +908,29 @@ async function cauNgheVaSau(key, e, dict) {
     if (!cu || cu.del || cu.cauNghe) return;                 // mục đã đổi/đã có: thôi
     nb[key] = Object.assign({}, cu, { cauNghe: { cau: c.cau, dich: dich, ts: Date.now() } });
     await chrome.storage.local.set({ notebook: nb });
-  } catch (err) { /* không có câu nghe thì mục vẫn dùng bình thường */ }
+  });
 }
 
 /** Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ. Không đụng `ts`. */
+/**
+ * Xếp hàng cho các lượt VÁ SAU KHI LƯU.
+ *
+ * Một lượt lưu châm ngòi cho ba việc chạy ngầm: ghép furigana, moi câu ngữ
+ * cảnh, tìm từ liên. Cả ba đều đọc CẢ SỔ TAY, sửa một trường, rồi ghi CẢ SỔ
+ * TAY về. Chạy song song thì đứa ghi sau đè lên đứa ghi trước và làm mất trường
+ * của nó — đúng như bài kiểm bắt được: mục có `lien` thì mất `ruby`.
+ *
+ * Nối đuôi chúng lại. Đây là việc chạy ngầm, chậm hơn vài trăm mili-giây không
+ * ai thấy; mất dữ liệu thì thấy.
+ */
+let hangVa = Promise.resolve();
+function vaSau(lam) {
+  hangVa = hangVa.then(lam).catch(() => {});
+  return hangVa;
+}
+
 async function rubyVaSau(key, word) {
-  try {
+  return vaSau(async () => {
     const rb = await rubyCua(word);
     if (!rb.length) return;
     const { notebook } = await chrome.storage.local.get("notebook");
@@ -868,7 +942,7 @@ async function rubyVaSau(key, word) {
     it.ruby = rb;
     it.docSuy = 1;
     await chrome.storage.local.set({ notebook: nb });
-  } catch (e) { /* canh không được thì thôi */ }
+  });
 }
 
 /* ====================================================================== */
@@ -1223,6 +1297,8 @@ async function saveWord(entry, dict) {
   // dịch. Mục nào không moi được câu trọn vẹn thì đơn giản là không có đường
   // nghe; xem cau-nghe.js về việc vì sao thà bỏ còn hơn dựng câu cụt.
   if (!e.cauNghe) cauNgheVaSau(key, e, d);
+  // Tập đồng nghĩa / trái nghĩa — cũng vá SAU và KHÔNG chờ.
+  if (!e.lien) lienVaSau(key, e, d);
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
   if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));

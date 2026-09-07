@@ -1491,8 +1491,11 @@ function showCard(giuLat) {
   $("stProg").textContent = T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done });
 
   const laNghe = it._d === "nghe";
+  const laLien = it._d === "dong" || it._d === "trai";
   $("stNgheMat").style.display = laNghe ? "" : "none";
+  $("stLienMat").style.display = laLien ? "" : "none";
   $("stMatChu").style.display = laNghe ? "none" : "";
+  if (laLien) veBaiLien(it);
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
   if (laNghe) {
@@ -1522,7 +1525,7 @@ function showCard(giuLat) {
   $("stRead").textContent = "";
   $("stMean").innerHTML = "";
   $("stMyNote").innerHTML = "";
-  $("stReveal").style.display = "";
+  $("stReveal").style.display = laLien ? "none" : "";
   $("stGrade").style.display = "none";
   // Thẻ nghe tự phát một lượt ngay: bắt bấm thêm một nút nữa mới nghe là thừa.
   if (laNghe && !daLat) setTimeout(phatCauNghe, 120);
@@ -1577,6 +1580,8 @@ function revealCard() {
 }
 
 async function grade(remembered) {
+  // Bài liên kết tự chấm bằng nút Xong; phím tắt 1/2 không được cướp lượt.
+  if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
   const it = session.queue.shift();
   if (!it) return;
   coVu(remembered);
@@ -1621,6 +1626,85 @@ async function grade(remembered) {
   } else {
     tiep();
   }
+}
+
+/* ==================================================================== */
+/* Bài liên kết: nhặt cho hết tập đồng nghĩa / trái nghĩa               */
+/* ==================================================================== */
+/*
+ * Não không cất từ như từ điển tra theo khoá, nó cất theo láng giềng: muốn nói
+ * "cải thiện" thì 改善 / 改良 / 向上 / 進歩 cùng sáng lên rồi tranh nhau. Người
+ * ta biết từ mà vẫn nói nhầm từ không phải vì quên, mà vì chọn sai giữa mấy ứng
+ * viên gần nhau. Thẻ từ đơn không luyện được chuyện đó vì nó giả vờ mỗi từ đứng
+ * một mình. Bài này luyện thẳng vào.
+ */
+let baiLien = null;         // { it, duong, dung:Set, o:[], chon:Set, moc }
+
+function veBaiLien(it) {
+  const d = it._d;
+  const l = it.lien || {};
+  const dung = (d === "dong" ? l.dong : l.trai) || [];
+  const kia = (d === "dong" ? l.trai : l.dong) || [];
+  // Nhiễu lấy từ CHÍNH sổ tay: chúng là từ người học đang học nên nhìn quen
+  // mắt — nhiễu thật, chứ không phải nhiễu loại được ngay từ cái nhìn đầu.
+  const xa = items
+    .filter((x) => x.key !== it.key && !x.del && x.word && x.word !== it.word)
+    .map((x) => x.word);
+  const o = window.TuLien.dungDe(dung, kia, xa);
+
+  baiLien = { it: it, duong: d, dung: new Set(dung), o: o, chon: new Set(), moc: performance.now() };
+  $("stLienDe").textContent = d === "dong"
+    ? T2("Nhặt cho hết những từ CÙNG NGHĨA với {t}", { t: it.word })
+    : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
+  $("stLienKq").textContent = "";
+  $("stLienXong").style.display = "";
+  $("stLienXong").disabled = false;
+
+  const khung = $("stLienO");
+  khung.textContent = "";
+  for (const chu of o) {
+    const b = el("button", null, chu);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      if (b.disabled) return;
+      if (baiLien.chon.has(chu)) { baiLien.chon.delete(chu); b.classList.remove("chon"); }
+      else { baiLien.chon.add(chu); b.classList.add("chon"); }
+    });
+    khung.appendChild(b);
+  }
+}
+
+async function xongBaiLien() {
+  if (!baiLien) return;
+  const b = baiLien;
+  baiLien = null;                                  // chặn bấm Xong hai lần
+  const ms = Math.round(performance.now() - b.moc);
+  let dung = 0, sai = 0;
+  for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
+  const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
+
+  // Cho xem lại đề đã chấm: xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt =
+  // BỎ SÓT. Bỏ sót mới là thứ đáng nhìn lại nhất, nên nó phải có dấu riêng.
+  for (const nut of $("stLienO").querySelectorAll("button")) {
+    const chu = nut.textContent;
+    nut.disabled = true;
+    nut.classList.remove("chon");
+    if (b.chon.has(chu)) nut.classList.add(b.dung.has(chu) ? "dung" : "sai");
+    else if (b.dung.has(chu)) nut.classList.add("sot");
+  }
+  $("stLienXong").style.display = "none";
+  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
+    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+
+  coVu(kq.nho);
+  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong);
+  const moi = await theoDoi.ghiLuotOn(kq.nho);
+  syncSoon();
+  if (kq.nho) session.done++; else session.again++;
+  // Cho hai giây nhìn lại bài mình vừa làm rồi mới sang thẻ kế.
+  setTimeout(() => {
+    if (moi.length) window.TienDo.anMung(moi, showCard); else showCard();
+  }, 2000);
 }
 
 /* ==================================================================== */
@@ -1758,6 +1842,7 @@ function phatCauNghe() {
   ttsSpeak(it.cauNghe.cau, NGU === "ja" ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
 }
 $("stNghePhat").addEventListener("click", phatCauNghe);
+$("stLienXong").addEventListener("click", xongBaiLien);
 $("stCoNghe").addEventListener("click", coNgheLai);
 $("stKhongNghe").addEventListener("click", khongNgheLai);
 $("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });

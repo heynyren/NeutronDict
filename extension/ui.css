@@ -673,6 +673,23 @@ select { cursor: pointer; }
 .studycard .cw.co-ruby { line-height: 1.9; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
 
+/* Bài liên kết từ: một mớ ô bấm được. Ô đủ to để bấm bằng ngón cái, và xếp
+   theo lưới co giãn — mớ có 8 ô hay 16 ô đều phải nhìn ra là một mớ. */
+.lien-o { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.lien-o button {
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 12px; padding: 9px 14px; font: inherit; font-size: 15px; cursor: pointer;
+  transition: transform .1s ease, border-color .12s ease, background .12s ease;
+}
+.lien-o button:hover { border-color: var(--accent); }
+.lien-o button.chon { border-color: var(--accent); background: var(--accent-soft); font-weight: 650; }
+/* Sau khi chấm: xanh = đúng, đỏ = nhặt nhầm, viền đứt = bỏ sót. Ba trạng thái
+   phải phân biệt được, vì "bỏ sót" mới là thứ đáng nhìn lại nhất. */
+.lien-o button.dung { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+.lien-o button.sai { border-color: var(--bad, #c0392b); color: var(--bad, #c0392b); text-decoration: line-through; }
+.lien-o button.sot { border-style: dashed; border-color: var(--good); color: var(--good); }
+.lien-o button[disabled] { cursor: default; }
+
 /* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
    Phóng to bằng `transform` chứ không bằng `font-size` — đổi cỡ chữ là cả câu
    dồn lại giãn ra theo, đọc mấy giây là chóng mặt. */
