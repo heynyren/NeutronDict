@@ -2,6 +2,7 @@ importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính
 importScripts("kana.js");      // self.Kana — suy furigana khi từ điển không cho
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
+importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 

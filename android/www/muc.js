@@ -116,8 +116,42 @@
    * hai chỗ đó mà "khôi phục" tiến độ cũ thì thành đi ngược lại điều người dùng
    * vừa làm.
    */
+  /**
+   * Gộp TỪNG ĐƯỜNG một, mỗi đường so bằng mốc chấm của riêng nó.
+   *
+   * Từ khi một mục có bốn đường, hai máy có thể ôn HAI ĐƯỜNG KHÁC NHAU trong
+   * cùng một ngày: điện thoại làm bài nghe, máy tính làm bài nhìn. Lấy cả cục
+   * `duong` của bên có mốc mới hơn là mất trắng công của bên kia — đúng cái lỗi
+   * mà `gopSrs` sinh ra để tránh, chỉ là ở một tầng sâu hơn.
+   */
+  function gopDuong(a, b) {
+    const A = a || {}, B = b || {};
+    const ra = {};
+    for (const k of Object.keys(A).concat(Object.keys(B))) {
+      if (ra[k]) continue;
+      const x = A[k], y = B[k];
+      if (!x) { ra[k] = y; continue; }
+      if (!y) { ra[k] = x; continue; }
+      ra[k] = (y.ts || 0) > (x.ts || 0) ? y : x;
+    }
+    return ra;
+  }
+
   function gopSrs(thang, thua) {
     if (!thang || !thua || thang.del || thua.del) return thang;
+    // `duong` gộp theo từng đường, KHÔNG theo bên thắng — xem gopDuong.
+    if (thang.duong || thua.duong) {
+      const r2 = Object.assign({}, thang);
+      r2.duong = gopDuong(thang.duong, thua.duong);
+      // `srs` phải dựng lại từ bản `duong` vừa gộp, không thì hai thứ nói khác nhau.
+      if (root.Srs) {
+        const g = goc.Srs.gomSrs(r2);
+        if (g) r2.srs = g;
+      } else if (!thang.srs || (thua.srs && tsSrs(thua) > tsSrs(thang))) {
+        r2.srs = thua.srs || thang.srs;
+      }
+      return r2;
+    }
     if (!thua.srs) return thang;                  // bên kia chẳng có gì để mang sang
     const r = Object.assign({}, thang);
     // Bên thắng CHƯA TỪNG chấm bài từ này thì lấy nguyên tiến độ bên kia.
@@ -149,5 +183,5 @@
     return ra;
   }
 
-  root.Muc = { biaMo, banCuaBan, nhatLaiBanSua, tsSrs, gopSrs, tron };
+  root.Muc = { biaMo, banCuaBan, nhatLaiBanSua, tsSrs, gopSrs, gopDuong, tron };
 })(typeof window !== "undefined" ? window : self);

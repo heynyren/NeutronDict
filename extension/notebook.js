@@ -302,25 +302,55 @@ function chuCap(it, now) {
   return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
 }
 
-async function gradeWord(key, remembered) {
+/**
+ * Nhịp bấm của CHÍNH người học, tính riêng cho từng đường.
+ *
+ * Để ở đây chứ không nhét vào từng mục: đây là thống kê về TAY người dùng —
+ * bấm bằng chuột hay bằng ngón cái, máy nhanh hay máy chậm — chứ không phải
+ * thuộc tính của từ. Nhét vào mục thì mỗi từ tự hiệu chỉnh riêng, mà một từ chỉ
+ * được ôn dăm lần thì không bao giờ đủ mẫu.
+ */
+let nhipMs = null;
+async function docNhipMs() {
+  if (nhipMs) return nhipMs;
+  const r = await chrome.storage.local.get("nhipMs");
+  nhipMs = r.nhipMs || {};
+  return nhipMs;
+}
+
+/**
+ * Chấm một lượt ôn.
+ * @param {string} key
+ * @param {boolean} remembered
+ * @param {number} [ms] thời gian truy xuất, đo từ lúc hiện thẻ tới lúc bấm
+ * @param {string} [duong] đường nào đang được kiểm; mặc định là "nhin"
+ */
+async function gradeWord(key, remembered, ms, duong) {
+  const d = duong || "nhin";
+  const tkAll = await docNhipMs();
+  let kq = null;
   await capNhat((nb) => {
     const e = nb[key];
     if (!e) return;
-    const now = Date.now();
-    const cur = (e.srs && typeof e.srs.lv === "number") ? e.srs.lv : -1;
-    let lv, due;
-    if (remembered) {
-      lv = Math.min(cur + 1, SRS_STEPS.length - 1);
-      due = dueInDays(SRS_STEPS[lv]);
-    } else {
-      lv = -1;                 // rơi về đầu
-      due = now;               // học lại ngay trong buổi
-    }
-    // `srs.ts` là mốc của LẦN CHẤM này, tách khỏi mốc sửa của cả mục — nhờ nó
-    // mà lúc gộp hai máy, một lượt sửa ghi chú không kéo tụt cấp đã chấm ở máy
-    // kia. Xem Muc.gopSrs.
-    nb[key] = Object.assign({}, e, { srs: { lv: lv, due: due, ts: now }, ts: now });
+    const cu = (e.duong && e.duong[d]) || null;
+    // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
+    // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
+    const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
+    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now());
+    const moi = Object.assign({}, e);
+    moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
+    // `srs` vẫn được ghi, và vẫn là thứ mọi nơi khác đọc: đồng bộ Drive, app
+    // Android, máy chủ MCP, bản extension chưa cập nhật. Nó là bản GỘP của các
+    // đường — xem Srs.gomSrs.
+    moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    moi.ts = Date.now();
+    nb[key] = moi;
   });
+  if (kq) {
+    nhipMs[d] = kq.tk;
+    await chrome.storage.local.set({ nhipMs: nhipMs });
+  }
+  return kq;
 }
 
 /* ==================================================================== */
@@ -1413,10 +1443,22 @@ function datLoiNhac() {
  *   lật. Dùng khi sửa nghĩa ngay giữa buổi học: úp thẻ lại lúc đó chẳng khác
  *   gì bắt đoán lại một câu vừa mới đọc đáp án.
  */
+/*
+ * Bấm giờ truy xuất.
+ *
+ * Đo từ lúc thẻ hiện ra tới lúc bấm Nhớ — đúng như đã bàn. Có một điểm đáng
+ * biết: quãng này gồm cả thời gian ĐỌC đáp án sau khi lật thẻ, nên nó là thời
+ * gian truy xuất cộng một hằng số. Muốn tín hiệu sạch hơn thì đo tới lúc bấm
+ * "Hiện nghĩa" (lúc đó việc nhớ đã xong); đổi một dòng là được.
+ */
+let mocHienThe = 0;
+
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
+  goHoiNguon();
   const it = theCardHienTai();
   if (!it) { finishStudy(); return; }
+  mocHienThe = performance.now();
   const daLat = giuLat && $("stGrade").style.display !== "none";
 
   $("stBody").style.display = "";
@@ -1490,7 +1532,10 @@ async function grade(remembered) {
   const it = session.queue.shift();
   if (!it) return;
   coVu(remembered);
-  await gradeWord(it.key, remembered);
+  // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
+  const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
+  mocHienThe = 0;
+  await gradeWord(it.key, remembered, ms, "nhin");
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
 
@@ -1518,14 +1563,77 @@ async function grade(remembered) {
   toast((remembered ? T("Nhớ") : T("Quên")) + " → " +
     tenCap(sau) + " · " + khiNaoOn(sau && sau.due, Date.now()));
 
+  // Sau khi NHỚ, mục có nguồn thì hỏi xem có muốn quay lại nghe không — chứ
+  // không quăng thẳng sang thẻ kế.
+  const tiep = () => { if (!hoiNguon(it)) showCard(); };
   if (moi.length) {
     // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che
     // mất thẻ mới và người dùng bấm nhầm.
-    window.TienDo.anMung(moi, showCard);
+    window.TienDo.anMung(moi, tiep);
   } else {
-    showCard();
+    tiep();
   }
 }
+
+/* ==================================================================== */
+/* Cửa sổ 5 giây: quay lại nguồn nghe lại                               */
+/* ==================================================================== */
+/*
+ * Nhớ được một từ xong là lúc dễ tiếp thu nhất — vừa moi nó ra khỏi trí nhớ
+ * thì cả cụm liên kết quanh nó đang sáng. Nghe lại đúng câu đã gặp ngay lúc ấy
+ * là nối được chữ với âm thật, thứ mà thẻ chữ không bao giờ làm được.
+ *
+ * Nhưng KHÔNG được bắt buộc, và không được cản. Nên: năm giây đếm ngược, không
+ * bấm gì thì tự sang thẻ kế. Ai đang ôn nhanh sẽ chẳng thấy vướng, ai muốn
+ * nghe thì có cửa. Bấm "Không" là đi luôn, không phải chờ hết năm giây.
+ *
+ * Đã chọn nghe thì KHÔNG tự chuyển thẻ nữa: mở nguồn ra là mắt rời khỏi app,
+ * tự nhảy thẻ lúc đó chỉ làm mất chỗ.
+ */
+const CHO_NGUON = 5;                  // giây
+let demNguon = null, xongNguon = null;
+
+function goHoiNguon() {
+  if (demNguon) { clearInterval(demNguon); demNguon = null; }
+  xongNguon = null;
+  const a = $("stHoiNguon"), b = $("stDaNghe");
+  if (a) a.style.display = "none";
+  if (b) b.style.display = "none";
+}
+
+/**
+ * @returns {boolean} có mở cửa sổ hỏi không. false = cứ sang thẻ kế như cũ.
+ */
+function hoiNguon(it) {
+  if (!it || !it.src || !it.src.url) return false;      // không có nguồn thì thôi
+  const o = $("stHoiNguon");
+  if (!o) return false;
+  goHoiNguon();
+  $("stGrade").style.display = "none";
+  o.style.display = "";
+  xongNguon = it;
+  let con = CHO_NGUON;
+  $("stDem").textContent = "(" + con + ")";
+  demNguon = setInterval(() => {
+    con -= 1;
+    if (con > 0) { $("stDem").textContent = "(" + con + ")"; return; }
+    goHoiNguon();
+    showCard();
+  }, 1000);
+  return true;
+}
+
+function coNgheLai() {
+  const it = xongNguon;
+  if (demNguon) { clearInterval(demNguon); demNguon = null; }
+  $("stHoiNguon").style.display = "none";
+  if (!it) { showCard(); return; }
+  $("stDaNghe").style.display = "";
+  openSource(it);
+  speak(it.word, it.audio);
+}
+
+function khongNgheLai() { goHoiNguon(); showCard(); }
 
 async function deleteCurrentCard() {
   const it = theCardHienTai();
@@ -1560,6 +1668,7 @@ async function undoDelete() {
 
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
   $("stDone").style.display = "";
@@ -1581,6 +1690,7 @@ async function finishStudy() {
 
 function closeStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
+  goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   ovl.classList.remove("show");
   load();
@@ -1589,6 +1699,9 @@ function closeStudy() {
 
 $("study").addEventListener("click", startStudy);
 $("stReveal").addEventListener("click", revealCard);
+$("stCoNghe").addEventListener("click", coNgheLai);
+$("stKhongNghe").addEventListener("click", khongNgheLai);
+$("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
 $("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });

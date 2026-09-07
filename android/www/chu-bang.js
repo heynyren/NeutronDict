@@ -498,6 +498,10 @@
     "Đang phát: nhạc ga {ten}": "Now playing: {ten} station jingle",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "A soft click when you tap a button, the way Android apps do",
+    "Mở lại nguồn và nghe câu này?": "Open the source and listen to this sentence?",
+    "Không, từ tiếp theo": "No, next word",
+    "Có, nghe lại": "Yes, listen again",
+    "Từ tiếp theo": "Next word",
     "Tốc độ nhịp đọc": "Reading rhythm speed",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
@@ -1268,6 +1272,10 @@
     "Đang phát: nhạc ga {ten}": "再生中：{ten}駅の発車メロディ",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "ボタンを押すと軽いクリック音——Android アプリと同じ感じ",
+    "Mở lại nguồn và nghe câu này?": "出典を開いてこの文を聞きますか？",
+    "Không, từ tiếp theo": "いいえ、次の語へ",
+    "Có, nghe lại": "はい、聞き直す",
+    "Từ tiếp theo": "次の語へ",
     "Tốc độ nhịp đọc": "読みのリズムの速さ",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",

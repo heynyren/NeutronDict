@@ -335,6 +335,22 @@
           <div class="cm" id="stMean"></div>
           <div id="stMyNote"></div>
           <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px" data-chu>Hiện nghĩa</button>
+          <!-- Cửa sổ 5 giây sau khi bấm Nhớ: có muốn quay lại nguồn nghe không.
+               Chỉ hiện với mục CÓ nguồn; mục gõ tay thì bỏ qua thẳng. -->
+          <div id="stHoiNguon" style="display:none;margin-top:16px">
+            <div class="t-small" style="text-align:center;margin-bottom:10px">
+              <span data-chu>Mở lại nguồn và nghe câu này?</span>
+              <b id="stDem" style="margin-left:6px"></b>
+            </div>
+            <div class="rowx" style="gap:10px">
+              <button class="btn grow" id="stKhongNghe" type="button" data-chu>Không, từ tiếp theo</button>
+              <button class="btn primary grow" id="stCoNghe" type="button" data-chu>Có, nghe lại</button>
+            </div>
+          </div>
+          <!-- Sau khi đã mở nguồn: người học tự bấm sang từ kế, không bị giục. -->
+          <div id="stDaNghe" style="display:none;margin-top:16px">
+            <button class="btn primary block lg" id="stTiep" type="button" data-chu>Từ tiếp theo</button>
+          </div>
           <div class="grade" id="stGrade" style="display:none">
             <button class="btn no" id="gForgot" type="button" data-chu>Quên</button>
             <button class="btn yes" id="gKnow" type="button" data-chu>Nhớ</button>
@@ -453,6 +469,7 @@
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
+  <script src="srs.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
   <script src="nhac-tau.js"></script>
