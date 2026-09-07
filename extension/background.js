@@ -3,6 +3,7 @@ importScripts("kana.js");      // self.Kana — suy furigana khi từ điển kh
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
+importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
@@ -829,6 +830,30 @@ async function rubyCua(text) {
   return ra;
 }
 
+/**
+ * Dựng câu ngữ cảnh + bản dịch cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ.
+ *
+ * Không đụng `ts` và không đụng `srs`: đây là máy tự bồi thêm dữ liệu, không
+ * phải người dùng sửa mục. Chạm vào `ts` là lượt đồng bộ sau tưởng mục vừa được
+ * sửa và đem nó đi đè lên bản ở máy kia.
+ */
+async function cauNgheVaSau(key, e, dict) {
+  try {
+    const c = self.CauNghe.tuNguon(e.src, e.word);
+    if (!c) return;
+    const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
+    let dich = "";
+    try { dich = await gtxTranslate(c.cau, tu, "vi"); } catch (err) { dich = ""; }
+    if (dich && dich.trim() === c.cau.trim()) dich = "";     // không dịch được thì để trống
+    const { notebook } = await chrome.storage.local.get("notebook");
+    const nb = notebook || {};
+    const cu = nb[key];
+    if (!cu || cu.del || cu.cauNghe) return;                 // mục đã đổi/đã có: thôi
+    nb[key] = Object.assign({}, cu, { cauNghe: { cau: c.cau, dich: dich, ts: Date.now() } });
+    await chrome.storage.local.set({ notebook: nb });
+  } catch (err) { /* không có câu nghe thì mục vẫn dùng bình thường */ }
+}
+
 /** Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ. Không đụng `ts`. */
 async function rubyVaSau(key, word) {
   try {
@@ -1194,6 +1219,10 @@ async function saveWord(entry, dict) {
   // chắc chắn lấy một thứ hên xui — mạng chậm thì nút treo, mạng hỏng thì mất
   // luôn cảm giác "đã lưu".
   if ((d === "javi" || d === "vija") && !e.reading && !e.ruby) rubyVaSau(key, e.word);
+  // Câu ngữ cảnh cho bài NGHE — cũng vá SAU và KHÔNG chờ, vì nó phải gọi máy
+  // dịch. Mục nào không moi được câu trọn vẹn thì đơn giản là không có đường
+  // nghe; xem cau-nghe.js về việc vì sao thà bỏ còn hơn dựng câu cụt.
+  if (!e.cauNghe) cauNgheVaSau(key, e, d);
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
   if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));

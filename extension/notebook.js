@@ -266,15 +266,37 @@ function dueInDays(days) {
   d.setHours(0, 0, 0, 0);
   return d.getTime();
 }
+/**
+ * Mục này có đường nào đang tới hạn không.
+ *
+ * Hỏi thẳng bộ não đa-đường chứ không tự đọc `srs.due` nữa: từ khi một mục có
+ * bốn đường, `srs` chỉ là bản gộp, mà con số đếm trên nút "Học ngay" phải khớp
+ * với hàng đợi thật — lệch nhau thì nút báo 5 mục mà mở ra 8 thẻ.
+ */
 function isDue(it, now) {
   if (it.del) return false;
-  const srs = it.srs;
-  if (!srs || !srs.due) return true;        // mục mới: đến hạn ngay
-  return srs.due <= now;
+  return window.Srs.denHan(it, now || Date.now()).length > 0;
 }
 function dueList(scopeList) {
   const now = Date.now();
   return scopeList.filter((it) => isDue(it, now));
+}
+
+/**
+ * Hàng đợi của một buổi học: mỗi phần tử là một cặp (mục, ĐƯỜNG), không phải
+ * một mục.
+ *
+ * Một từ có thể đến hạn ở đường nhìn mà chưa đến hạn ở đường nghe, hoặc ngược
+ * lại. Xếp hàng theo mục thì không nói được chuyện đó.
+ */
+function hangDoi(scopeList) {
+  const now = Date.now();
+  const ra = [];
+  for (const it of scopeList) {
+    if (it.del) continue;
+    for (const d of window.Srs.denHan(it, now)) ra.push(Object.assign({}, it, { _d: d }));
+  }
+  return ra;
 }
 /**
  * Cấp của một mục, nói theo cách người học đọc được.
@@ -1354,7 +1376,10 @@ function renderStudyFav(it) {
 }
 
 function startStudy() {
-  const due = dueList(currentActiveSet());
+  // Xếp hàng thẳng từ danh sách đang mở: `hangDoi` đã tự hỏi từng đường một,
+  // lọc qua `dueList` trước đó là lọc HAI LẦN và làm rơi mất những mục mà chỉ
+  // một đường tới hạn.
+  const due = hangDoi(currentActiveSet());
   if (!due.length) {
     toast(T("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!"), "bad");
     return;
@@ -1465,6 +1490,17 @@ function showCard(giuLat) {
   $("stDone").style.display = "none";
   $("stProg").textContent = T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done });
 
+  const laNghe = it._d === "nghe";
+  $("stNgheMat").style.display = laNghe ? "" : "none";
+  $("stMatChu").style.display = laNghe ? "none" : "";
+  $("stNgheCau").style.display = "none";
+  $("stNgheCau").textContent = "";
+  if (laNghe) {
+    const lv = ((it.duong || {}).nghe || {}).lv;
+    const toc = window.Srs.tocDoNghe(lv);
+    $("stNgheToc").textContent = T2("Tốc độ ×{t} — nhanh dần theo cấp", { t: toc });
+  }
+
   $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
   $("stWord").className = "cw" + (NGU === "ja" ? " ja" : "");
@@ -1488,12 +1524,24 @@ function showCard(giuLat) {
   $("stMyNote").innerHTML = "";
   $("stReveal").style.display = "";
   $("stGrade").style.display = "none";
+  // Thẻ nghe tự phát một lượt ngay: bắt bấm thêm một nút nữa mới nghe là thừa.
+  if (laNghe && !daLat) setTimeout(phatCauNghe, 120);
   if (daLat) revealCard();
 }
 
 function revealCard() {
   const it = theCardHienTai();
   if (!it) return;
+  if (it._d === "nghe") {
+    // Lật thẻ nghe: hiện CHỮ của câu vừa nghe + bản dịch, và tô đậm chính từ.
+    $("stMatChu").style.display = "";
+    const c = (it.cauNghe || {}).cau || "";
+    const o = $("stNgheCau");
+    o.style.display = "";
+    o.innerHTML = "";
+    o.appendChild(el("div", "t-lead", c));
+    if ((it.cauNghe || {}).dich) o.appendChild(el("div", "t-small muted", it.cauNghe.dich));
+  }
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
   // Lật thẻ một CÂU: cách đọc của nó là ruby trên chính câu ở mặt trước.
@@ -1535,7 +1583,7 @@ async function grade(remembered) {
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
   const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
   mocHienThe = 0;
-  await gradeWord(it.key, remembered, ms, "nhin");
+  await gradeWord(it.key, remembered, ms, it._d || "nhin");
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
 
@@ -1699,6 +1747,17 @@ function closeStudy() {
 
 $("study").addEventListener("click", startStudy);
 $("stReveal").addEventListener("click", revealCard);
+/**
+ * Phát câu nghe. Tốc độ theo cấp của chính đường nghe — xem Srs.tocDoNghe.
+ * Cấp thấp nghe chậm cho rõ từng chữ, lên cấp thì đẩy về tốc độ nói thật.
+ */
+function phatCauNghe() {
+  const it = theCardHienTai();
+  if (!it || !it.cauNghe || !it.cauNghe.cau) return;
+  const lv = ((it.duong || {}).nghe || {}).lv;
+  ttsSpeak(it.cauNghe.cau, NGU === "ja" ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
+}
+$("stNghePhat").addEventListener("click", phatCauNghe);
 $("stCoNghe").addEventListener("click", coNgheLai);
 $("stKhongNghe").addEventListener("click", khongNgheLai);
 $("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });

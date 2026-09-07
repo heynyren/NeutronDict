@@ -320,7 +320,13 @@
     <div class="stcol">
       <div id="stBody">
         <div class="studycard" id="stCard">
-          <div class="rowx" style="justify-content:center;gap:6px">
+          <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
+               là mắt đọc mất, tai không phải làm gì — hỏng đúng thứ đang kiểm. -->
+          <div id="stNgheMat" style="display:none;text-align:center;padding:18px 0">
+            <button class="btn primary lg" id="stNghePhat" type="button" style="min-width:190px" data-chu>Nghe câu</button>
+            <div class="t-tiny faint" id="stNgheToc" style="margin-top:10px"></div>
+          </div>
+          <div class="rowx" style="justify-content:center;gap:6px" id="stMatChu">
             <span class="cw" id="stWord"></span>
             <button class="iconbtn" id="stSpk" type="button" title="Phát âm" data-chu-title></button>
           </div>
@@ -331,6 +337,7 @@
           </div>
           <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
           <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px" id="stGhiAm"></div>
+          <div id="stNgheCau" class="cr" style="display:none"></div>
           <div class="cr" id="stRead"></div>
           <div class="cm" id="stMean"></div>
           <div id="stMyNote"></div>
@@ -470,6 +477,7 @@
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
   <script src="srs.js"></script>
+  <script src="cau-nghe.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
   <script src="nhac-tau.js"></script>

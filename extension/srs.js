@@ -223,6 +223,25 @@
     return ds;
   }
 
+  /** Đường "nhin" phải lên tới cấp này thì các đường khác mới mở. */
+  const MO_DUONG = 1;
+
+  /**
+   * Những đường ĐÃ MỞ của một mục — tức là những đường thật sự được đem ra hỏi.
+   *
+   * Một từ vừa lưu xong mà bung ra bốn kiểu bài cùng lúc thì số lượt ôn nhân
+   * lên gấp bốn ngay ngày đầu, và người ta bỏ app trong hai tuần. Nên: nhìn
+   * chữ nhận ra được đã, rồi mới tới nghe, rồi mới tới liên kết. Đây chính là
+   * "thứ tự dữ liệu" — mở dần theo sức, áp cho từng từ một.
+   */
+  function duongMo(muc) {
+    const co = duongCo(muc);
+    const d = (muc && muc.duong) || {};
+    const lvNhin = (d.nhin && typeof d.nhin.lv === "number") ? d.nhin.lv : -1;
+    if (lvNhin < MO_DUONG) return ["nhin"];
+    return co;
+  }
+
   /**
    * Cấp chung của một mục = cấp của đường YẾU NHẤT đang có.
    * @returns {number} -1 nếu chưa học đường nào
@@ -230,7 +249,7 @@
   function capChung(muc) {
     const d = (muc && muc.duong) || {};
     let min = null;
-    for (const ten of duongCo(muc)) {
+    for (const ten of duongMo(muc)) {
       const lv = (d[ten] && typeof d[ten].lv === "number") ? d[ten].lv : -1;
       if (min === null || lv < min) min = lv;
     }
@@ -247,7 +266,7 @@
    */
   function gomSrs(muc) {
     const d = (muc && muc.duong) || {};
-    const ten = duongCo(muc);
+    const ten = duongMo(muc);
     let due = null, ts = 0, coGi = false;
     for (const t of ten) {
       const x = d[t];
@@ -268,7 +287,7 @@
     const bayGio = now || Date.now();
     const d = (muc && muc.duong) || {};
     const ra = [];
-    for (const t of duongCo(muc)) {
+    for (const t of duongMo(muc)) {
       const x = d[t];
       if (!x || !x.due || x.due <= bayGio) ra.push(t);
     }
@@ -293,10 +312,23 @@
     return ra;
   }
 
+  /**
+   * Tốc độ phát câu nghe, theo cấp của chính đường nghe.
+   *
+   * Cấp thấp thì chậm để nghe ra từng chữ; lên cấp thì đẩy dần về tốc độ người
+   * Nhật nói thật — nghe mãi ở tốc độ chậm thì ra đời gặp tốc độ thật vẫn điếc.
+   * Chặn trên 1,5 vì quá đó giọng máy méo tới mức không còn giống tiếng người.
+   */
+  function tocDoNghe(lv) {
+    const n = typeof lv === "number" ? lv : -1;
+    return Math.min(1.5, Math.round((0.8 + Math.max(0, n + 1) * 0.1) * 100) / 100);
+  }
+
   goc.Srs = {
     DUONG, TEN_DUONG, MOC, NGAY,
-    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, HE_SO,
+    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, HE_SO, MO_DUONG,
     themMau, doLech, heSoBienThien, nhipDo, cham,
-    duongCo, capChung, gomSrs, denHan, hoSo, hanSauNgay
+    duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
+    tocDoNghe
   };
 })(typeof self !== "undefined" ? self : this);
