@@ -683,6 +683,7 @@
     datBat(st);
     datPhoi(st);
     datTach(st);
+    datThuNho(st);
     baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
@@ -690,6 +691,7 @@
     const st = ch.settings.newValue || {};
     datChu(st);
     datTach(st);
+    datThuNho(st);
     if (datPhoi(st)) veKhoPhoi();
     if (datBat(st)) {
       // Bật/tắt chế độ tự-bật giữa chừng: dựng lại cho khớp kiểu mới.
@@ -824,6 +826,27 @@
       ra[k] = song[k]; chu += co; dem++;
     }
     return ra;
+  }
+
+  /**
+   * Video này đã có phụ đề cất sẵn trong máy chưa (bản nào cũng được)?
+   *
+   * Cần một phép hỏi KHÔNG BIẾT mã bản phụ đề, vì lúc quyết định có tự mở bảng
+   * hay không thì trình phát còn chưa nói cho biết nó đang dùng bản nào.
+   */
+  async function coTrongKho(v) {
+    try {
+      if (!v) return false;
+      const { ytKho } = await self.Song.doc("ytKho");
+      const kho = ytKho || {};
+      const bayGio = Date.now();
+      for (const k in kho) {
+        if (k.indexOf(v + "|") !== 0) continue;
+        const m = kho[k];
+        if (m && bayGio - (m.ts || 0) < KHO_HAN && m.cau && m.cau.length) return true;
+      }
+      return false;
+    } catch (e) { return false; }
   }
 
   async function docKhoYt(v, maBan) {
@@ -1206,6 +1229,68 @@
     if (iconTen) b.appendChild(ic(iconTen, 13));
     if (chu) { const t = document.createElement("span"); t.textContent = chu; b.appendChild(t); }
     return b;
+  }
+
+  /* ================================================================== */
+  /* Thu nhỏ khung video                                                 */
+  /* ================================================================== */
+  /*
+   * Người xem để học thì mắt ở BẢNG LỜI THOẠI, không ở hình. Mà bố cục mặc định
+   * của YouTube cho khung hình gần hết bề ngang, đẩy cột phải — chỗ đặt bảng —
+   * xuống còn hơn 400px, đọc lời thoại như đọc qua khe cửa.
+   *
+   * Nên thu khung hình lại và trả phần thừa cho cột phải.
+   *
+   * Vì sao phải nhắc trình phát "cửa sổ vừa đổi cỡ": trình phát HTML5 của
+   * YouTube đặt kích thước bằng PIXEL lên thẻ video và chỉ tính lại khi cửa sổ
+   * đổi cỡ — nó không theo dõi cái khung bọc ngoài. Không nhắc thì khung co lại
+   * mà hình vẫn to như cũ rồi tràn ra ngoài.
+   */
+  let oThuNho = null;
+  let thuNho = false, thuNhoW = 620;
+
+  function datThuNho(st) {
+    const bat = !!(st && st.ytNho);
+    const w = Math.max(320, Math.min(1200, parseInt((st || {}).ytNhoW, 10) || 620));
+    if (bat === thuNho && w === thuNhoW) return false;
+    thuNho = bat; thuNhoW = w;
+    veThuNho();
+    return true;
+  }
+
+  function veThuNho() {
+    if (!thuNho) {
+      if (oThuNho) { oThuNho.remove(); oThuNho = null; nhacDoiCo(); }
+      return;
+    }
+    if (!oThuNho) {
+      oThuNho = document.createElement("style");
+      oThuNho.id = "neutrondict-thu-nho";
+      (document.head || document.documentElement).appendChild(oThuNho);
+    }
+    // Chỉ đụng vào chế độ xem thường: rạp và toàn màn hình là lúc người ta CỐ Ý
+    // muốn hình to, đụng vào đó là phá đúng ý họ.
+    oThuNho.textContent =
+      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #primary.ytd-watch-flexy{" +
+      "max-width:" + thuNhoW + "px!important;flex:1 1 auto!important}" +
+      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #secondary.ytd-watch-flexy{" +
+      "width:auto!important;min-width:380px!important;flex:1 1 auto!important}" +
+      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #player.ytd-watch-flexy," +
+      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #player-container-outer.ytd-watch-flexy{" +
+      "max-width:100%!important}";
+    nhacDoiCo();
+  }
+
+  let henDoiCo = null;
+  function nhacDoiCo() {
+    clearTimeout(henDoiCo);
+    // Vài nhịp chứ không một nhịp: YouTube dựng lại bố cục nhiều lần lúc vào
+    // video, nhắc sớm quá thì nó tính theo cỡ cũ rồi lại ghi đè.
+    let n = 0;
+    henDoiCo = setInterval(() => {
+      try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+      if (++n >= 4) clearInterval(henDoiCo);
+    }, 350);
   }
 
   /** Chỗ đặt bảng: cột phải của YouTube, ngay trên danh sách video gợi ý. */
@@ -2312,7 +2397,18 @@
         // daDocCaiDat, nhưng quyết định RẼ NHÁNH này thì ở ngoài nó.)
         await daDocCaiDat;
         if (maVideo() !== v) return;
-        if (tuBat) await khoiDong(v);
+        /*
+         * Chế độ "đợi bấm" sinh ra để TIẾT KIỆM: mỗi lần mở bảng cho một video
+         * mới là một lượt xin phụ đề của YouTube và một loạt lượt dịch qua Apps
+         * Script, mà hạn mức Apps Script thì có giới hạn tháng.
+         *
+         * Nhưng video ĐÃ XEM RỒI thì phụ đề lẫn bản dịch nằm sẵn trong máy —
+         * mở bảng lúc đó không tốn một lượt gọi nào. Bắt bấm thêm một nút để
+         * đọc lại thứ đã có trong máy là bắt trả giá cho một việc miễn phí.
+         *
+         * Nên: có sẵn thì mở luôn, chưa có thì vẫn hỏi.
+         */
+        if (tuBat || await coTrongKho(v)) await khoiDong(v);
         else moiBat(v);
         return;
       }

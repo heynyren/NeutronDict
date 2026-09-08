@@ -518,6 +518,10 @@
     "Đã lấy lại thẻ trước và huỷ lượt chấm": "Previous card restored, that grade undone",
     "Mở nguồn trong chế độ học thì chia đôi màn hình: sổ tay bên trái, trang gốc bên phải": "In study mode, open the source side by side: notebook on the left, source page on the right",
     "Chỉ còn mỗi thẻ này thôi": "This is the only card left",
+    "Thu nhỏ khung video YouTube để bảng lời thoại rộng ra (xem để học thì mắt ở lời thoại, không ở hình)":
+      "Shrink the YouTube player so the transcript panel gets wider (when you watch to learn, your eyes are on the words, not the picture)",
+    "px — bề ngang tối đa của khung video":
+      "px — maximum width of the player",
     "Tốc độ nhịp đọc": "Reading rhythm speed",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "milliseconds per chunk (smaller is faster)",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "Spoken focus reminder, counted from when the notebook opens",
@@ -1308,6 +1312,10 @@
     "Đã lấy lại thẻ trước và huỷ lượt chấm": "前のカードに戻り、採点を取り消しました",
     "Mở nguồn trong chế độ học thì chia đôi màn hình: sổ tay bên trái, trang gốc bên phải": "学習中は出典を左右に並べて開く：左にノート、右に元のページ",
     "Chỉ còn mỗi thẻ này thôi": "残っているのはこのカードだけです",
+    "Thu nhỏ khung video YouTube để bảng lời thoại rộng ra (xem để học thì mắt ở lời thoại, không ở hình)":
+      "字幕パネルを広くするため YouTube のプレーヤーを縮小（学習目的なら目は映像より字幕にある）",
+    "px — bề ngang tối đa của khung video":
+      "px——プレーヤーの最大幅",
     "Tốc độ nhịp đọc": "読みのリズムの速さ",
     "mili-giây mỗi cụm (nhỏ hơn là chạy nhanh hơn)": "1まとまりあたりのミリ秒（小さいほど速い）",
     "Nhắc tập trung bằng loa, kể từ lúc mở sổ tay": "音声での集中リマインド（ノートを開いた時点から）",
