@@ -1798,12 +1798,25 @@ async function quayLaiThe() {
   toast(T("Đã lấy lại thẻ trước và huỷ lượt chấm"));
 }
 
-/** Phím →: để dành thẻ này lại cuối hàng, KHÔNG chấm. */
+/**
+ * Phím →: để dành thẻ này lại cuối hàng, KHÔNG chấm.
+ *
+ * Có một cảnh dễ trượt: bấm 2 (Nhớ) xong, cửa sổ 3 giây đang mở, MẶT THẺ VẪN LÀ
+ * TỪ VỪA CHẤM — rồi bấm → để đi tiếp cho nhanh. Lúc đó thẻ ấy đã ra khỏi hàng
+ * đợi rồi, và nếu cứ `push` nó vào cuối thì nó quay lại hỏi thêm một lần nữa
+ * trong cùng buổi học. Chấm hai lần một buổi là cấp nhảy hai bậc từ một lần
+ * nhớ — thổi phồng tiến độ mà không ai thấy.
+ *
+ * Nên: thẻ CÒN trong hàng thì mới để dành; thẻ đã chấm rồi thì → chỉ có nghĩa
+ * là "thôi, đi tiếp".
+ */
 function boQuaThe() {
   const it = theCardHienTai();
-  if (!it || session.queue.length < 2) return;
+  if (!it) return;
   const i = session.queue.indexOf(it);
-  if (i >= 0) session.queue.splice(i, 1);
+  if (i < 0) { goHoiNguon(); showCard(); return; }   // đã chấm rồi: chỉ đi tiếp
+  if (session.queue.length < 2) { toast(T("Chỉ còn mỗi thẻ này thôi"), "bad"); return; }
+  session.queue.splice(i, 1);
   session.queue.push(it);
   goHoiNguon();
   showCard();
