@@ -35,6 +35,29 @@
         tra({ ok: true, pr: JSON.parse(JSON.stringify({ videoDetails: pr.videoDetails, captions: pr.captions })) });
         return;
       }
+      if (d.viec === "cosize") {
+        /*
+         * Đổi cỡ bằng API của chính trình phát.
+         *
+         * Đè CSS lên trình phát thì nó vẫn tính bố cục theo cỡ CŨ: thẻ video
+         * mang kích thước pixel do nó tự ghi, lớp điều khiển và phụ đề cũng
+         * canh theo cỡ đó. `setSize` bảo nó tính lại từ đầu, nên mọi thứ khớp.
+         *
+         * Tên hàm không có trong tài liệu công khai, nên hỏi trước khi gọi và
+         * báo về là có gọi được không — bên kia còn biết mà dựa vào CSS.
+         */
+        const p = document.getElementById("movie_player");
+        const w = Math.round(d.w || 0), h = Math.round(d.h || 0);
+        if (!p || !(w > 0 && h > 0)) { tra({ ok: false }); return; }
+        let xong = false;
+        for (const ten of ["setSize", "setInternalSize"]) {
+          if (typeof p[ten] === "function") {
+            try { p[ten](w, h); xong = true; } catch (err) { /* thử tên sau */ }
+          }
+        }
+        tra({ ok: xong });
+        return;
+      }
       if (d.viec === "fetch") {
         const r = await fetch(d.url, { credentials: "include" });
         tra({ ok: r.ok, text: await r.text() });

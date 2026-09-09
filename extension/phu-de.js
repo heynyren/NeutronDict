@@ -61,7 +61,7 @@
   /* ---- Cầu nối sang thế giới của trang (xem phu-de-trang.js) ---- */
 
   let soHoi = 0;
-  function hoiTrang(viec, url) {
+  function hoiTrang(viec, url, them) {
     return new Promise((giai) => {
       const id = "njd" + (++soHoi);
       let xong = false;
@@ -71,7 +71,7 @@
         xong = true; window.removeEventListener("message", nghe); giai(d.kq || null);
       };
       window.addEventListener("message", nghe);
-      window.postMessage({ __njd: "hoi", id: id, viec: viec, url: url }, "*");
+      window.postMessage(Object.assign({ __njd: "hoi", id: id, viec: viec, url: url }, them || {}), "*");
       // Không có bên kia trả lời (trang chặn, hoặc Chrome cũ không cho world:MAIN)
       // thì đừng treo mãi — còn hai đường khác để đi.
       setTimeout(() => { if (!xong) { window.removeEventListener("message", nghe); giai(null); } }, 4000);
@@ -1250,7 +1250,20 @@
   let thuNho = false, thuNhoW = 620;
 
   function datThuNho(st) {
-    const bat = !!(st && st.ytNho);
+    /*
+     * `!== false`, KHÔNG phải `!!`. Đây chính là lỗi làm ba bản vá trước thành
+     * mã chết đối với người dùng.
+     *
+     * `SET_DEFAULTS` trong notebook.js chỉ dùng để VẼ màn Cài đặt; nó không ghi
+     * gì vào kho. Nên với người đã dùng app từ trước, đối tượng `settings` trong
+     * kho KHÔNG hề có khoá `ytNho` cho tới khi họ mở Cài đặt và bấm Lưu. Viết
+     * `!!(st && st.ytNho)` thì undefined ra false — tính năng tắt ngóm, mà nhìn
+     * vào mã thì tưởng mặc định là bật.
+     *
+     * Mọi cài đặt "mặc định BẬT" khác trong tệp này đều viết `!== false` (xem
+     * datPhoi). Tôi viết lệch đúng một chỗ, và mất ba lượt vá mới thấy.
+     */
+    const bat = !st || st.ytNho !== false;
     const w = Math.max(320, Math.min(1200, parseInt((st || {}).ytNhoW, 10) || 620));
     if (bat === thuNho && w === thuNhoW) return false;
     thuNho = bat; thuNhoW = w;
@@ -1350,8 +1363,35 @@
    * kích thước pixel nội tuyến. Còn rộng hơn mức đã đặt thì đi ngược lên tìm
    * đúng thẻ đang phình ra và bó chính nó, không cần biết YouTube gọi nó là gì.
    */
+  /**
+   * Nhờ CHÍNH TRÌNH PHÁT tự đổi cỡ, bằng API của nó.
+   *
+   * Đây mới là đường mà mấy extension đổi cỡ YouTube dùng: `movie_player` có sẵn
+   * `setSize(w, h)`. Gọi nó thì trình phát tự tính lại mọi thứ — thẻ video, lớp
+   * điều khiển, phụ đề — thay vì mình đè CSS lên rồi nó tính một đằng, hiển thị
+   * một nẻo.
+   *
+   * Phải gọi từ THẾ GIỚI CỦA TRANG: content script chạy trong thế giới cách ly,
+   * ở đó `movie_player` chỉ là một thẻ DOM trơn, không có mấy hàm ấy. Cầu nối
+   * phu-de-trang.js vốn đã có sẵn cho việc đọc getPlayerResponse.
+   *
+   * Vẫn giữ cả CSS: `setSize` là đường tốt nhất nhưng không chắc chắn — Chrome
+   * cũ không cho world:MAIN, và YouTube có thể đổi tên hàm. Hai lớp cùng làm một
+   * việc thì hỏng một lớp vẫn còn lớp kia.
+   */
+  let henCoSize = null;
+  function nhoTrinhPhatDoiCo() {
+    if (!thuNho) return;
+    clearTimeout(henCoSize);
+    henCoSize = setTimeout(() => {
+      const h = Math.round(thuNhoW * 9 / 16);
+      hoiTrang("cosize", "", { w: thuNhoW, h: h }).catch(() => {});
+    }, 120);
+  }
+
   function epBeNgang() {
     if (!thuNho) return;
+    nhoTrinhPhatDoiCo();
     const vd = document.querySelector("#movie_player video.html5-main-video")
       || document.querySelector("video.html5-main-video");
     const mp = document.querySelector("#movie_player");
