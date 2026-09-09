@@ -1261,9 +1261,16 @@
   /** Những thẻ đã bị ép bề ngang bằng JS — nhớ lại để còn trả nguyên trạng. */
   const daEp = new Set();
 
+  /** Lớp đánh dấu đặt trên <html>. Xem veThuNho về việc vì sao không bám vào
+      thuộc tính của ytd-watch-flexy nữa. */
+  const LOP_NHO = "nd-yt-nho";      // đang bật thu nhỏ
+  const LOP_TO = "nd-yt-to";        // tạm để yên (rạp / toàn màn hình)
+
   function veThuNho() {
+    const g = document.documentElement;
     if (!thuNho) {
       if (oThuNho) { oThuNho.remove(); oThuNho = null; }
+      g.classList.remove(LOP_NHO, LOP_TO);
       for (const n of daEp) { try { n.style.removeProperty("max-width"); } catch (e) {} }
       daEp.clear();
       nhacDoiCo();
@@ -1274,49 +1281,86 @@
       oThuNho.id = "neutrondict-thu-nho";
       (document.head || document.documentElement).appendChild(oThuNho);
     }
+    g.classList.add(LOP_NHO);
     /*
-     * KHÔNG loại trừ [full-bleed-player] nữa — đó chính là chỗ hỏng.
+     * ĐÂY mới là chỗ hỏng thật, và nó không nằm ở selector.
      *
-     * Cửa sổ hẹp (đúng cảnh chia đôi màn hình) thì YouTube tự chuyển sang bố cục
-     * MỘT CỘT và bật `full-bleed-player`: khung hình kéo ra sát hai mép cửa sổ,
-     * và nó bị NHẤC RA KHỎI #primary sang một khung riêng rộng bằng cả trang.
-     * Bản trước loại trừ đúng thuộc tính đó, nên ở cảnh cần nhất thì không làm
-     * gì cả — người dùng thấy khung hình y nguyên.
+     * Trình phát của YouTube ghi kích thước BẰNG PIXEL thẳng vào thẻ video:
+     *     <video class="video-stream html5-main-video"
+     *            style="width: 865px; height: 487px; left: 0px; top: 4px">
+     * (đọc được nguyên văn trong DevTools của người dùng). Bó `max-width` lên
+     * mấy khung bọc thì khung co lại thật, nhưng thẻ video bên trong vẫn giữ
+     * đúng 865px và TRÀN RA NGOÀI — nhìn vào thì y như chưa làm gì.
      *
-     * Rạp và toàn màn hình thì vẫn chừa: đó là ý muốn rõ ràng của người xem.
+     * Cách chữa: ép chính thẻ video vừa khít khung. Luật trong bảng kiểu có
+     * `!important` THẮNG kiểu nội tuyến không `!important` — mà kiểu YouTube ghi
+     * vào là loại không important. Nên chỉ cần nói to hơn nó một bậc.
+     *
+     * Và bỏ luôn việc bám vào `ytd-watch-flexy[...]`: tên thẻ với thuộc tính đó
+     * là thứ YouTube đổi thường xuyên nhất. Giờ khoá bằng một lớp mình tự đặt
+     * lên <html>, còn việc "khi nào thì để yên" do JS quyết (xem canhToNho).
      */
-    const K = "ytd-watch-flexy:not([theater]):not([fullscreen]) ";
+    const K = "html." + LOP_NHO + ":not(." + LOP_TO + ") ";
     const W = thuNhoW + "px";
+    const bo = ["#movie_player", "#player", "#player-container-outer",
+                "#player-container-inner", "#full-bleed-container",
+                "#player-full-bleed-container", "#primary"];
     oThuNho.textContent =
-      K + "#primary.ytd-watch-flexy{max-width:" + W + "!important;min-width:0!important;flex:1 1 auto!important}" +
-      K + "#secondary.ytd-watch-flexy{width:auto!important;max-width:none!important;" +
-          "min-width:300px!important;flex:1 1 auto!important}" +
-      // Bó CHÍNH khung hình, và bó mọi khung bọc mà YouTube từng dùng — kể cả
-      // khung "full bleed" nằm ngoài #primary.
-      K + "#movie_player," + K + "#player.ytd-watch-flexy," +
-      K + "#player-container-outer.ytd-watch-flexy," + K + "#player-container-inner," +
-      K + "#full-bleed-container," + K + "#player-full-bleed-container{" +
-      "max-width:" + W + "!important;margin-left:auto!important;margin-right:auto!important}";
+      bo.map((x) => K + x).join(",") +
+        "{max-width:" + W + "!important;min-width:0!important}" +
+      K + "#movie_player{height:auto!important;aspect-ratio:16/9!important;" +
+        "margin-left:auto!important;margin-right:auto!important}" +
+      // Khung bọc trong cùng của trình phát và CHÍNH thẻ video: bắt vừa khít.
+      K + "#movie_player .html5-video-container{" +
+        "width:100%!important;height:100%!important;position:relative!important}" +
+      K + "#movie_player video.html5-main-video{" +
+        "position:absolute!important;left:0!important;top:0!important;" +
+        "width:100%!important;height:100%!important;object-fit:contain!important}" +
+      K + "#primary{flex:1 1 auto!important}" +
+      K + "#secondary{width:auto!important;max-width:none!important;" +
+        "min-width:300px!important;flex:1 1 auto!important}";
+    canhToNho();
     nhacDoiCo();
     epBeNgang();
   }
 
   /**
+   * Khi nào thì TẠM ĐỂ YÊN cho hình to: rạp và toàn màn hình.
+   *
+   * Hai chế độ đó là ý muốn rõ ràng của người xem. Trước đây việc này nằm trong
+   * selector CSS (`:not([theater])`), mà thuộc tính ấy là của YouTube — họ đổi
+   * là hỏng. Hỏi bằng JS thì hỏng cũng chỉ hỏng một chiều: cùng lắm là hình vẫn
+   * nhỏ trong chế độ rạp, chứ không phải cả tính năng ngừng chạy.
+   */
+  function canhToNho() {
+    if (!thuNho) return;
+    let to = false;
+    try {
+      to = !!document.fullscreenElement
+        || !!document.querySelector("ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen]")
+        || !!document.querySelector(".ytp-fullscreen");
+    } catch (e) { to = false; }
+    document.documentElement.classList.toggle(LOP_TO, to);
+  }
+
+  /**
    * Chốt chặn cuối: ĐO rồi mới ép.
    *
-   * Danh sách selector ở trên là đoán theo bố cục YouTube hôm nay, mà YouTube
-   * đổi tên thẻ như thay áo. Nên sau khi chèn kiểu thì đo bề ngang THẬT của
-   * khung hình; còn rộng hơn mức đã đặt thì đi ngược lên tìm đúng thẻ đang phình
-   * ra và bó chính nó. Cách này không cần biết YouTube gọi thẻ đó là gì.
+   * Đo chính THẺ VIDEO — đó là thứ người dùng nhìn thấy, và cũng là thứ mang
+   * kích thước pixel nội tuyến. Còn rộng hơn mức đã đặt thì đi ngược lên tìm
+   * đúng thẻ đang phình ra và bó chính nó, không cần biết YouTube gọi nó là gì.
    */
   function epBeNgang() {
     if (!thuNho) return;
+    const vd = document.querySelector("#movie_player video.html5-main-video")
+      || document.querySelector("video.html5-main-video");
     const mp = document.querySelector("#movie_player");
-    if (!mp) return;
-    const rong = mp.getBoundingClientRect().width;
+    const dich = vd || mp;
+    if (!dich) return;
+    const rong = dich.getBoundingClientRect().width;
     if (!rong || rong <= thuNhoW + 8) return;        // kiểu đã đủ việc
-    let n = mp, doi = false;
-    for (let i = 0; i < 6 && n && n !== document.body; i++) {
+    let n = dich, doi = false;
+    for (let i = 0; i < 7 && n && n !== document.body; i++) {
       if (n.getBoundingClientRect().width > thuNhoW + 8) {
         n.style.setProperty("max-width", thuNhoW + "px", "important");
         daEp.add(n); doi = true;
@@ -2487,6 +2531,10 @@
   document.addEventListener("yt-navigate-finish", () => xemLai());
   let urlCu = location.href;
   const vongCanh = setInterval(() => {
+    // Trình phát ghi lại kích thước nội tuyến mỗi lần bố cục đổi (đổi video,
+    // vào/ra chế độ rạp, xoay màn hình). Nên phải canh lại chứ không chỉ đặt
+    // một lần lúc mở trang.
+    if (thuNho) { canhToNho(); epBeNgang(); }
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
     // YouTube dựng lại cột phải khá tuỳ hứng và cuốn theo cả bảng này; dựng lại
     // khi thấy nó biến mất, chứ không bắt người dùng tải lại trang.
