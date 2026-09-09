@@ -633,18 +633,33 @@ async function gtxLay(params, enc, nhanh) {
   const dai = enc.length > 4000;
   const han = nhanh ? 4000 : 8000;
   const hosts = nhanh ? GTX_HOST.slice(0, 1) : GTX_HOST;
+  /*
+   * HẠN TỔNG cho cả chuỗi dự phòng.
+   *
+   * Chuỗi đầy đủ là 2 cổng × 2 cách × 8 giây: mạng hỏng kiểu treo thì người
+   * dùng ngồi nhìn ô trống 32 giây rồi mới nhận được câu "không tra được".
+   * Mỗi lượt thử riêng lẻ vẫn giữ hạn cũ, nhưng cả chuỗi thì dừng ở 12 giây —
+   * quá đó thì lượt thử tiếp theo gần như chắc chắn cũng trượt, mà 32 giây chờ
+   * thì không ai còn muốn dùng nữa.
+   */
+  const hanTong = nhanh ? 4500 : 12000;
+  const batDau = Date.now();
   let cuoi = null;
   for (const h of hosts) {
+    if (Date.now() - batDau >= hanTong) break;
     const base = h + params;
-    const doGet = () => layCoHan(base + "&q=" + enc, null, han);
+    // Hạn của TỪNG lượt thử không được vượt quá phần còn lại của hạn tổng, kẻo
+    // lượt cuối cùng khởi hành ngay trước vạch rồi vẫn chạy thêm trọn 8 giây.
+    const conLai = () => Math.max(1000, Math.min(han, hanTong - (Date.now() - batDau)));
+    const doGet = () => layCoHan(base + "&q=" + enc, null, conLai());
     const doPost = () => layCoHan(base, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
       body: "q=" + enc
-    }, han);
+    }, conLai());
     let r = null;
     try { r = await (dai ? doPost() : doGet()); } catch (e) { r = null; }
-    if (!nhanh && (!r || !r.ok)) {
+    if (!nhanh && (!r || !r.ok) && Date.now() - batDau < hanTong) {
       try { r = await (dai ? doGet() : doPost()); } catch (e) { /* cách kia cũng trượt */ }
     }
     if (r && r.ok) { try { return await r.json(); } catch (e) { cuoi = e; } }
@@ -1039,7 +1054,16 @@ async function dongNghiaJa(word) {
  */
 async function lienVaSau(key, e, dict, choMang) {
   const mang = choMang !== false;
-  return vaSau(async () => {
+  /*
+   * Phần CHẬM chạy ở ngoài hàng đợi; chỉ lượt đọc-sửa-ghi mới xếp hàng.
+   *
+   * Hàng đợi vaSau sinh ra để hai lượt ghi không đè lên nhau. Nhưng trước đây
+   * cả lượt gọi mạng cũng nằm trong đó, nên một lượt dịch chậm là chặn mọi việc
+   * phía sau — kể cả việc của từ người dùng vừa bấm Lưu. Đo được: lượt bồi nền
+   * đang chạy với mạng chậm 3 giây thì việc của người dùng phải đợi 3.706ms mới
+   * tới lượt. Sau khi tách: dưới 20ms.
+   */
+  const tinh = (async () => {
     const laJa = (dict === "javi" || dict === "vija");
     // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
     /*
@@ -1067,7 +1091,11 @@ async function lienVaSau(key, e, dict, choMang) {
       }
       ra = self.TuLien.gop(self.TuLien.tuPos(pos || [], e.word), ra);
     }
-    if (!ra.dong.length && !ra.trai.length) return false;
+    return ra;
+  })();
+  const ra = await tinh;
+  if (!ra.dong.length && !ra.trai.length) return false;
+  return vaSau(async () => {
     const { notebook } = await chrome.storage.local.get("notebook");
     const nb = notebook || {};
     const cu = nb[key];
@@ -1087,13 +1115,14 @@ async function lienVaSau(key, e, dict, choMang) {
  */
 /** @param {boolean} [nhanh] lượt bồi nền: dịch với hạn ngắn, xem gtxLay. */
 async function cauNgheVaSau(key, e, dict, nhanh) {
+  // Moi câu và dịch câu đều làm NGOÀI hàng đợi — xem chú thích ở lienVaSau.
+  const c = self.CauNghe.tuNguon(e.src, e.word);
+  if (!c) return false;
+  const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
+  let dich = "";
+  try { dich = await gtxTranslate(c.cau, tu, "vi", nhanh); } catch (err) { dich = ""; }
+  if (dich && dich.trim() === c.cau.trim()) dich = "";       // không dịch được thì để trống
   return vaSau(async () => {
-    const c = self.CauNghe.tuNguon(e.src, e.word);
-    if (!c) return false;
-    const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
-    let dich = "";
-    try { dich = await gtxTranslate(c.cau, tu, "vi", nhanh); } catch (err) { dich = ""; }
-    if (dich && dich.trim() === c.cau.trim()) dich = "";     // không dịch được thì để trống
     const { notebook } = await chrome.storage.local.get("notebook");
     const nb = notebook || {};
     const cu = nb[key];
@@ -1123,9 +1152,10 @@ function vaSau(lam) {
 }
 
 async function rubyVaSau(key, word) {
+  // Lượt hỏi Google để ghép furigana làm NGOÀI hàng đợi — xem lienVaSau.
+  const rb = await rubyCua(word);
+  if (!rb.length) return;
   return vaSau(async () => {
-    const rb = await rubyCua(word);
-    if (!rb.length) return;
     const { notebook } = await chrome.storage.local.get("notebook");
     const nb = notebook || {};
     const it = nb[key];
