@@ -1248,6 +1248,21 @@
    */
   let oThuNho = null;
   let thuNho = false, thuNhoW = 620;
+  /**
+   * Thu nhỏ chỉ đúng khi ĐANG HỌC — thẻ do NeutronDict mở ra từ sổ tay hay từ
+   * chế độ học. Lướt YouTube bình thường mà hình bị bó lại là phá trang của
+   * người ta, không phải giúp.
+   *
+   * Dấu do bên mở đặt vào URL (xem danhDauHoc trong notebook.js). Đọc một lần
+   * lúc nạp là đủ: chuyển sang video khác thì YouTube thay hẳn URL, dấu rụng —
+   * mà lúc đó cũng đúng là đã rời buổi học.
+   */
+  const tuApp = (() => {
+    try { return new URL(location.href).searchParams.get("nd_hoc") === "1"; }
+    catch (e) { return false; }
+  })();
+  /** Người xem tự bấm nút thu nhỏ trên bảng — chỉ có giá trị cho THẺ NÀY. */
+  let batTay = false;
   /** Các nấc cỡ khung hình, xếp TO -> NHỎ. Xem nút .khung trên thanh tiêu đề. */
   const CO_KHUNG = [760, 620, 520, 440, 360];
 
@@ -1265,7 +1280,9 @@
      * Mọi cài đặt "mặc định BẬT" khác trong tệp này đều viết `!== false` (xem
      * datPhoi). Tôi viết lệch đúng một chỗ, và mất ba lượt vá mới thấy.
      */
-    const bat = !st || st.ytNho !== false;
+    // Công tắc trong Cài đặt là cái CHO PHÉP; còn có thu hay không thì phải
+    // đúng cảnh: thẻ do app mở, hoặc người xem tự bấm nút trên bảng.
+    const bat = (!st || st.ytNho !== false) && (tuApp || batTay);
     const w = Math.max(320, Math.min(1200, parseInt((st || {}).ytNhoW, 10) || 620));
     if (bat === thuNho && w === thuNhoW) return false;
     thuNho = bat; thuNhoW = w;
@@ -1584,18 +1601,26 @@
     const veNutKhung = () => {
       nutKhung.textContent = "";
       const t = document.createElement("span");
-      t.textContent = thuNho ? String(thuNhoW) : T("Hình to");
+      t.textContent = thuNho ? String(thuNhoW) : T("Thu nhỏ hình");
       nutKhung.appendChild(t);
       nutKhung.title = T("Cỡ khung hình — bấm để thu nhỏ thêm");
     };
     veNutKhung();
     S.veNutKhung = veNutKhung;
     nutKhung.addEventListener("click", async () => {
+      const { settings } = await self.Song.doc("settings");
+      const st = settings || {};
+      // Đang để nguyên (thẻ tự mở, không phải từ app): bấm lần đầu là BẬT cho
+      // riêng thẻ này, giữ nguyên cỡ đang đặt. Bấm tiếp mới nhỏ dần.
+      if (!thuNho) {
+        batTay = true;
+        datThuNho(st);
+        veNutKhung();
+        return;
+      }
       const nho = CO_KHUNG.filter((x) => x < thuNhoW);
       const moi = nho.length ? nho[0] : CO_KHUNG[0];
-      const { settings } = await self.Song.doc("settings");
-      await self.Song.ghi({ settings: Object.assign({}, settings || {},
-        { ytNho: true, ytNhoW: moi }) });
+      await self.Song.ghi({ settings: Object.assign({}, st, { ytNho: true, ytNhoW: moi }) });
       // Không tự đổi thuNhoW ở đây: onChanged gọi datThuNho, và chính nó vẽ lại.
     });
 

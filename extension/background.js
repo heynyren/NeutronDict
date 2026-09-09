@@ -330,73 +330,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
  * mốc thời gian thì máy nào tự vá của máy đó, mà cloud không phải nhận một
  * lượt tải lên "cả sổ vừa đổi".
  */
-async function vaFurigana(toiDa) {
-  let conMang = Math.max(0, toiDa == null ? 25 : toiDa);
-  const { notebook } = await chrome.storage.local.get("notebook");
-  const nb = notebook || {};
-  const doi = {}, doiRuby = {};
-  for (const k of Object.keys(nb)) {
-    const it = nb[k];
-    if (!it || it.del) continue;
-    // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ
-    // nằm trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
-    if (it.dict !== "javi" && it.dict !== "vija" && it.dict !== "kanji") continue;
-    // CHÚ Ý: không bỏ qua mục đã có kana ở đây. Cách đọc thì đã xong, nhưng
-    // furigana của nó vẫn có thể lệch (ruby cũ suy từ romaji Google) — phải để
-    // lọt xuống dưới mà soát lại. Việc soát là ghép chuỗi thuần, không tốn mạng.
-
-    // Cả câu (và cụm quá dài để có MỘT dòng kana) đi đường khác: furigana đặt
-    // trên từng khúc chữ Hán. Những câu bạn đã lưu từ bảng lời thoại trước đây
-    // nằm ở đây — vá dần chúng qua các lượt mở, khỏi phải lưu lại từng câu.
-    const coHan = self.Kana.catKhuc(it.word).some((x) => x.han);
-    if (it.kind === "sent" || (coHan && !self.Kana.canDoc(it.word, ""))) {
-      if (!coHan) continue;                                         // toàn kana: chẳng có gì để đặt furigana lên
-      // "Đã ghép rồi" chưa đủ: bảng cũ bám theo từng khúc chữ Hán, sửa lại chữ
-      // của mục là nó hết khớp và ruby lặng lẽ biến mất. Hỏi xem còn khớp không
-      // thì mục ấy được ghép lại, thay vì mất furigana vĩnh viễn.
-      if (self.Kana.rubyKhop(it.word, it.ruby)) continue;
-      if (conMang <= 0) continue;                                   // để dành cho lượt mở sau
-      const rb = await rubyCua(it.word);
-      conMang--;                                                    // trừ cả lượt hỏi hụt
-      if (rb.length) doiRuby[k] = { rb: rb, suy: true };            // ruby cả câu suy từ Google
-      continue;
-    }
-
-    // Cách đọc: mục này có phải đi hỏi mạng không — chỉ khi trắng cách đọc và
-    // có chữ Hán. Hết lượt mạng thì để lần mở sau, NHƯNG vẫn soát ruby ở dưới.
-    const phaiHoi = !it.reading && self.Kana.canDoc(it.word, "");
-    if (!(phaiHoi && conMang <= 0)) {
-      const r = await docKana(it.word, it.reading, phaiHoi);
-      if (phaiHoi) conMang--;                         // trừ cả lượt hỏi hụt, không thì kẹt mãi
-      if (r && r.doc && r.doc !== it.reading) doi[k] = r;
-    }
-
-    // Furigana của TỪ ĐƠN suy TỪ CHÍNH cách đọc của mục — không hỏi Google lần
-    // nữa. Đây là chỗ chữa lỗi "furigana lệch với phiên âm": trước đây ruby đi
-    // qua romaji của Google, một nguồn TÁCH khỏi cách đọc từ điển đã cho, nên
-    // có ngày lệch — 発売 phiên âm はつばい mà furigana lại ra わっぱい. Một
-    // nguồn thì không tự lệch với mình. Ghép lại rẻ (chuỗi thuần), chỉ ghi khi
-    // khác thật để cloud khỏi tưởng cả sổ vừa đổi; ghép hụt thì GIỮ ruby cũ.
-    const docChot = (doi[k] && doi[k].doc) || it.reading || "";
-    if (docChot && !self.Kana.laRomaji(docChot) && self.Kana.canDoc(it.word, "")) {
-      // MỘT cách đọc thôi: từ điển hay trả "せい/しょう/なま" trong một chuỗi, mà
-      // nhét cả cụm lên đỉnh chữ thì furigana dài gấp mấy lần chữ nó chú.
-      // canDoc() ở trên đã chốt đây là TỪ ĐƠN (≤12 chữ) nên cắt được an toàn.
-      const docMot = self.Kana.motCachDoc(docChot);
-      const rb2 = self.Kana.gonRuby(self.Kana.ghepFurigana(it.word, docMot));
-      if (rb2.length && rb2.join("\u241f") !== ((it.ruby || []).join("\u241f"))) {
-        // Cách đọc từ điển thì furigana theo nó cũng chuẩn — đừng gắn dấu "suy
-        // ra". Chỉ đánh dấu khi chính cách đọc là suy (docKana trả suy, hoặc
-        // mục vốn đã mang dấu ấy).
-        const suy = !!(doi[k] && doi[k].suy) || !!it.docSuy;
-        doiRuby[k] = { rb: rb2, suy: suy };
-      }
-    }
-  }
+/**
+ * Ghi một loạt bản vá vào sổ.
+ *
+ * Đọc LẠI sổ ngay trước khi ghi: giữa lúc vá có thể đã có lượt lưu từ khác.
+ * @returns {Promise<number>} số mục thực sự đổi.
+ */
+async function ghiVaDoc(doi, doiRuby) {
   const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
   if (!keys.length && !keysRb.length) return 0;
-
-  // Đọc lại ngay trước khi ghi: giữa lúc hỏi mạng có thể đã có lượt lưu khác.
   const moi = (await chrome.storage.local.get("notebook")).notebook || {};
   for (const k of keys) {
     const it = moi[k];
@@ -412,6 +354,139 @@ async function vaFurigana(toiDa) {
   }
   await chrome.storage.local.set({ notebook: moi });
   return keys.length + keysRb.length;
+}
+
+/** Mục này có thuộc diện vá cách đọc không. */
+function dienVaDoc(it) {
+  // Thẻ chữ Hán cũng là mục tiếng Nhật. Bỏ sót nhóm này là cả một loại thẻ nằm
+  // trong sổ mà không bao giờ có cách đọc — đúng thứ cần furigana nhất.
+  return !!it && !it.del
+    && (it.dict === "javi" || it.dict === "vija" || it.dict === "kanji");
+}
+
+/**
+ * GIAI ĐOẠN 1 — vá những gì KHÔNG cần mạng, và ghi ngay.
+ *
+ * Hai việc, cả hai đều là ghép chuỗi thuần:
+ *   - Cách đọc còn là romaji ("Hatsubai") -> đổi sang kana.
+ *   - Furigana dựng LẠI từ chính cách đọc của mục.
+ *
+ * Việc thứ hai là chỗ chữa lỗi "furigana lệch với phiên âm": trước đây ruby đi
+ * qua romaji của Google, một nguồn TÁCH khỏi cách đọc từ điển đã cho, nên có
+ * ngày lệch — 発売 phiên âm はつばい mà furigana lại ra わつばい. Một nguồn thì
+ * không tự lệch với mình.
+ */
+async function vaDocNgoaiTuyen() {
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  const doi = {}, doiRuby = {};
+  for (const k of Object.keys(nb)) {
+    const it = nb[k];
+    if (!dienVaDoc(it)) continue;
+
+    // Cả câu đi đường khác (furigana trên từng khúc chữ Hán) và cần mạng —
+    // để giai đoạn 2.
+    const coHan = self.Kana.catKhuc(it.word).some((x) => x.han);
+    if (it.kind === "sent" || (coHan && !self.Kana.canDoc(it.word, ""))) continue;
+
+    // choPhepMang = false: chỉ nhận phần đổi được tại chỗ.
+    const r = await docKana(it.word, it.reading, false);
+    if (r && r.doc && r.doc !== it.reading) doi[k] = r;
+
+    const docChot = (doi[k] && doi[k].doc) || it.reading || "";
+    if (docChot && !self.Kana.laRomaji(docChot) && self.Kana.canDoc(it.word, "")) {
+      // MỘT cách đọc thôi: từ điển hay trả "せい/しょう/なま" trong một chuỗi, mà
+      // nhét cả cụm lên đỉnh chữ thì furigana dài gấp mấy lần chữ nó chú.
+      const docMot = self.Kana.motCachDoc(docChot);
+      const rb = self.Kana.gonRuby(self.Kana.ghepFurigana(it.word, docMot));
+      if (rb.length && rb.join("␟") !== ((it.ruby || []).join("␟"))) {
+        // Cách đọc từ điển thì furigana theo nó cũng chuẩn — đừng gắn dấu "suy
+        // ra". Chỉ đánh dấu khi chính cách đọc là suy.
+        doiRuby[k] = { rb: rb, suy: !!(doi[k] && doi[k].suy) || !!it.docSuy };
+      }
+    }
+  }
+  return ghiVaDoc(doi, doiRuby);
+}
+
+/** Bao nhiêu mục được ghi một lần ở giai đoạn mạng. Xem vaDocQuaMang. */
+const DOT_VA = 5;
+
+/**
+ * GIAI ĐOẠN 2 — những mục phải đi hỏi mạng, ghi theo từng ĐỢT NHỎ.
+ *
+ * Ghi theo đợt chứ không dồn tới cuối. Service worker MV3 bị dừng bất cứ lúc
+ * nào, mà một vòng lặp mấy chục lượt gọi mạng nối đuôi thì rất dễ chạm giới
+ * hạn — dồn tới cuối thì nó chết trước dòng ghi và MỌI thứ vừa vá đều mất, lần
+ * mở sau lại làm lại từ đầu, mãi mãi không xong. Đây đúng là lý do có người mở
+ * sổ hàng chục lần mà cách đọc vẫn nguyên dạng romaji.
+ */
+async function vaDocQuaMang(toiDa) {
+  let conMang = Math.max(0, toiDa == null ? 20 : Math.min(toiDa, 20));
+  if (!conMang) return 0;
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  let xong = 0, doi = {}, doiRuby = {};
+  const xa = async () => { xong += await ghiVaDoc(doi, doiRuby); doi = {}; doiRuby = {}; };
+
+  for (const k of Object.keys(nb)) {
+    if (conMang <= 0) break;
+    const it = nb[k];
+    if (!dienVaDoc(it)) continue;
+
+    const coHan = self.Kana.catKhuc(it.word).some((x) => x.han);
+    if (it.kind === "sent" || (coHan && !self.Kana.canDoc(it.word, ""))) {
+      if (!coHan) continue;                       // toàn kana: chẳng có gì để đặt furigana lên
+      // "Đã ghép rồi" chưa đủ: bảng cũ bám theo từng khúc chữ Hán, sửa lại chữ
+      // của mục là nó hết khớp và ruby lặng lẽ biến mất.
+      if (self.Kana.rubyKhop(it.word, it.ruby)) continue;
+      const rb = await rubyCua(it.word);
+      conMang--;                                  // trừ cả lượt hỏi hụt
+      if (rb.length) doiRuby[k] = { rb: rb, suy: true };
+    } else {
+      if (it.reading || !self.Kana.canDoc(it.word, "")) continue;   // giai đoạn 1 lo rồi
+      const r = await docKana(it.word, "", true);
+      conMang--;
+      if (r && r.doc) {
+        doi[k] = r;
+        const rb = self.Kana.gonRuby(
+          self.Kana.ghepFurigana(it.word, self.Kana.motCachDoc(r.doc)));
+        if (rb.length) doiRuby[k] = { rb: rb, suy: !!r.suy };
+      }
+    }
+    if (Object.keys(doi).length + Object.keys(doiRuby).length >= DOT_VA) await xa();
+  }
+  await xa();
+  return xong;
+}
+
+/**
+ * Vá cách đọc và furigana cho những mục ĐÃ nằm sẵn trong sổ.
+ *
+ * Chạy mỗi lần mở sổ tay. Phần ghép chuỗi làm HẾT và ghi TRƯỚC, vì nó không
+ * tốn gì và không được phép phụ thuộc vào việc mạng có chạy hay không. Phần
+ * phải đi hỏi mạng mỗi lượt chỉ làm một ít, ghi theo đợt — mở vài lần là hết.
+ *
+ * KHÔNG đụng vào `ts`. Cách đọc suy ra là như nhau trên mọi máy, nên để yên
+ * mốc thời gian thì máy nào tự vá của máy đó, mà cloud không phải nhận một
+ * lượt tải lên "cả sổ vừa đổi".
+ */
+async function vaFurigana(toiDa) {
+  let n = 0;
+  try {
+    n += await vaDocNgoaiTuyen();
+    /*
+     * Báo NGAY, đừng đợi giai đoạn mạng.
+     *
+     * Bên sổ tay chỉ vẽ lại khi lượt vá trả lời xong, mà giai đoạn 2 có thể
+     * treo cả phút vì mạng. Phần ngoại tuyến đã ghi vào kho rồi thì màn hình
+     * phải thấy ngay — không thì người dùng vẫn đang nhìn đúng cái furigana sai
+     * mà kho thì đã đúng từ lâu.
+     */
+    if (n) chrome.runtime.sendMessage({ type: "VA_FURIGANA_XONG", n: n }).catch(() => {});
+  } catch (e) { /* còn giai đoạn 2 */ }
+  try { n += await vaDocQuaMang(toiDa); } catch (e) { /* phần ngoại tuyến đã ghi rồi */ }
+  return n;
 }
 
 /** Ngôn ngữ đang bật. Một khoá duy nhất, mọi màn đều đọc từ đây. */
