@@ -1248,6 +1248,8 @@
    */
   let oThuNho = null;
   let thuNho = false, thuNhoW = 620;
+  /** Các nấc cỡ khung hình, xếp TO -> NHỎ. Xem nút .khung trên thanh tiêu đề. */
+  const CO_KHUNG = [760, 620, 520, 440, 360];
 
   function datThuNho(st) {
     /*
@@ -1268,6 +1270,7 @@
     if (bat === thuNho && w === thuNhoW) return false;
     thuNho = bat; thuNhoW = w;
     veThuNho();
+    if (S.veNutKhung) S.veNutKhung();     // chip trên bảng phải hiện đúng cỡ mới
     return true;
   }
 
@@ -1329,6 +1332,20 @@
       K + "#movie_player video.html5-main-video{" +
         "position:absolute!important;left:0!important;top:0!important;" +
         "width:100%!important;height:100%!important;object-fit:contain!important}" +
+      /*
+       * Dải đen dưới khung hình.
+       *
+       * Ở bố cục một cột, YouTube ghi CHIỀU CAO cố định cho khung bọc
+       * full-bleed, tính theo khung hình 865px. Thu trình phát xuống 620px thì
+       * chiều cao ấy vẫn nguyên, thừa ra gần 180px nền đen — đúng mảng đen
+       * trong ảnh người dùng gửi. Bắt mấy khung bọc đó cao theo nội dung.
+       */
+      K + "#full-bleed-container,#player-full-bleed-container," +
+        "#player-container-outer,#player-container-inner{" +
+        "height:auto!important;min-height:0!important;max-height:none!important}" +
+      // Và canh giữa, không dán vào mép trái của một cửa sổ rộng hơn nó.
+      K + "#full-bleed-container,#player-full-bleed-container{" +
+        "margin-left:auto!important;margin-right:auto!important}" +
       K + "#primary{flex:1 1 auto!important}" +
       K + "#secondary{width:auto!important;max-width:none!important;" +
         "min-width:300px!important;flex:1 1 auto!important}";
@@ -1433,18 +1450,48 @@
    * đặt bảng ngay dưới khung hình, trên cả tiêu đề — chỗ mắt đang nhìn.
    */
   function choDat() {
-    const sec = document.querySelector("#secondary-inner") || document.querySelector("#secondary");
+    /*
+     * Hai thẻ khác nhau cho hai việc khác nhau, và lẫn chúng là một cái bẫy:
+     *   - ĐO thì phải đo #secondary. #secondary-inner lúc chưa có gì bên trong
+     *     thì cao 0, mà "cao 0" lại đúng là dấu hiệu tôi dùng để nhận ra thẻ bị
+     *     ẩn — thành ra cửa sổ rộng cũng bị đẩy bảng xuống dưới khung hình.
+     *   - ĐẶT thì đặt vào #secondary-inner, đúng nếp cũ.
+     */
+    const secDo = document.querySelector("#secondary") || document.querySelector("#secondary-inner");
+    const sec = document.querySelector("#secondary-inner") || secDo;
+    const duoi = document.querySelector("ytd-watch-flexy #below") || document.querySelector("#below");
     const mp = document.querySelector("#movie_player");
-    if (mp && sec) {
-      const a = mp.getBoundingClientRect(), b = sec.getBoundingClientRect();
-      // Có kích thước thật, và cột phải bắt đầu từ dưới đáy khung hình -> xếp dọc.
-      if (a.width > 0 && b.width > 0 && b.top >= a.bottom - 4) {
-        const duoi = document.querySelector("ytd-watch-flexy #below")
-          || document.querySelector("#below");
-        if (duoi) return duoi;
-      }
+
+    // Chưa có trình phát trong trang: không đo được gì, cứ theo nếp cũ.
+    if (!mp) return sec || duoi;
+    const a = mp.getBoundingClientRect();
+    // Có trình phát nhưng CHƯA dựng xong (chưa có kích thước): chưa quyết vội.
+    // Trả null là "chờ thêm" — vòng thử lại bên xemLai sẽ hỏi lại sau 500ms.
+    // Quyết lúc này thì cửa sổ rộng cũng bị đẩy bảng xuống dưới khung hình.
+    if (!(a.width > 0)) return null;
+
+    /*
+     * Hỏi ĐÚNG một câu, và hỏi theo chiều KHẲNG ĐỊNH: cột phải có đang nằm
+     * CẠNH khung hình không? Nằm cạnh = mép trái của nó bắt đầu từ mép phải
+     * khung hình trở đi, VÀ đỉnh nó còn cao hơn đáy khung hình.
+     *
+     * Bản trước hỏi ngược lại ("cột phải có nằm DƯỚI không") rồi mới đổi chỗ.
+     * Câu hỏi ngược có một lỗ: cột phải bị ẩn hẳn (display:none) thì rect toàn
+     * số 0 — không "nằm dưới", nên hàm trả về ngay cột phải ĐANG ẨN, và bảng
+     * được dựng vào một thẻ không hiển thị. Người dùng thấy: dưới khung hình là
+     * tiêu đề, không có bảng nào, mà trong DOM thì bảng vẫn có.
+     *
+     * Hỏi theo chiều khẳng định thì mọi cảnh bất thường — bị ẩn, chưa dựng,
+     * xếp dọc, rơi xuống dưới bình luận — đều rơi vào cùng một nhánh an toàn:
+     * đặt ngay dưới khung hình, chỗ mắt đang nhìn.
+     */
+    if (secDo && sec) {
+      const b = secDo.getBoundingClientRect();
+      const canh = b.width > 0 && b.height > 0
+        && b.left >= a.right - 8 && b.top < a.bottom - 4;
+      if (canh) return sec;
     }
-    return sec;
+    return duoi || sec;
   }
 
   function goBang() {
@@ -1452,6 +1499,7 @@
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
     hangCho.clear(); clearTimeout(henDich);
     if (S.host) { S.host.remove(); S.host = null; S.root = null; S.oList = null; }
+    S.veNutKhung = null;      // nút đã theo bảng đi rồi, đừng gọi vào chỗ trống
   }
 
   function dungBang() {
@@ -1499,6 +1547,17 @@
     top.appendChild(nutNap);
     const nutCo = nutChip("text-aa", "", T("Cỡ chữ — bấm để đổi"));
     top.appendChild(nutCo);
+    /*
+     * Cỡ KHUNG HÌNH, đổi ngay tại đây chứ không bắt đi vào Cài đặt.
+     *
+     * Ô nhập bề ngang trong Cài đặt vẫn còn cho ai muốn con số chính xác, nhưng
+     * "hình vẫn to quá" là thứ người ta nhận ra ĐÚNG LÚC đang xem — bắt mở sổ
+     * tay, tìm mục Cài đặt, gõ số, bấm Lưu, rồi quay lại tải lại trang thì
+     * không ai làm quá một lần. Chip này để ngay cạnh cỡ chữ, cùng một nếp.
+     */
+    const nutKhung = nutChip("", "", "");
+    nutKhung.classList.add("khung");
+    top.appendChild(nutKhung);
     const nutThu = nutChip("caret-up", "", T("Thu gọn"));
     top.appendChild(nutThu);
     const nutTat = nutChip("x", "", T("Đóng bảng"));
@@ -1515,6 +1574,31 @@
     };
     veNutNgu();
     S.veNutNgu = veNutNgu;
+    /*
+     * Các nấc đi từ TO xuống NHỎ, nên "bấm một cái là nhỏ thêm một nấc" chỉ là
+     * lấy nấc đầu tiên nhỏ hơn cỡ hiện tại. Hết nấc thì vòng lại cỡ to nhất —
+     * cùng một nút vừa thu vừa trả về như cũ, khỏi cần thêm nút phóng to.
+     * Không dùng indexOf: cỡ đang dùng có thể là số người dùng tự gõ trong Cài
+     * đặt (560 chẳng hạn), không nằm trong bảng nấc nào cả.
+     */
+    const veNutKhung = () => {
+      nutKhung.textContent = "";
+      const t = document.createElement("span");
+      t.textContent = thuNho ? String(thuNhoW) : T("Hình to");
+      nutKhung.appendChild(t);
+      nutKhung.title = T("Cỡ khung hình — bấm để thu nhỏ thêm");
+    };
+    veNutKhung();
+    S.veNutKhung = veNutKhung;
+    nutKhung.addEventListener("click", async () => {
+      const nho = CO_KHUNG.filter((x) => x < thuNhoW);
+      const moi = nho.length ? nho[0] : CO_KHUNG[0];
+      const { settings } = await self.Song.doc("settings");
+      await self.Song.ghi({ settings: Object.assign({}, settings || {},
+        { ytNho: true, ytNhoW: moi }) });
+      // Không tự đổi thuNhoW ở đây: onChanged gọi datThuNho, và chính nó vẽ lại.
+    });
+
     nutNgu.addEventListener("click", async () => {
       const moi = NGU === "ja" ? "en" : "ja";
       const { settings } = await self.Song.doc("settings");
