@@ -281,6 +281,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
              .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
+  if (msg.type === "BOI_DUONG") {
+    boiThemDuong(msg.toiDa)
+      .then((n) => sendResponse({ ok: true, count: n }))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
   if (msg.type === "VA_FURIGANA") {
     vaFurigana(msg.toiDa)
       .then((n) => sendResponse({ ok: true, count: n }))
@@ -339,6 +345,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 async function ghiVaDoc(doi, doiRuby) {
   const keys = Object.keys(doi), keysRb = Object.keys(doiRuby);
   if (!keys.length && !keysRb.length) return 0;
+  /*
+   * ĐI QUA CHUNG MỘT HÀNG ĐỢI với mấy lượt vá kia.
+   *
+   * Hàm này đọc CẢ SỔ, sửa một trường, rồi ghi CẢ SỔ về — y hệt lienVaSau và
+   * cauNgheVaSau. Chạy song song với chúng thì đứa ghi sau đè lên đứa ghi
+   * trước: mục vừa được bồi `lien` xong thì lượt vá furigana ghi đè bản đọc từ
+   * trước đó và `lien` biến mất. Đo được: bồi cho ba từ thì chỉ một từ giữ
+   * được kết quả. vaSau đã sinh ra đúng để chặn chuyện này, chỉ là hàm này
+   * chưa đi qua nó.
+   */
+  return vaSau(async () => {
   const moi = (await chrome.storage.local.get("notebook")).notebook || {};
   for (const k of keys) {
     const it = moi[k];
@@ -354,6 +371,7 @@ async function ghiVaDoc(doi, doiRuby) {
   }
   await chrome.storage.local.set({ notebook: moi });
   return keys.length + keysRb.length;
+  });
 }
 
 /** Mục này có thuộc diện vá cách đọc không. */
@@ -461,6 +479,71 @@ async function vaDocQuaMang(toiDa) {
 }
 
 /**
+ * BỒI THÊM ĐƯỜNG cho những từ đã nằm sẵn trong sổ.
+ *
+ * Chế độ học có bốn đường, nhưng ba đường sau chỉ mở khi mục CÓ DỮ LIỆU cho
+ * chúng (xem Srs.duongCo):
+ *     nghe -> cần cauNghe.cau        (câu ngữ cảnh chứa từ)
+ *     dong -> cần lien.dong >= 2     (tập đồng nghĩa)
+ *     trai -> cần lien.trai >= 1     (tập trái nghĩa)
+ *
+ * Mà hai trường ấy trước giờ CHỈ được sinh ra ở một chỗ duy nhất: lúc bấm Lưu
+ * một từ mới. Nên mọi từ đã có trong sổ từ trước khi tính năng ra đời thì vĩnh
+ * viễn chỉ có mỗi đường "nhìn" — học bao nhiêu ngày cũng chỉ ra flashcard, ba
+ * bài kiểm tra kia không bao giờ xuất hiện. Chúng không hỏng; chúng không có
+ * dữ liệu để chạy.
+ *
+ * Hàm này bồi cho những mục ấy, mỗi lần mở sổ một ít:
+ *   - Tập đồng/trái nghĩa: bảng hạt giống và bộ 日本語WordNet đều nằm TRONG
+ *     máy, nên phần này không tốn lượt mạng nào — làm cho hết trong một lượt.
+ *   - Câu ngữ cảnh: moi ra từ nguồn đã lưu thì miễn phí, nhưng còn phải dịch
+ *     câu ấy, mỗi mục một lượt gọi mạng — nên có hạn mức, mở vài lần là xong.
+ *
+ * Không đụng `ts`, y như vaFurigana: đây là máy tự bồi thêm, không phải người
+ * dùng sửa mục.
+ */
+async function boiThemDuong(toiDa) {
+  let conMang = Math.max(0, toiDa == null ? 12 : Math.min(toiDa, 12));
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  let n = 0;
+  const dienBoi = (it) => {
+    if (!it || it.del || it.kind === "sent") return false;
+    const d = it.dict;
+    return d === "javi" || d === "vija" || d === "envi" || d === "kanji";
+  };
+
+  /*
+   * LƯỢT 1 — không đụng mạng, làm cho hết.
+   *
+   * Trộn hai lượt vào một vòng là hỏng: mỗi lượt dịch câu có thể treo tới 8
+   * giây chờ hết hạn, nên mục thứ ba phải đợi mười mấy giây mới tới lượt được
+   * bồi tập trái nghĩa — thứ vốn nằm sẵn trong máy và lẽ ra xong tức thì. Đo
+   * được: mở sổ, chờ 12 giây, chỉ MỘT trong ba từ được bồi.
+   */
+  for (const k of Object.keys(nb)) {
+    const it = nb[k];
+    if (!dienBoi(it) || it.lien) continue;
+    try { if (await lienVaSau(k, it, it.dict, false)) n++; } catch (e) { /* mục sau */ }
+  }
+
+  // LƯỢT 2 — cần mạng để dịch câu ngữ cảnh, nên có hạn mức.
+  for (const k of Object.keys(nb)) {
+    if (conMang <= 0) break;
+    const it = nb[k];
+    if (!dienBoi(it) || it.cauNghe || !it.src) continue;
+    // Hỏi trước xem có moi được câu không: moi hụt mà vẫn trừ hạn mức thì
+    // những mục không có nguồn tử tế sẽ ăn hết lượt của các mục moi được.
+    let co = null;
+    try { co = self.CauNghe.tuNguon(it.src, it.word); } catch (e) { co = null; }
+    if (!co) continue;
+    conMang--;
+    try { if (await cauNgheVaSau(k, it, it.dict, true)) n++; } catch (e) { /* mục sau */ }
+  }
+  return n;
+}
+
+/**
  * Vá cách đọc và furigana cho những mục ĐÃ nằm sẵn trong sổ.
  *
  * Chạy mỗi lần mở sổ tay. Phần ghép chuỗi làm HẾT và ghi TRƯỚC, vì nó không
@@ -539,20 +622,31 @@ const GTX_HOST = [
   "https://translate.googleapis.com/translate_a/single?client=gtx&",
   "https://clients5.google.com/translate_a/single?client=gtx&"
 ];
-async function gtxLay(params, enc) {
+/**
+ * @param {boolean} [nhanh] lượt chạy NGẦM: thử đúng một cổng, một cách, hạn 4
+ *   giây. Đường đầy đủ thử 2 cổng × 2 cách × 8 giây — tức là một từ mạng hỏng
+ *   có thể ngốn 32 giây. Chấp nhận được khi người dùng đang đứng chờ một từ họ
+ *   vừa bấm; KHÔNG chấp nhận được ở lượt bồi nền cho cả sổ, vì service worker
+ *   MV3 bị dừng trước khi bồi xong và lần nào mở sổ cũng làm lại từ đầu.
+ */
+async function gtxLay(params, enc, nhanh) {
   const dai = enc.length > 4000;
+  const han = nhanh ? 4000 : 8000;
+  const hosts = nhanh ? GTX_HOST.slice(0, 1) : GTX_HOST;
   let cuoi = null;
-  for (const h of GTX_HOST) {
+  for (const h of hosts) {
     const base = h + params;
-    const doGet = () => layCoHan(base + "&q=" + enc, null, 8000);
+    const doGet = () => layCoHan(base + "&q=" + enc, null, han);
     const doPost = () => layCoHan(base, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
       body: "q=" + enc
-    }, 8000);
+    }, han);
     let r = null;
     try { r = await (dai ? doPost() : doGet()); } catch (e) { r = null; }
-    if (!r || !r.ok) { try { r = await (dai ? doGet() : doPost()); } catch (e) { /* cách kia cũng trượt */ } }
+    if (!nhanh && (!r || !r.ok)) {
+      try { r = await (dai ? doGet() : doPost()); } catch (e) { /* cách kia cũng trượt */ }
+    }
     if (r && r.ok) { try { return await r.json(); } catch (e) { cuoi = e; } }
     else cuoi = new Error("gtx HTTP " + (r ? r.status : "mạng"));
     // Host này chặn/hỏng -> thử host sau.
@@ -560,9 +654,9 @@ async function gtxLay(params, enc) {
   throw (cuoi || new Error("gtx: mọi cổng đều trượt"));
 }
 
-async function gtxData(from, to, text) {
+async function gtxData(from, to, text, nhanh) {
   const params = "dt=t&dt=bd&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to);
-  return gtxLay(params, encodeURIComponent(text));
+  return gtxLay(params, encodeURIComponent(text), nhanh);
 }
 function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
 function gtxSenses(data) {
@@ -587,8 +681,8 @@ function meansFromSenses(main, senses) {
   }
   return out.slice(0, 6);
 }
-async function gtxTranslate(text, f, t) {
-  const out = gtxMain(await gtxData(f || "en", t || "vi", text));
+async function gtxTranslate(text, f, t, nhanh) {
+  const out = gtxMain(await gtxData(f || "en", t || "vi", text, nhanh));
   if (!out) throw new Error("gtx rỗng");
   return out;
 }
@@ -937,30 +1031,50 @@ async function dongNghiaJa(word) {
  * Dựng tập đồng nghĩa / trái nghĩa cho một mục ĐÃ nằm trong sổ, vá tại chỗ.
  * Không đụng `ts`, không đụng `srs` — máy tự bồi thêm, không phải người sửa.
  */
-async function lienVaSau(key, e, dict) {
+/**
+ * @param {boolean} [choMang] có được đi hỏi mạng khi bảng trong máy không có
+ *   gì không. Lúc lưu MỘT từ thì có; lúc bồi cho cả sổ thì không, kẻo mở sổ
+ *   thành mấy trăm lượt gọi mạng.
+ * @returns {Promise<boolean>} có ghi được gì vào sổ không.
+ */
+async function lienVaSau(key, e, dict, choMang) {
+  const mang = choMang !== false;
   return vaSau(async () => {
     const laJa = (dict === "javi" || dict === "vija");
     // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
-    if (laJa) await self.TuLien.napBo(e.word, (i) => chrome.runtime.getURL("tu-lien/" + i + ".txt"));
+    /*
+     * Nạp mảnh mà trượt thì BỎ QUA, đừng kéo đổ cả lượt.
+     *
+     * Trước đây một lượt nạp hỏng là ném thẳng ra ngoài, và mục ấy mất luôn cả
+     * phần từ BẢNG HẠT GIỐNG — thứ nằm sẵn trong mã, không cần tải gì. Đo được:
+     * 改善 có sẵn 改良/向上/進歩 và 改悪 trong bảng, mà vẫn ra rỗng chỉ vì lượt
+     * nạp mảnh trượt.
+     */
+    if (laJa) {
+      try {
+        await self.TuLien.napBo(e.word, (i) => chrome.runtime.getURL("tu-lien/" + i + ".txt"));
+      } catch (err) { /* vẫn còn bảng hạt giống */ }
+    }
     let ra = self.TuLien.tuBang(e.word);
     if (laJa) {
-      if (!ra.dong.length) ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
+      if (!ra.dong.length && mang) ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
     } else {
       // Tiếng Anh: từ điển đã có sẵn cả hai chiều trong `pos`.
       let pos = e.pos;
-      if (!pos || !pos.length) {
+      if ((!pos || !pos.length) && mang) {
         const dd = await fetchDictionary(e.word);
         pos = dd ? posFrom(dd) : [];
       }
-      ra = self.TuLien.gop(self.TuLien.tuPos(pos, e.word), ra);
+      ra = self.TuLien.gop(self.TuLien.tuPos(pos || [], e.word), ra);
     }
-    if (!ra.dong.length && !ra.trai.length) return;
+    if (!ra.dong.length && !ra.trai.length) return false;
     const { notebook } = await chrome.storage.local.get("notebook");
     const nb = notebook || {};
     const cu = nb[key];
-    if (!cu || cu.del || cu.lien) return;
+    if (!cu || cu.del || cu.lien) return false;
     nb[key] = Object.assign({}, cu, { lien: { dong: ra.dong, trai: ra.trai, ts: Date.now() } });
     await chrome.storage.local.set({ notebook: nb });
+    return true;
   });
 }
 
@@ -971,20 +1085,22 @@ async function lienVaSau(key, e, dict) {
  * phải người dùng sửa mục. Chạm vào `ts` là lượt đồng bộ sau tưởng mục vừa được
  * sửa và đem nó đi đè lên bản ở máy kia.
  */
-async function cauNgheVaSau(key, e, dict) {
+/** @param {boolean} [nhanh] lượt bồi nền: dịch với hạn ngắn, xem gtxLay. */
+async function cauNgheVaSau(key, e, dict, nhanh) {
   return vaSau(async () => {
     const c = self.CauNghe.tuNguon(e.src, e.word);
-    if (!c) return;
+    if (!c) return false;
     const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
     let dich = "";
-    try { dich = await gtxTranslate(c.cau, tu, "vi"); } catch (err) { dich = ""; }
+    try { dich = await gtxTranslate(c.cau, tu, "vi", nhanh); } catch (err) { dich = ""; }
     if (dich && dich.trim() === c.cau.trim()) dich = "";     // không dịch được thì để trống
     const { notebook } = await chrome.storage.local.get("notebook");
     const nb = notebook || {};
     const cu = nb[key];
-    if (!cu || cu.del || cu.cauNghe) return;                 // mục đã đổi/đã có: thôi
+    if (!cu || cu.del || cu.cauNghe) return false;           // mục đã đổi/đã có: thôi
     nb[key] = Object.assign({}, cu, { cauNghe: { cau: c.cau, dich: dich, ts: Date.now() } });
     await chrome.storage.local.set({ notebook: nb });
+    return true;
   });
 }
 

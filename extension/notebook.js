@@ -250,6 +250,30 @@ function capNhat(fn) {
   });
 }
 
+/**
+ * Như capNhat, nhưng KHÔNG ghi gì khi fn báo là chẳng có gì đổi.
+ *
+ * Hàng đợi ghi ở trên chỉ xếp hàng trong TRANG NÀY. Nền cũng sửa sổ tay — nó
+ * bồi furigana, câu ngữ cảnh, tập đồng/trái nghĩa — và hai bên không thấy nhau.
+ * Nên mỗi lượt "đọc cả sổ rồi ghi cả sổ" của trang là một cửa sổ để đè mất thứ
+ * nền vừa ghi xong.
+ *
+ * Đo được: mở sổ với ba từ, nền bồi xong cả ba (mỗi lượt đều báo ghi thành
+ * công), mà kết quả cuối chỉ còn một — vì load() chạy lại mấy lần và lần nào
+ * cũng ghi đè bản nó đọc từ trước đó, DÙ NÓ KHÔNG SỬA GÌ CẢ.
+ *
+ * Không ghi khi không sửa thì cửa sổ ấy biến mất trong hầu hết các lượt.
+ */
+function capNhatNeuDoi(fn) {
+  return suaSoTay(async () => {
+    const s = await getStore();
+    const doi = await fn(s.nb, s.decks);
+    if (!doi) return false;
+    await chrome.storage.local.set({ notebook: s.nb, decks: s.decks });
+    return true;
+  });
+}
+
 /* ==================================================================== */
 /* Sóng học tập (lặp lại ngắt quãng)                                    */
 /* ==================================================================== */
@@ -447,7 +471,7 @@ async function load() {
   // Đi qua hàng đợi vì đây cũng là một lượt ghi, và load() hay chạy ngay sau
   // một lượt chấm bài.
   let daSuaCu = false;
-  await capNhat((nb) => {
+  await capNhatNeuDoi((nb) => {
     for (const k in nb) {
       const e = nb[k];
       if (e && Array.isArray(e.means)) {
@@ -466,6 +490,7 @@ async function load() {
         daSuaCu = true;
       }
     }
+    return daSuaCu;
   });
   if (daSuaCu) syncSoon();
   const s = await getStore();
@@ -3003,6 +3028,20 @@ function vaFurigana() {
   } catch (e) { /* không vá được thì thôi, sổ vẫn dùng bình thường */ }
 }
 
+/**
+ * Bồi câu ngữ cảnh và tập đồng/trái nghĩa cho những từ đã có trong sổ từ trước.
+ * Không có hai thứ ấy thì bài nghe và hai bài liên kết không bao giờ mở ra —
+ * xem boiThemDuong bên background.js.
+ */
+function boiThemDuong() {
+  try {
+    chrome.runtime.sendMessage({ type: "BOI_DUONG", toiDa: 12 }, (kq) => {
+      if (chrome.runtime.lastError) return;
+      if (kq && kq.ok && kq.count) load();
+    });
+  } catch (e) { /* bồi không được thì sổ vẫn học được bằng đường nhìn */ }
+}
+
 /* ==================================================================== */
 /* Ngôn ngữ giao diện                                                    */
 /* ==================================================================== */
@@ -3075,6 +3114,7 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   // Vá furigana cho những mục đã lưu từ trước mà không có cách đọc. Không chặn
   // màn hình: xong tới đâu vẽ lại tới đó.
   vaFurigana();
+  boiThemDuong();
 
   const cfg = await loadConfig();
   if (cfg.syncUrl) { $("syncBox").open = false; await syncNow(); }
