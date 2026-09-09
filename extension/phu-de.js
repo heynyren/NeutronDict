@@ -1515,6 +1515,20 @@
     return duoi || sec;
   }
 
+  /**
+   * Trên trang chỉ được có ĐÚNG MỘT bảng của NeutronDict.
+   *
+   * Bản content script cũ vẫn nằm nguyên trong trang sau khi extension được nạp
+   * lại, và bảng nó dựng ra thì không ai gỡ. Người dùng thấy hai bảng chồng
+   * nhau mà không hiểu vì sao. Gỡ mọi bảng không phải bảng đang dựng — dấu
+   * data-ndict-yt là của riêng app này nên không đụng vào extension khác.
+   */
+  function donBangLac(giu) {
+    for (const n of document.querySelectorAll("div[data-ndict-yt]")) {
+      if (n !== giu) n.remove();
+    }
+  }
+
   function goBang() {
     goPhoi();
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
@@ -1569,16 +1583,19 @@
     const nutCo = nutChip("text-aa", "", T("Cỡ chữ — bấm để đổi"));
     top.appendChild(nutCo);
     /*
-     * Cỡ KHUNG HÌNH, đổi ngay tại đây chứ không bắt đi vào Cài đặt.
+     * Cỡ KHUNG HÌNH — CHỈ hiện ở thẻ do app mở ra để học.
      *
      * Ô nhập bề ngang trong Cài đặt vẫn còn cho ai muốn con số chính xác, nhưng
      * "hình vẫn to quá" là thứ người ta nhận ra ĐÚNG LÚC đang xem — bắt mở sổ
-     * tay, tìm mục Cài đặt, gõ số, bấm Lưu, rồi quay lại tải lại trang thì
-     * không ai làm quá một lần. Chip này để ngay cạnh cỡ chữ, cùng một nếp.
+     * tay, tìm mục Cài đặt, gõ số, bấm Lưu rồi quay lại thì không ai làm quá
+     * một lần. Chip này để ngay cạnh cỡ chữ, cùng một nếp.
+     *
+     * Ở thẻ YouTube mở theo đường thường thì KHÔNG dựng nó: thu nhỏ không chạy
+     * ở đó, nên một cái nút bấm vào chẳng thấy gì đổi chỉ làm người ta hoang
+     * mang "nút này để làm gì".
      */
-    const nutKhung = nutChip("", "", "");
-    nutKhung.classList.add("khung");
-    top.appendChild(nutKhung);
+    const nutKhung = tuApp ? nutChip("", "", "") : null;
+    if (nutKhung) { nutKhung.classList.add("khung"); top.appendChild(nutKhung); }
     const nutThu = nutChip("caret-up", "", T("Thu gọn"));
     top.appendChild(nutThu);
     const nutTat = nutChip("x", "", T("Đóng bảng"));
@@ -1603,6 +1620,7 @@
      * đặt (560 chẳng hạn), không nằm trong bảng nấc nào cả.
      */
     const veNutKhung = () => {
+      if (!nutKhung) return;
       nutKhung.textContent = "";
       const t = document.createElement("span");
       t.textContent = thuNho ? String(thuNhoW) : T("Thu nhỏ hình");
@@ -1611,7 +1629,7 @@
     };
     veNutKhung();
     S.veNutKhung = veNutKhung;
-    nutKhung.addEventListener("click", async () => {
+    if (nutKhung) nutKhung.addEventListener("click", async () => {
       const { settings } = await self.Song.doc("settings");
       const st = settings || {};
       // Đang để nguyên (thẻ tự mở, không phải từ app): bấm lần đầu là BẬT cho
@@ -1674,6 +1692,7 @@
     wrap.appendChild(list); wrap.appendChild(tip); wrap.appendChild(back);
     box.appendChild(wrap);
 
+    donBangLac(host);
     noi.insertBefore(host, noi.firstChild);
 
     S.host = host; S.root = root; S.oList = list;
@@ -2578,6 +2597,7 @@
     body.appendChild(nutBat); body.appendChild(tip);
     box.appendChild(body);
 
+    donBangLac(host);
     noi.insertBefore(host, noi.firstChild);
     S.hostBat = host;
 
@@ -2680,6 +2700,38 @@
     thu();
   }
 
+  /** Bảng đang nằm sai chỗ được mấy nhịp liên tiếp rồi. Xem ganLaiBang. */
+  let lechCho = 0;
+
+  /**
+   * Bảng bị YouTube cuốn khỏi trang thì GẮN LẠI ĐÚNG NÓ, đừng dựng cái mới.
+   *
+   * Trước đây thấy bảng mất là gọi khoiDong dựng lại từ đầu. Mà YouTube vẽ lại
+   * cột phải khá thường xuyên, nên mỗi lần như thế người dùng thấy bảng biến
+   * mất rồi hiện lại — đúng cái "lúc hiện lúc không". Dựng lại còn xoá chỗ đang
+   * đọc, xoá vệt sáng đang bám câu, và trong khoảnh khắc giao nhau có thể thấy
+   * hai bảng. Cái bảng cũ vẫn còn nguyên trong tay, kể cả khi đã rời khỏi
+   * trang: gắn lại là xong, không mất gì.
+   *
+   * Chỉ dựng mới khi thật sự CHƯA có bảng nào.
+   */
+  function ganLaiBang() {
+    const noi = choDat();
+    if (!noi) return;
+    if (!S.host) { khoiDong(S.v); return; }
+    if (!S.host.isConnected) { noi.insertBefore(S.host, noi.firstChild); lechCho = 0; return; }
+    /*
+     * Còn trong trang nhưng SAI CỘT: xảy ra khi lúc dựng bố cục chưa xong, đo
+     * ra một đằng rồi YouTube xếp lại một nẻo. Đợi ba nhịp mới dời, để một lần
+     * đo lệch thoáng qua (quảng cáo, đang đổi cỡ cửa sổ) không làm bảng nhảy
+     * qua nhảy lại.
+     */
+    if (S.host.parentElement === noi) { lechCho = 0; return; }
+    if (++lechCho < 3) return;
+    noi.insertBefore(S.host, noi.firstChild);
+    lechCho = 0;
+  }
+
   // YouTube là ứng dụng một trang: chuyển video không tải lại trang.
   document.addEventListener("yt-navigate-finish", () => xemLai());
   let urlCu = location.href;
@@ -2689,9 +2741,9 @@
     // một lần lúc mở trang.
     if (thuNho) { canhToNho(); epBeNgang(); }
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
-    // YouTube dựng lại cột phải khá tuỳ hứng và cuốn theo cả bảng này; dựng lại
-    // khi thấy nó biến mất, chứ không bắt người dùng tải lại trang.
-    if (S.v && S.v !== tatCho && (!S.host || !S.host.isConnected) && choDat()) khoiDong(S.v);
+    // YouTube dựng lại cột phải khá tuỳ hứng — đổi video, hết quảng cáo, đổi cỡ
+    // cửa sổ — và cuốn theo cả bảng này.
+    if (S.v && S.v !== tatCho) ganLaiBang();
     // Chế độ đợi: nút mời cũng bị YouTube cuốn mất như bảng — dựng lại cho video
     // đang chờ, miễn là chưa mở bảng và chưa bị đóng.
     if (!tuBat && choBat && choBat === maVideo() && !S.host
