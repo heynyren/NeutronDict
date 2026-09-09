@@ -1502,18 +1502,58 @@
      * được dựng vào một thẻ không hiển thị. Người dùng thấy: dưới khung hình là
      * tiêu đề, không có bảng nào, mà trong DOM thì bảng vẫn có.
      *
-     * Hỏi theo chiều khẳng định thì mọi cảnh bất thường — bị ẩn, chưa dựng,
-     * xếp dọc, rơi xuống dưới bình luận — đều rơi vào cùng một nhánh an toàn:
-     * đặt ngay dưới khung hình, chỗ mắt đang nhìn.
+     * Nhưng câu trả lời có BA khả năng, không phải hai — và gộp hai cái sau
+     * làm một chính là lỗi tôi vừa gây ra:
+     *
+     *   1. Cột phải nằm cạnh khung hình      -> đặt vào cột phải.
+     *   2. Cột phải ẩn hẳn, hoặc xếp xuống dưới -> đặt dưới khung hình.
+     *   3. CHƯA BIẾT: thẻ đã có trong DOM nhưng chưa có kích thước, mà cũng
+     *      không phải display:none            -> ĐỢI, hỏi lại nhịp sau.
+     *
+     * YouTube dựng cột phải sau khung hình, nên trạng thái 3 luôn xảy ra trong
+     * vài trăm mili giây đầu. Trả lời "không nằm cạnh" lúc ấy là chốt bảng
+     * xuống dưới video và để nó nằm im ở đó, trong khi cột phải rộng rãi hiện
+     * ra ngay sau. Cửa sổ rộng, video cao thì bảng rơi hẳn khỏi tầm nhìn —
+     * người dùng mở YouTube lên và thấy bảng "không thèm hiện ra".
+     *
+     * Phân biệt 2 với 3 bằng display: ẩn thật thì display là none, còn chưa
+     * dựng xong thì không.
      */
     if (secDo && sec) {
       const b = secDo.getBoundingClientRect();
-      const canh = b.width > 0 && b.height > 0
-        && b.left >= a.right - 8 && b.top < a.bottom - 4;
-      if (canh) return sec;
+      if (b.width > 0 && b.height > 0) {
+        /*
+         * Đo theo CHIỀU DỌC, không theo trái/phải.
+         *
+         * Tôi từng đổi sang so mép trái cột phải với mép phải khung hình. Nghe
+         * chặt chẽ hơn, mà lại mong manh hơn hẳn: trình phát YouTube nhiều lúc
+         * RỘNG HƠN cột chứa nó và tràn ra ngoài, thế là "mép phải khung hình"
+         * nằm quá cả cột phải và phép đo kết luận sai. Còn "cột phải bắt đầu từ
+         * dưới đáy khung hình" thì đúng theo đúng nghĩa của hai bố cục: xếp dọc
+         * hay xếp ngang.
+         */
+        const duoiHan = b.top >= a.bottom - 4;
+        return duoiHan ? (duoi || sec) : sec;
+      }
+      let an = false;
+      try { an = getComputedStyle(secDo).display === "none"; } catch (e) { an = false; }
+      if (!an && conChoCot()) return null;          // chưa biết: hỏi lại nhịp sau
+    } else if (conChoCot()) {
+      return null;                                  // chưa có cả thẻ cột phải
     }
     return duoi || sec;
   }
+
+  /**
+   * Còn trong thời hạn chờ cột phải dựng xong không.
+   *
+   * Phải CÓ hạn: cột phải có thể không bao giờ xuất hiện (bố cục một cột, hoặc
+   * YouTube đổi tên thẻ). Hết hạn thì đặt dưới khung hình, có bảng ở chỗ hơi
+   * lệch vẫn hơn là không có bảng nào.
+   */
+  const HAN_CHO_COT = 4000;
+  let mocCho = Date.now();
+  function conChoCot() { return Date.now() - mocCho < HAN_CHO_COT; }
 
   /**
    * Trên trang chỉ được có ĐÚNG MỘT bảng của NeutronDict.
@@ -2658,6 +2698,7 @@
     if (v && v === tatCho) return;    // video này bạn đã đóng bảng
     if (!v) { dungTheoDoi(); goBang(); goMoiBat(); choBat = ""; S.v = ""; return; }
     goMoiBat(); if (v !== choBat) choBat = "";
+    mocCho = Date.now();          // video mới thì cột phải cũng dựng lại từ đầu
     if (!ep && v === S.v && S.host && S.host.isConnected) return;
     if (ep) S.v = "";
     dungTheoDoi();
@@ -2746,8 +2787,16 @@
     if (S.v && S.v !== tatCho) ganLaiBang();
     // Chế độ đợi: nút mời cũng bị YouTube cuốn mất như bảng — dựng lại cho video
     // đang chờ, miễn là chưa mở bảng và chưa bị đóng.
-    if (!tuBat && choBat && choBat === maVideo() && !S.host
-        && (!S.hostBat || !S.hostBat.isConnected) && choBat !== tatCho && choDat()) moiBat(choBat);
+    if (!tuBat && choBat && choBat === maVideo() && !S.host && choBat !== tatCho) {
+      const noi = choDat();
+      // Nút mời cũng bị YouTube cuốn mất như bảng, và cũng có thể bị đặt nhầm
+      // chỗ lúc cột phải chưa dựng xong. Gắn lại / dời đúng như với bảng.
+      if (noi) {
+        if (!S.hostBat) moiBat(choBat);
+        else if (!S.hostBat.isConnected) noi.insertBefore(S.hostBat, noi.firstChild);
+        else if (S.hostBat.parentElement !== noi) noi.insertBefore(S.hostBat, noi.firstChild);
+      }
+    }
   }, 700);
 
   /*
