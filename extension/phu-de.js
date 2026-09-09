@@ -1258,9 +1258,15 @@
     return true;
   }
 
+  /** Những thẻ đã bị ép bề ngang bằng JS — nhớ lại để còn trả nguyên trạng. */
+  const daEp = new Set();
+
   function veThuNho() {
     if (!thuNho) {
-      if (oThuNho) { oThuNho.remove(); oThuNho = null; nhacDoiCo(); }
+      if (oThuNho) { oThuNho.remove(); oThuNho = null; }
+      for (const n of daEp) { try { n.style.removeProperty("max-width"); } catch (e) {} }
+      daEp.clear();
+      nhacDoiCo();
       return;
     }
     if (!oThuNho) {
@@ -1268,17 +1274,56 @@
       oThuNho.id = "neutrondict-thu-nho";
       (document.head || document.documentElement).appendChild(oThuNho);
     }
-    // Chỉ đụng vào chế độ xem thường: rạp và toàn màn hình là lúc người ta CỐ Ý
-    // muốn hình to, đụng vào đó là phá đúng ý họ.
+    /*
+     * KHÔNG loại trừ [full-bleed-player] nữa — đó chính là chỗ hỏng.
+     *
+     * Cửa sổ hẹp (đúng cảnh chia đôi màn hình) thì YouTube tự chuyển sang bố cục
+     * MỘT CỘT và bật `full-bleed-player`: khung hình kéo ra sát hai mép cửa sổ,
+     * và nó bị NHẤC RA KHỎI #primary sang một khung riêng rộng bằng cả trang.
+     * Bản trước loại trừ đúng thuộc tính đó, nên ở cảnh cần nhất thì không làm
+     * gì cả — người dùng thấy khung hình y nguyên.
+     *
+     * Rạp và toàn màn hình thì vẫn chừa: đó là ý muốn rõ ràng của người xem.
+     */
+    const K = "ytd-watch-flexy:not([theater]):not([fullscreen]) ";
+    const W = thuNhoW + "px";
     oThuNho.textContent =
-      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #primary.ytd-watch-flexy{" +
-      "max-width:" + thuNhoW + "px!important;flex:1 1 auto!important}" +
-      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #secondary.ytd-watch-flexy{" +
-      "width:auto!important;min-width:380px!important;flex:1 1 auto!important}" +
-      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #player.ytd-watch-flexy," +
-      "ytd-watch-flexy:not([theater]):not([fullscreen]):not([full-bleed-player]) #player-container-outer.ytd-watch-flexy{" +
-      "max-width:100%!important}";
+      K + "#primary.ytd-watch-flexy{max-width:" + W + "!important;min-width:0!important;flex:1 1 auto!important}" +
+      K + "#secondary.ytd-watch-flexy{width:auto!important;max-width:none!important;" +
+          "min-width:300px!important;flex:1 1 auto!important}" +
+      // Bó CHÍNH khung hình, và bó mọi khung bọc mà YouTube từng dùng — kể cả
+      // khung "full bleed" nằm ngoài #primary.
+      K + "#movie_player," + K + "#player.ytd-watch-flexy," +
+      K + "#player-container-outer.ytd-watch-flexy," + K + "#player-container-inner," +
+      K + "#full-bleed-container," + K + "#player-full-bleed-container{" +
+      "max-width:" + W + "!important;margin-left:auto!important;margin-right:auto!important}";
     nhacDoiCo();
+    epBeNgang();
+  }
+
+  /**
+   * Chốt chặn cuối: ĐO rồi mới ép.
+   *
+   * Danh sách selector ở trên là đoán theo bố cục YouTube hôm nay, mà YouTube
+   * đổi tên thẻ như thay áo. Nên sau khi chèn kiểu thì đo bề ngang THẬT của
+   * khung hình; còn rộng hơn mức đã đặt thì đi ngược lên tìm đúng thẻ đang phình
+   * ra và bó chính nó. Cách này không cần biết YouTube gọi thẻ đó là gì.
+   */
+  function epBeNgang() {
+    if (!thuNho) return;
+    const mp = document.querySelector("#movie_player");
+    if (!mp) return;
+    const rong = mp.getBoundingClientRect().width;
+    if (!rong || rong <= thuNhoW + 8) return;        // kiểu đã đủ việc
+    let n = mp, doi = false;
+    for (let i = 0; i < 6 && n && n !== document.body; i++) {
+      if (n.getBoundingClientRect().width > thuNhoW + 8) {
+        n.style.setProperty("max-width", thuNhoW + "px", "important");
+        daEp.add(n); doi = true;
+      }
+      n = n.parentElement;
+    }
+    if (doi) nhacDoiCo();
   }
 
   let henDoiCo = null;
@@ -1293,9 +1338,29 @@
     }, 350);
   }
 
-  /** Chỗ đặt bảng: cột phải của YouTube, ngay trên danh sách video gợi ý. */
+  /**
+   * Chỗ đặt bảng: bình thường là cột phải, ngay trên danh sách video gợi ý.
+   *
+   * Nhưng cửa sổ hẹp thì YouTube xếp cột phải XUỐNG DƯỚI phần mô tả — bảng lời
+   * thoại rơi ra ngoài tầm nhìn, phải cuộn một quãng dài mới thấy. Đó đúng là
+   * cảnh người dùng gặp khi mở nguồn ở nửa màn hình.
+   *
+   * Nên: đo xem cột phải đang NẰM CẠNH hay NẰM DƯỚI khung hình. Nằm dưới thì
+   * đặt bảng ngay dưới khung hình, trên cả tiêu đề — chỗ mắt đang nhìn.
+   */
   function choDat() {
-    return document.querySelector("#secondary-inner") || document.querySelector("#secondary");
+    const sec = document.querySelector("#secondary-inner") || document.querySelector("#secondary");
+    const mp = document.querySelector("#movie_player");
+    if (mp && sec) {
+      const a = mp.getBoundingClientRect(), b = sec.getBoundingClientRect();
+      // Có kích thước thật, và cột phải bắt đầu từ dưới đáy khung hình -> xếp dọc.
+      if (a.width > 0 && b.width > 0 && b.top >= a.bottom - 4) {
+        const duoi = document.querySelector("ytd-watch-flexy #below")
+          || document.querySelector("#below");
+        if (duoi) return duoi;
+      }
+    }
+    return sec;
   }
 
   function goBang() {
