@@ -1354,14 +1354,18 @@
        *
        * Ở bố cục một cột, YouTube ghi CHIỀU CAO cố định cho khung bọc
        * full-bleed, tính theo khung hình 865px. Thu trình phát xuống 620px thì
-       * chiều cao ấy vẫn nguyên, thừa ra gần 180px nền đen — đúng mảng đen
-       * trong ảnh người dùng gửi. Bắt mấy khung bọc đó cao theo nội dung.
+       * chiều cao ấy vẫn nguyên, thừa ra gần 180px nền đen.
+       *
+       * ĐẶT ĐÚNG SỐ, chứ KHÔNG dùng `height:auto`. Trình phát nằm trong khung
+       * bọc này bằng định vị TUYỆT ĐỐI, nên nó không chống được chiều cao cho
+       * cha: `height:auto` làm khung bọc co về 0 và cả video biến mất — đúng
+       * cái người dùng gặp ở bản trước, mở ra chỉ thấy bảng lời thoại, không
+       * còn hình đâu. Cao đúng bằng bề ngang đã đặt theo tỉ lệ 16:9.
        */
-      K + "#full-bleed-container,#player-full-bleed-container," +
-        "#player-container-outer,#player-container-inner{" +
-        "height:auto!important;min-height:0!important;max-height:none!important}" +
-      // Và canh giữa, không dán vào mép trái của một cửa sổ rộng hơn nó.
       K + "#full-bleed-container,#player-full-bleed-container{" +
+        "height:" + Math.round(thuNhoW * 9 / 16) + "px!important;" +
+        "min-height:0!important;max-height:none!important;" +
+        // Và canh giữa, không dán vào mép trái của một cửa sổ rộng hơn nó.
         "margin-left:auto!important;margin-right:auto!important}" +
       K + "#primary{flex:1 1 auto!important}" +
       K + "#secondary{width:auto!important;max-width:none!important;" +
