@@ -1018,3 +1018,7 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Dịch câu hụt: một dòng bấm được, chứ không phải khoảng trống câm lặng. */
+.nut-lai { cursor: pointer; text-decoration: underline dotted; }
+.nut-lai:hover { color: var(--accent); }

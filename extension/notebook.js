@@ -1142,7 +1142,7 @@ function danhDauHoc(url) {
 function openYoutube(yt, chiaDoi) {
   const t = Math.max(0, Math.floor(yt.t || 0));
   const url = danhDauHoc("https://www.youtube.com/watch?v=" + encodeURIComponent(yt.v) + "&t=" + t + "s");
-  const mo = () => { if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url }); };
+  const mo = () => { if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(url); else chrome.tabs.create({ url }); };
   try {
     chrome.tabs.query({ url: ["https://www.youtube.com/watch*", "https://m.youtube.com/watch*"] }, (tabs) => {
       const hit = (tabs || []).find((tb) => (tb.url || "").indexOf("v=" + yt.v) >= 0);
@@ -1159,8 +1159,8 @@ function openYoutube(yt, chiaDoi) {
 }
 
 /**
- * @param {boolean} [chiaDoi] mở kèm chia đôi màn hình. Chỉ bật từ chế độ học —
- *   bấm link trong danh sách sổ tay mà cửa sổ tự nhảy sang nửa màn thì khó chịu.
+ * @param {boolean} [chiaDoi] mở ở cửa sổ riêng. Chỉ bật từ chế độ học — bấm
+ *   link trong danh sách sổ tay mà bật thêm cửa sổ thì phiền.
  */
 function openSource(it, chiaDoi) {
   const src = it.src;
@@ -1174,13 +1174,13 @@ function openSource(it, chiaDoi) {
     // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì Ctrl+F dán tìm nhanh.
     const q = text.split(" ").slice(0, 10).join(" ");
     try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
-    if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url });
+    if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(url); else chrome.tabs.create({ url });
     return;
   }
   chrome.storage.local.set({
     pendingHighlight: { url: src.url, text: text, prefix: src.prefix || "", suffix: src.suffix || "", ts: Date.now() }
   }, () => {
-    if (chiaDoi && CAI.chiaDoi !== false) chiaDoiMan(url); else chrome.tabs.create({ url });
+    if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(url); else chrome.tabs.create({ url });
   });
 }
 
@@ -1619,6 +1619,37 @@ function showCard(giuLat) {
   if (daLat) revealCard();
 }
 
+/**
+ * Xin bản dịch cho câu của thẻ nghe, và NÓI RA khi không xin được.
+ *
+ * Bản trước dịch hụt thì gán chuỗi rỗng vào chỗ ấy — tức là một dòng trống,
+ * nhìn y hệt như chưa bao giờ có tính năng này. Người dùng thử rồi báo "vẫn
+ * chưa dịch được cả câu", mà thật ra mã có chạy, chỉ là hỏng lặng lẽ.
+ *
+ * Hỏng thì phải thấy được, và phải bấm lại được: mạng chập một lượt không có
+ * nghĩa là lượt sau cũng chập.
+ */
+function xinDichCau(it, o) {
+  const key = it.key;
+  o.textContent = T("Đang dịch câu…");
+  o.classList.remove("nut-lai");
+  o.onclick = null;
+  chrome.runtime.sendMessage({ type: "DICH_CAU_NGHE", key: key }, (kq) => {
+    // Thẻ có thể đã lật sang cái khác trong lúc chờ mạng.
+    const nay = theCardHienTai();
+    if (!nay || nay.key !== key) return;
+    const t = (!chrome.runtime.lastError && kq && kq.ok && kq.dich) ? kq.dich : "";
+    if (t) {
+      o.textContent = t;
+      it.cauNghe = Object.assign({}, it.cauNghe || {}, { dich: t });
+      return;
+    }
+    o.textContent = T("Chưa dịch được câu — bấm để thử lại");
+    o.classList.add("nut-lai");
+    o.onclick = () => xinDichCau(it, o);
+  });
+}
+
 function revealCard() {
   const it = theCardHienTai();
   if (!it) return;
@@ -1640,18 +1671,7 @@ function revealCard() {
      */
     const dOng = el("div", "t-small muted", (it.cauNghe || {}).dich || T("Đang dịch câu…"));
     o.appendChild(dOng);
-    if (!(it.cauNghe || {}).dich) {
-      const key = it.key;
-      chrome.runtime.sendMessage({ type: "DICH_CAU_NGHE", key: key }, (kq) => {
-        if (chrome.runtime.lastError) { dOng.textContent = ""; return; }
-        const t = (kq && kq.ok && kq.dich) ? kq.dich : "";
-        // Thẻ có thể đã lật sang cái khác trong lúc chờ mạng.
-        const nay = theCardHienTai();
-        if (!nay || nay.key !== key) return;
-        dOng.textContent = t;
-        if (t) { it.cauNghe = Object.assign({}, it.cauNghe, { dich: t }); }
-      });
-    }
+    if (!(it.cauNghe || {}).dich) xinDichCau(it, dOng);
   }
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
@@ -1998,15 +2018,25 @@ function boQuaThe() {
  * cửa sổ sổ tay về nửa trái, mở nguồn ở nửa phải. Kết quả nhìn giống hệt chia
  * đôi màn hình, mà không phụ thuộc vào website có cho nhúng hay không.
  */
-async function chiaDoiMan(url) {
+/**
+ * Mở nguồn ở MỘT CỬA SỔ RIÊNG — và KHÔNG đụng vào cửa sổ đang mở.
+ *
+ * Bản trước thu cửa sổ sổ tay về nửa màn hình rồi đặt nguồn vào nửa kia. Ý thì
+ * hay, thực tế thì phiền: mỗi lần mở nguồn là cả chỗ làm việc bị xô lệch, và
+ * muốn về như cũ phải tự kéo lại từng cửa sổ.
+ *
+ * Giờ chỉ mở thêm một cửa sổ, để nguyên mọi thứ khác. Xem xong gõ Ctrl+W là
+ * cửa sổ ấy đóng và sổ tay hiện lại y nguyên chỗ cũ — không phải kéo gì hết.
+ */
+async function moCuaSoRieng(url) {
   try {
-    const W = screen.availWidth, H = screen.availHeight;
-    const nua = Math.max(360, Math.floor(W / 2));
-    const w = await chrome.windows.getCurrent();
-    await chrome.windows.update(w.id, { state: "normal", left: 0, top: 0, width: nua, height: H });
-    await chrome.windows.create({ url: url, left: nua, top: 0, width: W - nua, height: H, focused: true });
+    await chrome.windows.create({ url: url, focused: true });
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    // Không mở nổi cửa sổ (chính sách trình duyệt) thì thà một thẻ mới còn hơn
+    // không mở được nguồn.
+    try { await chrome.tabs.create({ url: url }); return true; } catch (e2) { return false; }
+  }
 }
 
 /* ==================================================================== */
