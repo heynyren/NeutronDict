@@ -1565,6 +1565,18 @@ function showCard(giuLat) {
   const laLien = it._d === "dong" || it._d === "trai";
   $("stNgheMat").style.display = laNghe ? "" : "none";
   $("stLienMat").style.display = laLien ? "" : "none";
+  /*
+   * Dọn màn KẾT QUẢ ở đây chứ không chỉ trong veBaiLien.
+   *
+   * veBaiLien chỉ chạy khi thẻ kế LẠI là một bài liên kết. Thẻ kế là thẻ nhìn
+   * hay thẻ nghe thì nút Tiếp và lớp kết quả nằm lại nguyên đó, chờ sẵn cho
+   * bài liên kết sau — và phím cách lúc ấy bấm nhầm vào nút Tiếp cũ.
+   */
+  if (!laLien) {
+    $("stLienTiep").style.display = "none";
+    $("stLienO").classList.remove("kq");
+    tiepBaiLien = null;
+  }
   $("stMatChu").style.display = laNghe ? "none" : "";
   if (laLien) veBaiLien(it);
   $("stNgheCau").style.display = "none";
@@ -1618,7 +1630,28 @@ function revealCard() {
     o.style.display = "";
     o.innerHTML = "";
     o.appendChild(el("div", "t-lead", c));
-    if ((it.cauNghe || {}).dich) o.appendChild(el("div", "t-small muted", it.cauNghe.dich));
+    /*
+     * Bản dịch của CẢ CÂU, không phải nghĩa của mỗi từ đang học.
+     *
+     * Nghe được một câu mà không biết câu ấy nói gì thì bài nghe mất nửa giá
+     * trị: người học nhận ra từ nhưng không hiểu nó đang làm gì trong câu.
+     * Lượt bồi nền dịch với hạn ngắn nên có mục về tay trắng — gặp mục như thế
+     * thì xin dịch NGAY tại đây, vì lúc này người ta đang đứng chờ.
+     */
+    const dOng = el("div", "t-small muted", (it.cauNghe || {}).dich || T("Đang dịch câu…"));
+    o.appendChild(dOng);
+    if (!(it.cauNghe || {}).dich) {
+      const key = it.key;
+      chrome.runtime.sendMessage({ type: "DICH_CAU_NGHE", key: key }, (kq) => {
+        if (chrome.runtime.lastError) { dOng.textContent = ""; return; }
+        const t = (kq && kq.ok && kq.dich) ? kq.dich : "";
+        // Thẻ có thể đã lật sang cái khác trong lúc chờ mạng.
+        const nay = theCardHienTai();
+        if (!nay || nay.key !== key) return;
+        dOng.textContent = t;
+        if (t) { it.cauNghe = Object.assign({}, it.cauNghe, { dich: t }); }
+      });
+    }
   }
   const hvS = hanVietOf(it.word);
   $("stRead").textContent = (it.reading || "") + (hvS ? ((it.reading ? "\u3000·\u3000" : "") + T2("Hán Việt: {am}", { am: hvS })) : "");
@@ -1753,6 +1786,9 @@ function veBaiLien(it) {
 
   const khung = $("stLienO");
   khung.textContent = "";
+  khung.classList.remove("kq");
+  $("stLienTiep").style.display = "none";
+  tiepBaiLien = null;
   for (const chu of o) {
     const b = el("button", null, chu);
     b.type = "button";
@@ -1774,18 +1810,7 @@ async function xongBaiLien() {
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
 
-  // Cho xem lại đề đã chấm: xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt =
-  // BỎ SÓT. Bỏ sót mới là thứ đáng nhìn lại nhất, nên nó phải có dấu riêng.
-  for (const nut of $("stLienO").querySelectorAll("button")) {
-    const chu = nut.textContent;
-    nut.disabled = true;
-    nut.classList.remove("chon");
-    if (b.chon.has(chu)) nut.classList.add(b.dung.has(chu) ? "dung" : "sai");
-    else if (b.dung.has(chu)) nut.classList.add("sot");
-  }
-  $("stLienXong").style.display = "none";
-  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
-    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+  veKetQuaLien(b, dung, ms);
 
   coVu(kq.nho);
   // BỎ thẻ này ra khỏi hàng đợi. Thiếu dòng này thì hai giây sau showCard() vẽ
@@ -1797,10 +1822,85 @@ async function xongBaiLien() {
   // Quên thì học lại cuối hàng, y như thẻ thường.
   if (kq.nho) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, b.it)); }
-  // Cho hai giây nhìn lại bài mình vừa làm rồi mới sang thẻ kế.
-  setTimeout(() => {
+  /*
+   * KHÔNG tự sang thẻ kế nữa.
+   *
+   * Trước đây cho hai giây rồi tua. Hai giây đủ để liếc thấy màu, không đủ để
+   * ĐỌC — mà đây đúng là lúc mấy từ kia đáng nhớ nhất: vừa phải moi chúng ra
+   * khỏi trí nhớ xong. Giờ đứng lại chờ người học bấm Tiếp; ai muốn nhanh thì
+   * gõ phím cách.
+   */
+  tiepBaiLien = () => {
+    tiepBaiLien = null;
     if (moi.length) window.TienDo.anMung(moi, showCard); else showCard();
-  }, 2000);
+  };
+  $("stLienTiep").style.display = "";
+  $("stLienTiep").focus();
+}
+
+/** Đang chờ bấm Tiếp ở màn kết quả bài liên kết. null = không chờ ai cả. */
+let tiepBaiLien = null;
+
+/**
+ * Màn KẾT QUẢ của bài liên kết.
+ *
+ * Ba thứ, và cả ba đều là thứ chỉ có giá trị ĐÚNG LÚC NÀY:
+ *   - đúng hay sai từng ô: xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt =
+ *     BỎ SÓT. Bỏ sót mới là thứ đáng nhìn lại nhất nên nó có dấu riêng.
+ *   - NGHĨA của từng từ. Một chùm chữ Hán trơ thì nhìn xong quên ngay; có
+ *     nghĩa kèm thì cả chùm mới thành một cụm liên kết trong đầu.
+ *   - nút LƯU từng từ. Gặp một từ hay ngay trong lúc học mà phải nhớ để lát
+ *     nữa đi tra lại thì chẳng ai làm.
+ */
+function veKetQuaLien(b, dung, ms) {
+  const khung = $("stLienO");
+  const ds = [];
+  khung.textContent = "";
+  khung.classList.add("kq");
+  for (const chu of b.o) {
+    const hang = el("div", "lien-hang");
+    const nhan = el("div", "lien-tu", chu);
+    if (b.chon.has(chu)) nhan.classList.add(b.dung.has(chu) ? "dung" : "sai");
+    else if (b.dung.has(chu)) nhan.classList.add("sot");
+    hang.appendChild(nhan);
+
+    const ngh = el("div", "lien-nghia muted", "…");
+    hang.appendChild(ngh);
+
+    // Từ đang học thì khỏi bày nút Lưu — nó đã ở trong sổ rồi.
+    const daCo = items.some((x) => !x.del && x.word === chu);
+    const nut = el("button", "chip nho", daCo ? T("Đã có") : T("+ Lưu"));
+    nut.type = "button";
+    nut.disabled = daCo;
+    nut.addEventListener("click", () => {
+      nut.disabled = true;
+      nut.textContent = T("Đang lưu…");
+      chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
+        async (kq) => {
+          if (chrome.runtime.lastError || !kq || !kq.ok) {
+            nut.disabled = false; nut.textContent = T("+ Lưu");
+            toast(T("Không lưu được từ này"), "bad");
+            return;
+          }
+          nut.textContent = T("Đã lưu");
+          await load();
+          syncSoon();
+        });
+    });
+    hang.appendChild(nut);
+    khung.appendChild(hang);
+    ds.push({ chu: chu, o: ngh });
+  }
+
+  $("stLienXong").style.display = "none";
+  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
+    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+
+  // Nghĩa đi hỏi mạng nên về sau; chỗ của nó đã có sẵn, điền vào khi tới.
+  chrome.runtime.sendMessage({ type: "NGHIA_DS", ds: b.o, ngu: NGU }, (kq) => {
+    if (chrome.runtime.lastError || !kq || !kq.ok) { for (const x of ds) x.o.textContent = ""; return; }
+    for (const x of ds) x.o.textContent = kq.nghia[x.chu] || "—";
+  });
 }
 
 /* ==================================================================== */
@@ -2016,6 +2116,7 @@ function closeStudy() {
   if ($("viewProgress").classList.contains("show")) veTienDo();
 }
 
+$("stLienTiep").addEventListener("click", () => { if (tiepBaiLien) tiepBaiLien(); });
 $("study").addEventListener("click", startStudy);
 $("stReveal").addEventListener("click", revealCard);
 /**
@@ -2069,6 +2170,8 @@ document.addEventListener("keydown", (e) => {
      * Một phím cho cả mạch thao tác, tay không phải rời bàn phím.
      */
     e.preventDefault();
+    // Màn kết quả bài liên kết đang chờ: phím cách là "Tiếp".
+    if (tiepBaiLien) { tiepBaiLien(); return; }
     if ($("stReveal").style.display !== "none") { revealCard(); return; }
     if ($("stHoiNguon").style.display !== "none") { coNgheLai(); return; }
     const it = theCardHienTai();

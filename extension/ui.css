@@ -712,6 +712,22 @@ select { cursor: pointer; }
 .lien-o button.sot { border-style: dashed; border-color: var(--good); color: var(--good); }
 .lien-o button[disabled] { cursor: default; }
 
+/* Màn KẾT QUẢ: mỗi từ một hàng — con chữ, nghĩa của nó, và nút lưu. Xếp hàng
+   dọc chứ không rải như lúc làm bài: lúc này người ta ĐỌC chứ không nhặt nữa,
+   mà đọc theo hàng thì mắt không phải nhảy. */
+.lien-o.kq { flex-direction: column; align-items: stretch; gap: 6px; }
+.lien-hang {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface);
+}
+.lien-tu { font-size: 16px; font-weight: 650; flex: 0 0 auto; min-width: 84px; }
+.lien-tu.dung { color: var(--good); }
+.lien-tu.sai { color: var(--bad, #c0392b); text-decoration: line-through; }
+.lien-tu.sot { color: var(--good); border-bottom: 2px dashed var(--good); }
+.lien-nghia { flex: 1 1 auto; font-size: 13px; line-height: 1.4; text-align: left; }
+.lien-hang .chip.nho { flex: 0 0 auto; font-size: 12px; padding: 5px 10px; }
+
 /* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
    Phóng to bằng `transform` chứ không bằng `font-size` — đổi cỡ chữ là cả câu
    dồn lại giãn ra theo, đọc mấy giây là chóng mặt. */

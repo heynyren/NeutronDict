@@ -281,6 +281,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
              .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
+  if (msg.type === "NGHIA_DS") {
+    nghiaDs(msg.ds, msg.ngu)
+      .then((m) => sendResponse({ ok: true, nghia: m }))
+      .catch(() => sendResponse({ ok: false, nghia: {} }));
+    return true;
+  }
+  if (msg.type === "LUU_NHANH") {
+    luuNhanh(msg.word, msg.dict)
+      .then((r) => sendResponse({ ok: true, key: r }))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
+  if (msg.type === "DICH_CAU_NGHE") {
+    dichCauNghe(msg.key)
+      .then((t) => sendResponse({ ok: true, dich: t }))
+      .catch(() => sendResponse({ ok: false, dich: "" }));
+    return true;
+  }
   if (msg.type === "BOI_DUONG") {
     boiThemDuong(msg.toiDa)
       .then((n) => sendResponse({ ok: true, count: n }))
@@ -476,6 +494,83 @@ async function vaDocQuaMang(toiDa) {
   }
   await xa();
   return xong;
+}
+
+/**
+ * Nghĩa ngắn cho MỘT LOẠT từ, để bày ra sau khi chấm bài liên kết.
+ *
+ * Người học vừa nhặt đúng/sai một chùm từ; lúc ấy mới là lúc mấy từ kia đáng
+ * nhớ nhất, mà chúng chỉ hiện ra trơ mỗi chữ Hán thì nhìn xong quên ngay.
+ *
+ * Chạy SONG SONG và có đệm: một đề có nhiều nhất 16 ô, làm nối đuôi thì người
+ * học ngồi nhìn màn hình trống mất chục giây. Đệm theo từ nên các đề sau gặp
+ * lại từ cũ là có ngay.
+ */
+const nghiaDem = new Map();
+async function nghiaDs(ds, ngu) {
+  const ra = {};
+  const list = Array.from(new Set((ds || []).filter(Boolean))).slice(0, 20);
+  await Promise.all(list.map(async (w) => {
+    if (nghiaDem.has(w)) { ra[w] = nghiaDem.get(w); return; }
+    let m = "";
+    try {
+      if (ngu === "ja") {
+        const e = ketQuaKhop(await fetchMazii(w, "javi").catch(() => []), w);
+        if (e && e.means && e.means.length) m = String(e.means[0]);
+      }
+      if (!m) m = await gtxTranslate(w, ngu === "ja" ? "ja" : "en", "vi", true).catch(() => "");
+    } catch (e) { m = ""; }
+    m = String(m || "").trim();
+    if (m) nghiaDem.set(w, m);
+    ra[w] = m;
+  }));
+  return ra;
+}
+
+/**
+ * Lưu một từ vào sổ chỉ với con chữ — tra rồi lưu, gộp trong một lượt.
+ *
+ * Dùng cho mấy nút Lưu trên bài liên kết: ở đó ta chỉ có mỗi con chữ, mà lưu
+ * trơ con chữ thì mục vào sổ không có cách đọc lẫn nghĩa, tức là một thẻ không
+ * học được.
+ */
+async function luuNhanh(word, dict) {
+  const w = String(word || "").trim();
+  if (!w) throw new Error("Thiếu từ");
+  const d = dict || "javi";
+  let e = null;
+  try { e = ketQuaKhop(await lookupEntry(w, d), w); } catch (err) { e = null; }
+  if (!e) e = { word: w, reading: "", means: [] };
+  return saveWord(Object.assign({}, e, { word: w }), d);
+}
+
+/**
+ * Dịch CẢ CÂU của bài nghe, theo yêu cầu, rồi vá vào mục.
+ *
+ * Lượt bồi nền dịch với hạn ngắn nên có mục về tay trắng. Lúc người học lật
+ * thẻ nghe ra mà không có bản dịch thì cả bài mất nghĩa: nghe được câu nhưng
+ * không biết câu ấy nói gì. Ở đây người ta đang đứng chờ, nên dùng hạn đầy đủ.
+ */
+async function dichCauNghe(key) {
+  const { notebook } = await chrome.storage.local.get("notebook");
+  const nb = notebook || {};
+  const it = nb[key];
+  const cau = it && it.cauNghe && it.cauNghe.cau;
+  if (!cau) return "";
+  if (it.cauNghe.dich) return it.cauNghe.dich;
+  const tu = (it.dict === "javi" || it.dict === "vija") ? "ja" : "en";
+  let dich = "";
+  try { dich = await gtxTranslate(cau, tu, "vi"); } catch (e) { dich = ""; }
+  if (!dich || dich.trim() === cau.trim()) return "";
+  return vaSau(async () => {
+    const kho = (await chrome.storage.local.get("notebook")).notebook || {};
+    const cu = kho[key];
+    if (!cu || cu.del || !cu.cauNghe) return dich;
+    kho[key] = Object.assign({}, cu, {
+      cauNghe: Object.assign({}, cu.cauNghe, { dich: dich }) });
+    await chrome.storage.local.set({ notebook: kho });
+    return dich;
+  });
 }
 
 /**
