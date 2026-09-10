@@ -525,7 +525,7 @@ async function nghiaDs(ds, ngu) {
       // Người học đang ĐỨNG CHỜ ở màn kết quả, nhưng cũng đang chờ 16 từ một
       // lúc — nên đường nhanh (một cổng, một cách, 4 giây) là đúng liều: hụt
       // một từ thì mất một dòng, chứ không giữ cả bảng lại.
-      if (!m) m = await gtxTranslate(w, ngu === "ja" ? "ja" : "en", "vi", true).catch(() => "");
+      if (!m) m = await dichChuoi(w, ngu === "ja" ? "ja" : "en", "vi", true);
     } catch (e) { m = ""; }
     m = String(m || "").trim();
     if (m) nghiaDem.set(w, m);
@@ -572,8 +572,7 @@ async function dichCauNghe(key) {
   if (!cau) return "";
   if (it.cauNghe.dich) return it.cauNghe.dich;
   const tu = (it.dict === "javi" || it.dict === "vija") ? "ja" : "en";
-  let dich = "";
-  try { dich = await gtxTranslate(cau, tu, "vi"); } catch (e) { dich = ""; }
+  const dich = await dichChuoi(cau, tu, "vi");
   if (!dich || dich.trim() === cau.trim()) return "";
   return vaSau(async () => {
     const kho = (await chrome.storage.local.get("notebook")).notebook || {};
@@ -1227,8 +1226,9 @@ async function cauNgheVaSau(key, e, dict, nhanh) {
   const c = self.CauNghe.tuNguon(e.src, e.word);
   if (!c) return false;
   const tu = (dict === "javi" || dict === "vija") ? "ja" : "en";
-  let dich = "";
-  try { dich = await gtxTranslate(c.cau, tu, "vi", nhanh); } catch (err) { dich = ""; }
+  // Lượt bồi nền cũng đi cả hai chặng: với người mà Google đang chặn, chặng
+  // gtx không bao giờ ra gì, và cả sổ sẽ không mục nào có bản dịch câu.
+  const dich = await dichChuoi(c.cau, tu, "vi", nhanh);
   if (dich && dich.trim() === c.cau.trim()) dich = "";       // không dịch được thì để trống
   return vaSau(async () => {
     const { notebook } = await chrome.storage.local.get("notebook");
@@ -1674,6 +1674,26 @@ const TR_TTL = 30 * 86400000;
  * mạng, máy chủ báo lỗi) — chỗ gọi tự quyết nói lỗi thế nào; nới cả vài cách
  * đặt tên trường mà bản Apps Script cũ có thể trả về.
  */
+/**
+ * Dịch một chuỗi qua ĐÚNG chuỗi đường mà mọi chỗ khác trong app vẫn dùng:
+ * gtx của Google trước, hụt thì sang máy chủ Apps Script của người dùng.
+ *
+ * Đây là chỗ tôi đã làm sai. dichCauNghe, và cả lượt bồi câu ngữ cảnh, gọi
+ * THẲNG gtxTranslate — không có chặng dự phòng nào. Với người mà Google đang
+ * chặn (quá nhiều lượt, hoặc mạng chặn hẳn), bảng lời thoại YouTube vẫn dịch
+ * được bình thường vì nó đi qua handleTranslate có đủ hai chặng, còn thẻ nghe
+ * thì không bao giờ có bản dịch. Cùng một máy, cùng một lúc, hai kết quả khác
+ * nhau — và nhìn từ ngoài thì trông như tính năng chưa được làm.
+ *
+ * @param {boolean} [nhanh] chỉ áp cho chặng gtx: một cổng, một cách, 4 giây.
+ */
+async function dichChuoi(text, f, t, nhanh) {
+  let out = "";
+  try { out = await gtxTranslate(text, f, t, nhanh); } catch (e) { out = ""; }
+  if (!out) { try { out = await dichMayChu(text, f, t); } catch (e) { out = ""; } }
+  return out || "";
+}
+
 async function dichMayChu(text, f, t) {
   try {
     const { syncUrl, syncToken } = await chrome.storage.local.get(["syncUrl", "syncToken"]);
