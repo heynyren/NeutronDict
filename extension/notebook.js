@@ -1896,10 +1896,29 @@ function veKetQuaLien(b, dung, ms) {
   $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
     { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
 
-  // Nghĩa đi hỏi mạng nên về sau; chỗ của nó đã có sẵn, điền vào khi tới.
-  chrome.runtime.sendMessage({ type: "NGHIA_DS", ds: b.o, ngu: NGU }, (kq) => {
-    if (chrome.runtime.lastError || !kq || !kq.ok) { for (const x of ds) x.o.textContent = ""; return; }
-    for (const x of ds) x.o.textContent = kq.nghia[x.chu] || "—";
+  /*
+   * NGHĨA: lấy trong SỔ TAY trước, chỉ phần còn thiếu mới đi hỏi mạng.
+   *
+   * Phần lớn ô trên màn kết quả là từ đã nằm trong sổ — nút của chúng ghi "Đã
+   * có". Nghĩa của chúng nằm sẵn ngay trong máy, hiện ra tức thì và không bao
+   * giờ hụt. Hỏi mạng cho cả bảng thì mạng chập một cái là trắng trơn cả màn,
+   * đúng cảnh người dùng gặp.
+   */
+  const soTay = new Map();
+  for (const x of items) {
+    if (x.del || !x.word) continue;
+    const n = (x.means || []).map(meanToStr).filter(Boolean)[0];
+    if (n && !soTay.has(x.word)) soTay.set(x.word, n);
+  }
+  const thieu = [];
+  for (const x of ds) {
+    const n = soTay.get(x.chu);
+    if (n) x.o.textContent = n; else thieu.push(x);
+  }
+  if (!thieu.length) return;
+  chrome.runtime.sendMessage({ type: "NGHIA_DS", ds: thieu.map((x) => x.chu), ngu: NGU }, (kq) => {
+    const co = (!chrome.runtime.lastError && kq && kq.ok) ? kq.nghia : {};
+    for (const x of thieu) x.o.textContent = co[x.chu] || "—";
   });
 }
 

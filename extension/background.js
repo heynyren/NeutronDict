@@ -515,9 +515,16 @@ async function nghiaDs(ds, ngu) {
     let m = "";
     try {
       if (ngu === "ja") {
-        const e = ketQuaKhop(await fetchMazii(w, "javi").catch(() => []), w);
+        // ketQuaKhop trả về {e, khop} — cái mục nằm ở `.e`. Quên chấm `.e` thì
+        // `means` luôn undefined và cả đường tra từ điển câm lặng: người dùng
+        // mở màn kết quả ra thấy mọi từ đều là "—".
+        const k = ketQuaKhop(await fetchMazii(w, "javi").catch(() => []), w);
+        const e = k && k.e;
         if (e && e.means && e.means.length) m = String(e.means[0]);
       }
+      // Người học đang ĐỨNG CHỜ ở màn kết quả, nhưng cũng đang chờ 16 từ một
+      // lúc — nên đường nhanh (một cổng, một cách, 4 giây) là đúng liều: hụt
+      // một từ thì mất một dòng, chứ không giữ cả bảng lại.
       if (!m) m = await gtxTranslate(w, ngu === "ja" ? "ja" : "en", "vi", true).catch(() => "");
     } catch (e) { m = ""; }
     m = String(m || "").trim();
@@ -539,7 +546,13 @@ async function luuNhanh(word, dict) {
   if (!w) throw new Error("Thiếu từ");
   const d = dict || "javi";
   let e = null;
-  try { e = ketQuaKhop(await lookupEntry(w, d), w); } catch (err) { e = null; }
+  try {
+    // `.e` — xem chú thích ở nghiaDs. Thiếu nó thì saveWord nhận nguyên đối
+    // tượng bao ngoài {e, khop}: mục vào sổ không có nghĩa lẫn cách đọc, tức
+    // là một thẻ không học được.
+    const k = ketQuaKhop(await lookupEntry(w, d), w);
+    e = k && k.e;
+  } catch (err) { e = null; }
   if (!e) e = { word: w, reading: "", means: [] };
   return saveWord(Object.assign({}, e, { word: w }), d);
 }
