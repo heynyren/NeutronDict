@@ -1301,7 +1301,7 @@
 
   function veThuNho() {
     const g = document.documentElement;
-    if (!thuNho || dangHang) {
+    if (!thuNho) {
       if (oThuNho) { oThuNho.remove(); oThuNho = null; }
       g.classList.remove(LOP_NHO, LOP_TO);
       for (const n of daEp) { try { n.style.removeProperty("max-width"); } catch (e) {} }
@@ -1384,7 +1384,7 @@
    * nhỏ trong chế độ rạp, chứ không phải cả tính năng ngừng chạy.
    */
   function canhToNho() {
-    if (!thuNho || dangHang) return;
+    if (!thuNho) return;
     let to = false;
     try {
       to = !!document.fullscreenElement
@@ -1432,7 +1432,7 @@
   }
 
   function epBeNgang() {
-    if (!thuNho || dangHang) return;
+    if (!thuNho) return;
     nhoTrinhPhatDoiCo();
     const vd = document.querySelector("#movie_player video.html5-main-video")
       || document.querySelector("video.html5-main-video");
@@ -1523,8 +1523,6 @@
      * Phân biệt 2 với 3 bằng display: ẩn thật thì display là none, còn chưa
      * dựng xong thì không.
      */
-    // Bố cục một cột: YouTube không có cột phải nào để đặt vào. Tự dựng một
-    // hàng ngang cạnh khung hình — xem khungCanh.
     if (secDo && sec) {
       const b = secDo.getBoundingClientRect();
       if (b.width > 0 && b.height > 0) {
@@ -1539,8 +1537,7 @@
          * hay xếp ngang.
          */
         const duoiHan = b.top >= a.bottom - 4;
-        if (!duoiHan) { goCanh(); return sec; }        // cột phải sẵn có: dùng luôn
-        return benPhaiHoacCho(duoi, sec);
+        return duoiHan ? (duoi || sec) : sec;
       }
       let an = false;
       try { an = getComputedStyle(secDo).display === "none"; } catch (e) { an = false; }
@@ -1548,270 +1545,14 @@
     } else if (conChoCot()) {
       return null;                                  // chưa có cả thẻ cột phải
     }
-    return benPhaiHoacCho(duoi, sec);
-  }
-
-  /**
-   * Bên phải khung hình, hoặc ĐỢI — chứ đừng vội đặt xuống dưới.
-   *
-   * Đặt xuống dưới là chuyện một chiều: bảng nằm đó rồi thì phải có một lượt
-   * canh lại mới dời đi được, mà YouTube dựng bố cục dần nên lượt quyết định
-   * đầu tiên gần như luôn rơi vào lúc chưa đủ dữ kiện. Kết quả người dùng thấy:
-   * mở lên thì bảng ở dưới, F5 một cái mới sang bên.
-   *
-   * Nên chưa dựng được hàng ngang thì trả null — "chưa biết, hỏi lại nhịp sau".
-   * Chỉ khi hết hạn chờ, hoặc khi hàng ngang đã thử và hỏng, mới đành đặt xuống
-   * dưới; lúc ấy nó là chỗ trú cuối cùng, không phải một lựa chọn ngang hàng.
-   */
-  const HAN_CHO_HANG = 4000;
-  function benPhaiHoacCho(duoi, sec) {
-    const hop = khungCanh();
-    if (hop) return hop;
-    if (!hangHong && Date.now() - mocCho < HAN_CHO_HANG) return null;
     return duoi || sec;
-  }
-
-  /* ================================================================== */
-  /* Hàng ngang tự dựng: khung hình bên trái, bảng bên phải              */
-  /* ================================================================== */
-  /*
-   * Cửa sổ hẹp thì YouTube chuyển sang MỘT CỘT: không còn cột phải nào, khung
-   * hình kéo ra sát hai mép, mọi thứ khác xếp dọc xuống dưới. Bảng lời thoại đi
-   * theo bố cục ấy thì nằm dưới khung hình — mà người học nhìn bảng là chính,
-   * nằm dưới nghĩa là vừa xem vừa cuộn.
-   *
-   * Nên ở cảnh đó tự dựng một hàng ngang. Ba nguyên tắc:
-   *
-   *   1. KHÔNG dời thẻ trình phát. Trình phát YouTube giữ trạng thái theo cây
-   *      DOM; nhấc nó sang chỗ khác là mất tiến trình phát, có khi treo hẳn.
-   *      Chỉ chèn một thẻ bọc của mình vào NGAY SAU khối bọc khung hình, rồi
-   *      biến thẻ cha chung thành hàng ngang.
-   *   2. Khối bọc khung hình trong bố cục full-bleed định vị TUYỆT ĐỐI, tức là
-   *      nằm ngoài dòng chảy — để nguyên thì hàng ngang không thấy nó và bảng
-   *      trườn lên đè khung hình. Phải kéo nó về position:relative.
-   *   3. Khung hình phải NHƯỜNG bề ngang thật sự, không chỉ bị cắt: đặt cỡ cho
-   *      nó và nhờ chính trình phát tính lại (setSize), như phần thu nhỏ.
-   */
-  const LOP_HANG = "nd-yt-hang";     // thẻ cha, biến thành hàng ngang
-  const LOP_KHUNG = "nd-yt-khung";   // khối bọc khung hình trong hàng ấy
-  const ID_CANH = "neutrondict-canh";
-  const RONG_BANG = 380;             // bề ngang dành cho bảng, tối thiểu
-  let oCanh = null, canhW = 0;
-  /*
-   * Đang ở chế độ hàng ngang hay không.
-   *
-   * Hai chế độ này bó CÙNG những thẻ ấy, nên phải nhường nhau. Thu nhỏ bó
-   * `#full-bleed-container` về 620px; hàng ngang lại cần chính thẻ đó rộng hết
-   * cỡ để chia đôi cho khung hình và bảng. Để cả hai cùng chạy thì hàng ngang
-   * chỉ còn 620px, hẹp tới mức không dựng nổi, và bảng lại rơi xuống dưới —
-   * đúng lỗi đo được ở lượt mở từ extension.
-   *
-   * Hàng ngang thắng, vì nó đã tự lo việc thu khung hình rồi: nó chốt cỡ cho
-   * khối bọc và gọi setSize. Bật hàng ngang thì gỡ hẳn bảng kiểu thu nhỏ.
-   */
-  let dangHang = false;
-  /*
-   * Đã thử dựng hàng ngang và làm hỏng bố cục -> không thử lại nữa cho trang này.
-   *
-   * Mọi điều kiện ở khoiKhung đều là phỏng đoán về cây DOM của YouTube, mà cây
-   * ấy họ đổi lúc nào không báo. Tôi đã đoán sai một lần và xé nát trang của
-   * người dùng. Nên thêm một lớp nữa, lớp này không phỏng đoán gì cả: áp xong
-   * thì ĐO LẠI kết quả thật trên màn hình. Sai là hoàn tác ngay.
-   */
-  let hangHong = false;
-
-  /** Khối bọc khung hình mà ta bó lại — KHÔNG phải chính thẻ trình phát. */
-  /**
-   * Khối bọc khung hình mà ta được phép bó — hoặc null nếu KHÔNG được đụng.
-   *
-   * Bản trước có một chuỗi dự phòng: không thấy khối full-bleed thì lấy
-   * `#player-container-inner`, rồi `#player-container-outer`, rồi cha của thẻ
-   * trình phát. Đó là một sai lầm nặng. Mấy khối ấy là của bố cục HAI CỘT, và
-   * cha của chúng là `#primary` — thẻ chứa cả tiêu đề, mô tả và toàn bộ bình
-   * luận. Biến `#primary` thành hàng ngang thì tiêu đề, mô tả, bình luận thành
-   * các cột đứng cạnh khung hình: cả trang bị xé nát. Người dùng gặp đúng cảnh
-   * đó khi vào YouTube bằng đường thường trên cửa sổ rộng.
-   *
-   * Nên chỉ nhận ĐÚNG MỘT hình dạng, và phải khớp cả bốn điều kiện:
-   *   - có `#full-bleed-container` (dấu hiệu chắc chắn của bố cục MỘT CỘT),
-   *   - trình phát nằm trong nó,
-   *   - `#player-full-bleed-container` là con trực tiếp của nó,
-   *   - và thẻ cha ấy KHÔNG chứa gì khác ngoài khối khung hình (với thẻ bọc
-   *     của mình).
-   * Lệch một điều kiện là trả null: lúc đó bảng quay về nếp cũ — đặt dưới
-   * khung hình. Bảng nằm chỗ không ưng còn hơn cả trang vỡ.
-   */
-  /**
-   * Khối bọc khung hình mà ta được phép bó, hoặc null nếu KHÔNG được đụng.
-   *
-   * Quy tắc: leo ngược từ thẻ trình phát lên, chừng nào thẻ cha CHỈ chứa đúng
-   * nhánh khung hình (không có anh em nào khác). Thẻ cha cuối cùng như thế là
-   * hàng ngang; nút ta dừng lại ở đó là khối khung hình.
-   *
-   * Quy tắc này tự chứng minh là an toàn, không cần biết YouTube gọi thẻ nào
-   * là gì: hàng ngang chỉ được dựng ở nơi vốn KHÔNG có gì khác ngoài khung
-   * hình, nên không thể kéo tiêu đề, mô tả hay bình luận sang đứng cạnh nó.
-   * Đó đúng là tai nạn ở 4.9.0 — lúc ấy tôi bám vào tên thẻ, và một nhánh dự
-   * phòng dẫn thẳng lên #primary, thẻ chứa cả trang.
-   *
-   * Và vì không bám tên thẻ nên nó chạy cho CẢ HAI bố cục:
-   *   một cột  -> #full-bleed-container / #player-full-bleed-container
-   *   hai cột  -> #player / #player-container-outer
-   * Bản trước đòi phải có dấu `full-bleed-player`; cửa sổ nửa màn hình mà
-   * YouTube chưa gắn dấu ấy thì hàng ngang không bao giờ dựng, và bảng nằm
-   * dưới cho tới khi người dùng tải lại trang.
-   */
-  const CAO_NHAT = 6;                 // đừng leo quá xa khỏi khung hình
-  function khoiKhung() {
-    if (hangHong) return null;        // đã thử và làm hỏng bố cục: thôi hẳn
-    const mp = document.querySelector("#movie_player");
-    if (!mp) return null;
-    /*
-     * Giữ lại nút CUỐI CÙNG mà thẻ cha của nó chỉ chứa mỗi nó. Nút ấy là khối
-     * khung hình, còn cha nó là hàng ngang.
-     *
-     * Dừng đúng một tầng là quan trọng. Leo thêm một bậc nữa thì hàng ngang
-     * thành `ytd-watch-flexy` — thẻ chứa cả #columns, tức cả trang — và ta lại
-     * đúng vào cái bẫy của 4.9.0.
-     */
-    let khoi = null, nut = mp;
-    for (let i = 0; i < CAO_NHAT; i++) {
-      const cha = nut.parentElement;
-      if (!cha || cha === document.body || cha === document.documentElement) break;
-      let rieng = true;
-      for (const n of cha.children) {
-        if (n !== nut && n.id !== ID_CANH) { rieng = false; break; }
-      }
-      if (!rieng) break;              // cha có con khác -> không dựng hàng ngang ở đó
-      khoi = nut;                     // cha chỉ chứa mỗi `nut`: đây là chỗ hợp lệ
-      nut = cha;
-    }
-    return khoi;                      // null = không có chỗ nào an toàn
-  }
-
-  function khungCanh() {
-    const khoi = khoiKhung();
-    const cha = khoi && khoi.parentElement;
-    if (!khoi || !cha) return null;
-    /*
-     * TẮT kiểu thu nhỏ TRƯỚC KHI ĐO.
-     *
-     * Chính nó đang bó thẻ này về bề ngang đã đặt trong Cài đặt (620px), mà
-     * hàng ngang lại cần biết bề ngang THẬT có thể dùng. Đo trước khi tắt thì
-     * đọc được 620px, thấy "hẹp quá" rồi từ chối — và từ chối xong lại bật thu
-     * nhỏ lên, nên lần đo sau vẫn 620px. Kẹt vĩnh viễn, và bảng nằm dưới cho
-     * tới khi người dùng tải lại trang bằng một cửa sổ khác cỡ.
-     *
-     * Dựng không nổi thì goCanh() bật thu nhỏ trở lại ngay.
-     */
-    if (!dangHang) { dangHang = true; veThuNho(); }
-    const rong = Math.round(cha.getBoundingClientRect().width);
-    if (!(rong > RONG_BANG + 320)) { goCanh(); return null; }   // hẹp quá thì thôi
-
-    let hop = document.getElementById(ID_CANH);
-    if (!hop) { hop = document.createElement("div"); hop.id = ID_CANH; }
-    if (hop.parentElement !== cha || hop.previousElementSibling !== khoi) {
-      khoi.insertAdjacentElement("afterend", hop);
-    }
-    cha.classList.add(LOP_HANG);
-    khoi.classList.add(LOP_KHUNG);
-    veCanh(rong);
-    soatHang();
-    return hop;
-  }
-
-  /** Bề ngang cho khung hình: phần còn lại sau khi chừa chỗ cho bảng. */
-  function veCanh(rong) {
-    const w = Math.max(300, Math.min(rong - RONG_BANG - 12,
-      thuNho ? thuNhoW : Math.round(rong * 0.62)));
-    if (w === canhW && oCanh) return;
-    canhW = w;
-    const h = Math.round(w * 9 / 16);
-    if (!oCanh) {
-      oCanh = document.createElement("style");
-      oCanh.id = "neutrondict-hang";
-      (document.head || document.documentElement).appendChild(oCanh);
-    }
-    const H = "." + LOP_HANG, K = H + " > ." + LOP_KHUNG;
-    oCanh.textContent =
-      H + "{display:flex!important;align-items:flex-start!important;flex-wrap:nowrap!important;" +
-        "height:auto!important;min-height:0!important;max-height:none!important}" +
-      // Kéo khối bọc khung hình về trong dòng chảy, rồi chốt cỡ cho nó.
-      K + "{position:relative!important;left:auto!important;top:auto!important;" +
-        "right:auto!important;bottom:auto!important;flex:0 0 auto!important;" +
-        "width:" + w + "px!important;max-width:" + w + "px!important;height:" + h + "px!important}" +
-      K + " #movie_player{position:absolute!important;left:0!important;top:0!important;" +
-        "width:100%!important;height:100%!important;max-width:none!important}" +
-      K + " #movie_player .html5-video-container{width:100%!important;height:100%!important;" +
-        "position:relative!important}" +
-      K + " #movie_player video.html5-main-video{position:absolute!important;left:0!important;" +
-        "top:0!important;width:100%!important;height:100%!important;object-fit:contain!important}" +
-      H + " > #" + ID_CANH + "{flex:1 1 auto!important;min-width:320px!important;" +
-        "align-self:stretch!important;box-sizing:border-box!important;padding-left:12px!important}";
-    doiCoTrinhPhat(w, h);
-  }
-
-  /**
-   * SOÁT LẠI kết quả thật, và hoàn tác nếu hỏng.
-   *
-   * Ba điều phải đúng sau khi dựng hàng ngang, đo bằng vị trí thật trên màn
-   * hình chứ không bằng giả định nào về cây DOM:
-   *   1. Khung hình còn nhìn được (chưa co về 0, chưa văng ra ngoài).
-   *   2. Bảng nằm BÊN PHẢI khung hình — thứ mà cả việc này sinh ra để làm.
-   *   3. Tiêu đề video vẫn nằm DƯỚI khung hình. Đây là chốt bắt lỗi nặng nhất:
-   *      dựng hàng ngang nhầm vào thẻ chứa cả tiêu đề, mô tả, bình luận thì
-   *      chúng bị kéo sang đứng cạnh khung hình, và cả trang vỡ.
-   * Sai một điều là gỡ sạch và không thử lại nữa cho trang này.
-   */
-  let henSoat = null;
-  function soatHang() {
-    clearTimeout(henSoat);
-    henSoat = setTimeout(() => {
-      if (!dangHang) return;
-      const mp = document.querySelector("#movie_player");
-      const hop = document.getElementById(ID_CANH);
-      if (!mp || !hop) return;
-      const a = mp.getBoundingClientRect();
-      const b = hop.getBoundingClientRect();
-      const tieu = document.querySelector("ytd-watch-flexy #below") || document.querySelector("#below");
-      let hong = false;
-      if (!(a.width > 200 && a.height > 100)) hong = true;
-      else if (!(b.width > 200 && b.left >= a.right - 12)) hong = true;
-      else if (tieu) {
-        const t = tieu.getBoundingClientRect();
-        if (t.height > 0 && t.top < a.bottom - 12) hong = true;   // tiêu đề bị kéo lên cạnh khung hình
-      }
-      if (!hong) return;
-      hangHong = true;
-      goCanh();
-      // Bảng đang nằm trong thẻ bọc vừa bỏ: đưa nó về chỗ theo nếp cũ. Từ giờ
-      // khungCanh() trả null, nên choDat() rơi về khối dưới khung hình.
-      const noi = choDat();
-      if (noi) {
-        if (S.hostBat) noi.insertBefore(S.hostBat, noi.firstChild);
-        if (S.host) noi.insertBefore(S.host, noi.firstChild);
-      }
-      const bo = document.getElementById(ID_CANH);
-      if (bo && !bo.firstChild) bo.remove();
-    }, 400);
-  }
-
-  /** Trả trang về nguyên trạng khi không còn cần hàng ngang nữa. */
-  function goCanh() {
-    const hop = document.getElementById(ID_CANH);
-    if (hop && !hop.firstChild) hop.remove();
-    for (const n of document.querySelectorAll("." + LOP_HANG)) n.classList.remove(LOP_HANG);
-    for (const n of document.querySelectorAll("." + LOP_KHUNG)) n.classList.remove(LOP_KHUNG);
-    if (oCanh) { oCanh.remove(); oCanh = null; }
-    canhW = 0;
-    if (dangHang) { dangHang = false; veThuNho(); }
   }
 
   /**
    * Còn trong thời hạn chờ cột phải dựng xong không.
    *
    * Phải CÓ hạn: cột phải có thể không bao giờ xuất hiện (bố cục một cột, hoặc
-   * YouTube đổi tên thẻ). Hết hạn thì đặt dưới khung hình, có bảng ở chỗ hơi
+   * YouTube đổi tên thẻ). Hết hạn thì đặt dưới khung hình — bảng ở chỗ hơi
    * lệch vẫn hơn là không có bảng nào.
    */
   const HAN_CHO_COT = 4000;
@@ -2923,8 +2664,22 @@
         S.uiBan.style.display = "none";
         return true;
       }
-      // Ưu tiên bản người thật làm, và trong đó ưu tiên đúng thứ tiếng đang bật.
-      const diem = (b) => (b.tuDong ? 0 : 2) + (b.ma === NGU ? 1 : 0);
+      /*
+       * ĐÚNG THỨ TIẾNG trước, rồi mới tới bản do người làm.
+       *
+       * Trước đây ngược lại: bản người làm 2 điểm, đúng tiếng chỉ 1 điểm. Với
+       * video Nhật thì bản tiếng Nhật thường là bản TỰ ĐỘNG (0+1 = 1 điểm) —
+       * thua bản tiếng Anh do người làm (2 điểm). Nên mở một video tiếng Nhật
+       * mà bảng ra toàn tiếng Anh.
+       *
+       * Trước kia hiếm gặp vì video Nhật hiếm khi có bản tiếng Anh. Từ khi
+       * YouTube tự lồng tiếng (auto-dubbed), video Nhật nào cũng kèm một loạt
+       * bản tiếng khác — và cách chấm cũ chọn nhầm gần như mọi lần.
+       *
+       * Học tiếng Nhật thì cần lời thoại TIẾNG NHẬT, kể cả khi nó do máy nghe.
+       * Một bản dịch sang tiếng Anh, dù người làm, cũng không dùng để học được.
+       */
+      const diem = (b) => (b.ma === NGU ? 4 : 0) + (b.tuDong ? 0 : 1);
       let best = 0;
       S.ban.forEach((b, i) => { if (diem(b) > diem(S.ban[best])) best = i; });
       S.iBan = best;
