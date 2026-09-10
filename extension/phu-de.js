@@ -1540,7 +1540,7 @@
          */
         const duoiHan = b.top >= a.bottom - 4;
         if (!duoiHan) { goCanh(); return sec; }        // cột phải sẵn có: dùng luôn
-        return khungCanh() || duoi || sec;
+        return benPhaiHoacCho(duoi, sec);
       }
       let an = false;
       try { an = getComputedStyle(secDo).display === "none"; } catch (e) { an = false; }
@@ -1548,7 +1548,27 @@
     } else if (conChoCot()) {
       return null;                                  // chưa có cả thẻ cột phải
     }
-    return khungCanh() || duoi || sec;
+    return benPhaiHoacCho(duoi, sec);
+  }
+
+  /**
+   * Bên phải khung hình, hoặc ĐỢI — chứ đừng vội đặt xuống dưới.
+   *
+   * Đặt xuống dưới là chuyện một chiều: bảng nằm đó rồi thì phải có một lượt
+   * canh lại mới dời đi được, mà YouTube dựng bố cục dần nên lượt quyết định
+   * đầu tiên gần như luôn rơi vào lúc chưa đủ dữ kiện. Kết quả người dùng thấy:
+   * mở lên thì bảng ở dưới, F5 một cái mới sang bên.
+   *
+   * Nên chưa dựng được hàng ngang thì trả null — "chưa biết, hỏi lại nhịp sau".
+   * Chỉ khi hết hạn chờ, hoặc khi hàng ngang đã thử và hỏng, mới đành đặt xuống
+   * dưới; lúc ấy nó là chỗ trú cuối cùng, không phải một lựa chọn ngang hàng.
+   */
+  const HAN_CHO_HANG = 4000;
+  function benPhaiHoacCho(duoi, sec) {
+    const hop = khungCanh();
+    if (hop) return hop;
+    if (!hangHong && Date.now() - mocCho < HAN_CHO_HANG) return null;
+    return duoi || sec;
   }
 
   /* ================================================================== */
@@ -1621,29 +1641,72 @@
    * Lệch một điều kiện là trả null: lúc đó bảng quay về nếp cũ — đặt dưới
    * khung hình. Bảng nằm chỗ không ưng còn hơn cả trang vỡ.
    */
+  /**
+   * Khối bọc khung hình mà ta được phép bó, hoặc null nếu KHÔNG được đụng.
+   *
+   * Quy tắc: leo ngược từ thẻ trình phát lên, chừng nào thẻ cha CHỈ chứa đúng
+   * nhánh khung hình (không có anh em nào khác). Thẻ cha cuối cùng như thế là
+   * hàng ngang; nút ta dừng lại ở đó là khối khung hình.
+   *
+   * Quy tắc này tự chứng minh là an toàn, không cần biết YouTube gọi thẻ nào
+   * là gì: hàng ngang chỉ được dựng ở nơi vốn KHÔNG có gì khác ngoài khung
+   * hình, nên không thể kéo tiêu đề, mô tả hay bình luận sang đứng cạnh nó.
+   * Đó đúng là tai nạn ở 4.9.0 — lúc ấy tôi bám vào tên thẻ, và một nhánh dự
+   * phòng dẫn thẳng lên #primary, thẻ chứa cả trang.
+   *
+   * Và vì không bám tên thẻ nên nó chạy cho CẢ HAI bố cục:
+   *   một cột  -> #full-bleed-container / #player-full-bleed-container
+   *   hai cột  -> #player / #player-container-outer
+   * Bản trước đòi phải có dấu `full-bleed-player`; cửa sổ nửa màn hình mà
+   * YouTube chưa gắn dấu ấy thì hàng ngang không bao giờ dựng, và bảng nằm
+   * dưới cho tới khi người dùng tải lại trang.
+   */
+  const CAO_NHAT = 6;                 // đừng leo quá xa khỏi khung hình
   function khoiKhung() {
-    if (hangHong) return null;               // đã thử và làm hỏng bố cục: thôi hẳn
+    if (hangHong) return null;        // đã thử và làm hỏng bố cục: thôi hẳn
     const mp = document.querySelector("#movie_player");
     if (!mp) return null;
-    // Dấu của CHÍNH YouTube cho bố cục một cột. Không có dấu này thì đang là bố
-    // cục hai cột, và hàng ngang tuyệt đối không có việc gì ở đó.
-    if (!document.querySelector("ytd-watch-flexy[full-bleed-player]")) return null;
-    const fb = document.querySelector("#full-bleed-container");
-    if (!fb || !fb.contains(mp)) return null;
-    const khoi = document.querySelector("#player-full-bleed-container");
-    if (!khoi || !khoi.contains(mp) || khoi.parentElement !== fb) return null;
-    for (const n of fb.children) {
-      if (n !== khoi && n.id !== ID_CANH) return null;
+    /*
+     * Giữ lại nút CUỐI CÙNG mà thẻ cha của nó chỉ chứa mỗi nó. Nút ấy là khối
+     * khung hình, còn cha nó là hàng ngang.
+     *
+     * Dừng đúng một tầng là quan trọng. Leo thêm một bậc nữa thì hàng ngang
+     * thành `ytd-watch-flexy` — thẻ chứa cả #columns, tức cả trang — và ta lại
+     * đúng vào cái bẫy của 4.9.0.
+     */
+    let khoi = null, nut = mp;
+    for (let i = 0; i < CAO_NHAT; i++) {
+      const cha = nut.parentElement;
+      if (!cha || cha === document.body || cha === document.documentElement) break;
+      let rieng = true;
+      for (const n of cha.children) {
+        if (n !== nut && n.id !== ID_CANH) { rieng = false; break; }
+      }
+      if (!rieng) break;              // cha có con khác -> không dựng hàng ngang ở đó
+      khoi = nut;                     // cha chỉ chứa mỗi `nut`: đây là chỗ hợp lệ
+      nut = cha;
     }
-    return khoi;
+    return khoi;                      // null = không có chỗ nào an toàn
   }
 
   function khungCanh() {
     const khoi = khoiKhung();
     const cha = khoi && khoi.parentElement;
     if (!khoi || !cha) return null;
+    /*
+     * TẮT kiểu thu nhỏ TRƯỚC KHI ĐO.
+     *
+     * Chính nó đang bó thẻ này về bề ngang đã đặt trong Cài đặt (620px), mà
+     * hàng ngang lại cần biết bề ngang THẬT có thể dùng. Đo trước khi tắt thì
+     * đọc được 620px, thấy "hẹp quá" rồi từ chối — và từ chối xong lại bật thu
+     * nhỏ lên, nên lần đo sau vẫn 620px. Kẹt vĩnh viễn, và bảng nằm dưới cho
+     * tới khi người dùng tải lại trang bằng một cửa sổ khác cỡ.
+     *
+     * Dựng không nổi thì goCanh() bật thu nhỏ trở lại ngay.
+     */
+    if (!dangHang) { dangHang = true; veThuNho(); }
     const rong = Math.round(cha.getBoundingClientRect().width);
-    if (!(rong > RONG_BANG + 320)) { goCanh(); return null; }   // hẹp quá thì thôi, xếp dọc còn hơn
+    if (!(rong > RONG_BANG + 320)) { goCanh(); return null; }   // hẹp quá thì thôi
 
     let hop = document.getElementById(ID_CANH);
     if (!hop) { hop = document.createElement("div"); hop.id = ID_CANH; }
@@ -1652,7 +1715,6 @@
     }
     cha.classList.add(LOP_HANG);
     khoi.classList.add(LOP_KHUNG);
-    if (!dangHang) { dangHang = true; veThuNho(); }
     veCanh(rong);
     soatHang();
     return hop;
@@ -2969,7 +3031,15 @@
      * qua nhảy lại.
      */
     if (S.host.parentElement === noi) { lechCho = 0; return; }
-    if (++lechCho < 3) return;
+    /*
+     * Đợi ba nhịp là để một lần đo lệch thoáng qua không làm bảng nhảy qua
+     * nhảy lại. Nhưng khi bảng đang mắc kẹt ở KHỐI DƯỚI khung hình thì không
+     * đợi: đó đúng là chỗ người dùng không muốn nó ở, và mọi đường ra khỏi đó
+     * đều là đường tốt hơn.
+     */
+    const dangODuoi = S.host.parentElement
+      && (S.host.parentElement.id === "below" || S.host.parentElement.matches("#below"));
+    if (!dangODuoi && ++lechCho < 3) return;
     noi.insertBefore(S.host, noi.firstChild);
     lechCho = 0;
   }
