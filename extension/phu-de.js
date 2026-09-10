@@ -1590,15 +1590,52 @@
    * khối bọc và gọi setSize. Bật hàng ngang thì gỡ hẳn bảng kiểu thu nhỏ.
    */
   let dangHang = false;
+  /*
+   * Đã thử dựng hàng ngang và làm hỏng bố cục -> không thử lại nữa cho trang này.
+   *
+   * Mọi điều kiện ở khoiKhung đều là phỏng đoán về cây DOM của YouTube, mà cây
+   * ấy họ đổi lúc nào không báo. Tôi đã đoán sai một lần và xé nát trang của
+   * người dùng. Nên thêm một lớp nữa, lớp này không phỏng đoán gì cả: áp xong
+   * thì ĐO LẠI kết quả thật trên màn hình. Sai là hoàn tác ngay.
+   */
+  let hangHong = false;
 
   /** Khối bọc khung hình mà ta bó lại — KHÔNG phải chính thẻ trình phát. */
+  /**
+   * Khối bọc khung hình mà ta được phép bó — hoặc null nếu KHÔNG được đụng.
+   *
+   * Bản trước có một chuỗi dự phòng: không thấy khối full-bleed thì lấy
+   * `#player-container-inner`, rồi `#player-container-outer`, rồi cha của thẻ
+   * trình phát. Đó là một sai lầm nặng. Mấy khối ấy là của bố cục HAI CỘT, và
+   * cha của chúng là `#primary` — thẻ chứa cả tiêu đề, mô tả và toàn bộ bình
+   * luận. Biến `#primary` thành hàng ngang thì tiêu đề, mô tả, bình luận thành
+   * các cột đứng cạnh khung hình: cả trang bị xé nát. Người dùng gặp đúng cảnh
+   * đó khi vào YouTube bằng đường thường trên cửa sổ rộng.
+   *
+   * Nên chỉ nhận ĐÚNG MỘT hình dạng, và phải khớp cả bốn điều kiện:
+   *   - có `#full-bleed-container` (dấu hiệu chắc chắn của bố cục MỘT CỘT),
+   *   - trình phát nằm trong nó,
+   *   - `#player-full-bleed-container` là con trực tiếp của nó,
+   *   - và thẻ cha ấy KHÔNG chứa gì khác ngoài khối khung hình (với thẻ bọc
+   *     của mình).
+   * Lệch một điều kiện là trả null: lúc đó bảng quay về nếp cũ — đặt dưới
+   * khung hình. Bảng nằm chỗ không ưng còn hơn cả trang vỡ.
+   */
   function khoiKhung() {
+    if (hangHong) return null;               // đã thử và làm hỏng bố cục: thôi hẳn
     const mp = document.querySelector("#movie_player");
     if (!mp) return null;
-    return document.querySelector("#player-full-bleed-container")
-        || document.querySelector("#player-container-inner")
-        || document.querySelector("#player-container-outer")
-        || mp.parentElement;
+    // Dấu của CHÍNH YouTube cho bố cục một cột. Không có dấu này thì đang là bố
+    // cục hai cột, và hàng ngang tuyệt đối không có việc gì ở đó.
+    if (!document.querySelector("ytd-watch-flexy[full-bleed-player]")) return null;
+    const fb = document.querySelector("#full-bleed-container");
+    if (!fb || !fb.contains(mp)) return null;
+    const khoi = document.querySelector("#player-full-bleed-container");
+    if (!khoi || !khoi.contains(mp) || khoi.parentElement !== fb) return null;
+    for (const n of fb.children) {
+      if (n !== khoi && n.id !== ID_CANH) return null;
+    }
+    return khoi;
   }
 
   function khungCanh() {
@@ -1617,6 +1654,7 @@
     khoi.classList.add(LOP_KHUNG);
     if (!dangHang) { dangHang = true; veThuNho(); }
     veCanh(rong);
+    soatHang();
     return hop;
   }
 
@@ -1649,6 +1687,51 @@
       H + " > #" + ID_CANH + "{flex:1 1 auto!important;min-width:320px!important;" +
         "align-self:stretch!important;box-sizing:border-box!important;padding-left:12px!important}";
     doiCoTrinhPhat(w, h);
+  }
+
+  /**
+   * SOÁT LẠI kết quả thật, và hoàn tác nếu hỏng.
+   *
+   * Ba điều phải đúng sau khi dựng hàng ngang, đo bằng vị trí thật trên màn
+   * hình chứ không bằng giả định nào về cây DOM:
+   *   1. Khung hình còn nhìn được (chưa co về 0, chưa văng ra ngoài).
+   *   2. Bảng nằm BÊN PHẢI khung hình — thứ mà cả việc này sinh ra để làm.
+   *   3. Tiêu đề video vẫn nằm DƯỚI khung hình. Đây là chốt bắt lỗi nặng nhất:
+   *      dựng hàng ngang nhầm vào thẻ chứa cả tiêu đề, mô tả, bình luận thì
+   *      chúng bị kéo sang đứng cạnh khung hình, và cả trang vỡ.
+   * Sai một điều là gỡ sạch và không thử lại nữa cho trang này.
+   */
+  let henSoat = null;
+  function soatHang() {
+    clearTimeout(henSoat);
+    henSoat = setTimeout(() => {
+      if (!dangHang) return;
+      const mp = document.querySelector("#movie_player");
+      const hop = document.getElementById(ID_CANH);
+      if (!mp || !hop) return;
+      const a = mp.getBoundingClientRect();
+      const b = hop.getBoundingClientRect();
+      const tieu = document.querySelector("ytd-watch-flexy #below") || document.querySelector("#below");
+      let hong = false;
+      if (!(a.width > 200 && a.height > 100)) hong = true;
+      else if (!(b.width > 200 && b.left >= a.right - 12)) hong = true;
+      else if (tieu) {
+        const t = tieu.getBoundingClientRect();
+        if (t.height > 0 && t.top < a.bottom - 12) hong = true;   // tiêu đề bị kéo lên cạnh khung hình
+      }
+      if (!hong) return;
+      hangHong = true;
+      goCanh();
+      // Bảng đang nằm trong thẻ bọc vừa bỏ: đưa nó về chỗ theo nếp cũ. Từ giờ
+      // khungCanh() trả null, nên choDat() rơi về khối dưới khung hình.
+      const noi = choDat();
+      if (noi) {
+        if (S.hostBat) noi.insertBefore(S.hostBat, noi.firstChild);
+        if (S.host) noi.insertBefore(S.host, noi.firstChild);
+      }
+      const bo = document.getElementById(ID_CANH);
+      if (bo && !bo.firstChild) bo.remove();
+    }, 400);
   }
 
   /** Trả trang về nguyên trạng khi không còn cần hàng ngang nữa. */
