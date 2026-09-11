@@ -662,7 +662,18 @@ function posFrom(dd) {
   for (const d of dd) for (const m of (d.meanings || [])) {
     const defs = (m.definitions || []).slice(0, 4).map((x) => ({ def: x.definition || "", ex: x.example || "" })).filter((x) => x.def);
     const syn = (m.synonyms || []).slice(0, 6);
-    if (defs.length || syn.length) out.push({ p: m.partOfSpeech || "", defs, syn });
+    /*
+     * Free Dictionary trả về CẢ trái nghĩa, và bài liên kết cần nó.
+     *
+     * Bản extension đã sửa chỗ này khi làm bài trái nghĩa; bản Android là bản
+     * chép tay của cùng hàm và lượt sửa ấy không chép sang. Hậu quả đo được:
+     * mục tiếng Anh trên Android không bao giờ có `lien.trai`, nên bài TRÁI
+     * NGHĨA không bao giờ mở — người học tiếng Anh mất hẳn một trong bốn đường
+     * mà không có gì báo. Tiếng Nhật không dính vì nó lấy trái nghĩa từ bảng
+     * hạt giống và 日本語WordNet nằm sẵn trong máy, không qua hàm này.
+     */
+    const ant = (m.antonyms || []).slice(0, 6);
+    if (defs.length || syn.length || ant.length) out.push({ p: m.partOfSpeech || "", defs, syn, ant });
   }
   return out.slice(0, 6);
 }
