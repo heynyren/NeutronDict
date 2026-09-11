@@ -784,6 +784,14 @@
       "Back to start",
     "Cấp {n}":
       "Level {n}",
+    "Cùng nghĩa":
+      "Synonyms",
+    "Trái nghĩa":
+      "Antonyms",
+    "Có trong sổ tay — bấm để xem":
+      "In your notebook — tap to view",
+    "Chưa có trong sổ — bấm để tra":
+      "Not saved yet — tap to look up",
     "mai":
       "tomorrow",
     "còn {n} ngày":
@@ -1578,6 +1586,14 @@
       "最初に戻る",
     "Cấp {n}":
       "レベル {n}",
+    "Cùng nghĩa":
+      "類義語",
+    "Trái nghĩa":
+      "対義語",
+    "Có trong sổ tay — bấm để xem":
+      "単語帳にあります — タップで表示",
+    "Chưa có trong sổ — bấm để tra":
+      "未保存 — タップで検索",
     "mai":
       "明日",
     "còn {n} ngày":

@@ -1633,6 +1633,74 @@ $("paste").addEventListener("click", async () => {
 });
 
 /** Nút Lưu dùng chung cho tab Từ vựng và tab Dịch. */
+/**
+ * MẠNG NGHĨA của một mục: nó cùng nghĩa với những từ nào, ngược nghĩa với từ
+ * nào. Trả về null nếu mục chưa được bồi tập liên kết.
+ *
+ * Bày ở CẢ HAI chỗ — danh sách sổ tay và mặt sau thẻ học — vì mạng nghĩa chỉ
+ * đáng nhớ khi gặp đi gặp lại, chứ không phải chỉ lúc làm đúng bài kiểm tra về
+ * nó. Đây là đường để vốn từ lan ra theo cụm thay vì từng từ rời rạc.
+ *
+ * Bấm một từ trong mạng: đã có trong sổ thì lọc sổ tay về đúng nó; chưa có thì
+ * TRA nó — từ màn tra đã sẵn nút Lưu quen thuộc, không cần đẻ thêm đường lưu
+ * thứ hai chỉ dùng ở một chỗ.
+ *
+ * @param {object} it mục sổ tay
+ * @param {boolean} [gon] true = một dòng gọn cho danh sách sổ tay
+ */
+/*
+ * Những từ ĐANG CÓ trong sổ, để mạng nghĩa biết từ nào bấm-để-xem và từ nào
+ * bấm-để-tra.
+ *
+ * Phải là biến của cả tệp. Bản đầu tôi viết `items.some(...)` y như bên bản
+ * extension — mà bên Android `items` chỉ là biến CỤC BỘ trong drawNotebook,
+ * nên mặt sau thẻ học ném thẳng "items is not defined" và cả màn trắng. Bài
+ * kiểm tra bắt được ở dòng "không có lỗi trang".
+ */
+let tuDaLuu = new Set();
+
+function khoiLien(it, gon) {
+  const l = (it && it.lien) || {};
+  const dong = (l.dong || []).filter(Boolean);
+  const trai = (l.trai || []).filter(Boolean);
+  if (!dong.length && !trai.length) return null;
+
+  const hop = el("div", "lienmang" + (gon ? " gon" : ""));
+  const hang = (nhan, ds, lop) => {
+    if (!ds.length) return;
+    const h = el("div", "lienmang-hang");
+    h.appendChild(el("span", "lienmang-nhan " + lop, nhan));
+    const o = el("span", "lienmang-ds");
+    ds.forEach((chu) => {
+      const b = el("button", "lienmang-tu" + (NGU === "ja" ? " ja" : ""), chu);
+      b.type = "button";
+      const coSan = tuDaLuu.has(chu);
+      if (coSan) b.classList.add("cosan");
+      b.title = coSan ? T("Có trong sổ tay — bấm để xem") : T("Chưa có trong sổ — bấm để tra");
+      b.addEventListener("click", (ev) => { ev.stopPropagation(); moTuLien(chu, coSan); });
+      o.appendChild(b);
+    });
+    h.appendChild(o);
+    hop.appendChild(h);
+  };
+  hang(T("Cùng nghĩa"), dong, "dong");
+  hang(T("Trái nghĩa"), trai, "trai");
+  return hop;
+}
+
+/** Bấm một từ trong mạng nghĩa: có trong sổ thì lọc tới nó, chưa có thì tra. */
+function moTuLien(chu, coSan) {
+  if (coSan) {
+    const o = $("filter");
+    if (o) { o.value = chu; o.dispatchEvent(new Event("input", { bubbles: true })); }
+    show("Notebook");
+    return;
+  }
+  $("q").value = chu;
+  show("Lookup");
+  runLookup(chu);
+}
+
 function nutLuu(daLuu, khiLuu) {
   const b = el("button", "btn xs");
   b.type = "button";
@@ -2402,6 +2470,8 @@ async function drawNotebook() {
 
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
+  // Nhớ lại danh sách từ đã có, cho mạng nghĩa ở cả sổ tay lẫn mặt sau thẻ học.
+  tuDaLuu = new Set(activeItems.map((x) => x.word).filter(Boolean));
   if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU && !deckName(decks, curDeck)) curDeck = ALL;
 
   /* --- hàng chip sổ con --- */
@@ -2558,6 +2628,8 @@ async function drawNotebook() {
       if (km) body.appendChild(el("div", "t-tiny faint", km));
     }
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
+    const mangNb = khoiLien(it, true);
+    if (mangNb) body.appendChild(mangNb);
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
     if (it.anh && it.anh.length) {
       const hangAnh = el("div", "anh-hang");
@@ -3265,6 +3337,12 @@ function revealCard() {
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
     $("stMean").appendChild(ul);
   }
+  /*
+   * Mạng nghĩa hiện ở MẶT SAU, cùng chỗ với nghĩa. Mặt trước thì không được:
+   * với hai bài liên kết thì nó chính là đáp án.
+   */
+  const mangThe = khoiLien(it, false);
+  if (mangThe) $("stMean").appendChild(mangThe);
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
   $("stMyNote").innerHTML = "";
   if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));

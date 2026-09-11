@@ -1548,6 +1548,143 @@
     return duoi || sec;
   }
 
+  /* ------------------------------------------------------------------ */
+  /* CHẾ ĐỘ NỔI — bảng nằm bên phải khung hình kể cả khi YouTube bỏ hai cột */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Dưới khoảng 1000px bề ngang, CHÍNH YouTube bỏ bố cục hai cột: bật
+   * `full-bleed-player`, kéo khung hình ra sát hai mép, và xếp cột phải xuống
+   * dưới phần mô tả. Lúc ấy không còn chỗ nào bên phải để đặt bảng, nên bản
+   * trước đành thả nó xuống dưới khung hình.
+   *
+   * Tôi đã từng tự dựng một hàng ngang để ép lại hai cột. Đó là bản 4.9.0, và
+   * nó xé nát bố cục trang của người dùng — "bạn làm cái quái gì với video
+   * youtube vào từ đường thông thường của tôi thế hả". Tôi gỡ bỏ hẳn.
+   *
+   * Nên cách ở đây KHÔNG đụng một dòng nào vào cây DOM của YouTube: bảng được
+   * nhấc ra làm con của <body>, định vị TUYỆT ĐỐI theo toạ độ trang, ghim vào
+   * mép phải khung hình. YouTube xếp lại trang thế nào cũng không va vào nhau,
+   * vì hai bên không còn nằm chung một dòng chảy bố cục nữa. Xấu nhất là bảng
+   * đặt hơi lệch một nhịp rồi nhịp sau canh lại — không thể thành hỏng trang.
+   */
+  const BE_NOI = 380;          // bề ngang bảng khi nổi
+  const KHE_NOI = 12;          // khe giữa khung hình và bảng
+  const HINH_HEP_NHAT = 360;   // hẹp hơn ngần này thì thôi, không nổi nữa
+  const LOP_NOI = "nd-yt-noi";
+  let dangNoi = false;
+  let oNoi = null;             // thẻ <style> riêng của chế độ nổi
+
+  /**
+   * Có nên nổi không, và nếu có thì khung hình được rộng bao nhiêu.
+   *
+   * @returns {{beHinh:number, beBang:number}|null} null = cứ theo nếp cũ
+   */
+  function choNoi() {
+    const mp = document.querySelector("#movie_player");
+    if (!mp) return null;
+    // Rạp và toàn màn hình là ý muốn rõ ràng của người xem: để yên.
+    try {
+      if (document.fullscreenElement
+        || document.querySelector("ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen]")) return null;
+    } catch (e) { /* không hỏi được thì cứ đo tiếp */ }
+
+    const sec = document.querySelector("#secondary");
+    if (!sec) return null;
+    const a = mp.getBoundingClientRect();
+    const b = sec.getBoundingClientRect();
+    if (!(a.width > 0)) return null;
+    // CÒN hai cột thì không nổi — cột phải thật bao giờ cũng hơn một lớp đè.
+    if (b.width > 0 && b.height > 0 && b.top < a.bottom - 4) return null;
+
+    const rong = document.documentElement.clientWidth;
+    const beBang = Math.min(BE_NOI, Math.round(rong * 0.42));
+    const beHinh = rong - beBang - KHE_NOI * 2;
+    // Bóp cả hai xuống mức không ai đọc nổi thì thà để bảng nằm dưới.
+    if (beHinh < HINH_HEP_NHAT || beBang < 240) return null;
+    return { beHinh: beHinh, beBang: beBang };
+  }
+
+  /**
+   * Canh lại vị trí bảng nổi và bề ngang khung hình. Gọi mỗi nhịp canh, mỗi
+   * lượt cuộn và mỗi lượt đổi cỡ cửa sổ.
+   */
+  function canhNoi() {
+    const c = choNoi();
+    if (!c || !S.host) { if (dangNoi) tatNoi(); return; }
+
+    if (!oNoi) {
+      oNoi = document.createElement("style");
+      (document.head || document.documentElement).appendChild(oNoi);
+    }
+    /*
+     * Bó khung hình bằng CSS chứ không ghi thẳng vào thẻ: trình phát ghi lại
+     * kích thước nội tuyến của chính nó mỗi lần bố cục đổi, nên mọi thứ đặt nội
+     * tuyến đều bị xoá trong vài trăm mili giây.
+     */
+    const K = "html." + LOP_NOI + " ";
+    oNoi.textContent =
+      [ "#movie_player", "#player-full-bleed-container", "#full-bleed-container" ]
+        .map((x) => K + x).join(",") +
+        /*
+         * KHÔNG đẩy khung hình sang phải bằng margin-left. Bản đầu tôi chừa một
+         * khe 12px cho đẹp, và bài kiểm nd-ytkhongpha bắt ngay: tiêu đề video
+         * vẫn dán mép trái (x=0) trong khi khung hình bị đẩy sang x=12 — hai
+         * thứ đáng ra thẳng hàng thì lệch nhau, nhìn như trang bị hỏng.
+         */
+        "{max-width:" + c.beHinh + "px!important;min-width:0!important;" +
+        "margin-left:0!important;margin-right:auto!important}" +
+      K + "#full-bleed-container,html." + LOP_NOI + " #player-full-bleed-container{" +
+        // Số đo THẬT, không dùng height:auto — trình phát nằm trong khung bọc
+        // này bằng định vị tuyệt đối, auto làm khung co về 0 và video biến mất.
+        "height:" + Math.round(c.beHinh * 9 / 16) + "px!important;" +
+        "min-height:0!important;max-height:none!important}" +
+      K + "#movie_player{height:auto!important;aspect-ratio:16/9!important}" +
+      /*
+       * Khung bọc trong cùng và CHÍNH thẻ <video>.
+       *
+       * Thiếu ba dòng này thì trình phát co lại nhưng thẻ video bên trong vẫn
+       * giữ nguyên chiều cao PIXEL NỘI TUYẾN mà trình phát tự ghi vào — đo được
+       * khung 512px mà cao 491px, tức là méo hẳn so với 16:9. Đây đúng là cùng
+       * một cái bẫy đã làm video biến mất ở bản thu nhỏ trước, nên chép lại y
+       * nguyên cách chữa của veThuNho.
+       */
+      K + "#movie_player .html5-video-container{" +
+        "width:100%!important;height:100%!important;position:relative!important}" +
+      K + "#movie_player video.html5-main-video{" +
+        "position:absolute!important;left:0!important;top:0!important;" +
+        "width:100%!important;height:100%!important;object-fit:contain!important}";
+    document.documentElement.classList.add(LOP_NOI);
+    dangNoi = true;
+
+    // Bảng: con của <body>, toạ độ TRANG (cộng lượng đã cuộn) để nó trôi theo
+    // khung hình khi cuộn, thay vì đứng ì một chỗ như position:fixed.
+    if (S.host.parentElement !== document.body) document.body.appendChild(S.host);
+    const mp = document.querySelector("#movie_player");
+    const r = mp.getBoundingClientRect();
+    const cuonY = window.scrollY || document.documentElement.scrollTop || 0;
+    const cuonX = window.scrollX || document.documentElement.scrollLeft || 0;
+    const st = S.host.style;
+    st.position = "absolute";
+    st.zIndex = "2500";
+    st.left = Math.round(r.right + cuonX + KHE_NOI) + "px";   // khe nằm ở đây, không ở khung hình
+    st.top = Math.round(r.top + cuonY) + "px";
+    st.width = c.beBang + "px";
+    st.height = Math.max(220, Math.round(r.height)) + "px";
+  }
+
+  /** Trả bảng về dòng chảy bố cục bình thường. */
+  function tatNoi() {
+    dangNoi = false;
+    document.documentElement.classList.remove(LOP_NOI);
+    if (oNoi) oNoi.textContent = "";
+    if (!S.host) return;
+    const st = S.host.style;
+    st.position = ""; st.zIndex = ""; st.left = ""; st.top = "";
+    st.width = ""; st.height = "";
+    const chon = choDat();
+    if (chon && S.host.parentElement !== chon) chon.insertBefore(S.host, chon.firstChild);
+  }
+
   /**
    * Còn trong thời hạn chờ cột phải dựng xong không.
    *
@@ -1575,6 +1712,19 @@
 
   function goBang() {
     goPhoi();
+    /*
+     * TRẢ khung hình về nguyên trạng TRƯỚC khi bỏ bảng đi.
+     *
+     * Chế độ nổi bó bề ngang khung hình để chừa chỗ cho bảng. Đóng bảng mà
+     * không gỡ lớp ấy ra thì người xem còn lại một video bị thu nhỏ vô cớ và
+     * một khoảng trống bên phải — đúng cái "phá trang của người ta" mà cả bài
+     * kiểm nd-ytkhuat lẫn chính người dùng đã bác.
+     */
+    if (dangNoi) {
+      dangNoi = false;
+      document.documentElement.classList.remove(LOP_NOI);
+      if (oNoi) oNoi.textContent = "";
+    }
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
     hangCho.clear(); clearTimeout(henDich);
     if (S.host) { S.host.remove(); S.host = null; S.root = null; S.oList = null; }
@@ -2775,17 +2925,24 @@
    * Chỉ dựng mới khi thật sự CHƯA có bảng nào.
    */
   function ganLaiBang() {
-    const noi = choDat();
-    if (!noi) return;
-    if (!S.host) { khoiDong(S.v); return; }
-    if (!S.host.isConnected) { noi.insertBefore(S.host, noi.firstChild); lechCho = 0; return; }
+    if (!S.host) { const n0 = choDat(); if (n0) khoiDong(S.v); return; }
+    /*
+     * Chế độ NỔI tự lo chỗ đặt (con của <body>, toạ độ trang). Phải chặn ở đây,
+     * nếu không thì cứ mỗi nhịp canhNoi đặt bảng ra body, rồi ganLaiBang lại
+     * lôi nó về #below — bảng nhấp nháy qua lại 700ms một lần.
+     */
+    if (choNoi()) { canhNoi(); lechCho = 0; return; }
+    if (dangNoi) tatNoi();
+    const dat = choDat();
+    if (!dat) return;
+    if (!S.host.isConnected) { dat.insertBefore(S.host, dat.firstChild); lechCho = 0; return; }
     /*
      * Còn trong trang nhưng SAI CỘT: xảy ra khi lúc dựng bố cục chưa xong, đo
      * ra một đằng rồi YouTube xếp lại một nẻo. Đợi ba nhịp mới dời, để một lần
      * đo lệch thoáng qua (quảng cáo, đang đổi cỡ cửa sổ) không làm bảng nhảy
      * qua nhảy lại.
      */
-    if (S.host.parentElement === noi) { lechCho = 0; return; }
+    if (S.host.parentElement === dat) { lechCho = 0; return; }
     /*
      * Đợi ba nhịp là để một lần đo lệch thoáng qua không làm bảng nhảy qua
      * nhảy lại. Nhưng khi bảng đang mắc kẹt ở KHỐI DƯỚI khung hình thì không
@@ -2795,9 +2952,21 @@
     const dangODuoi = S.host.parentElement
       && (S.host.parentElement.id === "below" || S.host.parentElement.matches("#below"));
     if (!dangODuoi && ++lechCho < 3) return;
-    noi.insertBefore(S.host, noi.firstChild);
+    dat.insertBefore(S.host, dat.firstChild);
     lechCho = 0;
   }
+
+  /*
+   * Bảng nổi phải bám theo khung hình ngay, không đợi nhịp canh 700ms: cuộn
+   * trang mà bảng lết theo sau một phần ba giây thì nhìn như trang bị lỗi.
+   */
+  let henNoi = 0;
+  const canhNoiSom = () => {
+    if (henNoi) return;
+    henNoi = requestAnimationFrame(() => { henNoi = 0; if (S.host) canhNoi(); });
+  };
+  window.addEventListener("scroll", canhNoiSom, { passive: true });
+  window.addEventListener("resize", canhNoiSom, { passive: true });
 
   // YouTube là ứng dụng một trang: chuyển video không tải lại trang.
   document.addEventListener("yt-navigate-finish", () => xemLai());
@@ -2807,6 +2976,7 @@
     // vào/ra chế độ rạp, xoay màn hình). Nên phải canh lại chứ không chỉ đặt
     // một lần lúc mở trang.
     if (thuNho) { canhToNho(); epBeNgang(); }
+    if (S.host && S.v && S.v !== tatCho) canhNoi();
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
     // YouTube dựng lại cột phải khá tuỳ hứng — đổi video, hết quảng cáo, đổi cỡ
     // cửa sổ — và cuốn theo cả bảng này.

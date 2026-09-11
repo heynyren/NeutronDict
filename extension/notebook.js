@@ -1331,6 +1331,8 @@ function draw() {
     if (it.means && it.means.length) {
       body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
+    const mang = khoiLien(it, true);
+    if (mang) body.appendChild(mang);
     if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
     if (it.anh && it.anh.length) {
       const hang = el("div", "anh-hang");
@@ -1642,6 +1644,91 @@ function showCard(giuLat) {
 }
 
 /**
+ * MẠNG NGHĨA của một mục: nó cùng nghĩa với những từ nào, ngược nghĩa với từ
+ * nào. Trả về null nếu mục chưa được bồi tập liên kết.
+ *
+ * Cùng một khối được dùng ở CẢ BA chỗ — danh sách sổ tay, mặt sau thẻ học, và
+ * màn kết quả bài liên kết — vì cùng một thứ thì phải trông giống nhau ở mọi
+ * chỗ, và vì mạng nghĩa chỉ đáng nhớ khi gặp đi gặp lại chứ không phải chỉ lúc
+ * làm đúng bài kiểm tra về nó.
+ *
+ * Bấm vào một từ trong mạng: có trong sổ thì nhảy tới nó, chưa có thì tra.
+ * Đây chính là đường để vốn từ lan ra theo mạng nơ-ron thay vì từng từ rời rạc.
+ *
+ * @param {object} it mục sổ tay
+ * @param {boolean} [gon] true = một dòng gọn cho danh sách; false = tách hai
+ *   hàng có nhãn, cho mặt sau thẻ
+ */
+function khoiLien(it, gon) {
+  const l = (it && it.lien) || {};
+  const dong = (l.dong || []).filter(Boolean);
+  const trai = (l.trai || []).filter(Boolean);
+  if (!dong.length && !trai.length) return null;
+
+  const hop = el("div", "lienmang" + (gon ? " gon" : ""));
+  const hang = (nhan, ds, lop) => {
+    if (!ds.length) return;
+    const h = el("div", "lienmang-hang");
+    h.appendChild(el("span", "lienmang-nhan " + lop, nhan));
+    const o = el("span", "lienmang-ds");
+    ds.forEach((chu) => {
+      const b = el("button", "lienmang-tu" + (NGU === "ja" ? " ja" : ""), chu);
+      b.type = "button";
+      const coSan = items.some((x) => !x.del && x.word === chu);
+      b.title = coSan ? T("Có trong sổ tay — bấm để xem") : T("Chưa có trong sổ — bấm để tra");
+      if (coSan) b.classList.add("cosan");
+      b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        moTuLien(chu, items.some((x) => !x.del && x.word === chu), b);
+      });
+      o.appendChild(b);
+    });
+    h.appendChild(o);
+    hop.appendChild(h);
+  };
+  hang(T("Cùng nghĩa"), dong, "dong");
+  hang(T("Trái nghĩa"), trai, "trai");
+  return hop;
+}
+
+/**
+ * Bấm một từ trong mạng nghĩa.
+ *
+ *   - đã có trong sổ  -> lọc danh sách về đúng nó và mở màn Sổ tay;
+ *   - chưa có         -> LƯU luôn, đúng như nút "+ Lưu" ở màn kết quả bài liên
+ *     kết. Đây là đường để vốn từ lan theo mạng nghĩa: gặp một từ hay trong lúc
+ *     ôn mà phải nhớ để lát nữa đi tra lại thì chẳng ai làm.
+ *
+ * @param {HTMLElement} b chính cái nút vừa bấm, để báo trạng thái ngay trên nó
+ */
+function moTuLien(chu, coSan, b) {
+  if (coSan) {
+    const o = $("filter");
+    if (o) { o.value = chu; o.dispatchEvent(new Event("input", { bubbles: true })); }
+    moMan("list");
+    return;
+  }
+  if (b.disabled) return;
+  b.disabled = true;
+  const cu = b.textContent;
+  b.textContent = T("Đang lưu…");
+  chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
+    async (kq) => {
+      if (chrome.runtime.lastError || !kq || !kq.ok) {
+        b.disabled = false; b.textContent = cu;
+        toast(T("Không lưu được từ này"));
+        return;
+      }
+      b.disabled = false;
+      b.textContent = chu;
+      b.classList.add("cosan");
+      b.title = T("Có trong sổ tay — bấm để xem");
+      await load();
+      toast(T("Đã lưu"));
+    });
+}
+
+/**
  * Xin bản dịch cho câu của thẻ nghe, và NÓI RA khi không xin được.
  *
  * Bản trước dịch hụt thì gán chuỗi rỗng vào chỗ ấy — tức là một dòng trống,
@@ -1715,6 +1802,14 @@ function revealCard() {
     // vừa thêm phía trên cũng nằm trong ô này — xoá là mất.
     $("stMean").appendChild(ul);
   }
+  /*
+   * Mạng nghĩa hiện ở MẶT SAU, cùng chỗ với nghĩa.
+   *
+   * Mặt trước thì không được: với bài đồng nghĩa / trái nghĩa thì nó chính là
+   * đáp án, mà với thẻ thường thì nó là gợi ý quá mạnh.
+   */
+  const mangThe = khoiLien(it, false);
+  if (mangThe) $("stMean").appendChild(mangThe);
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
   if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
   if (it.anh && it.anh.length) {

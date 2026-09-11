@@ -1030,3 +1030,35 @@ table.sodo th, table.sodo td { padding: 6px 8px; text-align: right; border-botto
 table.sodo th:first-child, table.sodo td:first-child { text-align: left; }
 table.sodo th { font-weight: 600; color: var(--muted); font-size: 12px; }
 table.sodo tr.thieu td { opacity: .45; }
+
+/* ------------------------------------------------------------------ */
+/* Mạng nghĩa: từ này cùng nghĩa / trái nghĩa với những từ nào          */
+/* ------------------------------------------------------------------ */
+/*
+ * Hiện ở ba chỗ: danh sách sổ tay (.gon — một dòng, chữ nhỏ), mặt sau thẻ học,
+ * và màn kết quả bài liên kết. Cùng một thứ thì phải trông giống nhau ở mọi
+ * chỗ, nên chỉ một bộ luật, khác nhau đúng cỡ chữ.
+ */
+.lienmang { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; }
+.lienmang-hang { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.lienmang-nhan {
+  font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  padding: 1px 7px; border-radius: 999px; white-space: nowrap;
+}
+.lienmang-nhan.dong { background: var(--ok-bg, #e7f5ec); color: var(--ok-fg, #1d6b3a); }
+.lienmang-nhan.trai { background: var(--warn-bg, #fdeee6); color: var(--warn-fg, #9c4a1a); }
+.lienmang-ds { display: flex; flex-wrap: wrap; gap: 4px; }
+.lienmang-tu {
+  font: inherit; font-size: 13px; line-height: 1.5;
+  padding: 1px 8px; border-radius: 7px; cursor: pointer;
+  border: 1px dashed var(--line, #cfd4da);
+  background: transparent; color: var(--fg, #222);
+}
+/* Nét liền = đã có trong sổ (bấm để xem). Nét đứt = chưa có (bấm để lưu). */
+.lienmang-tu.cosan { border-style: solid; background: var(--chip-bg, #f1f3f5); }
+.lienmang-tu:hover { border-color: var(--acc, #2f6fed); color: var(--acc, #2f6fed); }
+.lienmang-tu.ja { font-size: 15px; }
+.lienmang.gon { margin: 4px 0 0; }
+.lienmang.gon .lienmang-tu { font-size: 12px; padding: 0 6px; }
+.lienmang.gon .lienmang-tu.ja { font-size: 13px; }
+.lienmang.gon .lienmang-nhan { font-size: 10px; padding: 0 6px; }
