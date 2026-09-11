@@ -288,8 +288,22 @@
     // âm, chứ không phải cách thắng.
     const diem = Math.max(0, ((kq.dung || 0) - (kq.sai || 0)) / tong);
     const ms = Math.max(1, kq.ms || 0);
+    /*
+     * Trả về THỜI GIAN THẬT, không phóng đại theo điểm.
+     *
+     * Bản cũ trả `ms / diem`: nhặt đúng 70% thì 20 giây được báo lên 28,6 giây.
+     * Con số ấy đi thẳng vào bộ hiệu chỉnh nhịp bấm của đường này, nên bộ hiệu
+     * chỉnh học một thứ không phải thời gian truy xuất. Cộng với việc trần
+     * thống kê khi ấy là 15 giây, kết quả đo được: 83% lượt ĐÚNG bị chấm "rất
+     * chậm", cấp bị đóng băng, giãn cách ×0,35 — hai bài liên kết gần như không
+     * thể lên cấp.
+     *
+     * Phần "làm chưa trọn" đã được tính ở chỗ khác rồi: dưới sàn thì coi là
+     * QUÊN, và người còn mò thì tự khắc bấm chậm hơn. Không cần phạt thêm một
+     * lần nữa bằng cách bịa ra một con số thời gian.
+     */
     if (diem < SAN_DAT) return { nho: false, ms: ms, diem: diem };
-    return { nho: true, ms: Math.round(ms / Math.max(0.2, diem)), diem: diem };
+    return { nho: true, ms: ms, diem: diem };
   }
 
   goc.TuLien = {

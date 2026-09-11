@@ -511,7 +511,11 @@ async function docNhipMs() {
  * @param {number} [ms] thời gian truy xuất, đo từ lúc hiện thẻ tới lúc bấm
  * @param {string} [duong] đường nào đang được kiểm; mặc định "nhin"
  */
-async function gradeWord(key, remembered, ms, duong) {
+/**
+ * @param {number} [chat] 0..1 — làm đúng được mấy phần, cho những bài chấm theo
+ *   phần (hai bài liên kết). Bỏ trống thì chỉ có nhớ/quên, xem Srs.heChatLuong.
+ */
+async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
   let kq = null;
@@ -521,7 +525,7 @@ async function gradeWord(key, remembered, ms, duong) {
     // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
     // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
-    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now());
+    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(), chat);
     const moi = Object.assign({}, e);
     moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
     // `srs` vẫn được ghi, và vẫn là thứ đồng bộ Drive / bản extension / máy chủ
@@ -3221,7 +3225,9 @@ async function xongBaiLien() {
 
   coVu(kq.nho);
   session.queue.shift();
-  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong);
+  // `kq.diem` là trục thứ hai: nhặt đủ hay nhặt được một nửa. Nó chỉ co giãn
+  // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
+  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
   if (kq.nho) session.done++; else { session.again++; session.queue.push(Object.assign({}, b.it)); }
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   veChuoiNgay();

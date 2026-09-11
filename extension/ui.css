@@ -1022,3 +1022,11 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
 /* Dịch câu hụt: một dòng bấm được, chứ không phải khoảng trống câm lặng. */
 .nut-lai { cursor: pointer; text-decoration: underline dotted; }
 .nut-lai:hover { color: var(--accent); }
+
+/* Bảng SỐ ĐO THẬT trong màn Tiến độ. Dòng chưa đủ mẫu để mờ đi — nhìn một ô
+   bốn lượt rồi kết luận thang sai là cách chắc chắn nhất để chỉnh hỏng. */
+table.sodo { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.sodo th, table.sodo td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+table.sodo th:first-child, table.sodo td:first-child { text-align: left; }
+table.sodo th { font-weight: 600; color: var(--muted); font-size: 12px; }
+table.sodo tr.thieu td { opacity: .45; }

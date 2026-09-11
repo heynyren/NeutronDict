@@ -371,11 +371,16 @@ async function docNhipMs() {
  * @param {number} [ms] thời gian truy xuất, đo từ lúc hiện thẻ tới lúc bấm
  * @param {string} [duong] đường nào đang được kiểm; mặc định là "nhin"
  */
-async function gradeWord(key, remembered, ms, duong) {
+/**
+ * @param {number} [chat] 0..1 — làm đúng được mấy phần, cho những bài chấm theo
+ *   phần (hai bài liên kết). Bỏ trống thì chỉ có nhớ/quên, xem Srs.heChatLuong.
+ */
+async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
   const tkTruoc = Object.assign({}, tkAll[d] || {});
   let kq = null, truoc = null;
+  let ngayCho = 0, lvTruoc = -1;
   await capNhat((nb) => {
     const e = nb[key];
     if (!e) return;
@@ -384,7 +389,19 @@ async function gradeWord(key, remembered, ms, duong) {
     // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
     truoc = cu ? Object.assign({}, cu) : null;      // để phím ← hoàn tác được
-    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now());
+    /*
+     * SỐ ĐO THẬT: app đã hẹn bao nhiêu ngày ở bậc nào, và tới lúc gặp lại có
+     * nhớ không. Phải lấy TRƯỚC khi chấm — sau khi chấm thì `ts` đã bị ghi đè
+     * và không còn biết lượt này đã chờ bao lâu.
+     *
+     * Đây là thứ duy nhất nói được thang 1/3/7/14/30/60/120 có hợp với chính
+     * người này không. Mọi con số trong thang ấy là tôi chọn, không phải đo.
+     */
+    if (batDau && batDau.ts) {
+      ngayCho = (Date.now() - batDau.ts) / 86400000;
+      lvTruoc = typeof batDau.lv === "number" ? batDau.lv : -1;
+    }
+    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(), chat);
     const moi = Object.assign({}, e);
     moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
     // `srs` vẫn được ghi, và vẫn là thứ mọi nơi khác đọc: đồng bộ Drive, app
@@ -397,6 +414,11 @@ async function gradeWord(key, remembered, ms, duong) {
   if (kq) {
     nhipMs[d] = kq.tk;
     await chrome.storage.local.set({ nhipMs: nhipMs });
+    if (ngayCho > 0) {
+      const kho = await chrome.storage.local.get("soDoSrs");
+      const so = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho, !!remembered);
+      await chrome.storage.local.set({ soDoSrs: so });
+    }
   }
   return kq ? Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc }) : null;
 }
@@ -1724,8 +1746,27 @@ async function grade(remembered) {
   if (remembered) session.done++;
   else {
     session.again++;
-    banSao = Object.assign({}, it);
-    session.queue.push(banSao);                     // quên -> học lại cuối hàng
+    /*
+     * TRẦN LẶP TRONG MỘT BUỔI.
+     *
+     * Quên thì học lại cuối hàng — đúng, nhưng không phải mãi. Một từ chưa vào
+     * đầu có thể quay vòng cả chục lượt trong cùng một buổi, và đó chính là thứ
+     * làm người ta thấy "sao toàn gặp lại mấy từ này" rồi bỏ app. Đo trên bản
+     * cũ: trung bình 128 lần gặp mỗi từ trong 180 ngày, từ bị gặp nhiều nhất
+     * 305 lần.
+     *
+     * Gặp lại hai lượt trong một buổi là đủ để kéo nó vào trí nhớ ngắn hạn;
+     * quá đó thì việc cần làm là NGỦ MỘT ĐÊM rồi gặp lại, không phải cày thêm.
+     */
+    const kh = it.key + "|" + (it._d || "nhin");
+    session.lapBuoi = session.lapBuoi || {};
+    session.lapBuoi[kh] = (session.lapBuoi[kh] || 0) + 1;
+    if (session.lapBuoi[kh] < LAP_TOI_DA) {
+      banSao = Object.assign({}, it);
+      session.queue.push(banSao);                   // quên -> học lại cuối hàng
+    } else {
+      toast(T("Từ này để mai gặp lại — hôm nay đủ rồi"));
+    }
   }
   // Nhớ lại lượt chấm này để phím ← lấy về được. Chỉ giữ vài lượt gần nhất:
   // đây là để chữa bấm nhầm, không phải để đi ngược cả buổi học.
@@ -1836,7 +1877,9 @@ async function xongBaiLien() {
   // BỎ thẻ này ra khỏi hàng đợi. Thiếu dòng này thì hai giây sau showCard() vẽ
   // lại đúng cái đề vừa làm, và buổi học kẹt ở đó vĩnh viễn.
   session.queue.shift();
-  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong);
+  // `kq.diem` là trục thứ hai: nhặt đủ hay nhặt được một nửa. Nó chỉ co giãn
+  // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
+  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
   // Quên thì học lại cuối hàng, y như thẻ thường.
@@ -2057,6 +2100,8 @@ async function moCuaSoRieng(url) {
 // Ba giây, không phải năm. Năm giây đủ dài để thành ra đang CHỜ, mà việc này
 // vốn chỉ là một cái cửa mở hé — ai muốn nghe thì bấm, không thì đi tiếp.
 const CHO_NGUON = 3;
+/** Một thẻ quay lại tối đa ngần này lượt trong MỘT buổi. Xem grade(). */
+const LAP_TOI_DA = 2;
 let demNguon = null, xongNguon = null;
 
 function goHoiNguon() {
@@ -3000,7 +3045,7 @@ function moMan(ten) {
   // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
   $("pageList").classList.toggle("active", ten === "list");
   $("pageProgress").classList.toggle("active", ten === "progress");
-  if (ten === "progress") veTienDo();
+  if (ten === "progress") { veTienDo(); veSoDo(); }
   if (ten === "speak") veLuyenNoi();
 }
 $("pageList").addEventListener("click", () => moMan("list"));
@@ -3192,6 +3237,51 @@ function boiThemDuong() {
       if (kq && kq.ok && kq.count) load();
     });
   } catch (e) { /* bồi không được thì sổ vẫn học được bằng đường nhìn */ }
+}
+
+/**
+ * Bày SỐ ĐO THẬT ra cho người học xem.
+ *
+ * Bảng này trả lời đúng một câu: "ở bậc N, app bắt tôi chờ X ngày, và tôi nhớ
+ * được bao nhiêu phần trăm?". Bậc nào tỉ lệ nhớ thấp hẳn thì bậc ấy đang quá
+ * dài với chính người này; cao quá thì đang quá ngắn, tức là đang ôn thừa.
+ *
+ * Cố ý ghi rõ ô nào CHƯA ĐỦ MẪU. Nhìn một ô có 4 lượt rồi kết luận thang sai là
+ * cách chắc chắn nhất để chỉnh hỏng.
+ */
+async function veSoDo() {
+  const o = $("soDoBang");
+  if (!o) return;
+  const kho = await chrome.storage.local.get("soDoSrs");
+  const ds = window.Srs.docSoDo(kho.soDoSrs || {});
+  o.textContent = "";
+  if (!ds.length) {
+    o.appendChild(el("div", "t-small faint",
+      T("Chưa có số đo nào. Học vài buổi rồi quay lại — mỗi lượt ôn có chờ qua ngày mới được tính.")));
+    return;
+  }
+  const b = el("table", "sodo");
+  const th = el("tr");
+  for (const c of [T("Kiểu bài"), T("Bậc"), T("Chờ"), T("Số lượt"), T("Nhớ được")]) {
+    th.appendChild(el("th", null, c));
+  }
+  b.appendChild(th);
+  for (const x of ds) {
+    const tr = el("tr", x.duMau ? "du" : "thieu");
+    tr.appendChild(el("td", null, window.Srs.TEN_DUONG[x.duong] || x.duong));
+    tr.appendChild(el("td", null, String(x.lv < 0 ? 0 : x.lv + 1)));
+    tr.appendChild(el("td", null, T2("{n} ngày", { n: x.ngayTB })));
+    tr.appendChild(el("td", null, String(x.n)));
+    const tl = el("td", null, x.tyLe + "%");
+    if (!x.duMau) tl.title = T2("Mới {n} lượt — chưa đủ để tin (cần {c})",
+      { n: x.n, c: window.Srs.DU_SO_DO });
+    tr.appendChild(tl);
+    b.appendChild(tr);
+  }
+  o.appendChild(b);
+  o.appendChild(el("div", "t-small faint", T2(
+    "Dòng mờ là chưa đủ mẫu (dưới {c} lượt). Đủ mẫu rồi thì bậc nào nhớ dưới 80% là đang quá dài với bạn, trên 95% là đang ôn thừa.",
+    { c: window.Srs.DU_SO_DO })));
 }
 
 /* ==================================================================== */

@@ -94,13 +94,26 @@
    * Nên lượt quá chậm vẫn được ĐẾM, chỉ bị kẹp lại trước khi vào trung bình.
    */
   const MS_THONG_KE = 15000;
+  /**
+   * Trần thống kê RIÊNG cho từng đường.
+   *
+   * Một con số chung cho cả bốn là sai từ gốc: nhặt cho hết một tập 16 ô mất
+   * hai chục giây là chuyện bình thường, không phải dấu hiệu quên. Đo được với
+   * trần chung 15 giây: đường "đồng nghĩa" mất 20 giây thật thì app học được
+   * trung bình 13,9 giây (vì mọi mẫu đều bị kẹp), ngưỡng "rất chậm" rơi vào
+   * 16,8 giây — THẤP HƠN thời gian tự nhiên của chính bài đó. Kết quả: 83% lượt
+   * ĐÚNG bị chấm "rất chậm", cấp bị đóng băng, giãn cách ×0,35. Hai bài liên
+   * kết gần như không thể lên cấp.
+   */
+  const TRAN_TK = { nhin: 15000, nghe: 25000, dong: 45000, trai: 45000 };
+  function tranCua(duong) { return TRAN_TK[duong] || MS_THONG_KE; }
   /** Đủ ngần này mẫu thì bỏ mốc cứng, so với chính mình. */
   const DU_MAU = 5;
 
-  function themMau(tk, ms) {
+  function themMau(tk, ms, duong) {
     const cu = tk && typeof tk.n === "number" ? tk : { n: 0, tb: 0, m2: 0 };
     if (!(ms >= MS_TOI_THIEU && ms <= MS_TOI_DA)) return cu;   // lượt rác: bỏ
-    ms = Math.min(ms, MS_THONG_KE);
+    ms = Math.min(ms, tranCua(duong));
     /*
      * Kẹp thêm một lần nữa, lần này THEO CHÍNH NGƯỜI HỌC.
      *
@@ -154,11 +167,37 @@
    * @param {{n,tb,m2}} [tk] thống kê của chính người học trên chính đường này
    * @returns {"nhanh"|"vua"|"cham"|"rat_cham"}
    */
-  function nhipDo(ms, tk) {
-    if (!(ms > 0)) return "vua";                 // không đo được thì đừng đoán
-    if (ms >= MS_TOI_DA) return "rat_cham";
+  function nhipDo(ms, tk, duong) {
+    /*
+     * "khong_do" — KHÔNG ĐO ĐƯỢC, và đó KHÔNG PHẢI "rất chậm".
+     *
+     * Bản trước tự mâu thuẫn: chú thích của MS_TOI_DA ghi rõ "coi như người ta
+     * bỏ đi pha trà, không phải đang nghĩ", themMau cũng loại lượt ấy khỏi
+     * thống kê — vậy mà nhipDo lại trả về "rat_cham", phán quyết NẶNG NHẤT.
+     * Một cuộc điện thoại giữa buổi học là đủ để đóng băng cấp của một từ và
+     * bắt học lại. Đo được: 637 lượt bị phạt oan trong một lần chạy 180 ngày.
+     *
+     * Bỏ đi pha trà, đổi tab, có người gọi — ba cảnh ấy cho ra một con số dài
+     * KHÔNG nói gì về trí nhớ. Không có số đo thì không phán.
+     */
+    if (!(ms > 0)) return "khong_do";
+    if (ms >= MS_TOI_DA) return "khong_do";
+    const tran = tranCua(duong);
+    // So CÙNG MỘT THANG với thống kê: thống kê được xây từ số đã kẹp, mà lúc
+    // chấm lại so bằng số thô thì bài nào dài hơn trần cũng thành "rất chậm".
+    const msC = Math.min(ms, tran);
     if (tk && tk.n >= DU_MAU) {
       const sd = doLech(tk) || tk.tb * 0.25;     // mọi lượt bằng nhau: lấy tạm 25%
+      /*
+       * Lệch quá xa mọi lượt khác của chính người này: không tin được, bỏ qua.
+       *
+       * Phải có CẢ hai chiều. Độ lệch trong thống kê đã bị kẹp ở ±2sd (xem
+       * themMau) nên nó co lại khá nhiều; chỉ dùng "tb + 4sd" thì với bài nhặt
+       * tập từ — vốn thời gian trải rộng — có tới một phần ba số lượt bị coi là
+       * lạc, tức là vứt đi một phần ba tín hiệu. Kèm thêm mốc "gấp ba lần nhịp
+       * thường" thì chỉ những lượt thật sự bất thường mới rơi vào đây.
+       */
+      if (ms > Math.max(tk.tb * 3, tk.tb + 4 * sd)) return "khong_do";
       /*
        * Hai cái CHẶN TUYỆT ĐỐI, học được từ chính bài kiểm.
        *
@@ -173,14 +212,34 @@
        * giây thì nhanh HƠN HỌ, nhưng gọi đó là "trôi chảy" rồi nhân giãn cách
        * lên là tự dối.
        */
-      if (ms <= tk.tb - 0.5 * sd && ms <= CHAM_MS) return "nhanh";
-      if (ms >= tk.tb + 1.5 * sd && ms >= CHAM_MS) return "rat_cham";
-      if (ms >= tk.tb + 0.5 * sd) return "cham";
+      /*
+       * Mốc tuyệt đối NEO THEO CHÍNH ĐƯỜNG ĐÓ, không phải một con số chung.
+       *
+       * CHAM_MS = 6000 dùng chung khoá chặt vế "nhanh" của hai bài liên kết:
+       * xong một tập 16 ô dưới 6 giây là không thể, nên dù nhanh hơn chính mình
+       * bao nhiêu cũng không bao giờ được thưởng. Đo được: chỉ 1,4% lượt đạt
+       * "nhanh", trong khi đường nhìn đạt 30%.
+       */
+      /*
+       * Neo = mốc "chậm theo nghĩa thông thường" CỦA CHÍNH LOẠI BÀI ĐÓ.
+       *
+       * Giữ nguyên tinh thần cũ — "rất chậm" phải cần CẢ HAI bằng chứng: chậm
+       * so với chính mình VÀ chậm theo nghĩa thường — nhưng con số thứ hai phải
+       * theo loại bài. Với đường nhìn, tran/2,5 = 6.000ms, đúng bằng CHAM_MS cũ,
+       * nên người bấm rất đều (1,4s) vẫn không bị 2,5s đẩy thành "rất chậm".
+       * Với bài nhặt tập từ thì mốc ấy là 18.000ms, hợp với nền của nó.
+       */
+      const neo = Math.max(tranCua(duong) / 2.5, tk.tb * 1.6);
+      if (msC <= tk.tb - 0.5 * sd) return "nhanh";
+      if (msC >= tk.tb + 1.5 * sd && msC >= neo) return "rat_cham";
+      if (msC >= tk.tb + 0.5 * sd) return "cham";
       return "vua";
     }
-    if (ms <= NHANH_MS) return "nhanh";
-    if (ms >= RAT_CHAM_MS) return "rat_cham";
-    if (ms >= CHAM_MS) return "cham";
+    // Chưa đủ mẫu: mốc tạm, nhưng cũng phải theo NỀN của chính loại bài đó.
+    const nen = tran / 6;                        // nhìn ~2,5s · nghe ~4,2s · liên kết ~7,5s
+    if (msC <= nen) return "nhanh";
+    if (msC >= nen * 4.8) return "rat_cham";
+    if (msC >= nen * 2.4) return "cham";
     return "vua";
   }
 
@@ -220,7 +279,49 @@
    * @param {number} [now]
    * @returns {{duong:{lv,due,ts,ms}, tk:object, nhip:string, ngay:number}}
    */
-  function cham(cu, nho, ms, tk, now) {
+  const HE_SO_KHONG_DO = 1.0;
+  /** Quên mấy lần LIÊN TIẾP thì mới coi là "chưa vào đầu" và học lại từ đáy. */
+  const SAI_VE_DAY = 3;
+
+  /*
+   * TRỤC THỨ HAI: làm ĐÚNG ĐƯỢC BAO NHIÊU PHẦN.
+   *
+   * Bài nhìn và bài nghe chỉ có nhớ/quên, nên trục này bằng 1 và không đổi gì.
+   * Hai bài liên kết thì khác: nhặt đủ 3/3 từ đồng nghĩa và nhặt được 1/2 từ
+   * trái nghĩa đều là "qua bài", nhưng rõ ràng không phải cùng một mức hiểu.
+   *
+   * Bản trước quy phần thiếu ấy thành "chậm hơn" (`ms / điểm`) rồi thả vào bộ
+   * đo thời gian. Làm thế thì bộ hiệu chỉnh nhịp bấm của đường đó học phải một
+   * con số không phải thời gian: 83% lượt ĐÚNG bị chấm "rất chậm". Nên giờ tách
+   * hẳn ra một hệ số riêng, chỉ nhân vào GIÃN CÁCH, không đụng tới `tk` và
+   * không đụng tới nhịp.
+   *
+   * Dưới sàn `SAN_DAT` (0,5) thì đã là QUÊN rồi, không vào đây. Nên khoảng có
+   * thật của `chat` là 0,5..1, và trải ra thành 0,45..1: vừa đủ qua bài thì
+   * giãn cách chưa bằng nửa lượt làm trọn vẹn.
+   */
+  const CHAT_SAN = 0.5;
+  const CHAT_DAY = 0.45;
+
+  /**
+   * @param {number} [chat] 0..1 — làm đúng được mấy phần. Bỏ trống = 1 (bài chỉ
+   *   có nhớ/quên thì không có gì để trừ).
+   */
+  function heChatLuong(chat) {
+    if (typeof chat !== "number" || !isFinite(chat)) return 1;
+    const c = Math.max(0, Math.min(1, chat));
+    if (c >= 1) return 1;
+    if (c <= CHAT_SAN) return CHAT_DAY;
+    return CHAT_DAY + (c - CHAT_SAN) / (1 - CHAT_SAN) * (1 - CHAT_DAY);
+  }
+
+  /**
+   * @param {string} [duong] tên đường, để chấm theo đúng nền của loại bài đó
+   * @param {number} [xao] 0..1 — số ngẫu nhiên để xáo nhẹ giãn cách; bỏ trống
+   *   thì không xáo (bài kiểm cần kết quả lặp lại được)
+   * @param {number} [chat] 0..1 — làm đúng được mấy phần (xem heChatLuong)
+   */
+  function cham(cu, nho, ms, tk, now, duong, xao, chat) {
     const bayGio = now || Date.now();
     // Kẹp cấp về khoảng hợp lệ. `lv` là số ĐỌC TỪ KHO — sổ tay đồng bộ từ máy
     // khác, bản cũ, hay một lượt sửa tay đều có thể đưa vào NaN hoặc số ngoài
@@ -230,25 +331,59 @@
     const lvCu = Math.max(-1, Math.min(MOC.length - 1, Math.round(thoLv)));
 
     if (!nho) {
-      // Quên thì y như cũ: về đầu, học lại ngay trong buổi. KHÔNG đưa thời gian
-      // của lượt quên vào thống kê — nó đo lúc bỏ cuộc, không đo lúc truy xuất.
+      /*
+       * Quên thì TỤT HAI BẬC, không về đáy ngay.
+       *
+       * Về đáy là một cú đi bộ ngẫu nhiên có hấp thụ: mỗi lượt trượt xoá sạch
+       * mọi lượt đúng trước đó, nên thang bảy bậc gần như không ai leo tới
+       * cuối. Đo trên bản cũ: 53.112 lượt kết thúc ở cấp 0, chỉ 31 lượt tới cấp
+       * 6, và giãn cách trung bình thực sự được cấp là 1,7 ngày trên một thang
+       * lên tới 120 ngày.
+       *
+       * Tính thuần xác suất, để leo từ đáy lên cấp cuối với tỉ lệ quên 15%:
+       * về đáy mất 14,1 lượt, tụt 2 bậc mất 11,3 (−20%). Tỉ lệ quên 25% thì
+       * 26,0 so với 17,9 (−31%).
+       *
+       * Nhưng trượt BA LẦN LIÊN TIẾP thì đúng là từ ấy chưa vào đầu thật, lúc
+       * đó học lại từ đáy mới phải.
+       */
+      const sai = ((cu && cu.sai) || 0) + 1;
+      const lv = sai >= SAI_VE_DAY ? -1 : Math.max(-1, lvCu - 2);
+      // KHÔNG đưa thời gian của lượt quên vào thống kê — nó đo lúc bỏ cuộc,
+      // không đo lúc truy xuất.
       return {
-        duong: { lv: -1, due: bayGio, ts: bayGio, ms: 0 },
+        duong: { lv: lv, sai: sai, due: bayGio, ts: bayGio, ms: 0 },
         tk: tk || { n: 0, tb: 0, m2: 0 },
         nhip: "quen", ngay: 0
       };
     }
 
-    const nhip = nhipDo(ms, tk);
+    const nhip = nhipDo(ms, tk, duong);
     // Rất chậm mà vẫn ra được thì đó là moi ra chứ không phải nhớ ra: cho ở lại
     // cấp cũ và gặp lại sớm. Lên cấp lúc này là tự dối mình.
+    //
+    // "khong_do" thì KHÔNG rơi vào đây: không có số đo không phải là bằng chứng
+    // yếu. Lượt ấy được tính là một lượt đúng bình thường.
     const lv = nhip === "rat_cham"
       ? Math.max(0, lvCu)
       : Math.min(lvCu + 1, MOC.length - 1);
-    const ngay = Math.round(Math.max(0.25, MOC[lv] * HE_SO[nhip]) * 100) / 100;
+    const he = nhip === "khong_do" ? HE_SO_KHONG_DO : HE_SO[nhip];
+    /*
+     * Xáo nhẹ ±10%.
+     *
+     * Giãn cách cố định làm cả một lứa từ học cùng ngày rơi đúng vào cùng một
+     * ngày mãi mãi — đo được ngày nặng nhất 659 lượt trong khi trung bình 431.
+     * Xáo một chút thì cùng khối lượng ấy trải ra, và người học không gặp cảnh
+     * "hôm nay sao nhiều thế".
+     */
+    const heXao = (typeof xao === "number" && isFinite(xao)) ? (0.9 + (xao % 1) * 0.2) : 1;
+    const heChat = heChatLuong(chat);
+    const ngay = Math.round(Math.max(0.25, MOC[lv] * he * heXao * heChat) * 100) / 100;
     return {
-      duong: { lv: lv, due: hanSauNgay(ngay, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
-      tk: themMau(tk, ms),
+      duong: { lv: lv, sai: 0, due: hanSauNgay(ngay, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
+      // Không đo được thì cũng không cho vào bộ hiệu chỉnh — nó không phải một
+      // lượt truy xuất.
+      tk: nhip === "khong_do" ? (tk || { n: 0, tb: 0, m2: 0 }) : themMau(tk, ms, duong),
       nhip: nhip, ngay: ngay
     };
   }
@@ -372,10 +507,94 @@
     return Math.min(1.5, Math.round((0.8 + Math.max(0, n + 1) * 0.1) * 100) / 100);
   }
 
+  /* ------------------------------------------------------------------ */
+  /* SỐ ĐO THẬT CỦA CHÍNH NGƯỜI HỌC                                       */
+  /* ------------------------------------------------------------------ */
+  /**
+   * Mọi con số giãn cách trong tệp này — 1, 3, 7, 14, 30, 60, 120 — là thang
+   * tôi chọn, không phải đo từ anh. Tôi đã thử ba cách tính lịch khác nhau và
+   * cả ba đều thua trên mô hình mô phỏng của mình; nghĩa là mô phỏng ấy không
+   * đủ tư cách chọn hộ. Chỉ có dữ liệu thật mới chọn được.
+   *
+   * Nên app ghi lại đúng hai thứ, sau MỖI lượt ôn:
+   *   - app đã hẹn bao nhiêu ngày, ở cấp nào, đường nào
+   *   - tới lúc gặp lại, có nhớ không
+   *
+   * Gộp thành một bảng đếm nhỏ, khoá là "đường|cấp":
+   *   { n: số lượt, nho: số lượt nhớ được, ngay: tổng số ngày đã chờ }
+   *
+   * Từ đó đọc thẳng ra: "ở cấp 4, khi thực sự chờ 31 ngày, tôi nhớ được 62%".
+   * Đó là tỉ lệ nhớ THẬT của anh ở đúng bậc thang ấy — thứ duy nhất nói được
+   * bậc ấy đang quá dài hay quá ngắn. Cả bảng chỉ vài chục con số nguyên, nhẹ
+   * hơn một mục sổ tay, nên đồng bộ và sao lưu không tốn gì.
+   *
+   * CHỈ GHI, CHƯA DÙNG ĐỂ QUYẾT ĐỊNH. Vài tuần nữa, khi mỗi ô có đủ mẫu, lúc đó
+   * mới chỉnh thang — và chỉnh bằng số của anh, không phải bằng phỏng đoán của
+   * tôi.
+   *
+   * @param {object} soDo bảng đếm hiện có
+   * @param {string} duong
+   * @param {number} lvTruoc cấp TRƯỚC lượt chấm này — tức bậc thang vừa được
+   *   đem ra thử. Lấy cấp sau thì đo nhầm sang bậc chưa hề chờ ngày nào.
+   * @param {number} ngayCho số ngày thực sự đã trôi qua kể từ lượt trước
+   * @param {boolean} nho
+   */
+  /**
+   * Dưới ngần này ngày thì lượt ấy KHÔNG phải một phép thử trí nhớ.
+   *
+   * Bậc ngắn nhất của thang là 1 ngày, còn lượt học lại trong cùng buổi chỉ
+   * cách nhau vài chục giây. Đếm cả chúng vào thì bảng số đo đầy những lượt
+   * "chờ 0 ngày, nhớ được" — và tỉ lệ nhớ của mọi bậc bị kéo lên, đúng hướng
+   * làm ta tưởng thang đang vừa vặn trong khi nó không vừa. Bài kiểm tích hợp
+   * bắt được đúng cảnh này: một lượt học lại ngay trong buổi lọt vào bảng với
+   * ngay = 0.
+   */
+  const NGAY_TOI_THIEU_DO = 0.4;
+
+  function ghiSoDo(soDo, duong, lvTruoc, ngayCho, nho) {
+    const b = (soDo && typeof soDo === "object") ? soDo : {};
+    // Lượt đầu của một đường, hoặc lượt học lại ngay trong buổi: không đo được.
+    if (!(ngayCho >= NGAY_TOI_THIEU_DO) || !duong) return b;
+    const lv = Math.max(-1, Math.min(MOC.length - 1, Math.round(lvTruoc)));
+    const k = duong + "|" + lv;
+    const o = b[k] || { n: 0, nho: 0, ngay: 0 };
+    b[k] = { n: o.n + 1, nho: o.nho + (nho ? 1 : 0),
+             ngay: Math.round((o.ngay + ngayCho) * 100) / 100 };
+    return b;
+  }
+
+  /**
+   * Đọc bảng đếm ra dạng người nhìn được.
+   * @returns {Array<{duong,lv,n,nho,tyLe,ngayTB,duMau}>} xếp theo đường rồi cấp
+   */
+  function docSoDo(soDo) {
+    const b = (soDo && typeof soDo === "object") ? soDo : {};
+    const ra = [];
+    for (const k of Object.keys(b)) {
+      const p = k.split("|");
+      const o = b[k] || {};
+      if (!o.n) continue;
+      ra.push({
+        duong: p[0], lv: parseInt(p[1], 10),
+        n: o.n, nho: o.nho,
+        tyLe: Math.round(o.nho / o.n * 1000) / 10,
+        ngayTB: Math.round(o.ngay / o.n * 10) / 10,
+        // Dưới ngần này thì con số còn là nhiễu, đừng vội tin.
+        duMau: o.n >= DU_SO_DO
+      });
+    }
+    ra.sort((x, y) => DUONG.indexOf(x.duong) - DUONG.indexOf(y.duong) || x.lv - y.lv);
+    return ra;
+  }
+  /** Đủ ngần này lượt ở một bậc thì tỉ lệ nhớ mới đáng đem ra chỉnh thang. */
+  const DU_SO_DO = 30;
+
   goc.Srs = {
     DUONG, TEN_DUONG, MOC, NGAY,
     DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, MS_THONG_KE, HE_SO, MO_DUONG,
     themMau, doLech, heSoBienThien, nhipDo, cham,
+    ghiSoDo, docSoDo, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
+    heChatLuong, CHAT_SAN, CHAT_DAY,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
     tocDoNghe
   };
