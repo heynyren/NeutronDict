@@ -243,8 +243,84 @@
     return "vua";
   }
 
-  /** Giãn cách được nhân lên hay co lại theo nhịp trả lời. */
+  /**
+   * Hệ số của bản cũ: giãn cách đọc từ thang cố định rồi nhân MỘT LẦN theo
+   * nhịp. Không còn dùng để xếp lịch nữa — xem T_NET ngay dưới đây — nhưng vẫn
+   * xuất ra vì bộ đo `srs-nhanh-do.mjs` so hai bản bằng chính bảng này.
+   */
   const HE_SO = { nhanh: 1.4, vua: 1.0, cham: 0.6, rat_cham: 0.35 };
+
+  /* ------------------------------------------------------------------ */
+  /* NẾT của từng từ — thưởng CỘNG DỒN, không phải thưởng một lần        */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Vì sao bỏ cái thang cố định.
+   *
+   * Bản cũ đọc giãn cách từ thang MOC theo cấp, rồi nhân HE_SO một lần. Nhân
+   * xong là quên: lượt sau lại đọc đúng bậc ấy của thang. Đo được: người bấm
+   * NHANH bảy lượt liên tiếp nhận 1,4-4,2-9,8-19,6-42-84-168 ngày, còn người
+   * bấm bình thường nhận 1-3-7-14-30-60-120. Tỉ lệ giữa hai người là 1,4 ở lượt
+   * thứ nhất, và vẫn đúng 1,4 ở lượt thứ bảy. Công sức không tích lại được.
+   *
+   * Bản này giữ lại chính GIÃN CÁCH VỪA CẤP (`ngay`) và nhân tiếp, nên phần
+   * thưởng nằm lại trong lịch và nhân lên theo cấp số nhân. Đo lại: 1,4 →
+   * 2,3 lần (lượt 5) → 3,7 lần (lượt 7).
+   *
+   * Nhưng KHÔNG tin ngay một lượt bấm. Trong một cái lịch chạy đúng, mọi thẻ
+   * đều được hỏi lúc còn nhớ khoảng chín phần mười — nên phần lớn chênh lệch
+   * thời gian lúc ấy là nhiễu chứ không phải tin. Bản thử "tin ngay" đo được
+   * vốn từ −6,5 và tỉ lệ quên +0,9%: nhân nhiễu vào rồi cộng dồn thì nhiễu cũng
+   * cộng dồn. Nên mỗi từ giữ một con số `net` riêng, mỗi lượt chỉ kéo nó đi một
+   * phần năm quãng đường về phía nhịp vừa đo. Một lượt nhanh ăn may gần như
+   * không đổi gì; nhanh đều đặn thì nết lên hẳn và ở lại đó.
+   */
+  const T_NET = { nhanh: 2.9, vua: 2.1, cham: 1.7, rat_cham: 0.85 };
+  /** Nết của một từ chưa có lịch sử: đúng bằng nhịp "vừa". */
+  const NET_DAU = 2.1;
+  /*
+   * Đáy 1,0 — BẤT ĐỐI XỨNG CÓ CHỦ Ý: thưởng thì cộng dồn lên, phạt thì có đáy.
+   *
+   * Bản thử cho phần phạt cộng dồn xuống (cham = 1,5, đáy 1,05) đo được: sau 8
+   * lượt người bấm chậm chỉ còn được hẹn 11 ngày, trong khi thang hôm nay cho
+   * họ 72. Đó là phạt người học chậm, không phải thưởng người học nhanh — không
+   * ai yêu cầu điều ấy. Đáy 1,0 nghĩa là lượt ĐÚNG không bao giờ làm giãn cách
+   * NGẮN LẠI; xấu nhất là nó đứng yên, hỏi lại đúng nhịp cũ cho tới khi khá lên.
+   */
+  const NET_MIN = 1.0, NET_MAX = 3.0;
+  /** Mỗi lượt kéo nết đi bao nhiêu phần quãng đường. Nhỏ = tin chậm, ít nhiễu. */
+  const KEO_NET = 0.2;
+  /** Trần giãn cách. Một từ nhớ đúng chục lượt liền thì một năm là đủ. */
+  const TRAN_NGAY = 365;
+  /** Quên thì giãn cách co lại còn ngần này — xấp xỉ tụt hai bậc của thang cũ. */
+  const TUT_NGAY = 0.23;
+
+  /**
+   * Giãn cách lần trước của một đường.
+   *
+   * Sổ tay đang dùng dở chưa có `ngay` — đọc `lv` rồi tra thang cũ, để không ai
+   * bị đá về vạch xuất phát khi cập nhật.
+   */
+  function ngayCua(cu) {
+    if (cu && typeof cu.ngay === "number" && isFinite(cu.ngay) && cu.ngay > 0) return cu.ngay;
+    if (cu && typeof cu.lv === "number" && isFinite(cu.lv) && cu.lv >= 0)
+      return MOC[Math.min(MOC.length - 1, Math.round(cu.lv))];
+    return 0;
+  }
+  /** Nết đã học được của một đường; mục cũ thì coi như nết trung bình. */
+  function netCua(cu) {
+    const n = cu && typeof cu.net === "number" && isFinite(cu.net) ? cu.net : NET_DAU;
+    return Math.max(NET_MIN, Math.min(NET_MAX, n));
+  }
+  /**
+   * Cấp vẫn được suy ra từ SỐ NGÀY, để mọi chỗ khác trong app đọc y như cũ:
+   * chip cấp trên thẻ, gomSrs, đồng bộ Drive, app Android, máy chủ MCP.
+   */
+  function capTu(ngay) {
+    if (!(ngay > 0)) return -1;
+    let lv = 0;
+    for (let i = 0; i < MOC.length; i++) if (ngay >= MOC[i]) lv = i;
+    return lv;
+  }
 
   /* ------------------------------------------------------------------ */
   /* Chấm một lượt                                                       */
@@ -279,7 +355,6 @@
    * @param {number} [now]
    * @returns {{duong:{lv,due,ts,ms}, tk:object, nhip:string, ngay:number}}
    */
-  const HE_SO_KHONG_DO = 1.0;
   /** Quên mấy lần LIÊN TIẾP thì mới coi là "chưa vào đầu" và học lại từ đáy. */
   const SAI_VE_DAY = 3;
 
@@ -323,16 +398,16 @@
    */
   function cham(cu, nho, ms, tk, now, duong, xao, chat) {
     const bayGio = now || Date.now();
-    // Kẹp cấp về khoảng hợp lệ. `lv` là số ĐỌC TỪ KHO — sổ tay đồng bộ từ máy
-    // khác, bản cũ, hay một lượt sửa tay đều có thể đưa vào NaN hoặc số ngoài
-    // thang, và lúc đó MOC[lv] là undefined, giãn cách thành NaN, `due` thành
-    // NaN — mục hỏng vĩnh viễn mà không có gì báo.
-    const thoLv = cu && typeof cu.lv === "number" && isFinite(cu.lv) ? cu.lv : -1;
-    const lvCu = Math.max(-1, Math.min(MOC.length - 1, Math.round(thoLv)));
-
+    /*
+     * `ngayCua`/`netCua` đều tự kẹp về khoảng hợp lệ. Bắt buộc, không phải
+     * phòng xa: số ĐỌC TỪ KHO có thể là NaN hay ngoài thang — sổ tay đồng bộ từ
+     * máy khác, bản cũ, một lượt sửa tay. Không kẹp thì giãn cách thành NaN,
+     * `due` thành NaN, và mục hỏng vĩnh viễn mà không có gì báo.
+     */
     if (!nho) {
       /*
-       * Quên thì TỤT HAI BẬC, không về đáy ngay.
+       * Quên thì giãn cách CO LẠI CÒN GẦN MỘT PHẦN TƯ, không về đáy ngay
+       * (xấp xỉ tụt hai bậc của thang cũ).
        *
        * Về đáy là một cú đi bộ ngẫu nhiên có hấp thụ: mỗi lượt trượt xoá sạch
        * mọi lượt đúng trước đó, nên thang bảy bậc gần như không ai leo tới
@@ -348,26 +423,38 @@
        * đó học lại từ đáy mới phải.
        */
       const sai = ((cu && cu.sai) || 0) + 1;
-      const lv = sai >= SAI_VE_DAY ? -1 : Math.max(-1, lvCu - 2);
+      const ngay = sai >= SAI_VE_DAY
+        ? 0
+        : Math.round(Math.max(0, ngayCua(cu) * TUT_NGAY) * 100) / 100;
+      // Nết cũng bị kéo về đáy, nhưng vẫn là kéo DẦN: một lượt quên không xoá
+      // sạch mọi bằng chứng trước đó, y như giãn cách không về đáy ngay.
+      const netCu = netCua(cu);
+      const net = Math.max(NET_MIN, netCu + KEO_NET * (NET_MIN - netCu));
       // KHÔNG đưa thời gian của lượt quên vào thống kê — nó đo lúc bỏ cuộc,
       // không đo lúc truy xuất.
       return {
-        duong: { lv: lv, sai: sai, due: bayGio, ts: bayGio, ms: 0 },
+        duong: { lv: capTu(ngay), ngay: ngay, net: Math.round(net * 1000) / 1000,
+                 sai: sai, due: bayGio, ts: bayGio, ms: 0 },
         tk: tk || { n: 0, tb: 0, m2: 0 },
         nhip: "quen", ngay: 0
       };
     }
 
     const nhip = nhipDo(ms, tk, duong);
-    // Rất chậm mà vẫn ra được thì đó là moi ra chứ không phải nhớ ra: cho ở lại
-    // cấp cũ và gặp lại sớm. Lên cấp lúc này là tự dối mình.
-    //
-    // "khong_do" thì KHÔNG rơi vào đây: không có số đo không phải là bằng chứng
-    // yếu. Lượt ấy được tính là một lượt đúng bình thường.
-    const lv = nhip === "rat_cham"
-      ? Math.max(0, lvCu)
-      : Math.min(lvCu + 1, MOC.length - 1);
-    const he = nhip === "khong_do" ? HE_SO_KHONG_DO : HE_SO[nhip];
+    /*
+     * Kéo nết về phía nhịp vừa đo.
+     *
+     * "khong_do" KHÔNG kéo gì cả: không có số đo không phải là bằng chứng yếu,
+     * và cũng không phải bằng chứng mạnh. Lượt ấy vẫn được cấp giãn cách mới
+     * theo nết đang có, chỉ là không học được gì thêm về từ này.
+     *
+     * "rat_cham" kéo về 0,85 — dưới 1. Moi mãi mới ra thì đó là moi chứ không
+     * phải nhớ; nết tụt, và nếu tụt tới đáy thì giãn cách đứng yên chứ không
+     * lớn lên nữa.
+     */
+    let net = netCua(cu);
+    if (nhip !== "khong_do") net = net + KEO_NET * (T_NET[nhip] - net);
+    net = Math.max(NET_MIN, Math.min(NET_MAX, net));
     /*
      * Xáo nhẹ ±10%.
      *
@@ -378,9 +465,19 @@
      */
     const heXao = (typeof xao === "number" && isFinite(xao)) ? (0.9 + (xao % 1) * 0.2) : 1;
     const heChat = heChatLuong(chat);
-    const ngay = Math.round(Math.max(0.25, MOC[lv] * he * heXao * heChat) * 100) / 100;
+    /*
+     * Từ chưa có lịch sử thì bắt đầu từ một ngày, chia theo nết để lượt đầu
+     * cũng đã phân biệt được nhanh/chậm. Từ đã có lịch sử thì NHÂN TIẾP vào
+     * chính giãn cách vừa rồi — đây là chỗ phần thưởng tích lại.
+     */
+    const goc = ngayCua(cu);
+    const tho = goc > 0 ? goc * net : (MOC[0] * net) / NET_DAU;
+    const ngay = Math.min(TRAN_NGAY,
+      Math.round(Math.max(0.25, tho * heXao * heChat) * 100) / 100);
+    const lv = capTu(ngay);
     return {
-      duong: { lv: lv, sai: 0, due: hanSauNgay(ngay, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
+      duong: { lv: lv, ngay: ngay, net: Math.round(net * 1000) / 1000,
+               sai: 0, due: hanSauNgay(ngay, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
       // Không đo được thì cũng không cho vào bộ hiệu chỉnh — nó không phải một
       // lượt truy xuất.
       tk: nhip === "khong_do" ? (tk || { n: 0, tb: 0, m2: 0 }) : themMau(tk, ms, duong),
@@ -408,6 +505,20 @@
 
   /** Đường "nhin" phải lên tới cấp này thì các đường khác mới mở. */
   const MO_DUONG = 1;
+  /*
+   * Nhưng cái chốt THẬT sự là SỐ NGÀY, không phải bậc.
+   *
+   * Cấp giờ được suy ra từ giãn cách, mà giãn cách lớn lên liên tục chứ không
+   * nhảy bậc, nên nếu vẫn chốt bằng "cấp ≥ 1" (tức ≥ 3 ngày) thì các đường
+   * nghe / đồng nghĩa / trái nghĩa mở MUỘN hơn trước một lượt ôn. Đúng ngược
+   * với điều đang muốn: mạng nơ-ron đồng nghĩa là chỗ để mở rộng vốn từ nhanh,
+   * càng mở sớm càng tốt — miễn là đừng sớm tới mức hỏi từ đồng nghĩa của một
+   * từ vừa mới nhìn thấy đúng một lần.
+   *
+   * Hai ngày = hai lượt nhìn đúng, đúng bằng thời điểm bản cũ mở. Không sớm
+   * hơn, không muộn hơn.
+   */
+  const MO_NGAY = 2;
 
   /**
    * Những đường ĐÃ MỞ của một mục — tức là những đường thật sự được đem ra hỏi.
@@ -420,8 +531,7 @@
   function duongMo(muc) {
     const co = duongCo(muc);
     const d = (muc && muc.duong) || {};
-    const lvNhin = (d.nhin && typeof d.nhin.lv === "number") ? d.nhin.lv : -1;
-    if (lvNhin < MO_DUONG) return ["nhin"];
+    if (ngayCua(d.nhin) < MO_NGAY) return ["nhin"];
     return co;
   }
 
@@ -591,10 +701,12 @@
 
   goc.Srs = {
     DUONG, TEN_DUONG, MOC, NGAY,
-    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, MS_THONG_KE, HE_SO, MO_DUONG,
+    DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, MS_THONG_KE, HE_SO, MO_DUONG, MO_NGAY,
     themMau, doLech, heSoBienThien, nhipDo, cham,
     ghiSoDo, docSoDo, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
     heChatLuong, CHAT_SAN, CHAT_DAY,
+    T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY,
+    ngayCua, netCua, capTu,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
     tocDoNghe
   };
