@@ -1474,78 +1474,30 @@
    * Nên: đo xem cột phải đang NẰM CẠNH hay NẰM DƯỚI khung hình. Nằm dưới thì
    * đặt bảng ngay dưới khung hình, trên cả tiêu đề — chỗ mắt đang nhìn.
    */
+  /**
+   * Chỗ đặt bảng: CỘT PHẢI của YouTube, ngay trên danh sách video gợi ý.
+   *
+   * Đúng hai dòng, và đó là chủ ý — chép lại y nguyên cách NeuronNote làm, vì
+   * bảng bên ấy chưa bao giờ nhảy lung tung.
+   *
+   * Bản trước ở đây là chín mươi dòng hình học: đo mép trên cột phải so với đáy
+   * khung hình, ba trạng thái "cạnh / dưới / chưa biết", một hạn chờ bốn giây,
+   * một bộ đếm ba nhịp mới cho dời, và một đường rơi xuống khối `#below`. Mỗi
+   * mảnh đều có lý do chính đáng lúc tôi viết nó. Gộp lại thì thành một cỗ máy
+   * đoán mò: chỉ cần một lượt đo trúng khoảnh khắc YouTube đang xếp lại trang
+   * là bảng bị chốt xuống dưới khung hình và nằm lì ở đó — trên đúng cái trang
+   * mà cột phải rộng rãi đang hiện ra ngay bên cạnh.
+   *
+   * Không đo nữa thì không đoán sai được nữa. Cột phải chưa dựng xong thì hàm
+   * này trả null, và vòng thử lại bên xemLai hỏi lại nhịp sau — chờ thêm một
+   * nhịp bao giờ cũng đúng hơn là đoán.
+   *
+   * Bố cục một cột (cửa sổ hẹp) được lo ở chỗ khác, bằng chế độ NỔI: xem
+   * choNoi/canhNoi. Ở đó bảng cũng vẫn nằm bên phải khung hình, không bao giờ
+   * nằm dưới.
+   */
   function choDat() {
-    /*
-     * Hai thẻ khác nhau cho hai việc khác nhau, và lẫn chúng là một cái bẫy:
-     *   - ĐO thì phải đo #secondary. #secondary-inner lúc chưa có gì bên trong
-     *     thì cao 0, mà "cao 0" lại đúng là dấu hiệu tôi dùng để nhận ra thẻ bị
-     *     ẩn — thành ra cửa sổ rộng cũng bị đẩy bảng xuống dưới khung hình.
-     *   - ĐẶT thì đặt vào #secondary-inner, đúng nếp cũ.
-     */
-    const secDo = document.querySelector("#secondary") || document.querySelector("#secondary-inner");
-    const sec = document.querySelector("#secondary-inner") || secDo;
-    const duoi = document.querySelector("ytd-watch-flexy #below") || document.querySelector("#below");
-    const mp = document.querySelector("#movie_player");
-
-    // Chưa có trình phát trong trang: không đo được gì, cứ theo nếp cũ.
-    if (!mp) return sec || duoi;
-    const a = mp.getBoundingClientRect();
-    // Có trình phát nhưng CHƯA dựng xong (chưa có kích thước): chưa quyết vội.
-    // Trả null là "chờ thêm" — vòng thử lại bên xemLai sẽ hỏi lại sau 500ms.
-    // Quyết lúc này thì cửa sổ rộng cũng bị đẩy bảng xuống dưới khung hình.
-    if (!(a.width > 0)) return null;
-
-    /*
-     * Hỏi ĐÚNG một câu, và hỏi theo chiều KHẲNG ĐỊNH: cột phải có đang nằm
-     * CẠNH khung hình không? Nằm cạnh = mép trái của nó bắt đầu từ mép phải
-     * khung hình trở đi, VÀ đỉnh nó còn cao hơn đáy khung hình.
-     *
-     * Bản trước hỏi ngược lại ("cột phải có nằm DƯỚI không") rồi mới đổi chỗ.
-     * Câu hỏi ngược có một lỗ: cột phải bị ẩn hẳn (display:none) thì rect toàn
-     * số 0 — không "nằm dưới", nên hàm trả về ngay cột phải ĐANG ẨN, và bảng
-     * được dựng vào một thẻ không hiển thị. Người dùng thấy: dưới khung hình là
-     * tiêu đề, không có bảng nào, mà trong DOM thì bảng vẫn có.
-     *
-     * Nhưng câu trả lời có BA khả năng, không phải hai — và gộp hai cái sau
-     * làm một chính là lỗi tôi vừa gây ra:
-     *
-     *   1. Cột phải nằm cạnh khung hình      -> đặt vào cột phải.
-     *   2. Cột phải ẩn hẳn, hoặc xếp xuống dưới -> đặt dưới khung hình.
-     *   3. CHƯA BIẾT: thẻ đã có trong DOM nhưng chưa có kích thước, mà cũng
-     *      không phải display:none            -> ĐỢI, hỏi lại nhịp sau.
-     *
-     * YouTube dựng cột phải sau khung hình, nên trạng thái 3 luôn xảy ra trong
-     * vài trăm mili giây đầu. Trả lời "không nằm cạnh" lúc ấy là chốt bảng
-     * xuống dưới video và để nó nằm im ở đó, trong khi cột phải rộng rãi hiện
-     * ra ngay sau. Cửa sổ rộng, video cao thì bảng rơi hẳn khỏi tầm nhìn —
-     * người dùng mở YouTube lên và thấy bảng "không thèm hiện ra".
-     *
-     * Phân biệt 2 với 3 bằng display: ẩn thật thì display là none, còn chưa
-     * dựng xong thì không.
-     */
-    if (secDo && sec) {
-      const b = secDo.getBoundingClientRect();
-      if (b.width > 0 && b.height > 0) {
-        /*
-         * Đo theo CHIỀU DỌC, không theo trái/phải.
-         *
-         * Tôi từng đổi sang so mép trái cột phải với mép phải khung hình. Nghe
-         * chặt chẽ hơn, mà lại mong manh hơn hẳn: trình phát YouTube nhiều lúc
-         * RỘNG HƠN cột chứa nó và tràn ra ngoài, thế là "mép phải khung hình"
-         * nằm quá cả cột phải và phép đo kết luận sai. Còn "cột phải bắt đầu từ
-         * dưới đáy khung hình" thì đúng theo đúng nghĩa của hai bố cục: xếp dọc
-         * hay xếp ngang.
-         */
-        const duoiHan = b.top >= a.bottom - 4;
-        return duoiHan ? (duoi || sec) : sec;
-      }
-      let an = false;
-      try { an = getComputedStyle(secDo).display === "none"; } catch (e) { an = false; }
-      if (!an && conChoCot()) return null;          // chưa biết: hỏi lại nhịp sau
-    } else if (conChoCot()) {
-      return null;                                  // chưa có cả thẻ cột phải
-    }
-    return duoi || sec;
+    return document.querySelector("#secondary-inner") || document.querySelector("#secondary");
   }
 
   /* ------------------------------------------------------------------ */
@@ -1588,13 +1540,26 @@
         || document.querySelector("ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen]")) return null;
     } catch (e) { /* không hỏi được thì cứ đo tiếp */ }
 
-    const sec = document.querySelector("#secondary");
-    if (!sec) return null;
     const a = mp.getBoundingClientRect();
-    const b = sec.getBoundingClientRect();
     if (!(a.width > 0)) return null;
-    // CÒN hai cột thì không nổi — cột phải thật bao giờ cũng hơn một lớp đè.
-    if (b.width > 0 && b.height > 0 && b.top < a.bottom - 4) return null;
+    /*
+     * HỎI CHÍNH YOUTUBE, ĐỪNG ĐO.
+     *
+     * Cái cần biết là "YouTube đã bỏ bố cục hai cột chưa". Chính họ có một dấu
+     * cho việc đó: thuộc tính `full-bleed-player` trên ytd-watch-flexy, và khung
+     * hình được nhấc vào `#full-bleed-container`. Đọc dấu ấy là xong.
+     *
+     * Tôi đã thử đo hình học ở đây — so mép trên cột phải với đáy khung hình —
+     * và nó hỏng đúng kiểu đã làm hỏng choDat: cột phải lúc chưa có video gợi ý
+     * thì CAO 0, "không đo được" bị đọc nhầm thành "không có cột phải", và bảng
+     * nhảy sang chế độ nổi trên một trang hai cột hoàn toàn bình thường.
+     *
+     * Dấu của YouTube có thể đổi tên. Đổi thì hàm này trả null, bảng nằm ở cột
+     * phải y như NeuronNote — hỏng về phía không làm gì cả.
+     */
+    const motCot = !!(document.querySelector("ytd-watch-flexy[full-bleed-player]")
+      || (mp.closest && mp.closest("#full-bleed-container, #player-full-bleed-container")));
+    if (!motCot) return null;
 
     const rong = document.documentElement.clientWidth;
     const beBang = Math.min(BE_NOI, Math.round(rong * 0.42));
@@ -1684,17 +1649,6 @@
     const chon = choDat();
     if (chon && S.host.parentElement !== chon) chon.insertBefore(S.host, chon.firstChild);
   }
-
-  /**
-   * Còn trong thời hạn chờ cột phải dựng xong không.
-   *
-   * Phải CÓ hạn: cột phải có thể không bao giờ xuất hiện (bố cục một cột, hoặc
-   * YouTube đổi tên thẻ). Hết hạn thì đặt dưới khung hình — bảng ở chỗ hơi
-   * lệch vẫn hơn là không có bảng nào.
-   */
-  const HAN_CHO_COT = 4000;
-  let mocCho = Date.now();
-  function conChoCot() { return Date.now() - mocCho < HAN_CHO_COT; }
 
   /**
    * Trên trang chỉ được có ĐÚNG MỘT bảng của NeutronDict.
@@ -2866,7 +2820,6 @@
     if (v && v === tatCho) return;    // video này bạn đã đóng bảng
     if (!v) { dungTheoDoi(); goBang(); goMoiBat(); choBat = ""; S.v = ""; return; }
     goMoiBat(); if (v !== choBat) choBat = "";
-    mocCho = Date.now();          // video mới thì cột phải cũng dựng lại từ đầu
     if (!ep && v === S.v && S.host && S.host.isConnected) return;
     if (ep) S.v = "";
     dungTheoDoi();
@@ -2909,9 +2862,6 @@
     thu();
   }
 
-  /** Bảng đang nằm sai chỗ được mấy nhịp liên tiếp rồi. Xem ganLaiBang. */
-  let lechCho = 0;
-
   /**
    * Bảng bị YouTube cuốn khỏi trang thì GẮN LẠI ĐÚNG NÓ, đừng dựng cái mới.
    *
@@ -2923,37 +2873,24 @@
    * trang: gắn lại là xong, không mất gì.
    *
    * Chỉ dựng mới khi thật sự CHƯA có bảng nào.
+   *
+   * Hàm này từng có một bộ đếm "sai chỗ ba nhịp liên tiếp mới cho dời" và một
+   * ngoại lệ riêng cho khối `#below`. Cả hai đều chỉ tồn tại để chữa cháy cho
+   * việc choDat ĐOÁN sai chỗ. choDat không đoán nữa, nên chúng cũng đi theo:
+   * giờ chỉ còn đúng một chỗ hợp lệ là cột phải, sai chỗ thì dời ngay.
    */
   function ganLaiBang() {
-    if (!S.host) { const n0 = choDat(); if (n0) khoiDong(S.v); return; }
+    if (!S.host) { if (choDat()) khoiDong(S.v); return; }
     /*
      * Chế độ NỔI tự lo chỗ đặt (con của <body>, toạ độ trang). Phải chặn ở đây,
-     * nếu không thì cứ mỗi nhịp canhNoi đặt bảng ra body, rồi ganLaiBang lại
-     * lôi nó về #below — bảng nhấp nháy qua lại 700ms một lần.
+     * nếu không thì cứ mỗi nhịp canhNoi đặt bảng ra body rồi ganLaiBang lại lôi
+     * nó về cột phải — bảng nhấp nháy qua lại 700ms một lần.
      */
-    if (choNoi()) { canhNoi(); lechCho = 0; return; }
+    if (choNoi()) { canhNoi(); return; }
     if (dangNoi) tatNoi();
     const dat = choDat();
-    if (!dat) return;
-    if (!S.host.isConnected) { dat.insertBefore(S.host, dat.firstChild); lechCho = 0; return; }
-    /*
-     * Còn trong trang nhưng SAI CỘT: xảy ra khi lúc dựng bố cục chưa xong, đo
-     * ra một đằng rồi YouTube xếp lại một nẻo. Đợi ba nhịp mới dời, để một lần
-     * đo lệch thoáng qua (quảng cáo, đang đổi cỡ cửa sổ) không làm bảng nhảy
-     * qua nhảy lại.
-     */
-    if (S.host.parentElement === dat) { lechCho = 0; return; }
-    /*
-     * Đợi ba nhịp là để một lần đo lệch thoáng qua không làm bảng nhảy qua
-     * nhảy lại. Nhưng khi bảng đang mắc kẹt ở KHỐI DƯỚI khung hình thì không
-     * đợi: đó đúng là chỗ người dùng không muốn nó ở, và mọi đường ra khỏi đó
-     * đều là đường tốt hơn.
-     */
-    const dangODuoi = S.host.parentElement
-      && (S.host.parentElement.id === "below" || S.host.parentElement.matches("#below"));
-    if (!dangODuoi && ++lechCho < 3) return;
+    if (!dat || S.host.parentElement === dat) return;
     dat.insertBefore(S.host, dat.firstChild);
-    lechCho = 0;
   }
 
   /*
