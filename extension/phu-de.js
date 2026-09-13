@@ -1263,6 +1263,14 @@
   })();
   /** Người xem tự bấm nút thu nhỏ trên bảng — chỉ có giá trị cho THẺ NÀY. */
   let batTay = false;
+  /**
+   * Trần bề ngang của cột chứa bảng khi đang thu nhỏ khung hình.
+   *
+   * Cột mặc định của YouTube là 402px. Nới rưỡi lên là vừa: dùng được phần chỗ
+   * trống do thu nhỏ khung hình để lại, mà vẫn trong tầm một cột chữ đọc được.
+   */
+  const BE_TOI_DA = 560;
+
   /** Các nấc cỡ khung hình, xếp TO -> NHỎ. Xem nút .khung trên thanh tiêu đề. */
   const CO_KHUNG = [760, 620, 520, 440, 360];
 
@@ -1368,7 +1376,22 @@
         // Và canh giữa, không dán vào mép trái của một cửa sổ rộng hơn nó.
         "margin-left:auto!important;margin-right:auto!important}" +
       K + "#primary{flex:1 1 auto!important}" +
-      K + "#secondary{width:auto!important;max-width:none!important;" +
+      /*
+       * CỘT PHẢI ĐƯỢC NỚI, NHƯNG CÓ TRẦN.
+       *
+       * Bản trước ghi `max-width:none` kèm `flex:1 1 auto`, nên cột phải nuốt
+       * sạch chỗ trống dôi ra khi khung hình co lại. Đo trên cửa sổ 1920px với
+       * khung hình đặt 620px: cột phải phình ra 1300px và MỖI DÒNG lời thoại
+       * dài 1288px. Đọc xong một dòng phải quét mắt ngược gần hết màn hình mới
+       * tới đầu dòng sau — đúng cái người dùng gọi là "ui ra rất xấu", và đúng
+       * chỗ khác biệt với NeuronNote: bên ấy KHÔNG đụng gì vào #secondary nên
+       * bảng luôn nằm trong cột 402px mặc định, bao giờ cũng vừa tầm đọc.
+       *
+       * Giữ phần nới (có thu nhỏ hình thì nên được đọc rộng hơn một chút) và
+       * thêm trần: 560px, tức khoảng cột mặc định nhân rưỡi. Vẫn là MỘT cột
+       * chữ, không phải một tờ giấy trải ngang.
+       */
+      K + "#secondary{width:auto!important;max-width:" + BE_TOI_DA + "px!important;" +
         "min-width:300px!important;flex:1 1 auto!important}";
     canhToNho();
     nhacDoiCo();
