@@ -1139,31 +1139,10 @@ function giay(t) {
  * nào đó thì nhảy sang thẻ đó rồi tua — mở thêm một thẻ nữa cho cùng một video
  * là thừa, mà lại mất chỗ đang xem dở.
  */
-/**
- * Đánh dấu "thẻ này do NeutronDict mở ra để HỌC".
- *
- * Thu nhỏ khung hình là việc chỉ đúng khi đang học: mắt ở bảng lời thoại, hình
- * chỉ để liếc. Lúc xem YouTube bình thường thì thu nhỏ là phá trang của người
- * ta. Mà content script trong trang không có cách nào tự biết mình tới đây kiểu
- * gì — nên đánh dấu ngay từ chỗ MỞ.
- *
- * Dùng một tham số truy vấn thừa: YouTube bỏ qua tham số nó không biết, còn
- * chuyển sang video khác trong cùng thẻ thì URL bị thay hẳn nên dấu tự rụng —
- * đúng ý muốn, vì lúc đó người xem đã rời buổi học rồi.
- */
-const DAU_HOC = "nd_hoc";
-function danhDauHoc(url) {
-  try {
-    const u = new URL(url);
-    if (!/(^|\.)youtube\.com$/.test(u.hostname)) return url;
-    u.searchParams.set(DAU_HOC, "1");
-    return u.toString();
-  } catch (e) { return url; }
-}
 
 function openYoutube(yt, chiaDoi) {
   const t = Math.max(0, Math.floor(yt.t || 0));
-  const url = danhDauHoc("https://www.youtube.com/watch?v=" + encodeURIComponent(yt.v) + "&t=" + t + "s");
+  const url = "https://www.youtube.com/watch?v=" + encodeURIComponent(yt.v) + "&t=" + t + "s";
   const mo = () => { if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(url); else chrome.tabs.create({ url }); };
   try {
     chrome.tabs.query({ url: ["https://www.youtube.com/watch*", "https://m.youtube.com/watch*"] }, (tabs) => {
@@ -1189,8 +1168,7 @@ function openSource(it, chiaDoi) {
   if (!src || !src.url) return;
   if (src.yt && src.yt.v) { openYoutube(src.yt, chiaDoi); return; }
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
-  // danhDauHoc chỉ đụng vào link YouTube; mọi trang khác trả về y nguyên.
-  const url = danhDauHoc(fragUrl(src));
+  const url = fragUrl(src);
   if (src.pdf) {
     // PDF: chỉ dựa vào Text Fragment (content script không chạy trong trình xem PDF).
     // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì Ctrl+F dán tìm nhanh.
@@ -2813,7 +2791,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, ytNho: true, ytNhoW: 620, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true, chiaDoi: true };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true, chiaDoi: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -2843,8 +2821,6 @@ async function loadSettings() {
   $("setTrans").checked = S.translate !== false;
   if ($("setYtAuto")) $("setYtAuto").checked = !!S.ytTuBat;
   if ($("setYtPhoi")) $("setYtPhoi").checked = S.ytPhoi !== false;
-  if ($("setYtNho")) $("setYtNho").checked = S.ytNho !== false;
-  if ($("setYtNhoW")) $("setYtNhoW").value = S.ytNhoW || 620;
 }
 async function saveSettings() {
   // GỘP lên cấu hình cũ, không ghi đè cả cục: ngôn ngữ tra (ngu) và ngôn ngữ
@@ -2860,8 +2836,6 @@ async function saveSettings() {
       maxSent: 400,
       ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false,
       ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true,
-      ytNho: $("setYtNho") ? $("setYtNho").checked : true,
-      ytNhoW: Math.max(320, Math.min(1200, parseInt(($("setYtNhoW") || {}).value, 10) || 620)),
       nhip: $("setNhip") ? $("setNhip").checked : true,
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),

@@ -683,7 +683,6 @@
     datBat(st);
     datPhoi(st);
     datTach(st);
-    datThuNho(st);
     baoDaDoc();
   });
   chrome.storage.onChanged.addListener((ch, area) => {
@@ -691,7 +690,6 @@
     const st = ch.settings.newValue || {};
     datChu(st);
     datTach(st);
-    datThuNho(st);
     if (datPhoi(st)) veKhoPhoi();
     if (datBat(st)) {
       // Bật/tắt chế độ tự-bật giữa chừng: dựng lại cho khớp kiểu mới.
@@ -1232,270 +1230,27 @@
   }
 
   /* ================================================================== */
-  /* Thu nhỏ khung video                                                 */
+  /* Chỗ đặt bảng                                                        */
   /* ================================================================== */
   /*
-   * Người xem để học thì mắt ở BẢNG LỜI THOẠI, không ở hình. Mà bố cục mặc định
-   * của YouTube cho khung hình gần hết bề ngang, đẩy cột phải — chỗ đặt bảng —
-   * xuống còn hơn 400px, đọc lời thoại như đọc qua khe cửa.
+   * KHÔNG ĐỤNG GÌ VÀO BỐ CỤC CỦA YOUTUBE. Không một dòng nào.
    *
-   * Nên thu khung hình lại và trả phần thừa cho cột phải.
+   * Ở đây từng có cả một bộ máy ép khung hình: thu nhỏ trình phát về cỡ đặt
+   * trong Cài đặt, gọi setSize(), ép max-width lên bảy lớp khung bọc, nới cột
+   * phải ra chiếm chỗ trống, canh lại mỗi khi đổi cỡ cửa sổ, cộng một chế độ
+   * "nổi" riêng cho bố cục một cột với bảng ghim tuyệt đối bên mép khung hình.
    *
-   * Vì sao phải nhắc trình phát "cửa sổ vừa đổi cỡ": trình phát HTML5 của
-   * YouTube đặt kích thước bằng PIXEL lên thẻ video và chỉ tính lại khi cửa sổ
-   * đổi cỡ — nó không theo dõi cái khung bọc ngoài. Không nhắc thì khung co lại
-   * mà hình vẫn to như cũ rồi tràn ra ngoài.
-   */
-  let oThuNho = null;
-  let thuNho = false, thuNhoW = 620;
-  /**
-   * Thu nhỏ chỉ đúng khi ĐANG HỌC — thẻ do NeutronDict mở ra từ sổ tay hay từ
-   * chế độ học. Lướt YouTube bình thường mà hình bị bó lại là phá trang của
-   * người ta, không phải giúp.
+   * Mỗi mảnh sinh ra để chữa một cảnh hỏng có thật, và mỗi mảnh lại đẻ ra cảnh
+   * hỏng mới: bảng rơi xuống dưới video, video biến mất vì khung bọc co về 0,
+   * video méo vì thẻ <video> giữ pixel nội tuyến, tiêu đề lệch khỏi khung hình,
+   * bảng phình 1300px với mỗi dòng chữ dài 1288px, và bố cục hai cột của trang
+   * bị xé nát ở bản 4.9.0. Người dùng đã bác từng cái một.
    *
-   * Dấu do bên mở đặt vào URL (xem danhDauHoc trong notebook.js). Đọc một lần
-   * lúc nạp là đủ: chuyển sang video khác thì YouTube thay hẳn URL, dấu rụng —
-   * mà lúc đó cũng đúng là đã rời buổi học.
-   */
-  const tuApp = (() => {
-    try { return new URL(location.href).searchParams.get("nd_hoc") === "1"; }
-    catch (e) { return false; }
-  })();
-  /** Người xem tự bấm nút thu nhỏ trên bảng — chỉ có giá trị cho THẺ NÀY. */
-  let batTay = false;
-  /**
-   * Trần bề ngang của cột chứa bảng khi đang thu nhỏ khung hình.
-   *
-   * Cột mặc định của YouTube là 402px. Nới rưỡi lên là vừa: dùng được phần chỗ
-   * trống do thu nhỏ khung hình để lại, mà vẫn trong tầm một cột chữ đọc được.
-   */
-  const BE_TOI_DA = 560;
-
-  /** Các nấc cỡ khung hình, xếp TO -> NHỎ. Xem nút .khung trên thanh tiêu đề. */
-  const CO_KHUNG = [760, 620, 520, 440, 360];
-
-  function datThuNho(st) {
-    /*
-     * `!== false`, KHÔNG phải `!!`. Đây chính là lỗi làm ba bản vá trước thành
-     * mã chết đối với người dùng.
-     *
-     * `SET_DEFAULTS` trong notebook.js chỉ dùng để VẼ màn Cài đặt; nó không ghi
-     * gì vào kho. Nên với người đã dùng app từ trước, đối tượng `settings` trong
-     * kho KHÔNG hề có khoá `ytNho` cho tới khi họ mở Cài đặt và bấm Lưu. Viết
-     * `!!(st && st.ytNho)` thì undefined ra false — tính năng tắt ngóm, mà nhìn
-     * vào mã thì tưởng mặc định là bật.
-     *
-     * Mọi cài đặt "mặc định BẬT" khác trong tệp này đều viết `!== false` (xem
-     * datPhoi). Tôi viết lệch đúng một chỗ, và mất ba lượt vá mới thấy.
-     */
-    // Công tắc trong Cài đặt là cái CHO PHÉP; còn có thu hay không thì phải
-    // đúng cảnh: thẻ do app mở, hoặc người xem tự bấm nút trên bảng.
-    const bat = (!st || st.ytNho !== false) && (tuApp || batTay);
-    const w = Math.max(320, Math.min(1200, parseInt((st || {}).ytNhoW, 10) || 620));
-    if (bat === thuNho && w === thuNhoW) return false;
-    thuNho = bat; thuNhoW = w;
-    veThuNho();
-    if (S.veNutKhung) S.veNutKhung();     // chip trên bảng phải hiện đúng cỡ mới
-    return true;
-  }
-
-  /** Những thẻ đã bị ép bề ngang bằng JS — nhớ lại để còn trả nguyên trạng. */
-  const daEp = new Set();
-
-  /** Lớp đánh dấu đặt trên <html>. Xem veThuNho về việc vì sao không bám vào
-      thuộc tính của ytd-watch-flexy nữa. */
-  const LOP_NHO = "nd-yt-nho";      // đang bật thu nhỏ
-  const LOP_TO = "nd-yt-to";        // tạm để yên (rạp / toàn màn hình)
-
-  function veThuNho() {
-    const g = document.documentElement;
-    if (!thuNho) {
-      if (oThuNho) { oThuNho.remove(); oThuNho = null; }
-      g.classList.remove(LOP_NHO, LOP_TO);
-      for (const n of daEp) { try { n.style.removeProperty("max-width"); } catch (e) {} }
-      daEp.clear();
-      nhacDoiCo();
-      return;
-    }
-    if (!oThuNho) {
-      oThuNho = document.createElement("style");
-      oThuNho.id = "neutrondict-thu-nho";
-      (document.head || document.documentElement).appendChild(oThuNho);
-    }
-    g.classList.add(LOP_NHO);
-    /*
-     * ĐÂY mới là chỗ hỏng thật, và nó không nằm ở selector.
-     *
-     * Trình phát của YouTube ghi kích thước BẰNG PIXEL thẳng vào thẻ video:
-     *     <video class="video-stream html5-main-video"
-     *            style="width: 865px; height: 487px; left: 0px; top: 4px">
-     * (đọc được nguyên văn trong DevTools của người dùng). Bó `max-width` lên
-     * mấy khung bọc thì khung co lại thật, nhưng thẻ video bên trong vẫn giữ
-     * đúng 865px và TRÀN RA NGOÀI — nhìn vào thì y như chưa làm gì.
-     *
-     * Cách chữa: ép chính thẻ video vừa khít khung. Luật trong bảng kiểu có
-     * `!important` THẮNG kiểu nội tuyến không `!important` — mà kiểu YouTube ghi
-     * vào là loại không important. Nên chỉ cần nói to hơn nó một bậc.
-     *
-     * Và bỏ luôn việc bám vào `ytd-watch-flexy[...]`: tên thẻ với thuộc tính đó
-     * là thứ YouTube đổi thường xuyên nhất. Giờ khoá bằng một lớp mình tự đặt
-     * lên <html>, còn việc "khi nào thì để yên" do JS quyết (xem canhToNho).
-     */
-    const K = "html." + LOP_NHO + ":not(." + LOP_TO + ") ";
-    const W = thuNhoW + "px";
-    const bo = ["#movie_player", "#player", "#player-container-outer",
-                "#player-container-inner", "#full-bleed-container",
-                "#player-full-bleed-container", "#primary"];
-    oThuNho.textContent =
-      bo.map((x) => K + x).join(",") +
-        "{max-width:" + W + "!important;min-width:0!important}" +
-      K + "#movie_player{height:auto!important;aspect-ratio:16/9!important;" +
-        "margin-left:auto!important;margin-right:auto!important}" +
-      // Khung bọc trong cùng của trình phát và CHÍNH thẻ video: bắt vừa khít.
-      K + "#movie_player .html5-video-container{" +
-        "width:100%!important;height:100%!important;position:relative!important}" +
-      K + "#movie_player video.html5-main-video{" +
-        "position:absolute!important;left:0!important;top:0!important;" +
-        "width:100%!important;height:100%!important;object-fit:contain!important}" +
-      /*
-       * Dải đen dưới khung hình.
-       *
-       * Ở bố cục một cột, YouTube ghi CHIỀU CAO cố định cho khung bọc
-       * full-bleed, tính theo khung hình 865px. Thu trình phát xuống 620px thì
-       * chiều cao ấy vẫn nguyên, thừa ra gần 180px nền đen.
-       *
-       * ĐẶT ĐÚNG SỐ, chứ KHÔNG dùng `height:auto`. Trình phát nằm trong khung
-       * bọc này bằng định vị TUYỆT ĐỐI, nên nó không chống được chiều cao cho
-       * cha: `height:auto` làm khung bọc co về 0 và cả video biến mất — đúng
-       * cái người dùng gặp ở bản trước, mở ra chỉ thấy bảng lời thoại, không
-       * còn hình đâu. Cao đúng bằng bề ngang đã đặt theo tỉ lệ 16:9.
-       */
-      K + "#full-bleed-container,#player-full-bleed-container{" +
-        "height:" + Math.round(thuNhoW * 9 / 16) + "px!important;" +
-        "min-height:0!important;max-height:none!important;" +
-        // Và canh giữa, không dán vào mép trái của một cửa sổ rộng hơn nó.
-        "margin-left:auto!important;margin-right:auto!important}" +
-      K + "#primary{flex:1 1 auto!important}" +
-      /*
-       * CỘT PHẢI ĐƯỢC NỚI, NHƯNG CÓ TRẦN.
-       *
-       * Bản trước ghi `max-width:none` kèm `flex:1 1 auto`, nên cột phải nuốt
-       * sạch chỗ trống dôi ra khi khung hình co lại. Đo trên cửa sổ 1920px với
-       * khung hình đặt 620px: cột phải phình ra 1300px và MỖI DÒNG lời thoại
-       * dài 1288px. Đọc xong một dòng phải quét mắt ngược gần hết màn hình mới
-       * tới đầu dòng sau — đúng cái người dùng gọi là "ui ra rất xấu", và đúng
-       * chỗ khác biệt với NeuronNote: bên ấy KHÔNG đụng gì vào #secondary nên
-       * bảng luôn nằm trong cột 402px mặc định, bao giờ cũng vừa tầm đọc.
-       *
-       * Giữ phần nới (có thu nhỏ hình thì nên được đọc rộng hơn một chút) và
-       * thêm trần: 560px, tức khoảng cột mặc định nhân rưỡi. Vẫn là MỘT cột
-       * chữ, không phải một tờ giấy trải ngang.
-       */
-      K + "#secondary{width:auto!important;max-width:" + BE_TOI_DA + "px!important;" +
-        "min-width:300px!important;flex:1 1 auto!important}";
-    canhToNho();
-    nhacDoiCo();
-    epBeNgang();
-  }
-
-  /**
-   * Khi nào thì TẠM ĐỂ YÊN cho hình to: rạp và toàn màn hình.
-   *
-   * Hai chế độ đó là ý muốn rõ ràng của người xem. Trước đây việc này nằm trong
-   * selector CSS (`:not([theater])`), mà thuộc tính ấy là của YouTube — họ đổi
-   * là hỏng. Hỏi bằng JS thì hỏng cũng chỉ hỏng một chiều: cùng lắm là hình vẫn
-   * nhỏ trong chế độ rạp, chứ không phải cả tính năng ngừng chạy.
-   */
-  function canhToNho() {
-    if (!thuNho) return;
-    let to = false;
-    try {
-      to = !!document.fullscreenElement
-        || !!document.querySelector("ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen]")
-        || !!document.querySelector(".ytp-fullscreen");
-    } catch (e) { to = false; }
-    document.documentElement.classList.toggle(LOP_TO, to);
-  }
-
-  /**
-   * Chốt chặn cuối: ĐO rồi mới ép.
-   *
-   * Đo chính THẺ VIDEO — đó là thứ người dùng nhìn thấy, và cũng là thứ mang
-   * kích thước pixel nội tuyến. Còn rộng hơn mức đã đặt thì đi ngược lên tìm
-   * đúng thẻ đang phình ra và bó chính nó, không cần biết YouTube gọi nó là gì.
-   */
-  /**
-   * Nhờ CHÍNH TRÌNH PHÁT tự đổi cỡ, bằng API của nó.
-   *
-   * Đây mới là đường mà mấy extension đổi cỡ YouTube dùng: `movie_player` có sẵn
-   * `setSize(w, h)`. Gọi nó thì trình phát tự tính lại mọi thứ — thẻ video, lớp
-   * điều khiển, phụ đề — thay vì mình đè CSS lên rồi nó tính một đằng, hiển thị
-   * một nẻo.
-   *
-   * Phải gọi từ THẾ GIỚI CỦA TRANG: content script chạy trong thế giới cách ly,
-   * ở đó `movie_player` chỉ là một thẻ DOM trơn, không có mấy hàm ấy. Cầu nối
-   * phu-de-trang.js vốn đã có sẵn cho việc đọc getPlayerResponse.
-   *
-   * Vẫn giữ cả CSS: `setSize` là đường tốt nhất nhưng không chắc chắn — Chrome
-   * cũ không cho world:MAIN, và YouTube có thể đổi tên hàm. Hai lớp cùng làm một
-   * việc thì hỏng một lớp vẫn còn lớp kia.
-   */
-  let henCoSize = null;
-  /** Nhờ trình phát tự tính lại theo cỡ này. Gộp nhịp: bố cục đổi liên tục. */
-  function doiCoTrinhPhat(w, h) {
-    if (!(w > 0 && h > 0)) return;
-    clearTimeout(henCoSize);
-    henCoSize = setTimeout(() => {
-      hoiTrang("cosize", "", { w: Math.round(w), h: Math.round(h) }).catch(() => {});
-    }, 120);
-  }
-  function nhoTrinhPhatDoiCo() {
-    if (!thuNho) return;
-    doiCoTrinhPhat(thuNhoW, Math.round(thuNhoW * 9 / 16));
-  }
-
-  function epBeNgang() {
-    if (!thuNho) return;
-    nhoTrinhPhatDoiCo();
-    const vd = document.querySelector("#movie_player video.html5-main-video")
-      || document.querySelector("video.html5-main-video");
-    const mp = document.querySelector("#movie_player");
-    const dich = vd || mp;
-    if (!dich) return;
-    const rong = dich.getBoundingClientRect().width;
-    if (!rong || rong <= thuNhoW + 8) return;        // kiểu đã đủ việc
-    let n = dich, doi = false;
-    for (let i = 0; i < 7 && n && n !== document.body; i++) {
-      if (n.getBoundingClientRect().width > thuNhoW + 8) {
-        n.style.setProperty("max-width", thuNhoW + "px", "important");
-        daEp.add(n); doi = true;
-      }
-      n = n.parentElement;
-    }
-    if (doi) nhacDoiCo();
-  }
-
-  let henDoiCo = null;
-  function nhacDoiCo() {
-    clearTimeout(henDoiCo);
-    // Vài nhịp chứ không một nhịp: YouTube dựng lại bố cục nhiều lần lúc vào
-    // video, nhắc sớm quá thì nó tính theo cỡ cũ rồi lại ghi đè.
-    let n = 0;
-    henDoiCo = setInterval(() => {
-      try { window.dispatchEvent(new Event("resize")); } catch (e) {}
-      if (++n >= 4) clearInterval(henDoiCo);
-    }, 350);
-  }
-
-  /**
-   * Chỗ đặt bảng: bình thường là cột phải, ngay trên danh sách video gợi ý.
-   *
-   * Nhưng cửa sổ hẹp thì YouTube xếp cột phải XUỐNG DƯỚI phần mô tả — bảng lời
-   * thoại rơi ra ngoài tầm nhìn, phải cuộn một quãng dài mới thấy. Đó đúng là
-   * cảnh người dùng gặp khi mở nguồn ở nửa màn hình.
-   *
-   * Nên: đo xem cột phải đang NẰM CẠNH hay NẰM DƯỚI khung hình. Nằm dưới thì
-   * đặt bảng ngay dưới khung hình, trên cả tiêu đề — chỗ mắt đang nhìn.
+   * Bên NeuronNote không có bộ máy ấy — chỉ đúng hai dòng dưới đây — và bảng
+   * bên ấy chưa hỏng lần nào. Nên gỡ sạch, bê nguyên cách của NeuronNote:
+   * tìm cột phải, đặt bảng vào đầu cột, hết. Bảng rộng bao nhiêu, khung hình
+   * to bao nhiêu, hai cột hay một cột — để YouTube tự lo, y như nó vẫn lo cho
+   * mọi thứ khác trên trang của chính nó.
    */
   /**
    * Chỗ đặt bảng: CỘT PHẢI của YouTube, ngay trên danh sách video gợi ý.
@@ -1515,162 +1270,14 @@
    * này trả null, và vòng thử lại bên xemLai hỏi lại nhịp sau — chờ thêm một
    * nhịp bao giờ cũng đúng hơn là đoán.
    *
-   * Bố cục một cột (cửa sổ hẹp) được lo ở chỗ khác, bằng chế độ NỔI: xem
-   * choNoi/canhNoi. Ở đó bảng cũng vẫn nằm bên phải khung hình, không bao giờ
-   * nằm dưới.
+   * Bố cục MỘT CỘT (cửa sổ hẹp) thì chính YouTube xếp cột phải xuống dưới phần
+   * mô tả, nên bảng cũng nằm dưới theo. Đó là bố cục của họ, không phải lỗi của
+   * mình, và cũng đúng là chỗ NeuronNote để bảng nằm. Mọi cách tôi từng nghĩ ra
+   * để kéo nó lên cạnh khung hình — tự dựng hàng ngang, ghim tuyệt đối bên mép
+   * — đều phải đụng vào bố cục của YouTube, và lần nào cũng hỏng một kiểu mới.
    */
   function choDat() {
     return document.querySelector("#secondary-inner") || document.querySelector("#secondary");
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* CHẾ ĐỘ NỔI — bảng nằm bên phải khung hình kể cả khi YouTube bỏ hai cột */
-  /* ------------------------------------------------------------------ */
-  /*
-   * Dưới khoảng 1000px bề ngang, CHÍNH YouTube bỏ bố cục hai cột: bật
-   * `full-bleed-player`, kéo khung hình ra sát hai mép, và xếp cột phải xuống
-   * dưới phần mô tả. Lúc ấy không còn chỗ nào bên phải để đặt bảng, nên bản
-   * trước đành thả nó xuống dưới khung hình.
-   *
-   * Tôi đã từng tự dựng một hàng ngang để ép lại hai cột. Đó là bản 4.9.0, và
-   * nó xé nát bố cục trang của người dùng — "bạn làm cái quái gì với video
-   * youtube vào từ đường thông thường của tôi thế hả". Tôi gỡ bỏ hẳn.
-   *
-   * Nên cách ở đây KHÔNG đụng một dòng nào vào cây DOM của YouTube: bảng được
-   * nhấc ra làm con của <body>, định vị TUYỆT ĐỐI theo toạ độ trang, ghim vào
-   * mép phải khung hình. YouTube xếp lại trang thế nào cũng không va vào nhau,
-   * vì hai bên không còn nằm chung một dòng chảy bố cục nữa. Xấu nhất là bảng
-   * đặt hơi lệch một nhịp rồi nhịp sau canh lại — không thể thành hỏng trang.
-   */
-  const BE_NOI = 380;          // bề ngang bảng khi nổi
-  const KHE_NOI = 12;          // khe giữa khung hình và bảng
-  const HINH_HEP_NHAT = 360;   // hẹp hơn ngần này thì thôi, không nổi nữa
-  const LOP_NOI = "nd-yt-noi";
-  let dangNoi = false;
-  let oNoi = null;             // thẻ <style> riêng của chế độ nổi
-
-  /**
-   * Có nên nổi không, và nếu có thì khung hình được rộng bao nhiêu.
-   *
-   * @returns {{beHinh:number, beBang:number}|null} null = cứ theo nếp cũ
-   */
-  function choNoi() {
-    const mp = document.querySelector("#movie_player");
-    if (!mp) return null;
-    // Rạp và toàn màn hình là ý muốn rõ ràng của người xem: để yên.
-    try {
-      if (document.fullscreenElement
-        || document.querySelector("ytd-watch-flexy[theater], ytd-watch-flexy[fullscreen]")) return null;
-    } catch (e) { /* không hỏi được thì cứ đo tiếp */ }
-
-    const a = mp.getBoundingClientRect();
-    if (!(a.width > 0)) return null;
-    /*
-     * HỎI CHÍNH YOUTUBE, ĐỪNG ĐO.
-     *
-     * Cái cần biết là "YouTube đã bỏ bố cục hai cột chưa". Chính họ có một dấu
-     * cho việc đó: thuộc tính `full-bleed-player` trên ytd-watch-flexy, và khung
-     * hình được nhấc vào `#full-bleed-container`. Đọc dấu ấy là xong.
-     *
-     * Tôi đã thử đo hình học ở đây — so mép trên cột phải với đáy khung hình —
-     * và nó hỏng đúng kiểu đã làm hỏng choDat: cột phải lúc chưa có video gợi ý
-     * thì CAO 0, "không đo được" bị đọc nhầm thành "không có cột phải", và bảng
-     * nhảy sang chế độ nổi trên một trang hai cột hoàn toàn bình thường.
-     *
-     * Dấu của YouTube có thể đổi tên. Đổi thì hàm này trả null, bảng nằm ở cột
-     * phải y như NeuronNote — hỏng về phía không làm gì cả.
-     */
-    const motCot = !!(document.querySelector("ytd-watch-flexy[full-bleed-player]")
-      || (mp.closest && mp.closest("#full-bleed-container, #player-full-bleed-container")));
-    if (!motCot) return null;
-
-    const rong = document.documentElement.clientWidth;
-    const beBang = Math.min(BE_NOI, Math.round(rong * 0.42));
-    const beHinh = rong - beBang - KHE_NOI * 2;
-    // Bóp cả hai xuống mức không ai đọc nổi thì thà để bảng nằm dưới.
-    if (beHinh < HINH_HEP_NHAT || beBang < 240) return null;
-    return { beHinh: beHinh, beBang: beBang };
-  }
-
-  /**
-   * Canh lại vị trí bảng nổi và bề ngang khung hình. Gọi mỗi nhịp canh, mỗi
-   * lượt cuộn và mỗi lượt đổi cỡ cửa sổ.
-   */
-  function canhNoi() {
-    const c = choNoi();
-    if (!c || !S.host) { if (dangNoi) tatNoi(); return; }
-
-    if (!oNoi) {
-      oNoi = document.createElement("style");
-      (document.head || document.documentElement).appendChild(oNoi);
-    }
-    /*
-     * Bó khung hình bằng CSS chứ không ghi thẳng vào thẻ: trình phát ghi lại
-     * kích thước nội tuyến của chính nó mỗi lần bố cục đổi, nên mọi thứ đặt nội
-     * tuyến đều bị xoá trong vài trăm mili giây.
-     */
-    const K = "html." + LOP_NOI + " ";
-    oNoi.textContent =
-      [ "#movie_player", "#player-full-bleed-container", "#full-bleed-container" ]
-        .map((x) => K + x).join(",") +
-        /*
-         * KHÔNG đẩy khung hình sang phải bằng margin-left. Bản đầu tôi chừa một
-         * khe 12px cho đẹp, và bài kiểm nd-ytkhongpha bắt ngay: tiêu đề video
-         * vẫn dán mép trái (x=0) trong khi khung hình bị đẩy sang x=12 — hai
-         * thứ đáng ra thẳng hàng thì lệch nhau, nhìn như trang bị hỏng.
-         */
-        "{max-width:" + c.beHinh + "px!important;min-width:0!important;" +
-        "margin-left:0!important;margin-right:auto!important}" +
-      K + "#full-bleed-container,html." + LOP_NOI + " #player-full-bleed-container{" +
-        // Số đo THẬT, không dùng height:auto — trình phát nằm trong khung bọc
-        // này bằng định vị tuyệt đối, auto làm khung co về 0 và video biến mất.
-        "height:" + Math.round(c.beHinh * 9 / 16) + "px!important;" +
-        "min-height:0!important;max-height:none!important}" +
-      K + "#movie_player{height:auto!important;aspect-ratio:16/9!important}" +
-      /*
-       * Khung bọc trong cùng và CHÍNH thẻ <video>.
-       *
-       * Thiếu ba dòng này thì trình phát co lại nhưng thẻ video bên trong vẫn
-       * giữ nguyên chiều cao PIXEL NỘI TUYẾN mà trình phát tự ghi vào — đo được
-       * khung 512px mà cao 491px, tức là méo hẳn so với 16:9. Đây đúng là cùng
-       * một cái bẫy đã làm video biến mất ở bản thu nhỏ trước, nên chép lại y
-       * nguyên cách chữa của veThuNho.
-       */
-      K + "#movie_player .html5-video-container{" +
-        "width:100%!important;height:100%!important;position:relative!important}" +
-      K + "#movie_player video.html5-main-video{" +
-        "position:absolute!important;left:0!important;top:0!important;" +
-        "width:100%!important;height:100%!important;object-fit:contain!important}";
-    document.documentElement.classList.add(LOP_NOI);
-    dangNoi = true;
-
-    // Bảng: con của <body>, toạ độ TRANG (cộng lượng đã cuộn) để nó trôi theo
-    // khung hình khi cuộn, thay vì đứng ì một chỗ như position:fixed.
-    if (S.host.parentElement !== document.body) document.body.appendChild(S.host);
-    const mp = document.querySelector("#movie_player");
-    const r = mp.getBoundingClientRect();
-    const cuonY = window.scrollY || document.documentElement.scrollTop || 0;
-    const cuonX = window.scrollX || document.documentElement.scrollLeft || 0;
-    const st = S.host.style;
-    st.position = "absolute";
-    st.zIndex = "2500";
-    st.left = Math.round(r.right + cuonX + KHE_NOI) + "px";   // khe nằm ở đây, không ở khung hình
-    st.top = Math.round(r.top + cuonY) + "px";
-    st.width = c.beBang + "px";
-    st.height = Math.max(220, Math.round(r.height)) + "px";
-  }
-
-  /** Trả bảng về dòng chảy bố cục bình thường. */
-  function tatNoi() {
-    dangNoi = false;
-    document.documentElement.classList.remove(LOP_NOI);
-    if (oNoi) oNoi.textContent = "";
-    if (!S.host) return;
-    const st = S.host.style;
-    st.position = ""; st.zIndex = ""; st.left = ""; st.top = "";
-    st.width = ""; st.height = "";
-    const chon = choDat();
-    if (chon && S.host.parentElement !== chon) chon.insertBefore(S.host, chon.firstChild);
   }
 
   /**
@@ -1689,23 +1296,9 @@
 
   function goBang() {
     goPhoi();
-    /*
-     * TRẢ khung hình về nguyên trạng TRƯỚC khi bỏ bảng đi.
-     *
-     * Chế độ nổi bó bề ngang khung hình để chừa chỗ cho bảng. Đóng bảng mà
-     * không gỡ lớp ấy ra thì người xem còn lại một video bị thu nhỏ vô cớ và
-     * một khoảng trống bên phải — đúng cái "phá trang của người ta" mà cả bài
-     * kiểm nd-ytkhuat lẫn chính người dùng đã bác.
-     */
-    if (dangNoi) {
-      dangNoi = false;
-      document.documentElement.classList.remove(LOP_NOI);
-      if (oNoi) oNoi.textContent = "";
-    }
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
     hangCho.clear(); clearTimeout(henDich);
     if (S.host) { S.host.remove(); S.host = null; S.root = null; S.oList = null; }
-    S.veNutKhung = null;      // nút đã theo bảng đi rồi, đừng gọi vào chỗ trống
   }
 
   function dungBang() {
@@ -1753,20 +1346,6 @@
     top.appendChild(nutNap);
     const nutCo = nutChip("text-aa", "", T("Cỡ chữ — bấm để đổi"));
     top.appendChild(nutCo);
-    /*
-     * Cỡ KHUNG HÌNH — CHỈ hiện ở thẻ do app mở ra để học.
-     *
-     * Ô nhập bề ngang trong Cài đặt vẫn còn cho ai muốn con số chính xác, nhưng
-     * "hình vẫn to quá" là thứ người ta nhận ra ĐÚNG LÚC đang xem — bắt mở sổ
-     * tay, tìm mục Cài đặt, gõ số, bấm Lưu rồi quay lại thì không ai làm quá
-     * một lần. Chip này để ngay cạnh cỡ chữ, cùng một nếp.
-     *
-     * Ở thẻ YouTube mở theo đường thường thì KHÔNG dựng nó: thu nhỏ không chạy
-     * ở đó, nên một cái nút bấm vào chẳng thấy gì đổi chỉ làm người ta hoang
-     * mang "nút này để làm gì".
-     */
-    const nutKhung = tuApp ? nutChip("", "", "") : null;
-    if (nutKhung) { nutKhung.classList.add("khung"); top.appendChild(nutKhung); }
     const nutThu = nutChip("caret-up", "", T("Thu gọn"));
     top.appendChild(nutThu);
     const nutTat = nutChip("x", "", T("Đóng bảng"));
@@ -1783,40 +1362,6 @@
     };
     veNutNgu();
     S.veNutNgu = veNutNgu;
-    /*
-     * Các nấc đi từ TO xuống NHỎ, nên "bấm một cái là nhỏ thêm một nấc" chỉ là
-     * lấy nấc đầu tiên nhỏ hơn cỡ hiện tại. Hết nấc thì vòng lại cỡ to nhất —
-     * cùng một nút vừa thu vừa trả về như cũ, khỏi cần thêm nút phóng to.
-     * Không dùng indexOf: cỡ đang dùng có thể là số người dùng tự gõ trong Cài
-     * đặt (560 chẳng hạn), không nằm trong bảng nấc nào cả.
-     */
-    const veNutKhung = () => {
-      if (!nutKhung) return;
-      nutKhung.textContent = "";
-      const t = document.createElement("span");
-      t.textContent = thuNho ? String(thuNhoW) : T("Thu nhỏ hình");
-      nutKhung.appendChild(t);
-      nutKhung.title = T("Cỡ khung hình — bấm để thu nhỏ thêm");
-    };
-    veNutKhung();
-    S.veNutKhung = veNutKhung;
-    if (nutKhung) nutKhung.addEventListener("click", async () => {
-      const { settings } = await self.Song.doc("settings");
-      const st = settings || {};
-      // Đang để nguyên (thẻ tự mở, không phải từ app): bấm lần đầu là BẬT cho
-      // riêng thẻ này, giữ nguyên cỡ đang đặt. Bấm tiếp mới nhỏ dần.
-      if (!thuNho) {
-        batTay = true;
-        datThuNho(st);
-        veNutKhung();
-        return;
-      }
-      const nho = CO_KHUNG.filter((x) => x < thuNhoW);
-      const moi = nho.length ? nho[0] : CO_KHUNG[0];
-      await self.Song.ghi({ settings: Object.assign({}, st, { ytNho: true, ytNhoW: moi }) });
-      // Không tự đổi thuNhoW ở đây: onChanged gọi datThuNho, và chính nó vẽ lại.
-    });
-
     nutNgu.addEventListener("click", async () => {
       const moi = NGU === "ja" ? "en" : "ja";
       const { settings } = await self.Song.doc("settings");
@@ -2904,29 +2449,10 @@
    */
   function ganLaiBang() {
     if (!S.host) { if (choDat()) khoiDong(S.v); return; }
-    /*
-     * Chế độ NỔI tự lo chỗ đặt (con của <body>, toạ độ trang). Phải chặn ở đây,
-     * nếu không thì cứ mỗi nhịp canhNoi đặt bảng ra body rồi ganLaiBang lại lôi
-     * nó về cột phải — bảng nhấp nháy qua lại 700ms một lần.
-     */
-    if (choNoi()) { canhNoi(); return; }
-    if (dangNoi) tatNoi();
     const dat = choDat();
     if (!dat || S.host.parentElement === dat) return;
     dat.insertBefore(S.host, dat.firstChild);
   }
-
-  /*
-   * Bảng nổi phải bám theo khung hình ngay, không đợi nhịp canh 700ms: cuộn
-   * trang mà bảng lết theo sau một phần ba giây thì nhìn như trang bị lỗi.
-   */
-  let henNoi = 0;
-  const canhNoiSom = () => {
-    if (henNoi) return;
-    henNoi = requestAnimationFrame(() => { henNoi = 0; if (S.host) canhNoi(); });
-  };
-  window.addEventListener("scroll", canhNoiSom, { passive: true });
-  window.addEventListener("resize", canhNoiSom, { passive: true });
 
   // YouTube là ứng dụng một trang: chuyển video không tải lại trang.
   document.addEventListener("yt-navigate-finish", () => xemLai());
@@ -2935,8 +2461,6 @@
     // Trình phát ghi lại kích thước nội tuyến mỗi lần bố cục đổi (đổi video,
     // vào/ra chế độ rạp, xoay màn hình). Nên phải canh lại chứ không chỉ đặt
     // một lần lúc mở trang.
-    if (thuNho) { canhToNho(); epBeNgang(); }
-    if (S.host && S.v && S.v !== tatCho) canhNoi();
     if (location.href !== urlCu) { urlCu = location.href; xemLai(); return; }
     // YouTube dựng lại cột phải khá tuỳ hứng — đổi video, hết quảng cáo, đổi cỡ
     // cửa sổ — và cuốn theo cả bảng này.
