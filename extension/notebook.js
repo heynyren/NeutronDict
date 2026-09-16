@@ -488,7 +488,56 @@ async function veTienDo() {
 /* Tải dữ liệu                                                          */
 /* ==================================================================== */
 
-async function load() {
+/*
+ * NÚT "HỌC" KHÔNG ĐƯỢC PHÁN KHI SỔ CHƯA VỀ.
+ *
+ * `items` bắt đầu là mảng rỗng và chỉ có dữ liệu sau khi load() đọc xong kho.
+ * Trong khoảng ấy, bấm Học thì hangDoi() trả rỗng và app báo "Không có mục nào
+ * đến hạn" — trên một quyển sổ đầy từ tới hạn. Người dùng đọc câu ấy rồi đóng
+ * app, đúng như báo lại: "không vào được chế độ học".
+ *
+ * Khoảng nói dối ấy giãn theo cỡ sổ. Đo được:
+ *      40 từ ->   109ms
+ *     400 từ ->   569ms
+ *   2.000 từ -> 2.864ms
+ *
+ * Gần ba giây trên một quyển sổ cỡ thật — thừa sức để một người bấm trúng, và
+ * máy nào chậm hơn một chút thì trúng thường xuyên hơn hẳn. Đây chính là loại
+ * lỗi "máy này thì được, máy kia thì không" mà không đụng gì tới mã.
+ *
+ * Nên giữ lại LỜI HỨA của lượt nạp đang chạy: ai cần dữ liệu thật thì chờ nó,
+ * đừng ai phán khi tay chưa có gì.
+ */
+/** Sổ đã được đọc xong ít nhất một lần chưa. */
+let daNapXong = false;
+/*
+ * Lời hứa dựng NGAY LÚC NẠP TỆP, không phải lúc load() được gọi lần đầu.
+ *
+ * Bản vá đầu của tôi chỉ giữ lời hứa của lượt nạp ĐANG CHẠY, nên bấm trúng lúc
+ * trang còn chưa kịp gọi load() thì chẳng có lời hứa nào để chờ — và nút vẫn
+ * nói dối y như cũ. Bài dò vẫn rớt ở mốc 0ms. Dựng sẵn từ đầu thì không còn kẽ
+ * hở nào: bấm sớm cỡ nào cũng có thứ để chờ.
+ */
+let moNapDau;
+const huaNapDau = new Promise((r) => { moNapDau = r; });
+
+/** Trần chờ. Sổ hỏng tới mức không nạp nổi thì vẫn phải cho người ta bấm tiếp. */
+const HAN_CHO_NAP = 10000;
+
+/** Chờ cho tới khi sổ tay thật sự có trong tay. */
+function choNapXong() {
+  if (daNapXong) return Promise.resolve();
+  return Promise.race([huaNapDau, new Promise((r) => setTimeout(r, HAN_CHO_NAP))]);
+}
+
+function load() {
+  return (async () => {
+    try { await napSoTay(); }
+    finally { daNapXong = true; moNapDau(); }
+  })();
+}
+
+async function napSoTay() {
   // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
   // Đi qua hàng đợi vì đây cũng là một lượt ghi, và load() hay chạy ngay sau
   // một lượt chấm bài.
@@ -1447,7 +1496,45 @@ function renderStudyFav(it) {
   box.appendChild(mk(-1, "thumbs-down"));
 }
 
-function startStudy() {
+async function startStudy() {
+  /*
+   * Chờ sổ về TRƯỚC khi hỏi có gì tới hạn không. Xem chú thích ở chỗ khai báo
+   * huaNap: không chờ thì câu trả lời là "không có gì" dù sổ đầy từ tới hạn.
+   *
+   * Nút bị khoá trong lúc chờ, để bấm dồn không mở ra hai buổi học chồng nhau.
+   */
+  const nut = $("study");
+  if (!daNapXong) {
+    /*
+     * Và phải NÓI RA là đang chờ. Trên sổ hai nghìn từ, lượt chờ này dài gần ba
+     * giây; một cái nút câm lặng không phản ứng suốt ba giây thì người ta bấm
+     * lại mấy lần rồi kết luận là app treo — đổi một lời nói dối lấy một vẻ
+     * chết máy thì chẳng hơn gì.
+     */
+    /*
+     * Lời báo "đang chờ" nằm trong MỘT THẺ RIÊNG, không mang `data-chu`.
+     *
+     * Hai bản vá trước đều hỏng ở đây. Đặt thẳng nut.textContent thì xoá luôn
+     * <span id="dueCount"> nằm trong nút, và draw() ngay sau đó ném "Cannot set
+     * properties of null". Đổi chữ của #studyLabel thì cũng không xong: nhãn ấy
+     * mang `data-chu`, mà lượt dựng trang gọi Chu.dat() NGAY SAU cú bấm — hàm
+     * ấy quét mọi [data-chu] và trả chữ về bản gốc, xoá mất lời báo. Đo được:
+     * nút đứng câm suốt 3029ms.
+     *
+     * Thẻ riêng không mang dấu thì bộ dịch không đụng tới, và #dueCount vẫn còn
+     * nguyên chỗ của nó.
+     */
+    const nhan = $("studyLabel"), oCho = $("studyCho");
+    if (nut) nut.disabled = true;
+    if (oCho) { oCho.textContent = T("Đang mở sổ tay…"); oCho.hidden = false; }
+    if (nhan) nhan.hidden = true;
+    try { await choNapXong(); }
+    finally {
+      if (nut) nut.disabled = false;
+      if (oCho) oCho.hidden = true;
+      if (nhan) nhan.hidden = false;
+    }
+  }
   // Xếp hàng thẳng từ danh sách đang mở: `hangDoi` đã tự hỏi từng đường một,
   // lọc qua `dueList` trước đó là lọc HAI LẦN và làm rơi mất những mục mà chỉ
   // một đường tới hạn.
