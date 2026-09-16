@@ -140,6 +140,35 @@ soat("và kho chung giữ đủ nhánh của cả hai máy",
   !!(cloud.soDoSrs && cloud.soDoSrs.mayW && cloud.soDoSrs.mayM),
   Object.keys(cloud.soDoSrs || {}).join(", ") || "(rỗng)");
 
+/* --- DÒNG LỜI THOẠI YOUTUBE ĐÃ SỬA --- */
+/*
+ * Sửa một dòng phụ đề là gõ tay trong lúc đang nghe — khó làm lại hơn cả một
+ * đoạn Luyện nói. Bản chép lời GỐC thì không cần đi theo: máy mới tự xin lại
+ * YouTube rồi đắp bản sửa lên trên theo mốc giây, đúng như cách nó vẫn chạy
+ * giữa hai lần mở trên cùng một máy.
+ */
+await dat(W, { phuDeSua: { vidA: { d: { "12": "câu sửa trên Windows" }, ts: now } } });
+await dat(M, { phuDeSua: { vidB: { d: { "30": "câu sửa trên Mac" }, ts: now } } });
+await dongBo(W); await dongBo(M); await dongBo(W);
+const suaW = (await doc(W, "phuDeSua")) || {}, suaM = (await doc(M, "phuDeSua")) || {};
+soat("dòng sửa trên Mac chép được sang Windows",
+  !!(suaW.vidB && suaW.vidB.d["30"]), Object.keys(suaW).join(", ") || "(rỗng)");
+soat("dòng sửa trên Windows chép được sang Mac",
+  !!(suaM.vidA && suaM.vidA.d["12"]), Object.keys(suaM).join(", ") || "(rỗng)");
+soat("và giữ nguyên đúng chữ đã gõ",
+  (suaW.vidB || {}).d["30"] === "câu sửa trên Mac",
+  JSON.stringify((suaW.vidB || {}).d || null));
+
+/* Máy Android (không có bảng YouTube) đồng bộ thì KHÔNG được xoá mất chúng. */
+const A = await may("android");
+await dat(A, { syncUrlChung: URL_CLOUD, syncTokenChung: "x", settings:{ ngu:"ja" },
+               notebook:{}, decks:{}, hoc:{} });
+await dongBo(A);
+soat("máy KHÔNG có bảng YouTube đồng bộ vẫn không xoá bản sửa trên kho chung",
+  !!(cloud.phuDeSua && cloud.phuDeSua.vidA && cloud.phuDeSua.vidB),
+  Object.keys((cloud || {}).phuDeSua || {}).join(", ") || "(BỊ XOÁ)");
+await A.ctx.close();
+
 /* --- KHO CŨ trên Drive (chưa từng có hai khoá mới) --- */
 /*
  * Đây là câu trả lời cho "có phải deploy lại Apps Script không".
@@ -161,6 +190,9 @@ const nbCu = (await doc(W, "notebook")) || {};
 soat("và kéo được từ mới trên kho cũ về máy", !!nbCu["javi:古"],
   Object.keys(nbCu).join(", ") || "(rỗng)");
 const noiCu = (await doc(W, "luyenNoi")) || {};
+soat("bản sửa phụ đề cũng còn nguyên sau khi gặp kho cũ",
+  Object.keys((await doc(W, "phuDeSua")) || {}).length >= 2,
+  Object.keys((await doc(W, "phuDeSua")) || {}).join(", ") || "(rỗng)");
 soat("Luyện nói sẵn có trên máy KHÔNG bị kho cũ xoá mất",
   Object.keys(noiCu).length >= 2, Object.keys(noiCu).join(", ") || "(rỗng)");
 soat("và số đo SRS cũng còn nguyên", tong(await doc(W, "soDoSrs")) === 14,

@@ -1028,13 +1028,14 @@ async function doSync(rawNgu) {
   const load = await httpPostJson(cfg.url, { token: cfg.token || "", action: "load" }, "text/plain;charset=utf-8");
   if (!load || load.ok === false) throw new Error((load && load.error) || T("Lỗi máy chủ"));
   const data = load.data || {};
-  let remoteNb, remoteDecks, remoteHoc, remoteNoi, remoteDo;
+  let remoteNb, remoteDecks, remoteHoc, remoteNoi, remoteDo, remoteSua;
   if (data && typeof data === "object" && data.notebook !== undefined) {
     remoteNb = data.notebook || {}; remoteDecks = data.decks || {}; remoteHoc = data.hoc || null;
     remoteNoi = data.luyenNoi || {}; remoteDo = data.soDoSrs || {};
+    remoteSua = data.phuDeSua || {};
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
-    remoteNoi = {}; remoteDo = {};
+    remoteNoi = {}; remoteDo = {}; remoteSua = {};
   }
   // Cloud cũ có thể lẫn khoá của ngôn ngữ khác; vẫn nhận về máy, nhưng khi gửi
   // lên thì lọc lại cho sạch.
@@ -1078,11 +1079,18 @@ async function doSync(rawNgu) {
    */
   const mergedNoi = window.Muc.tron((await Store.get("luyenNoi")) || {}, remoteNoi);
   const mergedDo = window.Srs.tronSoDo((await Store.get("soDoSrs")) || {}, remoteDo);
+  /*
+   * `phuDeSua` — bản Android KHÔNG có bảng lời thoại YouTube nên chẳng bao giờ
+   * ghi khoá này. Nhưng vẫn phải CHUYỂN TIẾP nó: Apps Script lưu nguyên cả gói,
+   * nên gửi gói thiếu khoá là xoá sạch những dòng người dùng đã sửa trên máy
+   * tính. Gộp với kho rỗng của máy này thì bản trên cloud đi qua nguyên vẹn.
+   */
+  const mergedSua = window.Muc.tron((await Store.get("phuDeSua")) || {}, remoteSua);
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
     data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
-            luyenNoi: mergedNoi, soDoSrs: mergedDo }
+            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua }
   }, "text/plain;charset=utf-8");
   if (!save || save.ok === false) throw new Error((save && save.error) || T("Lỗi khi lưu"));
 
@@ -1112,7 +1120,9 @@ async function doSync(rawNgu) {
   // Đọc lại rồi mới gộp, y như sổ tay: có thể vừa thêm một đoạn nói lúc chờ mạng.
   const finalNoi = window.Muc.tron((await Store.get("luyenNoi")) || {}, mergedNoi);
   const finalDo = window.Srs.tronSoDo((await Store.get("soDoSrs")) || {}, mergedDo);
+  const finalSua = window.Muc.tron((await Store.get("phuDeSua")) || {}, mergedSua);
   await Store.set("luyenNoi", finalNoi); await Store.set("soDoSrs", finalDo);
+  await Store.set("phuDeSua", finalSua);
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
   theoDoi.dat(finalHocNgu);
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác nhau

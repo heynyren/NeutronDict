@@ -34,12 +34,17 @@ await ctx.route("https://www.youtube.com/watch**", (r) => {
   const v = new URL(r.request().url()).searchParams.get("v") || "quen";
   r.fulfill({ contentType:"text/html; charset=utf-8", body: trang(v) });
 });
+/*
+ * Bản sửa "đến từ máy khác": đúng hình dạng mà lượt đồng bộ ghi xuống.
+ * Khoá là giây bắt đầu của câu, làm tròn — xem khoaSua() trong phu-de.js.
+ */
+const SUA = { quen: { d: { "4": "CÂU NÀY ĐÃ SỬA TRÊN MÁY KIA" }, ts: Date.now() } };
 const KHO = { "quen|ja:auto": { ts: Date.now(),
   cau: [{ s:"これは酒です。", t:1, tEnd:4 }, { s:"とても美味しい。", t:4, tEnd:7 }],
   dich: { 0:"Đây là rượu.", 1:"Rất ngon." }, tieuDe:"Thử", kenh:"K" } };
-await sw.evaluate(async (kho) => {
-  await chrome.storage.local.set({ settings:{ ngu:"ja" }, notebook:{}, phuDeSua:{}, ytKho: kho });
-}, KHO);
+await sw.evaluate(async ([kho, sua]) => {
+  await chrome.storage.local.set({ settings:{ ngu:"ja" }, notebook:{}, phuDeSua: sua, ytKho: kho });
+}, [KHO, SUA]);
 
 const page = await ctx.newPage();
 await page.setViewportSize({ width: 1600, height: 950 });
@@ -74,7 +79,8 @@ await page.waitForTimeout(500);
 const song = await trong(`return r.querySelectorAll(".ln .vi, .ln .dich").length`);
 soat("nút Song ngữ vẫn hiện bản dịch", song >= 1, song + " dòng có bản dịch");
 
-await trong(`const o=r.querySelector(".find"); o.value="美味"; o.dispatchEvent(new Event("input",{bubbles:true}))`);
+// Tìm trên dòng CHƯA sửa: dòng thứ hai giờ mang bản sửa đồng bộ từ máy kia.
+await trong(`const o=r.querySelector(".find"); o.value="酒"; o.dispatchEvent(new Event("input",{bubbles:true}))`);
 await page.waitForTimeout(500);
 const tim = await trong(`return [...r.querySelectorAll(".ln")].filter(x=>x.style.display!=="none").length`);
 soat("ô Tìm vẫn lọc được dòng", tim === 1, "còn " + tim + " dòng");
@@ -93,6 +99,22 @@ const thaoTac = await trong(
 soat("bấm vào một dòng thì hiện được hàng thao tác (Lưu / Sửa)",
   !!thaoTac && thaoTac.some((x) => /Lưu/.test(x)) && thaoTac.some((x) => /Sửa/.test(x)),
   JSON.stringify((thaoTac || []).slice(0, 8)));
+
+/*
+ * VÀ ĐÂY LÀ ĐẦU KIA CỦA ĐƯỜNG ĐỒNG BỘ.
+ *
+ * nd-dongbo2may.mjs soát việc bản sửa CHÉP ĐƯỢC sang máy khác. Bài này soát
+ * việc máy ấy THẬT SỰ HIỆN nó ra: bản chép lời gốc xin lại từ YouTube, còn câu
+ * đã sửa thì đắp lên trên theo mốc giây. Đủ hai đầu mới là "xem lại trên máy
+ * mới cũng thấy".
+ */
+const daSua = await trong(
+  `return [...r.querySelectorAll(".ln")].map(x => x.textContent)`);
+soat("câu sửa đồng bộ từ máy khác HIỆN ĐÚNG trên bảng của máy này",
+  !!daSua && daSua.some((x) => /ĐÃ SỬA TRÊN MÁY KIA/.test(x || "")),
+  JSON.stringify(daSua));
+soat("và câu KHÔNG sửa vẫn là bản gốc của YouTube",
+  !!daSua && daSua.some((x) => /これは酒です/.test(x || "")), JSON.stringify(daSua));
 
 await trong(`[...r.querySelectorAll(".top .chip")].find(b=>/Đóng bảng/.test(b.title||"")).click()`);
 await page.waitForTimeout(600);
