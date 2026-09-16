@@ -1910,8 +1910,17 @@ async function gopCloudCu() {
   }
 
   await chrome.storage.local.set({ notebook: nb, decks: decks, hoc: hoc });
-  // Ghi trọn lên kho chung, không lọc theo ngôn ngữ nữa.
-  await driveRequest({ action: "save", data: { notebook: boAnh(nb), decks: decks, hoc: hoc } }, "ja");
+  /*
+   * Ghi trọn lên kho chung, không lọc theo ngôn ngữ nữa.
+   *
+   * Phải mang theo cả `luyenNoi` và `soDoSrs` của máy: Apps Script lưu NGUYÊN
+   * cả gói `data`, nên gửi gói thiếu hai khoá ấy là xoá sạch chúng trên kho
+   * chung. Lượt gộp này chỉ chạy một lần lúc chuyển nếp, nhưng một lần cũng đủ
+   * mất các đoạn Luyện nói người dùng tự viết.
+   */
+  const them = await chrome.storage.local.get(["luyenNoi", "soDoSrs"]);
+  await driveRequest({ action: "save", data: { notebook: boAnh(nb), decks: decks, hoc: hoc,
+    luyenNoi: them.luyenNoi || {}, soDoSrs: them.soDoSrs || {} } }, "ja");
   return countActive(nb);
 }
 
@@ -1978,19 +1987,23 @@ async function doSync(rawNgu) {
   const resp = await driveRequest({ action: "load" }, ngu);
   const data = (resp && resp.data) || {};
   let remoteNb, remoteDecks, remoteHoc;
+  let remoteNoi, remoteDo;
   if (data && typeof data === "object" && data.notebook !== undefined) {
     remoteNb = data.notebook || {};
     remoteDecks = data.decks || {};
     remoteHoc = data.hoc || null;
+    remoteNoi = data.luyenNoi || {};
+    remoteDo = data.soDoSrs || {};
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
+    remoteNoi = {}; remoteDo = {};
   }
   // Cloud cũ có thể lẫn khoá của ngôn ngữ khác (đồng bộ nhầm một lần nào đó).
   // Vẫn nhận về máy — không vứt dữ liệu của người dùng — nhưng khi gửi lên thì
   // lọc lại cho sạch.
   const remoteCuaToi = dungChung ? remoteNb : self.Ngu.locSo(remoteNb, ngu);
 
-  const store = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
+  const store = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs"]);
   const hocTach = self.Ngu.tachHoc(store.hoc);
   const nbCuaToi = dungChung ? (store.notebook || {}) : self.Ngu.locSo(store.notebook || {}, ngu);
 
@@ -2020,15 +2033,35 @@ async function doSync(rawNgu) {
     mergedHoc = self.TienDo.tron(hocTach[ngu], remoteHoc);
   }
 
+  /*
+   * Hai thứ nữa đi theo gói đồng bộ, mỗi thứ một phép gộp KHÁC NHAU.
+   *
+   * luyenNoi — các đoạn người dùng TỰ VIẾT, mỗi đoạn một mã riêng và có `ts`.
+   *   Gộp y như sổ tay: bản mới hơn thắng, mã không trùng nên không ai đè ai.
+   *   Đây là chữ người ta tự gõ, mất là mất thật.
+   *
+   * soDoSrs — bảng đếm CỘNG DỒN, không gộp kiểu ấy được. Xem Srs.tronSoDo:
+   *   mỗi máy một nhánh, gộp là giữ nguyên từng nhánh, chỉ cộng lúc đọc. Cộng
+   *   lúc gộp thì đồng bộ hai lần là số đo tự nhân đôi.
+   *
+   * Cả hai chỉ là KHOÁ MỚI trong cùng một gói. Apps Script lưu nguyên
+   * `req.data` rồi trả lại nguyên như thế, không hề nhìn vào bên trong — nên
+   * KHÔNG phải deploy lại máy chủ. Bản cũ trên cloud thiếu hai khoá này thì
+   * đọc ra {} và phép hợp giữ nguyên phần của máy.
+   */
+  const mergedNoi = self.Muc.tron(store.luyenNoi || {}, remoteNoi);
+  const mergedDo = self.Srs.tronSoDo(store.soDoSrs || {}, remoteDo);
+
   const guiDi = boAnh(mergedNgu);
   await driveRequest({
     action: "save",
-    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc }
+    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
+            luyenNoi: mergedNoi, soDoSrs: mergedDo }
   }, ngu);
 
   // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
   // loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
-  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
+  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs"]);
   const freshHoc = self.Ngu.tachHoc(fresh.hoc);
   // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
   // traAnh: bản trên Drive không mang `anh`, nên nếu để nguyên thì mỗi lượt
@@ -2046,7 +2079,12 @@ async function doSync(rawNgu) {
     finalHocNgu = self.TienDo.tron(freshHoc[ngu], mergedHoc);
     finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   }
-  await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc });
+  // Đọc lại rồi mới gộp, y như sổ tay: người dùng có thể vừa thêm một đoạn nói
+  // hoặc vừa chấm xong một thẻ trong lúc chờ mạng.
+  const finalNoi = self.Muc.tron(fresh.luyenNoi || {}, mergedNoi);
+  const finalDo = self.Srs.tronSoDo(fresh.soDoSrs || {}, mergedDo);
+  await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc,
+                                   luyenNoi: finalNoi, soDoSrs: finalDo });
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác
@@ -2056,7 +2094,9 @@ async function doSync(rawNgu) {
   const hocSo = dungChung ? finalHoc : finalHocNgu;
   if (JSON.stringify(boAnh(nbSo)) !== JSON.stringify(guiDi) ||
       JSON.stringify(soSo) !== JSON.stringify(mergedDecks) ||
-      JSON.stringify(hocSo) !== JSON.stringify(mergedHoc)) {
+      JSON.stringify(hocSo) !== JSON.stringify(mergedHoc) ||
+      JSON.stringify(finalNoi) !== JSON.stringify(mergedNoi) ||
+      JSON.stringify(finalDo) !== JSON.stringify(mergedDo)) {
     scheduleSync(ngu);
   }
   return countActive(self.Ngu.locSo(finalNb, ngu));

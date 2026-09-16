@@ -1028,11 +1028,13 @@ async function doSync(rawNgu) {
   const load = await httpPostJson(cfg.url, { token: cfg.token || "", action: "load" }, "text/plain;charset=utf-8");
   if (!load || load.ok === false) throw new Error((load && load.error) || T("Lỗi máy chủ"));
   const data = load.data || {};
-  let remoteNb, remoteDecks, remoteHoc;
+  let remoteNb, remoteDecks, remoteHoc, remoteNoi, remoteDo;
   if (data && typeof data === "object" && data.notebook !== undefined) {
     remoteNb = data.notebook || {}; remoteDecks = data.decks || {}; remoteHoc = data.hoc || null;
+    remoteNoi = data.luyenNoi || {}; remoteDo = data.soDoSrs || {};
   } else {
     remoteNb = data || {}; remoteDecks = {}; remoteHoc = null;
+    remoteNoi = {}; remoteDo = {};
   }
   // Cloud cũ có thể lẫn khoá của ngôn ngữ khác; vẫn nhận về máy, nhưng khi gửi
   // lên thì lọc lại cho sạch.
@@ -1063,9 +1065,24 @@ async function doSync(rawNgu) {
     mergedHoc = window.TienDo.tron(hocTach[ngu], remoteHoc);
   }
 
+  /*
+   * `luyenNoi` và `soDoSrs` PHẢI đi kèm, dù bản Android không tự ghi soDoSrs.
+   *
+   * Apps Script lưu NGUYÊN cả gói `data` rồi trả lại y như thế. Nên chỉ cần một
+   * lượt đồng bộ từ máy này gửi gói thiếu hai khoá ấy là chúng bị xoá sạch khỏi
+   * kho chung — kéo theo các đoạn Luyện nói người dùng tự gõ trên máy tính.
+   * Gửi thiếu một khoá ở đây tai hại hơn hẳn việc không đọc nó.
+   *
+   * Hai phép gộp khác nhau: luyenNoi theo `ts` như sổ tay; soDoSrs là bảng đếm
+   * cộng dồn nên mỗi máy một nhánh, xem Srs.tronSoDo.
+   */
+  const mergedNoi = window.Muc.tron((await Store.get("luyenNoi")) || {}, remoteNoi);
+  const mergedDo = window.Srs.tronSoDo((await Store.get("soDoSrs")) || {}, remoteDo);
+
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
-    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc }
+    data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
+            luyenNoi: mergedNoi, soDoSrs: mergedDo }
   }, "text/plain;charset=utf-8");
   if (!save || save.ok === false) throw new Error((save && save.error) || T("Lỗi khi lưu"));
 
@@ -1092,6 +1109,10 @@ async function doSync(rawNgu) {
     finalHocNgu = window.TienDo.tron(freshHoc[ngu], mergedHoc);
     finalHoc = Object.assign({}, freshHoc, { [ngu]: finalHocNgu });
   }
+  // Đọc lại rồi mới gộp, y như sổ tay: có thể vừa thêm một đoạn nói lúc chờ mạng.
+  const finalNoi = window.Muc.tron((await Store.get("luyenNoi")) || {}, mergedNoi);
+  const finalDo = window.Srs.tronSoDo((await Store.get("soDoSrs")) || {}, mergedDo);
+  await Store.set("luyenNoi", finalNoi); await Store.set("soDoSrs", finalDo);
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
   theoDoi.dat(finalHocNgu);
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác nhau

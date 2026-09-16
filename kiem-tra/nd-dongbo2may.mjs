@@ -108,6 +108,66 @@ soat("đường NGHE ôn trên Mac chép được sang Windows",
 soat("và đường NHÌN vốn có của Windows KHÔNG bị xoá",
   !!(d.nhin && d.nhin.lv === 3), JSON.stringify(d.nhin || null));
 
+/* --- LUYỆN NÓI: chữ người dùng tự gõ, phải đi theo --- */
+await dat(W, { luyenNoi: { n_w1: { id:"n_w1", tieuDe:"Bài của Windows", goc:"Xin chào",
+  dich:"こんにちは", tuNgu:"vi", sangNgu:"ja", ts: now } } });
+await dat(M, { luyenNoi: { n_m1: { id:"n_m1", tieuDe:"Bài của Mac", goc:"Cảm ơn",
+  dich:"ありがとう", tuNgu:"vi", sangNgu:"ja", ts: now } } });
+await dongBo(W); await dongBo(M); await dongBo(W);
+const noiW = (await doc(W, "luyenNoi")) || {}, noiM = (await doc(M, "luyenNoi")) || {};
+soat("đoạn Luyện nói viết trên Mac chép được sang Windows",
+  !!noiW.n_m1, Object.keys(noiW).join(", ") || "(rỗng)");
+soat("và đoạn viết trên Windows chép được sang Mac",
+  !!noiM.n_w1, Object.keys(noiM).join(", ") || "(rỗng)");
+
+/* --- SỐ ĐO SRS: cộng dồn, nên gộp bao nhiêu lần cũng phải ra một con số --- */
+await dat(W, { soDoSrs: { mayW: { "nhin|3": { n:10, nho:8, ngay:140 } } } });
+await dat(M, { soDoSrs: { mayM: { "nhin|3": { n:4,  nho:3, ngay:56  } } } });
+await dongBo(W); await dongBo(M); await dongBo(W);
+const tong = (o) => {
+  let n = 0;
+  for (const m of Object.keys(o || {})) for (const k of Object.keys(o[m] || {})) n += (o[m][k] || {}).n || 0;
+  return n;
+};
+const doW1 = tong(await doc(W, "soDoSrs"));
+soat("số đo của hai máy cộng lại đúng tổng thật (10 + 4)", doW1 === 14, "n = " + doW1);
+// Đồng bộ thêm mấy lượt nữa: con số KHÔNG được nhích.
+await dongBo(W); await dongBo(M); await dongBo(W); await dongBo(M);
+const doW2 = tong(await doc(W, "soDoSrs"));
+soat("đồng bộ thêm bốn lượt nữa thì số đo ĐỨNG YÊN, không tự nhân lên",
+  doW2 === 14, "n = " + doW2 + " (trước đó " + doW1 + ")");
+soat("và kho chung giữ đủ nhánh của cả hai máy",
+  !!(cloud.soDoSrs && cloud.soDoSrs.mayW && cloud.soDoSrs.mayM),
+  Object.keys(cloud.soDoSrs || {}).join(", ") || "(rỗng)");
+
+/* --- KHO CŨ trên Drive (chưa từng có hai khoá mới) --- */
+/*
+ * Đây là câu trả lời cho "có phải deploy lại Apps Script không".
+ *
+ * Apps Script chỉ làm đúng _save(JSON.stringify(req.data)) rồi trả lại nguyên
+ * như thế — nó không hề nhìn vào bên trong gói. Nên thêm khoá mới là việc của
+ * riêng phía extension. Bài này dựng lại đúng cảnh ấy: kho trên Drive còn ở
+ * dạng CŨ, chỉ có ba khoá, và máy vẫn phải chạy trơn, không mất gì.
+ */
+cloud = { notebook: { "javi:古": { word:"古", dict:"javi", reading:"ふる",
+            means:["cũ"], ts: now, duong:{ nhin:{ lv:2, ngay:7, due: now+9e8, ts: now } },
+            srs:{ lv:2, due: now+9e8, ts: now } } },
+          decks: {}, hoc: {} };        // KHÔNG có luyenNoi, KHÔNG có soDoSrs
+await dat(W, { syncUrlChung: URL_CLOUD });
+const rCu = await dongBo(W);
+soat("kho Drive dạng CŨ vẫn đồng bộ được, không phải deploy lại máy chủ",
+  rCu.ok, rCu.ok ? rCu.n + " mục" : "LỖI — " + rCu.loi);
+const nbCu = (await doc(W, "notebook")) || {};
+soat("và kéo được từ mới trên kho cũ về máy", !!nbCu["javi:古"],
+  Object.keys(nbCu).join(", ") || "(rỗng)");
+const noiCu = (await doc(W, "luyenNoi")) || {};
+soat("Luyện nói sẵn có trên máy KHÔNG bị kho cũ xoá mất",
+  Object.keys(noiCu).length >= 2, Object.keys(noiCu).join(", ") || "(rỗng)");
+soat("và số đo SRS cũng còn nguyên", tong(await doc(W, "soDoSrs")) === 14,
+  "n = " + tong(await doc(W, "soDoSrs")));
+soat("lượt ghi tiếp theo đã nâng kho Drive lên dạng mới",
+  !!(cloud.luyenNoi && cloud.soDoSrs), Object.keys(cloud).join(", "));
+
 /* --- máy chủ hỏng thì phải BÁO LỖI, đừng báo "xong, 0 mục" --- */
 await dat(W, { syncUrlChung: "http://127.0.0.1:1/exec" });
 const r4 = await dongBo(W);

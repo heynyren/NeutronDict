@@ -661,16 +661,84 @@
    */
   const NGAY_TOI_THIEU_DO = 0.4;
 
-  function ghiSoDo(soDo, duong, lvTruoc, ngayCho, nho) {
-    const b = (soDo && typeof soDo === "object") ? soDo : {};
+  /*
+   * MỖI MÁY MỘT NHÁNH RIÊNG — bắt buộc, vì đây là những con số CỘNG DỒN.
+   *
+   * Sổ tay gộp được bằng "bản mới hơn thắng" vì mỗi mục có một trạng thái duy
+   * nhất. Bảng số đo thì không: máy A đo 10 lượt, máy B đo 5 lượt, tổng thật là
+   * 15 — không bên nào "thắng" được bên nào.
+   *
+   * Mà cộng thẳng hai bên lại cũng sai: đồng bộ xong thì cả hai máy cùng giữ
+   * 15, lượt đồng bộ sau cộng tiếp thành 30. Đếm lại chính mình.
+   *
+   * Nên mỗi máy chỉ ghi vào NHÁNH CỦA NÓ, gộp là lấy nguyên từng nhánh, và
+   * tổng chỉ được cộng lúc ĐỌC. Đồng bộ bao nhiêu lần cũng ra cùng một con số.
+   *
+   * @param {string} [may] mã máy; bỏ trống thì dồn vào nhánh "may" chung
+   */
+  function ghiSoDo(soDo, duong, lvTruoc, ngayCho, nho, may) {
+    const b = nhanhHoa(soDo);
     // Lượt đầu của một đường, hoặc lượt học lại ngay trong buổi: không đo được.
     if (!(ngayCho >= NGAY_TOI_THIEU_DO) || !duong) return b;
+    const m = may || "may";
+    const nhanh = b[m] || (b[m] = {});
     const lv = Math.max(-1, Math.min(MOC.length - 1, Math.round(lvTruoc)));
     const k = duong + "|" + lv;
-    const o = b[k] || { n: 0, nho: 0, ngay: 0 };
-    b[k] = { n: o.n + 1, nho: o.nho + (nho ? 1 : 0),
-             ngay: Math.round((o.ngay + ngayCho) * 100) / 100 };
+    const o = nhanh[k] || { n: 0, nho: 0, ngay: 0 };
+    nhanh[k] = { n: o.n + 1, nho: o.nho + (nho ? 1 : 0),
+                 ngay: Math.round((o.ngay + ngayCho) * 100) / 100 };
     return b;
+  }
+
+  /** Khoá của bảng đếm trông như "nhin|3" — dùng để nhận ra bản phẳng đời cũ. */
+  function laKhoaDo(k) { return /^[a-z_]+\|-?\d+$/.test(k); }
+
+  /**
+   * Đưa bản PHẲNG đời cũ ({"nhin|3": …}) về dạng có nhánh ({may: {"nhin|3": …}}).
+   *
+   * Số đo cũ đã có trên máy người dùng rồi; vứt đi là vứt đúng thứ duy nhất nói
+   * được thang giãn cách có hợp với họ không. Dồn hết vào nhánh "cu".
+   */
+  function nhanhHoa(soDo) {
+    const b = (soDo && typeof soDo === "object") ? soDo : {};
+    const phang = Object.keys(b).filter(laKhoaDo);
+    if (!phang.length) return b;
+    const ra = {}, cu = {};
+    for (const k of Object.keys(b)) { if (laKhoaDo(k)) cu[k] = b[k]; else ra[k] = b[k]; }
+    ra.cu = gopDo(ra.cu, cu);
+    return ra;
+  }
+
+  /** Cộng hai bảng đếm lại với nhau. */
+  function gopDo(a, b) {
+    const ra = {};
+    for (const src of [a || {}, b || {}])
+      for (const k of Object.keys(src)) {
+        const x = ra[k] || { n: 0, nho: 0, ngay: 0 }, y = src[k] || {};
+        ra[k] = { n: (x.n || 0) + (y.n || 0), nho: (x.nho || 0) + (y.nho || 0),
+                  ngay: Math.round(((x.ngay || 0) + (y.ngay || 0)) * 100) / 100 };
+      }
+    return ra;
+  }
+
+  /**
+   * Gộp bảng số đo của hai máy: giữ nguyên từng nhánh, KHÔNG cộng.
+   *
+   * Nhánh nào chỉ có ở một bên thì lấy nguyên; nhánh có ở cả hai thì lấy bên
+   * đếm được NHIỀU HƠN — cùng một máy thì bảng của nó chỉ có lớn lên, nên bên
+   * nhiều hơn chính là bên mới hơn.
+   */
+  function tronSoDo(a, b) {
+    const A = nhanhHoa(a), B = nhanhHoa(b), ra = {};
+    for (const m of Object.keys(A).concat(Object.keys(B))) {
+      if (ra[m]) continue;
+      const x = A[m], y = B[m];
+      if (!x) { ra[m] = y; continue; }
+      if (!y) { ra[m] = x; continue; }
+      const dem = (o) => Object.keys(o || {}).reduce((t, k) => t + ((o[k] || {}).n || 0), 0);
+      ra[m] = dem(y) > dem(x) ? y : x;
+    }
+    return ra;
   }
 
   /**
@@ -678,7 +746,10 @@
    * @returns {Array<{duong,lv,n,nho,tyLe,ngayTB,duMau}>} xếp theo đường rồi cấp
    */
   function docSoDo(soDo) {
-    const b = (soDo && typeof soDo === "object") ? soDo : {};
+    // Cộng mọi nhánh máy lại — đây là chỗ DUY NHẤT được phép cộng. Xem ghiSoDo.
+    const n = nhanhHoa(soDo);
+    let b = {};
+    for (const m of Object.keys(n)) b = gopDo(b, n[m]);
     const ra = [];
     for (const k of Object.keys(b)) {
       const p = k.split("|");
@@ -703,7 +774,7 @@
     DUONG, TEN_DUONG, MOC, NGAY,
     DU_MAU, NHANH_MS, CHAM_MS, RAT_CHAM_MS, MS_TOI_DA, MS_TOI_THIEU, MS_THONG_KE, HE_SO, MO_DUONG, MO_NGAY,
     themMau, doLech, heSoBienThien, nhipDo, cham,
-    ghiSoDo, docSoDo, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
+    ghiSoDo, docSoDo, tronSoDo, gopDo, nhanhHoa, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
     heChatLuong, CHAT_SAN, CHAT_DAY,
     T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY,
     ngayCua, netCua, capTu,

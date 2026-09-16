@@ -375,6 +375,24 @@ async function docNhipMs() {
  * @param {number} [chat] 0..1 — làm đúng được mấy phần, cho những bài chấm theo
  *   phần (hai bài liên kết). Bỏ trống thì chỉ có nhớ/quên, xem Srs.heChatLuong.
  */
+/**
+ * Mã của MÁY NÀY — dựng một lần rồi giữ nguyên.
+ *
+ * Bảng số đo SRS là những con số cộng dồn, nên mỗi máy phải ghi vào nhánh riêng
+ * của nó; gộp hai máy là giữ nguyên từng nhánh chứ không cộng, và chỉ cộng lúc
+ * đọc. Xem Srs.ghiSoDo. Không có mã riêng thì hai máy ghi đè lên nhau và mất
+ * một nửa số đo.
+ */
+let _maMay = null;
+async function maMay() {
+  if (_maMay) return _maMay;
+  const kho = await chrome.storage.local.get("maMay");
+  if (kho.maMay) { _maMay = kho.maMay; return _maMay; }
+  _maMay = "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  await chrome.storage.local.set({ maMay: _maMay });
+  return _maMay;
+}
+
 async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
@@ -416,7 +434,8 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     await chrome.storage.local.set({ nhipMs: nhipMs });
     if (ngayCho > 0) {
       const kho = await chrome.storage.local.get("soDoSrs");
-      const so = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho, !!remembered);
+      const so = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho, !!remembered,
+                                    await maMay());
       await chrome.storage.local.set({ soDoSrs: so });
     }
   }

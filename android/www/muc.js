@@ -145,7 +145,19 @@
       r2.duong = gopDuong(thang.duong, thua.duong);
       // `srs` phải dựng lại từ bản `duong` vừa gộp, không thì hai thứ nói khác nhau.
       if (root.Srs) {
-        const g = goc.Srs.gomSrs(r2);
+        /*
+         * `root`, KHÔNG phải `goc`.
+         *
+         * Tệp này bọc trong (function (root) {...}), nên `goc` chưa bao giờ tồn
+         * tại ở đây — và dòng này là chỗ duy nhất trong cả tệp gõ nhầm tên ấy.
+         * Hậu quả: mỗi lượt gộp một mục CÓ `duong` — tức là mọi từ đã từng được
+         * ôn — đều ném ReferenceError, kéo đổ cả lượt đồng bộ.
+         *
+         * Nó im lặng suốt vì syncTatCa nuốt lỗi rồi trả 0, nên giao diện báo
+         * "đồng bộ xong, 0 mục" — nhìn y như một lượt đồng bộ sạch sẽ trên một
+         * quyển sổ chẳng có gì mới.
+         */
+        const g = root.Srs.gomSrs(r2);
         if (g) r2.srs = g;
       } else if (!thang.srs || (thua.srs && tsSrs(thua) > tsSrs(thang))) {
         r2.srs = thua.srs || thang.srs;
