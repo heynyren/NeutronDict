@@ -1926,17 +1926,31 @@ function syncNow(rawNgu) {
 async function syncTatCa() {
   // Kho chung thì một lượt là xong cả sổ — chạy vòng theo ngôn ngữ chỉ tổ đẩy
   // cùng một gói lên hai lần.
+  /*
+   * HỎNG THÌ PHẢI NÓI RA.
+   *
+   * Bản trước nuốt mọi lỗi rồi trả 0, nên giao diện báo "đồng bộ xong, 0 mục" —
+   * nhìn y hệt một lượt đồng bộ sạch sẽ trên quyển sổ chẳng có gì mới. Một lỗi
+   * làm hỏng TOÀN BỘ phép gộp (xem `goc`/`root` trong muc.js) vẫn hiện ra là
+   * thành công, và nó im lặng như thế rất lâu: hai máy không hề chép được gì
+   * cho nhau mà cả hai đều báo đã đồng bộ.
+   *
+   * Giờ: một bên hỏng mà bên kia chạy thì vẫn tính là có chạy; hỏng SẠCH thì
+   * ném ra, để chỗ gọi hiện đúng câu lỗi.
+   */
   const c = self.Ngu.KHOA_CHUNG;
   const khoC = await chrome.storage.local.get(c.url);
-  if (khoC[c.url]) { try { return await syncNow("ja"); } catch (e) { return 0; } }
+  if (khoC[c.url]) return syncNow("ja");
 
-  let n = 0;
+  let n = 0, coChay = false, loiCuoi = null;
   for (const ngu of self.Ngu.DS) {
     const k = self.Ngu.khoaSync(ngu);
     const kho = await chrome.storage.local.get(k.url);
     if (!kho[k.url]) continue;
-    try { n += await syncNow(ngu); } catch (e) { /* bên kia hỏng thì bên này vẫn chạy */ }
+    try { n += await syncNow(ngu); coChay = true; }
+    catch (e) { loiCuoi = e; }        // bên kia hỏng thì bên này vẫn chạy
   }
+  if (!coChay && loiCuoi) throw loiCuoi;
   return n;
 }
 
