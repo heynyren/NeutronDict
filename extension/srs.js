@@ -293,6 +293,22 @@
   const TRAN_NGAY = 365;
   /** Quên thì giãn cách co lại còn ngần này — xấp xỉ tụt hai bậc của thang cũ. */
   const TUT_NGAY = 0.23;
+  /*
+   * Mức tụt phải theo TỪNG ĐƯỜNG, vì cái giá của một lần tụt tỉ lệ thuận với
+   * tần suất quên của chính đường đó.
+   *
+   * Chú thích ở nhánh "quên" bên dưới đã tính sẵn phần này: leo từ đáy lên cấp
+   * cuối mất 11,3 lượt khi tỉ lệ quên 15%, nhưng 17,9 lượt khi tỉ lệ quên 25%.
+   * Đường nhìn quên ~12% nên tụt 0,23 là rẻ. Hai bài liên kết quên ~30%, cùng
+   * một mức tụt ấy nghĩa là cứ ba lần leo thì vứt đi một lần — bài càng khó
+   * càng bị phạt nặng, đúng chiều ngược với điều đáng làm.
+   *
+   * Đường nhìn giữ nguyên 0,23: nó là đường duy nhất có đủ số đo trong bảng
+   * `soDoSrs`, đổi nó đi là mất luôn cái mốc để so.
+   */
+  const TUT_DUONG = { nhin: 0.23, nghe: 0.34, dong: 0.45, trai: 0.45 };
+  /** Người gọi không truyền `duong` thì chạy y như bản cũ. */
+  function tutCua(duong) { return TUT_DUONG[duong] || TUT_NGAY; }
 
   /**
    * Giãn cách lần trước của một đường.
@@ -323,6 +339,132 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* THANG 100 ĐIỂM                                                      */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Vì sao cần con số này, khi đã có `capChung`.
+   *
+   * `capChung` lấy cấp của ĐƯỜNG YẾU NHẤT. Ý định đúng — một đường liệt thì
+   * không gọi là thuộc được — nhưng đem ra HIỂN THỊ thì nó xoá sạch mọi tiến
+   * bộ: đo trên 600 từ sau 180 ngày, 331 từ (55%) đứng ở cấp 0 trong khi đường
+   * nhìn của chúng trung bình đã cấp 5,16 và nghe 4,52. Người học nhìn vào một
+   * từ mình nhận ra tức khắc và thấy "Cấp 1". Không ai học tiếp với cái đó.
+   *
+   * Nên tách làm hai việc, vì chúng là hai câu hỏi khác nhau:
+   *
+   *   CON SỐ (0–100) trả lời "tôi đã gửi được bao nhiêu công vào từ này" —
+   *   cộng có trọng số, luôn nhích lên khi làm đúng.
+   *
+   *   NHÃN MỨC TƯ DUY trả lời "tôi đã CHỨNG MINH được tới đâu" — có cổng, và
+   *   có thể mãi mãi không mở nếu từ ấy không có dữ liệu để chứng minh.
+   *
+   * `capChung` và `gomSrs` giữ nguyên không đổi một dòng: đồng bộ Drive, máy
+   * chủ MCP, bản cũ chưa cập nhật vẫn đọc y như trước.
+   */
+
+  /** Thang 100 điểm của MỘT đường, suy từ giãn cách. */
+  const DIEM_TRAN = Math.log(1 + TRAN_NGAY);          // log(366)
+  /*
+   * Vì sao log chứ không phải chia thẳng.
+   *
+   * Chia thẳng cho 365 thì cả thang cũ dồn vào một góc: 30 ngày chỉ được 8
+   * điểm, 120 ngày được 33. Người học leo được năm bậc mà con số gần như không
+   * nhúc nhích.
+   *
+   * Log thì thang 100 điểm gần như TUYẾN TÍNH theo chính thang MOC đang có:
+   *
+   *   1ng=12  3ng=23  7ng=35  14ng=46  30ng=58  60ng=70  120ng=81  365ng=100
+   *
+   * Mỗi bậc MOC ≈ 12 điểm. Nghĩa là con số mới không dựng lên một thang thứ hai
+   * cạnh tranh với thang cũ — nó là chính thang cũ, đo liên tục.
+   */
+  function diemDuong(ngay) {
+    if (!(ngay > 0) || !isFinite(ngay)) return 0;
+    return Math.round(100 * Math.log(1 + Math.min(TRAN_NGAY, ngay)) / DIEM_TRAN);
+  }
+
+  /** Mỗi đường đáng bao nhiêu điểm trong tổng 100. */
+  const TRONG = { nhin: 30, nghe: 30, dong: 20, trai: 20 };
+  /** Một đường phải giữ được ngần này ngày thì chiều của nó mới coi là ĐẠT. */
+  const NGUONG_BAC = 7;                                // ≈ 35 điểm
+
+  /**
+   * Ba CHIỀU tư duy. Nhãn đi theo chiều, không theo đường, vì hai bài liên kết
+   * cùng đo một thứ: gọi được từ ra giữa đám từ gần nghĩa với nó.
+   */
+  const CHIEU = [
+    { ma: "mat", ten: "mắt", duong: ["nhin"] },
+    { ma: "tai", ten: "tai", duong: ["nghe"] },
+    { ma: "mang", ten: "mạng nghĩa", duong: ["dong", "trai"] }
+  ];
+  const TEN_BAC = ["Chưa học", "Mới gặp", "Thuộc mặt chữ", "Nghe ra", "Gọi ra được lúc cần"];
+
+  /**
+   * Điểm của cả một từ, trên thang 100 chung cho mọi từ.
+   *
+   * TRỌNG SỐ CHIA LẠI THEO `duongCo`, KHÔNG PHẢI `duongMo` — hai lý do:
+   *
+   *   1. Chia theo `duongMo` thì điểm ĐI LÙI. Từ mới chỉ mở đường nhìn, nên nó
+   *      chiếm 100% trọng số; tới ngày thứ hai MO_NGAY mở thêm ba đường và
+   *      trọng số của nhìn tụt còn 30%. Làm đúng mà điểm giảm là hỏng.
+   *
+   *   2. Từ THIẾU đường thì vẫn phải lên được 100. Mục lưu từ ảnh chụp không có
+   *      câu nguồn, có từ không tra được từ trái nghĩa — đó là chuyện của dữ
+   *      liệu, không phải của người học. Một cái trần mà người ta không có nút
+   *      nào bấm để nâng lên thì con số thôi không còn nghĩa "tôi thuộc tới
+   *      đâu" mà thành "hôm ấy lưu từ có may không", và người ta học cách lờ nó
+   *      đi. Đây đúng là lỗi mà `capChung` đang mắc.
+   *
+   * Phần TRUNG THỰC do `bac` gánh, không phải do cái trần: từ chỉ có đường nhìn
+   * có thể đạt 100/100 nhưng KHÔNG BAO GIỜ được gọi là "Nghe ra".
+   *
+   * @returns {{tong:number, phan:object, bac:number, ten:string, chuaDo:string[]}}
+   *   `phan` là điểm từng đường trên thang 100 (null = đường không có).
+   *   `chuaDo` là tên những chiều không có dữ liệu để đo.
+   */
+  function diemTu(muc) {
+    const d = (muc && muc.duong) || {};
+    const co = duongCo(muc);
+    const phan = {};
+    let tongTrong = 0;
+    for (const t of DUONG) {
+      if (co.indexOf(t) < 0) { phan[t] = null; continue; }
+      phan[t] = diemDuong(ngayCua(d[t]));
+      tongTrong += TRONG[t];
+    }
+    let tong = 0;
+    if (tongTrong > 0)
+      for (const t of co) tong += phan[t] * (TRONG[t] / tongTrong);
+    tong = Math.max(0, Math.min(100, Math.round(tong)));
+
+    /*
+     * Leo thang chiều, BIẾT BỎ QUA chiều không có.
+     *
+     * Phải bỏ qua, và phải bỏ qua đúng cách — sai ở cả hai phía đều có thật:
+     *
+     *   Thang cứng (chiều nào vắng cũng chặn) → từ không có câu nguồn nhưng
+     *   đồng nghĩa rất mạnh sẽ kẹt mãi ở "Thuộc mặt chữ". Nói THẤP HƠN sự thật.
+     *
+     *   Coi chiều vắng là đã đạt → từ chỉ có đường nhìn tự nhận "Gọi ra được
+     *   lúc cần". Nói QUÁ, và đó là điều tuyệt đối không được phép.
+     *
+     * Nên: chiều không có thì bước qua và ghi vào `chuaDo`; chiều có mà chưa
+     * đạt thì DỪNG. Bậc là chiều ĐẠT sâu nhất — chiều bị bước qua không bao giờ
+     * được tính là đã đạt.
+     */
+    const chuaDo = [];
+    let bac = tong > 0 ? 1 : 0;
+    for (let i = 0; i < CHIEU.length; i++) {
+      const c = CHIEU[i];
+      const cuaChieu = c.duong.filter((t) => co.indexOf(t) >= 0);
+      if (!cuaChieu.length) { chuaDo.push(c.ten); continue; }   // không có gì để đo
+      if (!cuaChieu.every((t) => ngayCua(d[t]) >= NGUONG_BAC)) break;
+      bac = i + 2;                                              // 0,1 dành cho chưa học / mới gặp
+    }
+    return { tong: tong, phan: phan, bac: bac, ten: TEN_BAC[bac], chuaDo: chuaDo };
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Chấm một lượt                                                       */
   /* ------------------------------------------------------------------ */
 
@@ -343,6 +485,77 @@
     let h = d.getTime();
     while (h <= bayGio) h += NGAY;          // không bao giờ trả về mốc đã qua
     return h;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* RẢI TẢI — làm phẳng ngày nặng, KHÔNG hoãn thẻ nào                   */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Cái mệt không nằm ở trung bình, nó nằm ở NGÀY NẶNG NHẤT: đo được trung bình
+   * 125 thẻ/ngày mà có ngày vọt lên 619. Xáo ±10% sẵn có không chữa được, vì nó
+   * xáo mù — không biết ngày nào đã đông.
+   *
+   * ĐÃ THỬ VÀ BỎ: trần số thẻ mỗi ngày, làm phần trễ hạn nhất trước rồi hoãn
+   * phần dư sang mai. Nghe rất hợp lý và đó là cách hầu hết app làm, nhưng đo
+   * ở MỌI mức trần (50/80/120/200/300) đều ra cùng một kết cục: tồn đọng phình
+   * lên ~700 thẻ với sổ 600 từ (~1.900 với sổ 1.500 từ) rồi đứng nguyên ở đó
+   * vĩnh viễn, và tỉ lệ nhớ sập từ 68% xuống 8–13%. Cơ chế: thẻ bị hoãn → quá
+   * hạn → quên → giãn cách sập về đáy → đến hạn lại ngay → nợ lớn thêm. Vòng
+   * xoáy ấy ổn định ở một trạng thái rất tệ chứ không tự thoát ra.
+   *
+   * Nên rải Ở LÚC XẾP LỊCH thay vì lúc xếp hàng: khi đã chọn được số ngày, nhìn
+   * quanh đó xem ngày nào ít thẻ hơn thì hẹn vào ngày ấy. Không thẻ nào bị hoãn
+   * quá hạn của nó, nên không mất một điểm tỉ lệ nhớ nào. Đo được đỉnh/trung
+   * bình ×3,0 → ×2,5.
+   */
+  /** Chỉ rải những thẻ hẹn xa hơn ngần này — thẻ hẹn gần thì xê một ngày đã lệch nhiều. */
+  const RAI_TOI_THIEU = 3;
+  /** Rải trong ±15% quanh ngày đã chọn. Rộng hơn nữa là bắt đầu đổi lịch thật. */
+  const RAI_RONG = 0.15;
+  const RAI_BUOC = 0.05;
+
+  /**
+   * Đếm xem mỗi ngày đã hẹn sẵn bao nhiêu thẻ.
+   * @param {Array} dsMuc cả sổ tay
+   * @returns {Map<number, number>} khoá là số thứ tự ngày (mốc / NGAY)
+   */
+  function lichHen(dsMuc) {
+    const lich = new Map();
+    for (const m of dsMuc || []) {
+      if (!m || m.del) continue;
+      const d = m.duong || {};
+      for (const t of DUONG) {
+        const due = d[t] && d[t].due;
+        if (!due) continue;
+        const k = Math.floor(due / NGAY);
+        lich.set(k, (lich.get(k) || 0) + 1);
+      }
+    }
+    return lich;
+  }
+
+  /**
+   * Chọn mốc đến hạn, né ngày đã đông.
+   * @param {number} ngay số ngày giãn cách vừa tính được
+   * @param {Map<number,number>|object} [lich] bảng đếm từ `lichHen`; bỏ trống thì không rải
+   * @returns {number} mốc đến hạn
+   */
+  function raiTai(ngay, lich, now) {
+    const bayGio = now || Date.now();
+    const n = (typeof ngay === "number" && isFinite(ngay)) ? ngay : 1;
+    const goc = hanSauNgay(n, bayGio);
+    if (!lich || n < RAI_TOI_THIEU) return goc;
+    const dem = (mocThoiGian) => {
+      const k = Math.floor(mocThoiGian / NGAY);
+      return (typeof lich.get === "function" ? lich.get(k) : lich[k]) || 0;
+    };
+    let tot = goc, it = dem(goc);
+    for (let f = 1 - RAI_RONG; f <= 1 + RAI_RONG + 1e-9; f += RAI_BUOC) {
+      const ung = hanSauNgay(n * f, bayGio);
+      const c = dem(ung);
+      if (c < it) { it = c; tot = ung; }          // hoà thì giữ ngày gốc
+    }
+    return tot;
   }
 
   /**
@@ -372,11 +585,37 @@
    * không đụng tới nhịp.
    *
    * Dưới sàn `SAN_DAT` (0,5) thì đã là QUÊN rồi, không vào đây. Nên khoảng có
-   * thật của `chat` là 0,5..1, và trải ra thành 0,45..1: vừa đủ qua bài thì
-   * giãn cách chưa bằng nửa lượt làm trọn vẹn.
+   * thật của `chat` là 0,5..1.
+   *
+   * ĐÁY 0,75, KHÔNG PHẢI 0,45 — sửa một lỗi tự mâu thuẫn của chính tệp này.
+   *
+   * Tệp này đã tự đặt ra một nguyên tắc ở chỗ NET_MIN (xem chú thích "BẤT ĐỐI
+   * XỨNG CÓ CHỦ Ý"): "lượt ĐÚNG không bao giờ làm giãn cách NGẮN LẠI; xấu nhất
+   * là nó đứng yên". Trục nhịp bấm tuân thủ nhờ NET_MIN = 1,0. Nhưng trục chất
+   * lượng thì bị bỏ quên: đáy 0,45 nghĩa là nhặt đúng một nửa — VẪN LÀ QUA BÀI
+   * — mà giãn cách bị cắt hơn một nửa. Nhặt 3/4 cũng đã ×0,73.
+   *
+   * Hậu quả đo được trên 600 từ / 180 ngày: mười lượt ĐÚNG liên tiếp chỉ đưa
+   * hai bài liên kết tới 32 ngày, trong khi đường nhìn đã chạm trần 365. Chúng
+   * không lớn lên được nên đến hạn liên tục, và chiếm 83% toàn bộ hàng đợi
+   * (đồng 42,5% · trái 41,3%) trong khi đường nhìn chỉ 5,8%. Đó chính là cảm
+   * giác "từ vựng dồn lên rất nhiều".
+   *
+   * Đáy 0,75 giữ nguyên phần phân biệt — nhặt đủ vẫn hơn nhặt một nửa 33% — chỉ
+   * là không còn đặt nó lên một cái nền không thể lớn lên. Đo lại: 125 → 112
+   * thẻ/ngày, giãn cách hai bài liên kết 157 → 216 ngày.
+   *
+   * ĐÃ THỬ VÀ BỎ: nhân thêm hệ số nới riêng cho bài khó (nghe ×1,5, liên kết
+   * ×2,0). Nghe thì hợp lý — bài khó nên hỏi thưa hơn — nhưng đo trên mô hình
+   * trí nhớ đã chỉnh cho khớp tỉ lệ nhớ thật của app thì nó phản tác dụng: tỉ
+   * lệ nhớ tụt 76% → 58%, và vì quên nhiều hơn nên số thẻ mỗi ngày LẠI TĂNG
+   * (125 → 130). Lịch chạy nhanh hơn trí nhớ thì mỗi lần trượt lại kéo giãn
+   * cách về đáy, và phần "nới" ấy quay lại thành việc phải làm. Nới ×1,35 cũng
+   * mất 6 điểm tỉ lệ nhớ để đổi lấy 4 thẻ/ngày. Muốn hỏi thưa hơn thì phải để
+   * giãn cách tự lớn lên bằng cách thôi phạt oan, không phải nhân thêm.
    */
   const CHAT_SAN = 0.5;
-  const CHAT_DAY = 0.45;
+  const CHAT_DAY = 0.75;
 
   /**
    * @param {number} [chat] 0..1 — làm đúng được mấy phần. Bỏ trống = 1 (bài chỉ
@@ -395,8 +634,10 @@
    * @param {number} [xao] 0..1 — số ngẫu nhiên để xáo nhẹ giãn cách; bỏ trống
    *   thì không xáo (bài kiểm cần kết quả lặp lại được)
    * @param {number} [chat] 0..1 — làm đúng được mấy phần (xem heChatLuong)
+   * @param {Map<number,number>} [lich] bảng đếm thẻ theo ngày (xem `lichHen`) để
+   *   né ngày đã đông; bỏ trống thì hẹn đúng ngày tính ra
    */
-  function cham(cu, nho, ms, tk, now, duong, xao, chat) {
+  function cham(cu, nho, ms, tk, now, duong, xao, chat, lich) {
     const bayGio = now || Date.now();
     /*
      * `ngayCua`/`netCua` đều tự kẹp về khoảng hợp lệ. Bắt buộc, không phải
@@ -425,7 +666,7 @@
       const sai = ((cu && cu.sai) || 0) + 1;
       const ngay = sai >= SAI_VE_DAY
         ? 0
-        : Math.round(Math.max(0, ngayCua(cu) * TUT_NGAY) * 100) / 100;
+        : Math.round(Math.max(0, ngayCua(cu) * tutCua(duong)) * 100) / 100;
       // Nết cũng bị kéo về đáy, nhưng vẫn là kéo DẦN: một lượt quên không xoá
       // sạch mọi bằng chứng trước đó, y như giãn cách không về đáy ngay.
       const netCu = netCua(cu);
@@ -471,13 +712,28 @@
      * chính giãn cách vừa rồi — đây là chỗ phần thưởng tích lại.
      */
     const goc = ngayCua(cu);
-    const tho = goc > 0 ? goc * net : (MOC[0] * net) / NET_DAU;
+    /*
+     * Kẹp TÍCH của hai trục ở NET_MIN, không phải kẹp riêng từng trục.
+     *
+     * NET_MIN = 1,0 giữ cho trục nhịp không bao giờ co giãn cách lại. Nhưng
+     * trục chất lượng nhân vào SAU đó, nên hai trục cùng chạm đáy thì lại co:
+     * net 1,0 × heChat 0,75 = 0,675, tức là trả lời ĐÚNG mà giãn cách mất một
+     * phần ba. Bộ kiểm bắt được đúng cảnh này.
+     *
+     * Kẹp cái tích lại thì nguyên tắc được giữ trọn cho cả hai trục: lượt ĐÚNG
+     * xấu nhất là ĐỨNG YÊN. Phần phân biệt nhặt đủ / nhặt một nửa vẫn còn
+     * nguyên ở khoảng giữa — nết 2,1 thì 2,1 so với 1,58 — chỉ cái đáy là
+     * không được phép thủng.
+     */
+    const heNet = Math.max(NET_MIN, net * heChat);
+    const tho = goc > 0 ? goc * heNet : (MOC[0] * heNet) / NET_DAU;
+    // `heChat` đã nằm trong `heNet` rồi — nhân lần nữa ở đây là phạt hai lần.
     const ngay = Math.min(TRAN_NGAY,
-      Math.round(Math.max(0.25, tho * heXao * heChat) * 100) / 100);
+      Math.round(Math.max(0.25, tho * heXao) * 100) / 100);
     const lv = capTu(ngay);
     return {
       duong: { lv: lv, ngay: ngay, net: Math.round(net * 1000) / 1000,
-               sai: 0, due: hanSauNgay(ngay, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
+               sai: 0, due: raiTai(ngay, lich, bayGio), ts: bayGio, ms: Math.round(ms) || 0 },
       // Không đo được thì cũng không cho vào bộ hiệu chỉnh — nó không phải một
       // lượt truy xuất.
       tk: nhip === "khong_do" ? (tk || { n: 0, tb: 0, m2: 0 }) : themMau(tk, ms, duong),
@@ -593,16 +849,15 @@
    * Cố ý KHÔNG gọi là "đã thuộc bao nhiêu phần trăm" — nó là vị trí trên thang
    * giãn cách, tức là "đã giữ được bao lâu", chứ không phải xác suất nhớ.
    */
+  /*
+   * Giờ đọc thẳng từ `diemTu` chứ không tự tính lấy một thang riêng.
+   *
+   * Bản cũ là (lv+1)/7*100 — một cầu thang bảy bậc. Để nguyên thì cùng một từ
+   * có hai con số khác nhau tuỳ chỗ hỏi: chip trên thẻ nói 46, hồ sơ nói 57.
+   * Một thang thôi, một chỗ tính thôi.
+   */
   function hoSo(muc) {
-    const d = (muc && muc.duong) || {};
-    const co = duongCo(muc);
-    const ra = {};
-    for (const t of DUONG) {
-      if (co.indexOf(t) < 0) { ra[t] = null; continue; }   // đường không có
-      const lv = (d[t] && typeof d[t].lv === "number") ? d[t].lv : -1;
-      ra[t] = lv < 0 ? 0 : Math.round(((lv + 1) / MOC.length) * 100);
-    }
-    return ra;
+    return diemTu(muc).phan;
   }
 
   /**
@@ -776,8 +1031,10 @@
     themMau, doLech, heSoBienThien, nhipDo, cham,
     ghiSoDo, docSoDo, tronSoDo, gopDo, nhanhHoa, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
     heChatLuong, CHAT_SAN, CHAT_DAY,
-    T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY,
+    T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY, TUT_DUONG, tutCua,
     ngayCua, netCua, capTu,
+    diemDuong, diemTu, TRONG, NGUONG_BAC, TEN_BAC, CHIEU,
+    lichHen, raiTai, RAI_TOI_THIEU, RAI_RONG,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
     tocDoNghe
   };

@@ -814,6 +814,36 @@
       "in {n} days",
     "còn ~{n} tháng":
       "in ~{n} months",
+
+    /* --- thang 100 điểm --- */
+    "Nhìn chữ → nghĩa": "Sight → meaning",
+    "Nghe câu → nghĩa": "Listening → meaning",
+    "Nhặt từ đồng nghĩa": "Pick the synonyms",
+    "Nhặt từ trái nghĩa": "Pick the antonyms",
+    "Mới gặp": "Just met",
+    "Thuộc mặt chữ": "Knows it by sight",
+    "Nghe ra": "Hears it",
+    "Gọi ra được lúc cần": "Recalls it when needed",
+    "mắt": "sight",
+    "tai": "hearing",
+    "mạng nghĩa": "meaning network",
+    "chưa có câu nguồn": "no source sentence yet",
+    "chưa tìm được từ đồng nghĩa": "no synonyms found yet",
+    "chưa tìm được từ trái nghĩa": "no antonyms found yet",
+    "chưa có dữ liệu": "no data yet",
+    "chưa mở": "not unlocked yet",
+    "Bấm để ôn các bài còn lại.": "Click to review the remaining exercises.",
+    "Chưa đo được: {ds}": "Not measured: {ds}",
+    "Chưa đo được: {ds} — nhãn ở trên chỉ nói tới phần đã đo.":
+      "Not measured: {ds} — the label above only covers what was measured.",
+    "Ôn bài còn lại": "Review the rest",
+    "Ôn {n} bài còn lại": "Review the {n} remaining",
+    "Chưa bài nào tới hạn": "Nothing due yet",
+    "Điểm {d} trên 100, mức {b}. Bấm để ôn các bài còn lại.":
+      "Score {d} out of 100, level {b}. Click to review the remaining exercises.",
+    "{t} giờ được {d}/100 · {b}": "{t} is now {d}/100 · {b}",
+    "Đã ôn {n} bài": "Reviewed {n} exercises",
+    "Xong rồi!": "All done!",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
 
@@ -1632,6 +1662,36 @@
       "あと {n} 日",
     "còn ~{n} tháng":
       "あと約 {n} か月",
+
+    /* --- thang 100 điểm --- */
+    "Nhìn chữ → nghĩa": "文字 → 意味",
+    "Nghe câu → nghĩa": "音声 → 意味",
+    "Nhặt từ đồng nghĩa": "類義語を選ぶ",
+    "Nhặt từ trái nghĩa": "対義語を選ぶ",
+    "Mới gặp": "出会ったばかり",
+    "Thuộc mặt chữ": "字面で分かる",
+    "Nghe ra": "聞き取れる",
+    "Gọi ra được lúc cần": "必要なときに出てくる",
+    "mắt": "目",
+    "tai": "耳",
+    "mạng nghĩa": "意味のつながり",
+    "chưa có câu nguồn": "元の文がまだありません",
+    "chưa tìm được từ đồng nghĩa": "類義語がまだ見つかりません",
+    "chưa tìm được từ trái nghĩa": "対義語がまだ見つかりません",
+    "chưa có dữ liệu": "データがまだありません",
+    "chưa mở": "まだ開いていません",
+    "Bấm để ôn các bài còn lại.": "残りの問題を復習するにはクリック。",
+    "Chưa đo được: {ds}": "未測定：{ds}",
+    "Chưa đo được: {ds} — nhãn ở trên chỉ nói tới phần đã đo.":
+      "未測定：{ds} — 上のラベルは測定できた分だけを指します。",
+    "Ôn bài còn lại": "残りを復習",
+    "Ôn {n} bài còn lại": "残り {n} 問を復習",
+    "Chưa bài nào tới hạn": "今は期限の問題がありません",
+    "Điểm {d} trên 100, mức {b}. Bấm để ôn các bài còn lại.":
+      "100点中 {d} 点、レベル {b}。残りの問題を復習するにはクリック。",
+    "{t} giờ được {d}/100 · {b}": "{t} は今 {d}/100 · {b}",
+    "Đã ôn {n} bài": "{n} 問を復習しました",
+    "Xong rồi!": "終わりました！",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 

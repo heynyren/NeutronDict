@@ -518,6 +518,15 @@ async function docNhipMs() {
 async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
+  /*
+   * Bảng đếm thẻ theo ngày, để Srs.cham né được ngày đã đông.
+   *
+   * Dựng lại ở TỪNG lượt chấm: một buổi có thể chấm cả trăm thẻ, mà mỗi lượt
+   * lại hẹn thêm một ngày mới. Giữ một bản cho cả buổi thì cả trăm thẻ ấy cùng
+   * nhìn một tấm lịch đã lỗi và cùng dồn vào đúng cái ngày mà tấm lịch tưởng
+   * là vắng — đúng hiện tượng đang đi chữa.
+   */
+  const lich = window.Srs.lichHen(Object.values(await getNB()));
   let kq = null;
   await capNhat((nb) => {
     const e = nb[key]; if (!e) return;
@@ -525,7 +534,8 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
     // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
-    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(), chat);
+    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(),
+                         chat, lich);
     const moi = Object.assign({}, e);
     moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
     // `srs` vẫn được ghi, và vẫn là thứ đồng bộ Drive / bản extension / máy chủ
@@ -560,6 +570,188 @@ function khiNaoOn(due, now) {
 function chuCap(it, now) {
   return tenCap(it.srs) + " · " + khiNaoOn(it.srs && it.srs.due, now);
 }
+
+/* -------------------------------------------------------------------- */
+/* Thang 100 điểm                                                        */
+/* -------------------------------------------------------------------- */
+/*
+ * Vì sao chip trên thẻ thôi hiện "Cấp N".
+ *
+ * "Cấp" đọc từ `srs.lv`, mà `srs` là bản GỘP lấy cấp của đường YẾU NHẤT. Đo
+ * trên 600 từ sau 180 ngày: 344 từ (57%) hiện cấp 0 trong khi đường nhìn của
+ * chúng trung bình đã cấp 5. Người học nhìn một từ mình nhận ra tức khắc và
+ * thấy "Cấp 1" — không ai học tiếp với cái đó.
+ *
+ * Thang 100 điểm cộng cả bốn đường lại có trọng số, nên công bỏ vào đường nào
+ * cũng hiện ra. Còn việc "đã chứng minh được tới đâu" thì do NHÃN nói, và nhãn
+ * có cổng riêng — xem Srs.diemTu.
+ */
+
+/** Đường không có dữ liệu thì nói rõ vì sao, đừng để trống cho người ta đoán. */
+function coSaoThieu(duong) {
+  if (duong === "nghe") return T("chưa có câu nguồn");
+  if (duong === "dong") return T("chưa tìm được từ đồng nghĩa");
+  if (duong === "trai") return T("chưa tìm được từ trái nghĩa");
+  return T("chưa có dữ liệu");
+}
+
+/** Một dòng gọn cho chip: "72 · Nghe ra". */
+function chuDiem(it) {
+  const d = window.Srs.diemTu(it);
+  return d.tong + " · " + T(d.ten);
+}
+
+/**
+ * Bốn dòng chi tiết — dùng chung cho tooltip của chip và cho khung bấm vào.
+ * @returns {Array<{duong,ten,diem,trangThai,co,han}>}
+ */
+function dongDiem(it, now) {
+  const nay = now || Date.now();
+  const d = window.Srs.diemTu(it);
+  const han = window.Srs.denHan(it, nay);
+  const mo = window.Srs.duongMo(it);
+  return window.Srs.DUONG.map((t) => {
+    const x = (it.duong || {})[t];
+    const co = d.phan[t] !== null;
+    let trangThai;
+    if (!co) trangThai = coSaoThieu(t);
+    else if (mo.indexOf(t) < 0) trangThai = T("chưa mở");
+    else if (han.indexOf(t) >= 0) trangThai = T("đến hạn");
+    else trangThai = khiNaoOn(x && x.due, nay);
+    return { duong: t, ten: T(window.Srs.TEN_DUONG[t]), diem: d.phan[t],
+             trangThai: trangThai, co: co, han: co && han.indexOf(t) >= 0 };
+  });
+}
+
+/** Bảng chi tiết dạng chữ, cho thuộc tính `title`. */
+function chuBangDiem(it, now) {
+  const d = window.Srs.diemTu(it);
+  const dong = dongDiem(it, now).map((r) =>
+    "· " + r.ten + ": " + (r.co ? r.diem + "/100 — " : "") + r.trangThai);
+  const dau = T2("{d}/100 · {b}", { d: d.tong, b: T(d.ten) });
+  const cuoi = d.chuaDo.length
+    ? "\n" + T2("Chưa đo được: {ds}", { ds: d.chuaDo.map((x) => T(x)).join(", ") })
+    : "";
+  return dau + "\n" + dong.join("\n") + cuoi + "\n" + T("Bấm để ôn các bài còn lại.");
+}
+
+/**
+ * Chip điểm: vừa là con số, vừa là thanh tiến độ, vừa là nút.
+ *
+ * Nền chip là một gradient dừng ở đúng số điểm — không thêm phần tử nào, không
+ * đổi bố cục, mà liếc một cái đã thấy được tiến độ trước khi kịp đọc con số.
+ */
+function chipDiem(it, now) {
+  const d = window.Srs.diemTu(it);
+  const den = isDue(it, now);
+  const b = el("button", "tag srs diem" + (den ? " due" : ""));
+  b.type = "button";
+  b.style.setProperty("--diem", d.tong + "%");
+  b.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
+  b.appendChild(el("span", null, chuDiem(it)));
+  b.title = chuBangDiem(it, now);
+  b.setAttribute("aria-label", T2("Điểm {d} trên 100, mức {b}. Bấm để ôn các bài còn lại.",
+                                  { d: d.tong, b: T(d.ten) }));
+  b.addEventListener("click", (e) => { e.stopPropagation(); moBangDiem(it); });
+  return b;
+}
+
+/**
+ * Lời báo sau một lượt chấm: "Nhớ → 72/100 (+5) · Nghe câu → nghĩa: còn 14 ngày".
+ *
+ * Đây là chỗ DUY NHẤT người học thấy con số đang NHÍCH LÊN — chip trên thẻ chỉ
+ * cho thấy nó đứng ở đâu. Nên phần chênh lệch phải có: một con số đứng một mình
+ * không nói được là lượt vừa rồi có ăn thua gì không.
+ *
+ * Nói luôn hạn của ĐÚNG đường vừa chấm chứ không phải hạn gộp, vì từ nay mỗi
+ * đường một lịch riêng — báo hạn gộp thì người ta tưởng cả từ đã hẹn xa như thế.
+ */
+function chuBaoCham(nho, truoc, mucSau, duong) {
+  const dau = nho ? T("Nhớ") : T("Quên");
+  if (!mucSau) return dau;
+  const d = window.Srs.diemTu(mucSau);
+  const chenh = d.tong - (typeof truoc === "number" ? truoc : d.tong);
+  const dc = chenh > 0 ? " (+" + chenh + ")" : (chenh < 0 ? " (" + chenh + ")" : "");
+  const x = (mucSau.duong || {})[duong];
+  return dau + " → " + d.tong + "/100" + dc + " · " +
+         T(window.Srs.TEN_DUONG[duong] || duong) + ": " + khiNaoOn(x && x.due, Date.now());
+}
+
+/** Từ đang mở bảng điểm — giữ lại để nút "Ôn bài còn lại" biết ôn từ nào. */
+let diemDangXem = null;
+
+/**
+ * Những đường nên đem ra ôn khi bấm "Ôn bài còn lại".
+ *
+ * Chỉ nhận đường CHƯA THỬ và đường ĐẾN HẠN. Hai lý do:
+ *
+ *   - Đó là chỗ có nhiều dư địa nhất. Một đường chưa thử đáng 0 điểm; làm đúng
+ *     một lượt là nó lên ngay ~12 điểm của đường ấy, và tổng nhích lên thấy rõ.
+ *
+ *   - Cho ôn cả đường CHƯA đến hạn thì con số cày được bằng cách bấm liên tục,
+ *     và nó thôi không còn là một phép đo trí nhớ nữa. Đường chưa tới hạn vẫn
+ *     hiện trong bảng, chỉ là không đem ra hỏi.
+ *
+ * Đường chưa mở (Srs.duongMo) cũng không nhận: hỏi từ đồng nghĩa của một từ vừa
+ * nhìn thấy đúng một lần là làm khó chứ không phải dạy.
+ */
+function duongOnDuoc(it, now) {
+  const nay = now || Date.now();
+  const mo = window.Srs.duongMo(it);
+  const han = window.Srs.denHan(it, nay);
+  return window.Srs.duongCo(it).filter((t) =>
+    mo.indexOf(t) >= 0 && (han.indexOf(t) >= 0 || window.Srs.ngayCua((it.duong || {})[t]) === 0));
+}
+
+function moBangDiem(it) {
+  const now = Date.now();
+  diemDangXem = it;
+  const d = window.Srs.diemTu(it);
+  $("dsTu").textContent = it.word;
+  $("dsTong").textContent = T2("{d}/100 · {b}", { d: d.tong, b: T(d.ten) });
+
+  const khung = $("dsBang");
+  khung.textContent = "";
+  for (const r of dongDiem(it, now)) {
+    const dong = el("div", "diem-dong" + (r.co ? "" : " thieu") + (r.han ? " den" : ""));
+    dong.appendChild(el("span", "diem-ten", r.ten));
+    const thanh = el("span", "diem-thanh");
+    if (r.co) thanh.style.setProperty("--diem", r.diem + "%");
+    dong.appendChild(thanh);
+    dong.appendChild(el("span", "diem-so", r.co ? String(r.diem) : "—"));
+    dong.appendChild(el("span", "diem-khi", r.trangThai));
+    khung.appendChild(dong);
+  }
+
+  // Nói thẳng chiều nào chưa đo được, để cái nhãn kia không bị đọc thành một
+  // lời hứa rộng hơn những gì thật sự đã chứng minh.
+  $("dsChuaDo").textContent = d.chuaDo.length
+    ? T2("Chưa đo được: {ds} — nhãn ở trên chỉ nói tới phần đã đo.",
+         { ds: d.chuaDo.map((x) => T(x)).join(", ") })
+    : "";
+
+  const on = duongOnDuoc(it, now);
+  $("dsOn").disabled = !on.length;
+  $("dsOn").textContent = on.length
+    ? T2("Ôn {n} bài còn lại", { n: on.length })
+    : T("Chưa bài nào tới hạn");
+  $("diemSheet").classList.add("show");
+}
+
+function dongBangDiem() {
+  $("diemSheet").classList.remove("show");
+  diemDangXem = null;
+}
+
+$("dsThoat").addEventListener("click", dongBangDiem);
+$("diemSheet").addEventListener("click", (e) => { if (e.target === $("diemSheet")) dongBangDiem(); });
+$("dsOn").addEventListener("click", async () => {
+  const it = diemDangXem;
+  if (!it) return;
+  const ds = duongOnDuoc(it, Date.now());
+  dongBangDiem();
+  if (ds.length) await hocRieng(it, ds);
+});
 
 function dueCountOn(list, dayOffset) {
   // Số mục đến hạn tính đến cuối ngày thứ dayOffset (0 = hôm nay).
@@ -2653,14 +2845,9 @@ async function drawNotebook() {
       t.appendChild(el("span", null, T("đã sửa")));
       head.appendChild(t);
     }
-    // Cấp và hạn ôn đi cùng một chỗ — xem ghi chú cùng chỗ này bên bản extension.
-    {
-      const den = isDue(it, now);
-      const t = el("span", "tag srs" + (den ? " due" : ""));
-      t.appendChild(ic(den ? "alarm" : "target", { size: 12 }));
-      t.appendChild(el("span", null, chuCap(it, now)));
-      head.appendChild(t);
-    }
+    // Điểm và hạn ôn đi cùng một chỗ — xem ghi chú cùng chỗ này bên bản
+    // extension. Chip bấm được: mở bảng bốn đường và ôn ngay bài còn lại.
+    head.appendChild(chipDiem(it, now));
     body.appendChild(head);
 
     const hvS = hanVietOf(it.word);
@@ -2953,6 +3140,41 @@ $("stStart").addEventListener("click", async () => {
   showCard();
 });
 
+/**
+ * Buổi ôn của MỘT từ, mở thẳng từ chip điểm.
+ *
+ * Dùng lại nguyên bộ máy của buổi học thường — xem ghi chú bên bản extension.
+ * Bản Android khác hai chỗ, và cả hai đều đủ sức làm hỏng việc trong im lặng:
+ *
+ *   - `tuNhieu` (kho từ nhiễu của bài liên kết) chỉ được nạp BÊN TRONG trình
+ *     xử lý bấm nút Học. Vào thẳng đây mà quên nạp thì bài liên kết chỉ còn
+ *     đúng mấy ô đáp án trên màn, không còn gì để nhặt nhầm — bài vẫn chạy,
+ *     vẫn chấm, chỉ là nó không còn đo cái gì nữa.
+ *
+ *   - Màn học ở đây là một VIEW chứ không phải lớp phủ như bên extension, nên
+ *     phải show("Study") rồi mới dọn phần chờ. Thiếu bước ấy thì buổi học dựng
+ *     xong mà màn hình vẫn đứng nguyên ở sổ tay.
+ *
+ * @param {string[]} ds tên các đường sẽ ôn, theo đúng thứ tự
+ */
+async function hocRieng(it, ds) {
+  try {
+    const nbAll = await getNBNgu();
+    tuNhieu = Object.keys(nbAll).map((k) => nbAll[k])
+      .filter((x) => x && !x.del && x.word).map((x) => x.word);
+  } catch (e) { tuNhieu = []; }
+  session = { queue: ds.map((d) => Object.assign({}, it, { _d: d })),
+              done: 0, again: 0, deleted: 0, rieng: it.key };
+  lastDeleted = null;
+  show("Study");
+  $("stUndo").style.display = "none";
+  $("stIdle").style.display = "none";
+  $("stBody").style.display = "";
+  $("stStart").style.display = "none";
+  batNhacTau();
+  showCard();
+}
+
 function renderStudyFav(it) {
   const box = $("stFav");
   box.innerHTML = "";
@@ -3112,7 +3334,21 @@ function showCard(giuLat) {
   }
   if (laLien) veBaiLien(it);
 
-  $("stProg").textContent = T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done });
+  /*
+   * Nói luôn ĐANG KIỂM ĐƯỜNG NÀO và từ này đang được mấy điểm.
+   *
+   * Từ khi mỗi đường một lịch riêng, cùng một từ có thể hiện ra dưới bốn kiểu
+   * đề khác nhau. Không nói ra thì người học gặp đề nghe của một từ mình vừa
+   * làm đề nhìn hôm qua và tưởng app hỏi lặp. Còn con số điểm thì đây là chỗ
+   * nó cần có mặt nhất: ngay lúc người ta đang bỏ công ra làm cho nó lên.
+   */
+  {
+    const dTu = window.Srs.diemTu(it);
+    $("stProg").textContent =
+      T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done })
+      + "\u3000·\u3000" + T(window.Srs.TEN_DUONG[it._d || "nhin"] || "")
+      + "\u3000·\u3000" + dTu.tong + "/100";
+  }
   $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
   $("stWord").className = "cw" + (laNhat() ? " ja" : "");
@@ -3417,7 +3653,10 @@ async function grade(remembered) {
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
   const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
   mocHienThe = 0;
+  // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
+  const truocDiem = window.Srs.diemTu(it).tong;
   await gradeWord(it.key, remembered, ms, it._d || "nhin");
+  toast(chuBaoCham(remembered, truocDiem, (await getNB())[it.key], it._d || "nhin"));
   if (remembered) session.done++;
   else { session.again++; session.queue.push(Object.assign({}, it)); }   // quên -> học lại cuối hàng
 
@@ -3483,8 +3722,28 @@ async function finishStudy() {
   $("stStart").style.display = "";
   $("stProg").textContent = "";
 
-  const view = await theoDoi.xem();
   $("stIdleIcon").innerHTML = window.Icon("confetti", { size: 52, weight: "duo" });
+  /*
+   * Buổi ôn riêng thì tổng kết bằng CHÍNH CON SỐ đã hứa lúc bấm vào chip.
+   * Người ta bấm vào "72/100" vì muốn thấy nó nhích lên; báo lại chuỗi ngày và
+   * mục tiêu hôm nay là trả lời một câu hỏi khác hẳn câu họ vừa hỏi.
+   */
+  if (session.rieng) {
+    const m = (await getNB())[session.rieng];
+    const d = m ? window.Srs.diemTu(m) : null;
+    $("stIdleTitle").textContent = T("Xong rồi!");
+    $("stIdleSub").textContent = d
+      ? T2("{t} giờ được {d}/100 · {b}", { t: m.word, d: d.tong, b: T(d.ten) })
+      : T2("Đã ôn {n} bài", { n: session.done });
+    session = { queue: [], done: 0, again: 0, deleted: 0 };
+    const dueR = await currentDue();
+    $("dueCount").textContent = String(dueR.length);
+    $("stStart").disabled = dueR.length === 0;
+    veChuoiNgay(); syncSoon(); refreshNotifications();
+    return;
+  }
+
+  const view = await theoDoi.xem();
   $("stIdleTitle").textContent = T("Xong buổi học!");
   const phan = [T2("Đã thuộc {n} mục", { n: session.done })];
   if (session.again) phan.push(T2("học lại {n} lượt", { n: session.again }));
