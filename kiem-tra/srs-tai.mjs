@@ -20,7 +20,23 @@ import { fileURLToPath } from "node:url";
 const GOC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const g = {};
 new Function("self", fs.readFileSync(path.join(GOC, "extension/srs.js"), "utf8"))(g);
-const Srs = g.Srs;
+new Function("self", fs.readFileSync(path.join(GOC, "extension/tu-lien.js"), "utf8"))(g);
+const Srs = g.Srs, TuLien = g.TuLien;
+
+/*
+ * Đọc hai hằng số ôn-kèm THẲNG TỪ notebook.js.
+ *
+ * Bài này phải mô phỏng lại luật của `hangDoiKhoi`, mà chép tay hằng số sang
+ * đây thì hôm nào ai đó nới `CUM_TOI_DA` lên, cổng đo tải vẫn xanh trong khi
+ * app thật đã nặng gấp đôi — đúng kiểu hỏng mà bài kiểm không thấy.
+ */
+const NB = fs.readFileSync(path.join(GOC, "extension/notebook.js"), "utf8");
+const hangSo = (ten) => {
+  const m = NB.match(new RegExp("const\\s+" + ten + "\\s*=\\s*(\\d+)"));
+  if (!m) throw new Error("không đọc được hằng số " + ten + " trong notebook.js");
+  return parseInt(m[1], 10);
+};
+const CUM_TOI_DA = hangSo("CUM_TOI_DA"), CUM_NGHI_NGAY = hangSo("CUM_NGHI_NGAY");
 
 const NGAY = 86400000;
 /** Tỉ lệ nhớ theo từng đường — bài khó thì quên nhiều hơn. */
@@ -120,6 +136,80 @@ la(k.capThap < 10, "dưới 10% số từ kẹt ở capChung ≤ 0", k.capThap.t
   // Sổ lớn cũng không được phình theo cấp số nhân.
   const lon = chay({ soTu: 1500, soNgay: 240 });
   la(lon.tb < 900, "sổ 1.500 từ vẫn dưới 900 thẻ/ngày", lon.tb.toFixed(0));
+}
+
+/* ------------------------------------------------------------------ */
+/*
+ * ÔN KÈM CỤM làm tăng bao nhiêu thẻ mỗi ngày.
+ *
+ * Đây là cổng quan trọng nhất của việc ôn kèm: nó cho người học thứ họ muốn
+ * (mấy từ gần nghĩa đi liền nhau) bằng cách ĐÁNH ĐỔI số thẻ mỗi buổi — mà số
+ * thẻ mỗi buổi đúng là thứ vừa mới phải đi chữa. Đo trước khi tin.
+ *
+ * Luật ở đây mô phỏng `hangDoiKhoi` trong notebook.js; hai hằng số thì đọc
+ * thẳng từ tệp ấy nên không lệch được.
+ */
+function chayCum(batCum, soTu) {
+  let rnd = 12345;
+  const r = () => (rnd = (rnd * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const muc = [], tk = {}, nghi = {};
+  let now = Date.now(), tong = 0;
+  const moiNgay = [];
+  // Mỗi từ nối với 2–4 từ lân cận — giống cảnh người học bấm "+ Lưu" ngay ở
+  // màn kết quả bài liên kết, tức là cụm được dựng dần từ chính chỗ ấy.
+  const mk = (i) => {
+    const ban = [], n = 2 + Math.floor(r() * 3);
+    for (let j = 1; j <= n; j++) if (i - j >= 0) ban.push("w" + (i - j));
+    return { key: "k" + i, word: "w" + i, duong: {}, cauNghe: { cau: "x" },
+             lien: { dong: ban.slice(0, 2), trai: ban.slice(2) } };
+  };
+  for (let ngay = 0; ngay < 180; ngay++) {
+    while (muc.length < soTu && muc.length < (ngay + 1) * 10) muc.push(mk(muc.length));
+    const ci = batCum ? TuLien.chiMucLien(muc) : null;
+    const theoKhoa = new Map(muc.map((m) => [m.key, m]));
+    const daKeo = new Set(), the = [];
+    for (const m of muc) {
+      const han = Srs.denHan(m, now);
+      if (!han.length) continue;
+      for (const d of han) the.push([m, d, false]);
+      if (batCum && !daKeo.has(m.key) && now - (nghi[m.key] || 0) >= CUM_NGHI_NGAY * NGAY) {
+        const ban = TuLien.cumCua(m, ci).map((k) => theoKhoa.get(k))
+          .filter((x) => x && !daKeo.has(x.key))
+          .sort((a, b) => Srs.diemTu(a).tong - Srs.diemTu(b).tong)
+          .slice(0, CUM_TOI_DA);
+        for (const b of ban) {
+          const hb = Srs.denHan(b, now);
+          the.push([b, hb[0] || "nhin", !hb.length]);
+          daKeo.add(b.key);
+        }
+        if (ban.length) nghi[m.key] = now;
+      }
+      daKeo.add(m.key);
+    }
+    moiNgay.push(the.length);
+    tong += the.length;
+    for (const [m, d, laSom] of the) {
+      const nho = r() < TILE[d];
+      if (laSom && nho) continue;                  // ôn kèm mà nhớ: không xếp lịch lại
+      const chat = (d === "dong" || d === "trai") ? (nho ? 0.5 + r() * 0.5 : 0.3) : undefined;
+      const kq = Srs.cham(m.duong[d] || null, nho, NHIP[d] * (0.6 + r() * 0.9), tk[d],
+                          now, d, r(), chat);
+      m.duong[d] = kq.duong; tk[d] = kq.tk;
+    }
+    now += NGAY;
+  }
+  return { tb: tong / 180, dinh: Math.max(...moiNgay) };
+}
+{
+  console.log("\n  — ôn kèm cụm (" + CUM_TOI_DA + " bạn · nghỉ " + CUM_NGHI_NGAY + " ngày) —");
+  for (const soTu of [600, 1500]) {
+    const tat = chayCum(false, soTu), bat = chayCum(true, soTu);
+    const tang = (bat.tb / tat.tb - 1) * 100;
+    la(tang <= 35, "sổ " + soTu + " từ: ôn kèm không làm tăng quá 35% số thẻ",
+       tat.tb.toFixed(0) + " → " + bat.tb.toFixed(0) + " thẻ/ngày (+" + tang.toFixed(0) + "%)");
+    la(bat.dinh <= tat.dinh * 1.45, "sổ " + soTu + " từ: ngày nặng nhất không phình quá 45%",
+       tat.dinh + " → " + bat.dinh);
+  }
 }
 
 if (process.argv.includes("--bang")) {

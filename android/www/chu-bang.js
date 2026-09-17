@@ -828,6 +828,12 @@
     "{t} giờ được {d}/100 · {b}": "{t} is now {d}/100 · {b}",
     "Đã ôn {n} bài": "Reviewed {n} exercises",
     "Xong rồi!": "All done!",
+    "Cùng cụm:": "Same cluster:",
+    "ôn kèm cụm {t}": "reviewed alongside {t}",
+    "Ôn kèm cùng nhau; điểm thì mỗi từ giữ riêng.":
+      "Reviewed together; each word keeps its own score.",
+    "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
+      "Study mode: when a word comes due, also review the synonyms / antonyms of it you have saved, one right after another — to practise telling close words apart",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
 
@@ -1660,6 +1666,12 @@
     "{t} giờ được {d}/100 · {b}": "{t} は今 {d}/100 · {b}",
     "Đã ôn {n} bài": "{n} 問を復習しました",
     "Xong rồi!": "終わりました！",
+    "Cùng cụm:": "同じグループ：",
+    "ôn kèm cụm {t}": "{t} と一緒に復習",
+    "Ôn kèm cùng nhau; điểm thì mỗi từ giữ riêng.":
+      "一緒に復習しますが、点数は語ごとに別です。",
+    "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
+      "学習モード：ある語が期限になったら、保存してある類義語・対義語も続けて出します——近い語を区別する練習のため",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 
