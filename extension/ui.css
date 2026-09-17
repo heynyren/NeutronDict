@@ -445,6 +445,53 @@ select { cursor: pointer; }
 .tag.srs { color: var(--ink-3); background: var(--surface-2); }
 .tag.srs.due { color: var(--warn); background: var(--warn-soft); }
 
+/* Chip điểm: con số, thanh tiến độ và cái nút, gộp làm một.
+   Nền là gradient dừng đúng ở số điểm (--diem) nên không cần thêm phần tử nào —
+   liếc một cái đã thấy được tiến độ trước khi kịp đọc con số. */
+.tag.srs.diem {
+  border: 0;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(to right,
+    var(--accent-soft) 0 var(--diem, 0%), var(--surface-2) var(--diem, 0%) 100%);
+  transition: filter 0.14s, box-shadow 0.14s;
+}
+.tag.srs.diem:hover { filter: brightness(0.97); }
+.tag.srs.diem:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tag.srs.diem.due {
+  background: linear-gradient(to right,
+    var(--warn-soft) 0 var(--diem, 0%), var(--surface-2) var(--diem, 0%) 100%);
+}
+
+/* Bảng bốn đường trong phiếu điểm. */
+.diem-ds { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 12px; }
+.diem-dong {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) 64px 30px auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.diem-ten { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diem-thanh {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right,
+    var(--accent) 0 var(--diem, 0%), var(--surface-2) var(--diem, 0%) 100%);
+}
+.diem-so { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.diem-khi { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+/* Đường không có dữ liệu: để mờ hẳn, vì nó không phải việc người học bỏ dở. */
+.diem-dong.thieu { opacity: 0.55; }
+.diem-dong.thieu .diem-thanh { background: var(--surface-2); }
+.diem-dong.den .diem-khi { color: var(--warn); font-weight: 600; }
+@media (max-width: 480px) {
+  .diem-dong { grid-template-columns: 1fr 44px 28px; }
+  .diem-khi { grid-column: 1 / -1; margin-top: -4px; }
+}
+
 /* --------------------------------------------------------------------------
    8. Thanh tiến trình và vòng tròn KPI
    -------------------------------------------------------------------------- */

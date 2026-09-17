@@ -481,6 +481,26 @@
   </div>
 </div>
 
+<!-- Bảng điểm của MỘT từ: bốn đường, mỗi đường một điểm và một hạn ôn riêng.
+     Mở ra khi bấm vào chip điểm trên thẻ.
+
+     Vì sao cần nó: chip chỉ nói được một con số tổng, mà con số ấy gộp từ bốn
+     đường rất khác nhau — người học phải thấy được mình đang yếu ở đường nào
+     thì mới biết làm gì tiếp. Và thấy rồi thì phải làm được ngay, nên có luôn
+     nút ôn thẳng những bài còn lại của đúng từ đó. -->
+<div id="diemSheet" class="sheet">
+  <div class="panel" style="max-width:460px">
+    <h3><span id="dsTu"></span></h3>
+    <div class="sub" id="dsTong"></div>
+    <div id="dsBang" class="diem-ds"></div>
+    <div class="t-tiny faint" id="dsChuaDo"></div>
+    <div class="actions">
+      <button class="btn primary" id="dsOn" type="button" data-chu>Ôn bài còn lại</button>
+      <button class="btn" id="dsThoat" type="button" data-chu>Đóng</button>
+    </div>
+  </div>
+</div>
+
 <!-- Xem ảnh to.
      Chỗ này trước gọi window.open. Trên máy tính thì đó là một tab mới có nút
      đóng; trong WebView của app thì KHÔNG — ảnh chiếm kín màn hình, không thanh
