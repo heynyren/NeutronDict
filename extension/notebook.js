@@ -3701,7 +3701,7 @@ async function veSoDo() {
   b.appendChild(th);
   for (const x of ds) {
     const tr = el("tr", x.duMau ? "du" : "thieu");
-    tr.appendChild(el("td", null, window.Srs.TEN_DUONG[x.duong] || x.duong));
+    tr.appendChild(el("td", null, T(window.Srs.TEN_DUONG[x.duong] || x.duong)));
     tr.appendChild(el("td", null, String(x.lv < 0 ? 0 : x.lv + 1)));
     tr.appendChild(el("td", null, T2("{n} ngày", { n: x.ngayTB })));
     tr.appendChild(el("td", null, String(x.n)));

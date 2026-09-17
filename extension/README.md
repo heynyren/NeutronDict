@@ -17,7 +17,11 @@ Bôi đen một từ **tiếng Anh** trên trang web hoặc PDF để tra ngay: 
 - **Phát âm:** ưu tiên **file audio thật** của từ điển; nếu không có thì dùng giọng máy (`en-US`).
 - **Dịch câu:** bôi đen đoạn dài → popup tự chuyển sang **Dịch** (Google Dịch); bấm ＋ Lưu để cất bản dịch.
 - **Sổ tay + sổ con:** ＋ Lưu để cất từ; mở 📒 Sổ tay để lọc, phân loại theo bài, **xuất Anki (TSV)/CSV**, sao lưu JSON.
-- **Ôn tập SRS:** nút 🎓 Học ôn các từ đến hạn theo chu kỳ 1→3→7→14→30→60→120 ngày; phím Space (hiện nghĩa), 1 (Quên), 2 (Nhớ), 0 (xoá đã thuộc).
+- **Ôn tập SRS bốn đường:** nút 🎓 Học ôn những BÀI đến hạn — nhìn chữ, nghe câu, nhặt từ đồng nghĩa,
+  nhặt từ trái nghĩa. Mỗi đường một lịch riêng nên quên bài nào chỉ phải làm lại bài đó.
+  Chip trên thẻ hiện **điểm trên thang 100** kèm mức tư duy đã đạt ("Thuộc mặt chữ" → "Nghe ra" →
+  "Gọi ra được lúc cần"); bấm vào chip để xem từng đường và ôn thẳng những bài còn lại.
+  Phím Space (hiện nghĩa), 1 (Quên), 2 (Nhớ), 0 (xoá đã thuộc).
 - **Truy nguồn + tô sáng:** từ/câu lưu từ một trang web sẽ nhớ địa chỉ; bấm 🔗 Nguồn để mở lại đúng trang và tô sáng vị trí đã lưu.
 - **Bộ nhớ đệm:** 1.000 từ, 30 ngày — tra lại tức thì, dùng được cả khi mất mạng.
 - **Đồng bộ Google Drive** (tuỳ chọn) qua Apps Script của bạn — xem `sync-google-apps-script.gs`.

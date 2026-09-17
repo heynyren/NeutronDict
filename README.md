@@ -20,7 +20,9 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Bôi đen là hiện popup ngay tại con trỏ** (web), hoặc `Ctrl+C` + phím tắt (PDF), hoặc chuột phải.
   Popup chạy đồng thời **tra từ, chi tiết và dịch cả câu**, xếp vào ba tab — không còn tự
   đoán bạn muốn tra từ hay dịch câu.
-- **Sổ tay + sổ con phân loại**, **ôn tập SRS** (1→3→7→14→30→60→120 ngày), xuất **Anki/CSV**, sao lưu JSON.
+- **Sổ tay + sổ con phân loại**, **ôn tập SRS bốn đường** (nhìn chữ · nghe câu · nhặt từ đồng nghĩa ·
+  nhặt từ trái nghĩa) — mỗi đường một lịch riêng, quên bài nào chỉ làm lại bài đó, và một
+  **thang 100 điểm** chung cho biết từ ấy đã vững tới mức nào. Xuất **Anki/CSV**, sao lưu JSON.
 - **Đồng bộ Google Drive** giữa máy tính và điện thoại (qua Apps Script của bạn).
 - **Android:** nhắc học hằng ngày, nhận chữ từ menu bôi đen (PROCESS_TEXT) và bảng Chia sẻ (kèm link nguồn).
 - **Theo dõi quá trình học & phần thưởng:** mục tiêu mỗi ngày, chuỗi ngày liên tiếp,
