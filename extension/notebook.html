@@ -82,8 +82,17 @@
        thấy đúng cái thẻ đang học. */
     #studyOverlay { position: fixed; inset: 0; z-index: 260; background: var(--bg); display: none; }
     #studyOverlay.show { display: flex; flex-direction: column; }
-    #studyOverlay .stwrap { flex: 1; overflow-y: auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    #studyOverlay .stcol { width: min(560px, 100%); }
+    /* Căn giữa bằng `margin:auto` trên thẻ con, KHÔNG bằng `align-items:center`.
+       `align-items:center` trên một vùng CÓ CUỘN là lỗi kinh điển: nội dung cao
+       hơn khung thì phép căn giữa đẩy tràn ra CẢ HAI đầu, mà phần tràn ở đầu
+       TRÊN thì không cuộn tới được — nó nằm ngoài vùng cuộn chứ không phải ở
+       trên nó. Đo được trên màn kết quả bài liên kết 16 hàng: scrollTop đã là 0
+       mà đỉnh thẻ vẫn ở −168px trong khi đỉnh khung ở 60px, tức mất đứt 227px,
+       và hàng đầu nằm ở y = −77px. Người học thấy đúng cảnh "bị cắt mất chữ".
+       `margin:auto` thì còn chỗ trống vẫn căn giữa y như cũ, hết chỗ thì co về
+       0 nên không cắt mất gì. */
+    #studyOverlay .stwrap { flex: 1; overflow-y: auto; display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
+    #studyOverlay .stcol { width: min(560px, 100%); margin: auto; }
     #studyOverlay .sttop { display: flex; align-items: center; gap: 12px; padding: 14px 18px; }
   </style>
 </head>
@@ -364,9 +373,16 @@
             <div class="t-small muted" id="stLienDe" style="text-align:center;margin-bottom:12px"></div>
             <div id="stLienO" class="lien-o"></div>
             <button class="btn primary block lg" id="stLienXong" type="button" style="margin-top:16px" data-chu>Xong</button>
-            <div class="t-small" id="stLienKq" style="text-align:center;margin-top:12px"></div>
-            <button class="btn primary block lg" id="stLienTiep" type="button"
-                    style="display:none;margin-top:12px" data-chu>Tiếp</button>
+            <!-- Điểm và nút Tiếp DÍNH ĐÁY khung cuộn.
+                 Để chúng nằm cuối danh sách như trước thì với 16 hàng, nút Tiếp
+                 rơi xuống y = 809px trên màn cao 800px — dưới mép màn hình. Làm
+                 xong bài phải cuộn qua cả danh sách mới thấy đường đi tiếp, mà
+                 lúc ấy điểm vừa chấm cũng đã trôi khỏi tầm mắt. -->
+            <div class="lien-day" id="stLienDay">
+              <div class="t-small" id="stLienKq"></div>
+              <button class="btn primary lg" id="stLienTiep" type="button"
+                      style="display:none" data-chu>Tiếp</button>
+            </div>
           </div>
           <div id="stNgheCau" class="cr" style="display:none"></div>
           <div class="cr" id="stRead"></div>
