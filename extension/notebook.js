@@ -2334,45 +2334,86 @@ let tiepBaiLien = null;
  *   - nút LƯU từng từ. Gặp một từ hay ngay trong lúc học mà phải nhớ để lát
  *     nữa đi tra lại thì chẳng ai làm.
  */
+/**
+ * Một hàng của màn kết quả: con chữ, chỗ chờ điền nghĩa, và nút Lưu.
+ *
+ * Tách ra khỏi vòng lặp để ba nhóm dưới dùng chung đúng một cách dựng hàng —
+ * chia nhóm là việc của thứ tự, không được đẻ thêm ba biến thể của cùng một hàng.
+ *
+ * @returns {{chu:string, o:HTMLElement, hang:HTMLElement}} `o` là ô nghĩa, để
+ *   lượt điền nghĩa ngay sau đó ghi vào.
+ */
+function hangLien(chu, b) {
+  const hang = el("div", "lien-hang");
+  const nhan = el("div", "lien-tu", chu);
+  if (b.chon.has(chu)) nhan.classList.add(b.dung.has(chu) ? "dung" : "sai");
+  else if (b.dung.has(chu)) nhan.classList.add("sot");
+  hang.appendChild(nhan);
+
+  const ngh = el("div", "lien-nghia muted", "…");
+  hang.appendChild(ngh);
+
+  // Từ đang học thì khỏi bày nút Lưu — nó đã ở trong sổ rồi.
+  const daCo = items.some((x) => !x.del && x.word === chu);
+  const nut = el("button", "chip nho", daCo ? T("Đã có") : T("+ Lưu"));
+  nut.type = "button";
+  nut.disabled = daCo;
+  nut.addEventListener("click", () => {
+    nut.disabled = true;
+    nut.textContent = T("Đang lưu…");
+    chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
+      async (kq) => {
+        if (chrome.runtime.lastError || !kq || !kq.ok) {
+          nut.disabled = false; nut.textContent = T("+ Lưu");
+          toast(T("Không lưu được từ này"), "bad");
+          return;
+        }
+        nut.textContent = T("Đã lưu");
+        await load();
+        syncSoon();
+      });
+  });
+  hang.appendChild(nut);
+  return { chu: chu, o: ngh, hang: hang };
+}
+
 function veKetQuaLien(b, dung, ms) {
   const khung = $("stLienO");
   const ds = [];
   khung.textContent = "";
   khung.classList.add("kq");
-  for (const chu of b.o) {
-    const hang = el("div", "lien-hang");
-    const nhan = el("div", "lien-tu", chu);
-    if (b.chon.has(chu)) nhan.classList.add(b.dung.has(chu) ? "dung" : "sai");
-    else if (b.dung.has(chu)) nhan.classList.add("sot");
-    hang.appendChild(nhan);
 
-    const ngh = el("div", "lien-nghia muted", "…");
-    hang.appendChild(ngh);
+  /*
+   * BA NHÓM, và vẫn bày đủ từng ô một.
+   *
+   * Mười sáu hàng giống hệt nhau thì thứ đáng nhìn nhất — mình vừa làm đúng hay
+   * sai — chìm nghỉm giữa đám từ nhiễu. Nhưng bỏ bớt từ nhiễu đi thì mất luôn
+   * cái lý do màn này tồn tại: nhiễu lấy từ chính sổ tay người học, gặp từ hay
+   * thì lưu ngay tại đây. Nên không giấu gì cả, chỉ xếp lại.
+   *
+   * Trong nhóm ĐÁP ÁN thì BỎ SÓT lên trước: nó là thứ đáng nhìn lại nhất, mà
+   * nếu để lẫn theo thứ tự cũ thì nó nằm đâu là chuyện may rủi.
+   */
+  const dapAn = b.o.filter((c) => b.dung.has(c))
+    .sort((x, y) => (b.chon.has(x) ? 1 : 0) - (b.chon.has(y) ? 1 : 0));
+  const nhatNham = b.o.filter((c) => b.chon.has(c) && !b.dung.has(c));
+  const nhieu = b.o.filter((c) => !b.dung.has(c) && !b.chon.has(c));
 
-    // Từ đang học thì khỏi bày nút Lưu — nó đã ở trong sổ rồi.
-    const daCo = items.some((x) => !x.del && x.word === chu);
-    const nut = el("button", "chip nho", daCo ? T("Đã có") : T("+ Lưu"));
-    nut.type = "button";
-    nut.disabled = daCo;
-    nut.addEventListener("click", () => {
-      nut.disabled = true;
-      nut.textContent = T("Đang lưu…");
-      chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
-        async (kq) => {
-          if (chrome.runtime.lastError || !kq || !kq.ok) {
-            nut.disabled = false; nut.textContent = T("+ Lưu");
-            toast(T("Không lưu được từ này"), "bad");
-            return;
-          }
-          nut.textContent = T("Đã lưu");
-          await load();
-          syncSoon();
-        });
-    });
-    hang.appendChild(nut);
-    khung.appendChild(hang);
-    ds.push({ chu: chu, o: ngh });
-  }
+  const veNhom = (ten, cls, ds2) => {
+    if (!ds2.length) return;                      // nhóm rỗng thì bỏ hẳn tiêu đề
+    const h = el("div", "lien-nhom" + (cls ? " " + cls : ""));
+    h.appendChild(el("span", null, ten));
+    h.appendChild(el("span", "dem", "(" + ds2.length + ")"));
+    khung.appendChild(h);
+    for (const chu of ds2) {
+      const r = hangLien(chu, b);
+      khung.appendChild(r.hang);
+      ds.push(r);
+    }
+  };
+  veNhom(T("Đáp án"), "dap", dapAn);
+  veNhom(T("Nhặt nhầm"), "nham", nhatNham);
+  veNhom(T("Từ nhiễu — gặp thì học luôn"), "", nhieu);
 
   $("stLienXong").style.display = "none";
   $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",

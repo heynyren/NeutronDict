@@ -768,12 +768,53 @@ select { cursor: pointer; }
   padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px;
   background: var(--surface);
 }
-.lien-tu { font-size: 16px; font-weight: 650; flex: 0 0 auto; min-width: 84px; }
+/* `nowrap` + min-width rộng hơn một chút: 共振状態 hay 完結する là bốn năm chữ
+   Hán, để 84px thì cột chữ bị bóp và có khi ngắt giữa từ. */
+/* `text-align: left` phải ghi rõ: .studycard căn giữa, và con chữ thừa hưởng
+   cái đó thì mỗi hàng một lề khác nhau, cột trái không thành cột. */
+.lien-tu { font-size: 16px; font-weight: 650; flex: 0 0 auto; min-width: 92px;
+           white-space: nowrap; text-align: left; }
 .lien-tu.dung { color: var(--good); }
 .lien-tu.sai { color: var(--bad, #c0392b); text-decoration: line-through; }
 .lien-tu.sot { color: var(--good); border-bottom: 2px dashed var(--good); }
 .lien-nghia { flex: 1 1 auto; font-size: 13px; line-height: 1.4; text-align: left; }
 .lien-hang .chip.nho { flex: 0 0 auto; font-size: 12px; padding: 5px 10px; }
+
+/* Tiêu đề nhóm. Màn kết quả bày HẾT tối đa 16 ô — đáp án lẫn từ nhiễu — và bày
+   hết là có chủ ý: nhiễu lấy từ chính sổ tay người học, gặp từ hay thì lưu luôn.
+   Nhưng mười sáu hàng giống hệt nhau thì cái đáng nhìn nhất (mình làm đúng
+   không) chìm nghỉm. Chia nhóm là giữ nguyên mọi thứ, chỉ cho mắt biết nhìn đâu
+   trước. */
+.lien-nhom {
+  display: flex; align-items: baseline; gap: 6px;
+  margin: 16px 2px 6px; font-size: 11px; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3);
+}
+.lien-nhom:first-child { margin-top: 0; }
+.lien-nhom.dap { color: var(--good); }
+.lien-nhom.nham { color: var(--bad, #c0392b); }
+.lien-nhom .dem { font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+
+/* Điểm + nút Tiếp, dính đáy khung cuộn — xem ghi chú trong notebook.html.
+   Âm margin để tràn hết bề ngang thẻ và bo khớp hai góc dưới của .studycard. */
+.lien-day { display: none; }
+/* `bottom: -20px` chứ không phải 0, và bù lại bằng padding đáy đúng 20px.
+   .stwrap đệm 20px quanh mép, nên dính ở `bottom: 0` thì thanh dừng CAO HƠN đáy
+   khung cuộn đúng 20px — vừa đủ để hàng kế tiếp ló ra một mẩu bên dưới, trông
+   như thẻ bị cắt. Thả thêm 20px cho thanh phủ kín dải đệm ấy. */
+#stLienO.kq ~ .lien-day {
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; bottom: -20px; z-index: 1;
+  margin: 14px -20px -18px; padding: 12px 20px 32px;
+  background: var(--surface); border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+#stLienO.kq ~ .lien-day #stLienKq { flex: 1 1 auto; text-align: left; }
+#stLienO.kq ~ .lien-day #stLienTiep { flex: 0 0 auto; min-width: 128px; }
+@media (max-width: 480px) {
+  #stLienO.kq ~ .lien-day { flex-direction: column; align-items: stretch; gap: 8px; }
+  #stLienO.kq ~ .lien-day #stLienKq { text-align: center; }
+}
 
 /* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
    Phóng to bằng `transform` chứ không bằng `font-size` — đổi cỡ chữ là cả câu
