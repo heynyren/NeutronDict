@@ -224,6 +224,10 @@
       <summary data-chu><span id="icNhip"></span> Nhịp đọc &amp; nhắc tập trung <span class="caret" id="cr4"></span></summary>
       <div class="boxbody">
         <label class="check" style="margin-bottom:6px">
+          <input type="checkbox" id="setOnCum">
+          <span data-chu>Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau</span>
+        </label>
+        <label class="check" style="margin-bottom:6px">
           <input type="checkbox" id="setNhip">
           <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
         </label>
@@ -462,6 +466,8 @@
     <h3><span id="dsTu"></span></h3>
     <div class="sub" id="dsTong"></div>
     <div id="dsBang" class="diem-ds"></div>
+    <!-- Những từ cùng cụm đã lưu trong sổ. Bấm được để nhảy sang xem. -->
+    <div class="diem-cum" id="dsCum"></div>
     <div class="t-tiny faint" id="dsChuaDo"></div>
     <div class="actions">
       <button class="btn primary" id="dsOn" type="button" data-chu>Ôn bài còn lại</button>

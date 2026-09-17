@@ -487,6 +487,12 @@ select { cursor: pointer; }
 .diem-dong.thieu { opacity: 0.55; }
 .diem-dong.thieu .diem-thanh { background: var(--surface-2); }
 .diem-dong.den .diem-khi { color: var(--warn); font-weight: 600; }
+
+/* Những từ cùng cụm trong phiếu điểm. */
+.diem-cum { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+.diem-cum:empty { display: none; }
+.diem-cum-nhan { font-size: 12px; color: var(--ink-3); }
+.diem-cum .chip.nho { font-size: 12px; padding: 4px 9px; cursor: pointer; }
 @media (max-width: 480px) {
   .diem-dong { grid-template-columns: 1fr 44px 28px; }
   .diem-khi { grid-column: 1 / -1; margin-top: -4px; }

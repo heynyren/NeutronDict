@@ -264,6 +264,93 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* CỤM — những từ trong sổ nối với nhau qua tập đồng/trái nghĩa        */
+  /* ------------------------------------------------------------------ */
+  /*
+   * Dùng để làm gì: một từ tới hạn thì kéo cả cụm vào cùng buổi, xếp liền nhau.
+   *
+   * Nối LỊCH chứ KHÔNG nối điểm — chỗ này cần nói rõ vì cái ý ngược lại nghe
+   * rất xuôi tai. Ý ngược lại là: nhớ 改善 thì cộng điểm luôn cho 改良 / 向上,
+   * quên thì trừ theo. Không làm thế, vì ba lẽ:
+   *
+   *   1. Chú thích đầu tệp này đã nói: mấy từ gần nghĩa "cùng sáng lên một lúc
+   *      rồi TRANH NHAU", và người ta nói nhầm "không phải vì quên, mà vì chọn
+   *      sai giữa mấy ứng viên gần nhau". Bài nhặt từ đồng nghĩa tồn tại CHÍNH
+   *      VÌ nhớ 改善 không kéo theo nhớ 改良. Cộng điểm chéo là phủ nhận luôn lý
+   *      do tồn tại của nó.
+   *
+   *   2. Truy xuất một từ trong cụm còn ỨC CHẾ các từ cùng cụm (hiện tượng
+   *      retrieval-induced forgetting, Anderson–Bjork 1994). Cộng điểm cho
+   *      chúng là đẩy con số đi ngược chiều sự thật.
+   *
+   *   3. `ngay` trong srs.js nghĩa là "tôi giữ được TỪ NÀY bao lâu". Nới hạn của
+   *      改良 vì nhớ 改善 thì nó bị hỏi lại muộn hơn trí nhớ thật — quên mà app
+   *      không hề biết. Thang 100 điểm là một phép đo; làm thế là biến một phần
+   *      của nó thành tin đồn.
+   *
+   * Còn xếp chúng CẠNH NHAU trong một buổi thì lại đúng việc: đó chính là luyện
+   * phân biệt, thứ mà hai bài liên kết nhắm tới, và không đụng tới con số nào.
+   */
+
+  /**
+   * Chỉ mục một lượt cho cả sổ.
+   *
+   * `lien` lưu CHUỖI TỪ chứ không phải khoá, nên muốn biết một từ liên có nằm
+   * trong sổ không thì phải tra ngược. Dựng một lần cho cả buổi, đừng quét lại
+   * ở từng mục.
+   *
+   * @param {Array} dsMuc danh sách mục ĐÃ lọc theo ngôn ngữ đang học
+   * @returns {{theoTu: Map<string,string>, keNguoc: Map<string,string[]>}}
+   *   `theoTu`: từ → khoá. `keNguoc`: từ → những khoá có KỂ TÊN từ ấy.
+   */
+  function chiMucLien(dsMuc) {
+    const theoTu = new Map(), keNguoc = new Map();
+    for (const m of dsMuc || []) {
+      if (!m || m.del || !m.word || !m.key) continue;
+      if (!theoTu.has(m.word)) theoTu.set(m.word, m.key);
+    }
+    for (const m of dsMuc || []) {
+      if (!m || m.del || !m.key) continue;
+      const l = m.lien || {};
+      for (const w of (l.dong || []).concat(l.trai || [])) {
+        if (!w) continue;
+        const ds = keNguoc.get(w);
+        if (ds) { if (ds.indexOf(m.key) < 0) ds.push(m.key); }
+        else keNguoc.set(w, [m.key]);
+      }
+    }
+    return { theoTu: theoTu, keNguoc: keNguoc };
+  }
+
+  /**
+   * Những mục trong sổ nối THẲNG với mục này.
+   *
+   * MỘT BẬC THÔI, hình sao quanh từ đang xét — cố ý không lấy bao đóng bắc cầu.
+   * Bắc cầu thì 改善–改良, 改良–向上, 向上–上昇… dính lại thành một khối khổng lồ,
+   * nhất là khi người dùng nạp thêm 日本語WordNet; mà cái người học hình dung
+   * cũng là "mấy từ tôi lưu RA TỪ tập đồng/trái nghĩa của nó", tức hình sao chứ
+   * không phải cả mạng lưới.
+   *
+   * HAI CHIỀU theo cấu tạo: A kể tên B, hoặc B kể tên A, đều tính là nối.
+   * `lienVaSau` bên background.js tính `lien` cho từng mục ĐỘC LẬP nên không có
+   * gì đảm bảo hai bên cùng kể tên nhau; chỉ nhận một chiều thì mất quá nửa số
+   * cặp mà người học tự tay lưu về từ màn kết quả.
+   *
+   * @returns {string[]} khoá của các mục cùng cụm, KHÔNG gồm chính nó
+   */
+  function cumCua(muc, chiMuc) {
+    if (!muc || !muc.key || !chiMuc) return [];
+    const ra = [], da = new Set([muc.key]);
+    const them = (k) => { if (k && !da.has(k)) { da.add(k); ra.push(k); } };
+    const l = muc.lien || {};
+    for (const w of (l.dong || []).concat(l.trai || []))
+      them(chiMuc.theoTu.get(w));                       // mình kể tên họ
+    for (const k of chiMuc.keNguoc.get(muc.word) || [])
+      them(k);                                          // họ kể tên mình
+    return ra;
+  }
+
+  /* ------------------------------------------------------------------ */
   /* Chấm                                                                */
   /* ------------------------------------------------------------------ */
 
@@ -309,6 +396,7 @@
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
     tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
+    chiMucLien, cumCua,
     napBo, soManh, daNap, SO_MANH
   };
 })(typeof self !== "undefined" ? self : this);
