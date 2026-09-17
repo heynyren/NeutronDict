@@ -1892,7 +1892,21 @@ function showCard(giuLat) {
 
   $("stBody").style.display = "";
   $("stDone").style.display = "none";
-  $("stProg").textContent = T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done });
+  /*
+   * Nói luôn ĐANG KIỂM ĐƯỜNG NÀO và từ này đang được mấy điểm.
+   *
+   * Từ khi mỗi đường một lịch riêng, cùng một từ có thể hiện ra dưới bốn kiểu
+   * đề khác nhau. Không nói ra thì người học gặp đề nghe của một từ mình vừa
+   * làm đề nhìn hôm qua và tưởng app hỏi lặp. Còn con số điểm thì đây là chỗ
+   * nó cần có mặt nhất: ngay lúc người ta đang bỏ công ra làm cho nó lên.
+   */
+  {
+    const dTu = window.Srs.diemTu(it);
+    $("stProg").textContent =
+      T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done })
+      + "\u3000·\u3000" + T(window.Srs.TEN_DUONG[it._d || "nhin"] || "")
+      + "\u3000·\u3000" + dTu.tong + "/100";
+  }
 
   const laNghe = it._d === "nghe";
   const laLien = it._d === "dong" || it._d === "trai";
