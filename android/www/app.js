@@ -2753,7 +2753,7 @@ async function moGemini(it, tenSo) {
             : T("Đã mở Gemini với câu hỏi điền sẵn.")));
 }
 
-/** Nút "hỏi Gemini" — dùng chung cho sổ tay và buổi học. */
+/** Nút "hỏi Gemini" trong thẻ sổ tay. Thẻ học dùng nút riêng ở HTML (#stGemini). */
 function nutGemini(it, tenSo) {
   const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", 18);
   b.addEventListener("click", (ev) => { ev.stopPropagation(); moGemini(it, tenSo); });

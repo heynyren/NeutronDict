@@ -1694,9 +1694,9 @@ function moGemini(it) {
   if (!xong) mo(false);
 }
 
-/** Nút "hỏi Gemini" — dùng chung cho sổ tay và buổi học. */
-function nutGemini(it, nho) {
-  const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", nho ? 15 : 17);
+/** Nút "hỏi Gemini" trong thẻ sổ tay. Thẻ học dùng nút riêng ở HTML (#stGemini). */
+function nutGemini(it) {
+  const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", 17);
   b.addEventListener("click", (ev) => { ev.stopPropagation(); moGemini(it); });
   return b;
 }
