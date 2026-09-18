@@ -3616,6 +3616,19 @@ function showCard(giuLat) {
   const laLien = it._d === "dong" || it._d === "trai";
   $("stNgheMat").style.display = laNghe ? "" : "none";
   $("stLienMat").style.display = laLien ? "" : "none";
+  /*
+   * Rời khỏi bài liên kết thì dọn sạch màn kết quả của nó.
+   *
+   * `veBaiLien` cũng dọn, nhưng chỉ chạy khi thẻ SAU lại là một bài liên kết
+   * nữa. Thẻ sau là thẻ thường thì lớp `kq` và nút Tiếp nằm lại — ẩn theo
+   * `#stLienMat` nên không ai thấy, tới lúc gặp bài liên kết kế tiếp mới lòi
+   * ra: khung đã mang sẵn bố cục danh sách trước khi có gì để bày.
+   */
+  if (!laLien) {
+    $("stLienO").classList.remove("kq");
+    $("stLienTiep").style.display = "none";
+    tiepBaiLien = null;
+  }
   $("stMatChu").style.display = laNghe ? "none" : "";
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
@@ -3809,6 +3822,210 @@ if ($("stNghePhat")) $("stNghePhat").addEventListener("click", phatCauNghe);
  * nhầm từ không phải vì quên, mà vì chọn sai giữa mấy ứng viên gần nhau — thẻ
  * từ đơn không luyện được chuyện đó vì nó giả vờ mỗi từ đứng một mình.
  */
+/* ==================================================================== */
+/* Màn KẾT QUẢ của bài liên kết                                         */
+/* ==================================================================== */
+
+/**
+ * NGHĨA của một mớ từ, để điền vào màn kết quả.
+ *
+ * Bên extension việc này nằm ở nền (`background.js`, NGHIA_DS); bên này không
+ * có nền nên phải tự làm. Ba điều giữ nguyên vì chúng là lý do bản kia chạy
+ * được:
+ *
+ *   - CHẠY SONG SONG. Một đề có tới 16 ô; làm nối đuôi thì người học ngồi nhìn
+ *     màn hình trống mất chục giây.
+ *   - CÓ ĐỆM theo từ, nên đề sau gặp lại từ cũ là có ngay.
+ *   - Hụt một từ thì mất một dòng, KHÔNG giữ cả bảng lại chờ nó.
+ */
+const nghiaDem = new Map();
+async function nghiaDs(ds) {
+  const ra = {};
+  const list = Array.from(new Set((ds || []).filter(Boolean))).slice(0, 20);
+  await Promise.all(list.map(async (w) => {
+    if (nghiaDem.has(w)) { ra[w] = nghiaDem.get(w); return; }
+    let m = "";
+    try {
+      if (NGU === "ja") {
+        const e = (await fetchMazii(w).catch(() => [])).find((x) => x && x.word === w);
+        if (e && e.means && e.means.length) m = meanToStr(e.means[0]);
+      }
+      if (!m) m = await gtxTranslate(w, NGU === "ja" ? "ja" : "en", "vi");
+    } catch (e) { m = ""; }
+    m = String(m || "").trim();
+    if (m) nghiaDem.set(w, m);
+    ra[w] = m;
+  }));
+  return ra;
+}
+
+/**
+ * Lưu một từ vào sổ chỉ với con chữ — tra rồi lưu, gộp trong một lượt.
+ *
+ * Dùng cho mấy nút Lưu trên màn kết quả: ở đó ta chỉ có mỗi con chữ, mà lưu
+ * trơ con chữ thì mục vào sổ không có cách đọc lẫn nghĩa — tức là một thẻ
+ * không học được.
+ *
+ * Tra không ra thì VẪN lưu con chữ. Người học vừa nhìn thấy nó trong một bài
+ * họ đang làm, nên nó đáng vào sổ; `boiThem` và `rubyVaSau` chạy ngầm ngay sau
+ * đó sẽ vá dần phần còn thiếu.
+ */
+async function luuNhanhTu(word, dict) {
+  const w = String(word || "").trim();
+  if (!w) throw new Error(T("Thiếu từ"));
+  const d = dict || "javi";
+  const key = d + ":" + w;
+  let en = null;
+  try {
+    const ds = await lookup(w, d);
+    // Mazii trả cả kết quả gần đúng — phải lấy đúng con chữ đang hỏi, không
+    // thì lưu nhầm một từ khác mang nghĩa của nó.
+    en = (ds || []).find((x) => x && x.word === w) || null;
+  } catch (e) { en = null; }
+  if (!en) en = { word: w, reading: "", means: [] };
+
+  await capNhat((nb) => {
+    const cu = nb[key];
+    const ne = { word: w, reading: en.reading || "", means: en.means || [], dict: d, ts: Date.now() };
+    if (en.docSuy) ne.docSuy = 1;
+    if (en.audio) ne.audio = en.audio;
+    if (en.pos && en.pos.length) ne.pos = en.pos;
+    // Lưu lại một mục đã có thì GIỮ mọi thứ người học đã tự làm — giống hệt
+    // nhánh lưu ở màn tra. Nút này hiện ra là "+ Lưu" nên gần như luôn là mục
+    // mới, nhưng "gần như" không phải "luôn": hai đề có thể chạy sát nhau.
+    if (cu && !cu.del) {
+      if (cu.deck) ne.deck = cu.deck;
+      if (cu.srs) ne.srs = cu.srs;
+      if (cu.duong) ne.duong = cu.duong;
+      if (cu.cauNghe) ne.cauNghe = cu.cauNghe;
+      if (cu.lien) ne.lien = cu.lien;
+      if (cu.kind) ne.kind = cu.kind;
+      if (cu.fav) ne.fav = cu.fav;
+      if (cu.note) ne.note = cu.note;
+      if (cu.hoiAi) ne.hoiAi = cu.hoiAi;
+      if (cu.src) ne.src = cu.src;
+      if (cu.audio && !ne.audio) ne.audio = cu.audio;
+      if (cu.ruby) { ne.ruby = cu.ruby; if (cu.docSuy) ne.docSuy = 1; }
+      if (cu.mEdit) { ne.mEdit = 1; ne.means = cu.means; ne.mOrig = cu.mOrig; }
+    }
+    window.Muc.nhatLaiBanSua(ne, cu);
+    nb[key] = ne;
+  });
+  // Vá phần còn thiếu ở nền, KHÔNG chờ: người học đang đứng giữa buổi học.
+  if ((d === "javi" || d === "vija") && !en.reading) rubyVaSau(key, w).catch(() => {});
+  boiThem(key);
+  syncSoon();
+  return key;
+}
+
+/**
+ * Một hàng của màn kết quả: con chữ, chỗ chờ điền nghĩa, và nút Lưu.
+ *
+ * Tách ra khỏi vòng lặp để ba nhóm dùng chung đúng một cách dựng hàng — chia
+ * nhóm là việc của thứ tự, không được đẻ thêm ba biến thể của cùng một hàng.
+ */
+function hangLien(chu, b) {
+  const hang = el("div", "lien-hang");
+  const nhan = el("div", "lien-tu", chu);
+  if (b.chon.has(chu)) nhan.classList.add(b.dung.has(chu) ? "dung" : "sai");
+  else if (b.dung.has(chu)) nhan.classList.add("sot");
+  hang.appendChild(nhan);
+
+  const ngh = el("div", "lien-nghia muted", "…");
+  hang.appendChild(ngh);
+
+  // Từ đang học thì khỏi bày nút Lưu — nó đã ở trong sổ rồi.
+  const daCo = tuDaLuu.has(chu);
+  const nut = el("button", "chip nho", daCo ? T("Đã có") : T("+ Lưu"));
+  nut.type = "button";
+  nut.disabled = daCo;
+  nut.addEventListener("click", async () => {
+    nut.disabled = true;
+    nut.textContent = T("Đang lưu…");
+    try {
+      await luuNhanhTu(chu, NGU === "ja" ? "javi" : "envi");
+      nut.textContent = T("Đã lưu");
+      tuDaLuu.add(chu);
+      drawNotebook();
+      refreshNotifications();
+    } catch (e) {
+      nut.disabled = false;
+      nut.textContent = T("+ Lưu");
+      toast(T("Không lưu được từ này"), "bad");
+    }
+  });
+  hang.appendChild(nut);
+  return { chu: chu, o: ngh, hang: hang };
+}
+
+/**
+ * Màn KẾT QUẢ của bài liên kết.
+ *
+ * Ba thứ, và cả ba đều chỉ có giá trị ĐÚNG LÚC NÀY:
+ *   - đúng hay sai từng ô: xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt =
+ *     BỎ SÓT. Bỏ sót mới là thứ đáng nhìn lại nhất nên nó có dấu riêng.
+ *   - NGHĨA của từng từ. Một chùm chữ Hán trơ thì nhìn xong quên ngay; có
+ *     nghĩa kèm thì cả chùm mới thành một cụm liên kết trong đầu.
+ *   - nút LƯU từng từ. Gặp một từ hay ngay trong lúc học mà phải nhớ để lát
+ *     nữa đi tra lại thì chẳng ai làm.
+ */
+function veKetQuaLien(b, dung, ms) {
+  const khung = $("stLienO");
+  const ds = [];
+  khung.textContent = "";
+  khung.classList.add("kq");
+
+  // Quy tắc xếp nhóm nằm ở tu-lien.js, dùng chung với bản extension.
+  const nhom = window.TuLien.xepKetQua(b);
+
+  const veNhom = (ten, cls, ds2) => {
+    if (!ds2.length) return;                      // nhóm rỗng thì bỏ hẳn tiêu đề
+    const h = el("div", "lien-nhom" + (cls ? " " + cls : ""));
+    h.appendChild(el("span", null, ten));
+    h.appendChild(el("span", "dem", "(" + ds2.length + ")"));
+    khung.appendChild(h);
+    for (const chu of ds2) {
+      const r = hangLien(chu, b);
+      khung.appendChild(r.hang);
+      ds.push(r);
+    }
+  };
+  veNhom(T("Đáp án"), "dap", nhom.dapAn);
+  veNhom(T("Nhặt nhầm"), "nham", nhom.nhatNham);
+  veNhom(T("Từ nhiễu — gặp thì học luôn"), "", nhom.nhieu);
+
+  $("stLienXong").style.display = "none";
+  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
+    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+
+  /*
+   * NGHĨA: lấy trong SỔ TAY trước, chỉ phần còn thiếu mới đi hỏi mạng.
+   *
+   * Phần lớn ô trên màn kết quả là từ đã nằm trong sổ — nút của chúng ghi "Đã
+   * có". Nghĩa của chúng nằm sẵn ngay trong máy, hiện ra tức thì và không bao
+   * giờ hụt. Hỏi mạng cho cả bảng thì mạng chập một cái là trắng trơn cả màn,
+   * mà trên điện thoại thì mạng chập là chuyện thường ngày.
+   */
+  const soTay = new Map();
+  for (const x of mucDaLuu) {
+    if (!x || x.del || !x.word) continue;
+    const n = (x.means || []).map(meanToStr).filter(Boolean)[0];
+    if (n && !soTay.has(x.word)) soTay.set(x.word, n);
+  }
+  const thieu = [];
+  for (const x of ds) {
+    const n = soTay.get(x.chu);
+    if (n) x.o.textContent = n; else thieu.push(x);
+  }
+  if (!thieu.length) return;
+  nghiaDs(thieu.map((x) => x.chu)).then(
+    (co) => { for (const x of thieu) x.o.textContent = co[x.chu] || "—"; },
+    () => { for (const x of thieu) x.o.textContent = "—"; });
+}
+
+/** Việc sẽ làm khi bấm Tiếp. null = đang không ở màn kết quả. */
+let tiepBaiLien = null;
+
 let baiLien = null;
 /** Kho từ dùng làm NHIỄU cho bài liên kết — nạp một lần lúc mở buổi học. */
 let tuNhieu = [];
@@ -3829,8 +4046,13 @@ function veBaiLien(it) {
     : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
   $("stLienKq").textContent = "";
   $("stLienXong").style.display = "";
+  // Dọn dấu vết của bài TRƯỚC: lớp `kq` đổi cả bố cục khung, và nút Tiếp còn
+  // hiện thì bấm một cái là nhảy mất hai thẻ.
+  $("stLienTiep").style.display = "none";
+  tiepBaiLien = null;
 
   const khung = $("stLienO");
+  khung.classList.remove("kq");
   khung.textContent = "";
   for (const chu of o) {
     const b = el("button", null, chu);
@@ -3853,18 +4075,7 @@ async function xongBaiLien() {
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
 
-  // Xanh = nhặt đúng, gạch đỏ = nhặt nhầm, viền đứt = BỎ SÓT. Bỏ sót mới là thứ
-  // đáng nhìn lại nhất nên nó phải có dấu riêng.
-  for (const nut of $("stLienO").querySelectorAll("button")) {
-    const chu = nut.textContent;
-    nut.disabled = true;
-    nut.classList.remove("chon");
-    if (b.chon.has(chu)) nut.classList.add(b.dung.has(chu) ? "dung" : "sai");
-    else if (b.dung.has(chu)) nut.classList.add("sot");
-  }
-  $("stLienXong").style.display = "none";
-  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
-    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+  veKetQuaLien(b, dung, ms);
 
   coVu(kq.nho);
   session.queue.shift();
@@ -3875,9 +4086,21 @@ async function xongBaiLien() {
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   veChuoiNgay();
   syncSoon();
-  // Cho hai giây nhìn lại bài mình vừa làm rồi mới sang thẻ kế.
-  setTimeout(() => mung(moi, showCard), 2000);
+  /*
+   * Sang thẻ kế khi người ta BẤM, không phải sau hai giây.
+   *
+   * Bản cũ tự nhảy sau 2 giây, hợp lý khi màn kết quả chỉ là một dòng chữ.
+   * Giờ nó là một danh sách có nghĩa từng từ và nút lưu — hai giây không đọc
+   * nổi, mà tự nhảy giữa lúc đang bấm Lưu thì mất luôn cả thao tác ấy.
+   */
+  tiepBaiLien = () => {
+    tiepBaiLien = null;
+    mung(moi, showCard);
+  };
+  $("stLienTiep").style.display = "";
+  $("stLienTiep").focus();
 }
+if ($("stLienTiep")) $("stLienTiep").addEventListener("click", () => { if (tiepBaiLien) tiepBaiLien(); });
 if ($("stLienXong")) $("stLienXong").addEventListener("click", xongBaiLien);
 
 function revealCard() {

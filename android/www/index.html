@@ -304,7 +304,16 @@
           <div class="t-small muted" id="stLienDe" style="text-align:center;margin-bottom:12px"></div>
           <div id="stLienO" class="lien-o"></div>
           <button class="btn primary block lg" id="stLienXong" type="button" style="margin-top:16px" data-chu>Xong</button>
-          <div class="t-small" id="stLienKq" style="text-align:center;margin-top:12px"></div>
+          <!-- Điểm và nút Tiếp DÍNH ĐÁY khung cuộn.
+               Để chúng nằm cuối danh sách như trước thì với 16 hàng, nút Tiếp
+               rơi xuống dưới mép màn hình. Làm xong bài phải cuộn qua cả danh
+               sách mới thấy đường đi tiếp, mà lúc ấy điểm vừa chấm cũng đã
+               trôi khỏi tầm mắt. -->
+          <div class="lien-day" id="stLienDay">
+            <div class="t-small" id="stLienKq"></div>
+            <button class="btn primary lg" id="stLienTiep" type="button"
+                    style="display:none" data-chu>Tiếp</button>
+          </div>
         </div>
         <div class="rowx" style="justify-content:center;gap:4px" id="stMatChu">
           <span class="cw ja" id="stWord"></span>

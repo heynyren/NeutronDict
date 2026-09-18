@@ -2687,20 +2687,13 @@ function veKetQuaLien(b, dung, ms) {
   khung.classList.add("kq");
 
   /*
-   * BA NHÓM, và vẫn bày đủ từng ô một.
+   * BA NHÓM — quy tắc xếp nằm ở `tu-lien.js`, không nằm đây.
    *
-   * Mười sáu hàng giống hệt nhau thì thứ đáng nhìn nhất — mình vừa làm đúng hay
-   * sai — chìm nghỉm giữa đám từ nhiễu. Nhưng bỏ bớt từ nhiễu đi thì mất luôn
-   * cái lý do màn này tồn tại: nhiễu lấy từ chính sổ tay người học, gặp từ hay
-   * thì lưu ngay tại đây. Nên không giấu gì cả, chỉ xếp lại.
-   *
-   * Trong nhóm ĐÁP ÁN thì BỎ SÓT lên trước: nó là thứ đáng nhìn lại nhất, mà
-   * nếu để lẫn theo thứ tự cũ thì nó nằm đâu là chuyện may rủi.
+   * Vì app Android cũng dựng đúng màn này. Chép tay hai lần thì sớm muộn lệch,
+   * mà lần lệch vừa rồi kéo dài mấy tháng chẳng ai thấy: bản Android vẫn tô
+   * màu ngay trên mấy nút vừa bấm trong khi bản này đã đổi sang danh sách.
    */
-  const dapAn = b.o.filter((c) => b.dung.has(c))
-    .sort((x, y) => (b.chon.has(x) ? 1 : 0) - (b.chon.has(y) ? 1 : 0));
-  const nhatNham = b.o.filter((c) => b.chon.has(c) && !b.dung.has(c));
-  const nhieu = b.o.filter((c) => !b.dung.has(c) && !b.chon.has(c));
+  const { dapAn, nhatNham, nhieu } = window.TuLien.xepKetQua(b);
 
   const veNhom = (ten, cls, ds2) => {
     if (!ds2.length) return;                      // nhóm rỗng thì bỏ hẳn tiêu đề

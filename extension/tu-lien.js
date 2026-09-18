@@ -393,10 +393,44 @@
     return { nho: true, ms: ms, diem: diem };
   }
 
+  /**
+   * Xếp các ô của một bài ĐÃ CHẤM thành ba nhóm, đúng thứ tự cần nhìn.
+   *
+   * Nằm ở đây chứ không nằm trong màn hình, vì có HAI màn hình dùng nó —
+   * sổ tay trên máy tính và app Android. Trước đây chỉ bản extension có màn
+   * kết quả, bản Android tụt lại mấy tháng mà chẳng ai thấy; đó đúng là thứ
+   * xảy ra khi cùng một quy tắc được chép tay hai lần.
+   *
+   * Ba nhóm, và vẫn bày ĐỦ từng ô một. Mười sáu hàng giống hệt nhau thì thứ
+   * đáng nhìn nhất — mình vừa làm đúng hay sai — chìm nghỉm giữa đám từ nhiễu.
+   * Nhưng bỏ bớt từ nhiễu đi thì mất luôn lý do màn này tồn tại: nhiễu lấy từ
+   * chính sổ tay người học, gặp từ hay thì lưu ngay tại đây. Không giấu gì cả,
+   * chỉ xếp lại.
+   *
+   * Trong nhóm ĐÁP ÁN thì BỎ SÓT lên trước: nó là thứ đáng nhìn lại nhất, mà
+   * để lẫn theo thứ tự cũ thì nó nằm đâu là chuyện may rủi.
+   *
+   * @param {{o: string[], dung: Set<string>, chon: Set<string>}} b bài đã chấm
+   * @returns {{dapAn: string[], nhatNham: string[], nhieu: string[]}}
+   */
+  function xepKetQua(b) {
+    const o = (b && Array.isArray(b.o)) ? b.o : [];
+    // `has` gọi qua hàm để chịu được cả Set lẫn thứ gì đó không phải Set: dữ
+    // liệu vào đây đi từ màn hình chứ không từ kho, nên hỏng là hỏng cả màn.
+    const co = (t, x) => !!(t && typeof t.has === "function" && t.has(x));
+    const dung = (x) => co(b && b.dung, x);
+    const chon = (x) => co(b && b.chon, x);
+    return {
+      dapAn: o.filter(dung).sort((x, y) => (chon(x) ? 1 : 0) - (chon(y) ? 1 : 0)),
+      nhatNham: o.filter((c) => chon(c) && !dung(c)),
+      nhieu: o.filter((c) => !dung(c) && !chon(c))
+    };
+  }
+
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
     tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
-    chiMucLien, cumCua,
+    chiMucLien, cumCua, xepKetQua,
     napBo, soManh, daNap, SO_MANH
   };
 })(typeof self !== "undefined" ? self : this);

@@ -8,6 +8,16 @@
   "use strict";
 
   const en = {
+
+    /* --- màn kết quả bài liên kết --- */
+    "+ Lưu": "+ Save",
+    "Đã có": "Saved",
+    "Không lưu được từ này": "Could not save this word",
+    "Tiếp": "Next",
+    "Đáp án": "Answers",
+    "Nhặt nhầm": "Picked by mistake",
+    "Từ nhiễu — gặp thì học luôn": "Distractors — learn them while you are here",
+    "Thiếu từ": "No word given",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "Question copied — over in Gemini, press {phim} then Enter.",
     "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":
@@ -911,6 +921,16 @@
   };
 
   const ja = {
+
+    /* --- màn kết quả bài liên kết --- */
+    "+ Lưu": "＋保存",
+    "Đã có": "保存済み",
+    "Không lưu được từ này": "この語を保存できませんでした",
+    "Tiếp": "次へ",
+    "Đáp án": "正解",
+    "Nhặt nhầm": "誤って選んだ語",
+    "Từ nhiễu — gặp thì học luôn": "ダミー語 — ついでに覚えてしまいましょう",
+    "Thiếu từ": "語が指定されていません",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "質問をコピーしました — Gemini で {phim} を押して Enter。",
     "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":

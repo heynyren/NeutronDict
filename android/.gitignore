@@ -7,6 +7,15 @@ yarn-error.log*
 .capacitor/
 
 # ===== Android / Gradle (generated) =====
+# Cả dự án native do `npx cap add android` sinh lại mỗi lần build — hơn 100 MB
+# và không có gì của riêng kho này (phần riêng nằm ở native/ và patch-android.js).
+# Neo bằng dấu / đầu dòng: chỉ chặn đúng android/android/, không chặn nhầm một
+# thư mục tên "android" nằm sâu bên trong.
+/android/
+
+# Mấy dòng dưới đây giờ đã nằm trong phạm vi dòng trên, nhưng giữ lại: chúng
+# ghi ra thứ gì là do máy sinh: bỏ đi thì lỡ sau này ai gỡ dòng `/android/` là
+# mất cả hai hàng rào cùng một lúc.
 android/.gradle/
 android/build/
 android/app/build/

@@ -8,6 +8,9 @@
   "use strict";
 
   const en = {
+
+    /* --- màn kết quả bài liên kết --- */
+    "Thiếu từ": "No word given",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "Question copied — over in Gemini, press {phim} then Enter.",
     "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":
@@ -930,6 +933,9 @@
   };
 
   const ja = {
+
+    /* --- màn kết quả bài liên kết --- */
+    "Thiếu từ": "語が指定されていません",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "質問をコピーしました — Gemini で {phim} を押して Enter。",
     "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":
