@@ -153,7 +153,7 @@ function chayCum(batCum, soTu) {
   let rnd = 12345;
   const r = () => (rnd = (rnd * 1103515245 + 12345) % 2147483648) / 2147483648;
   const muc = [], tk = {}, nghi = {};
-  let now = Date.now(), tong = 0;
+  let now = Date.now(), tong = 0, lapThe = 0;
   const moiNgay = [];
   // Mỗi từ nối với 2–4 từ lân cận — giống cảnh người học bấm "+ Lưu" ngay ở
   // màn kết quả bài liên kết, tức là cụm được dựng dần từ chính chỗ ấy.
@@ -167,27 +167,36 @@ function chayCum(batCum, soTu) {
     while (muc.length < soTu && muc.length < (ngay + 1) * 10) muc.push(mk(muc.length));
     const ci = batCum ? TuLien.chiMucLien(muc) : null;
     const theoKhoa = new Map(muc.map((m) => [m.key, m]));
-    const daKeo = new Set(), the = [];
+    const daXuLy = new Set(), the = [];
     for (const m of muc) {
+      if (daXuLy.has(m.key)) continue;           // đã bị hút vào khối của từ khác
       const han = Srs.denHan(m, now);
       if (!han.length) continue;
       for (const d of han) the.push([m, d, false]);
-      if (batCum && !daKeo.has(m.key) && now - (nghi[m.key] || 0) >= CUM_NGHI_NGAY * NGAY) {
+      daXuLy.add(m.key);
+      if (batCum && now - (nghi[m.key] || 0) >= CUM_NGHI_NGAY * NGAY) {
         const ban = TuLien.cumCua(m, ci).map((k) => theoKhoa.get(k))
-          .filter((x) => x && !daKeo.has(x.key))
+          .filter((x) => x && !daXuLy.has(x.key))
           .sort((a, b) => Srs.diemTu(a).tong - Srs.diemTu(b).tong)
           .slice(0, CUM_TOI_DA);
         for (const b of ban) {
           const hb = Srs.denHan(b, now);
-          the.push([b, hb[0] || "nhin", !hb.length]);
-          daKeo.add(b.key);
+          // Bạn TỰ tới hạn thì hút trọn khối của nó; chưa tới hạn thì một thẻ.
+          if (hb.length) for (const d of hb) the.push([b, d, false]);
+          else the.push([b, "nhin", true]);
+          daXuLy.add(b.key);
         }
         if (ban.length) nghi[m.key] = now;
       }
-      daKeo.add(m.key);
     }
     moiNgay.push(the.length);
     tong += the.length;
+    // Lặp = cùng một (khoá, đường) bị hỏi hai lần trong CÙNG một buổi.
+    {
+      const dem = new Map();
+      for (const [m, d] of the) { const k = m.key + "|" + d; dem.set(k, (dem.get(k) || 0) + 1); }
+      for (const n of dem.values()) if (n > 1) lapThe += n - 1;
+    }
     for (const [m, d, laSom] of the) {
       const nho = r() < TILE[d];
       if (laSom && nho) continue;                  // ôn kèm mà nhớ: không xếp lịch lại
@@ -198,7 +207,7 @@ function chayCum(batCum, soTu) {
     }
     now += NGAY;
   }
-  return { tb: tong / 180, dinh: Math.max(...moiNgay) };
+  return { tb: tong / 180, dinh: Math.max(...moiNgay), lapThe };
 }
 {
   console.log("\n  — ôn kèm cụm (" + CUM_TOI_DA + " bạn · nghỉ " + CUM_NGHI_NGAY + " ngày) —");
@@ -209,6 +218,16 @@ function chayCum(batCum, soTu) {
        tat.tb.toFixed(0) + " → " + bat.tb.toFixed(0) + " thẻ/ngày (+" + tang.toFixed(0) + "%)");
     la(bat.dinh <= tat.dinh * 1.45, "sổ " + soTu + " từ: ngày nặng nhất không phình quá 45%",
        tat.dinh + " → " + bat.dinh);
+    /*
+     * KHÔNG THẺ NÀO BỊ HỎI LẠI TRONG CÙNG MỘT BUỔI.
+     *
+     * Cổng theo tải ở trên KHÔNG bắt được lỗi này: lặp chỉ làm số thẻ nhỉnh lên
+     * vài phần trăm, vẫn lọt qua ngưỡng 35%. Mà hậu quả thì nặng — `gradeWord`
+     * đọc lại trạng thái ở mỗi lượt, nên thẻ thứ hai nhân tiếp giãn cách lên
+     * kết quả của thẻ thứ nhất. Bản đầu đo được 3.953 lượt lặp ở đây.
+     */
+    la(bat.lapThe === 0, "sổ " + soTu + " từ: không thẻ nào bị hỏi lại trong cùng buổi",
+       bat.lapThe + " lượt lặp");
   }
 }
 

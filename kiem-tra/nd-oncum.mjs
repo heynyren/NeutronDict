@@ -122,6 +122,58 @@ await gieo(true);
 }
 
 /* ------------------------------------------------------------------ */
+/*
+ * KHÔNG HỎI LẠI CÙNG MỘT CÂU TRONG MỘT BUỔI.
+ *
+ * Bản đầu của `hangDoiKhoi` chỉ chặn trùng ở chỗ chọn bạn cùng cụm, không chặn
+ * ở vòng lặp chính — nên một từ vừa cùng cụm với từ khác vừa TỰ tới hạn thì
+ * được phát hai lần. Nó không làm vỡ gì, không ném lỗi, không trượt bài kiểm
+ * nào đang có; chỉ là người học gặp lại đúng câu vừa trả lời, và `gradeWord`
+ * nhân giãn cách hai lần (7 → 14,7 → 30,9 ngày thay vì dừng ở 14,7).
+ *
+ * Thử CẢ HAI thứ tự trong sổ: `scopeList` xếp theo `ts` nên từ mở đầu có thể
+ * đứng trước hoặc sau bạn của nó, mà hai chiều ấy đi qua hai nhánh mã khác
+ * nhau.
+ */
+console.log("\nKhông hỏi lại cùng một câu trong một buổi");
+for (const nguoc of [false, true]) {
+  const page = await moSo();
+  const r = await page.evaluate((nguoc) => {
+    // 改良 cho TỚI HẠN luôn, để nó vừa là bạn cùng cụm của 改善 vừa tự tới hạn.
+    const ds = currentActiveSet().map((x) => {
+      if (x.word !== "改良") return x;
+      const y = JSON.parse(JSON.stringify(x));
+      y.duong.nhin.due = Date.now() - 2 * 86400000;
+      y.duong.nhin.ngay = 7;
+      return y;
+    });
+    const so = nguoc ? ds.slice().reverse() : ds;
+    const khoi = hangDoiKhoi(so, {});
+    const phang = [].concat.apply([], khoi);
+    const dem = {};
+    for (const c of phang) { const k = c.key + "|" + c._d; dem[k] = (dem[k] || 0) + 1; }
+    return {
+      phang: phang.map((c) => c.word + "/" + c._d + (c._som ? "(kèm)" : "")),
+      lap: Object.entries(dem).filter(([, n]) => n > 1).map(([k, n]) => k + " ×" + n),
+      duongCuaBan: phang.filter((c) => c.word === "改良").map((c) => c._d).sort(),
+      coBan: phang.some((c) => c.word === "改良"),
+      toKhoi: Math.max.apply(null, khoi.map((k) => new Set(k.map((c) => c.key)).size))
+    };
+  }, nguoc);
+  const ten = nguoc ? "thứ tự ngược" : "thứ tự xuôi";
+  soat(ten + ": không cặp (từ, đường) nào bị hỏi hai lần",
+       r.lap.length === 0, r.lap.join(", ") || r.phang.join("  "));
+  soat(ten + ": bạn cùng cụm mà tự tới hạn vẫn được hỏi",
+       r.coBan, r.phang.join("  "));
+  soat(ten + ": và được hỏi ĐỦ mọi đường đang tới hạn của nó",
+       r.duongCuaBan.length >= 1 && new Set(r.duongCuaBan).size === r.duongCuaBan.length,
+       r.duongCuaBan.join("/"));
+  soat(ten + ": khối không nở dây chuyền (≤ 1 + CUM_TOI_DA từ)",
+       r.toKhoi <= 3, r.toKhoi + " từ trong khối lớn nhất");
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
 console.log("\nÔn kèm mà NHỚ thì KHÔNG xếp lịch lại");
 await gieo(true);
 {

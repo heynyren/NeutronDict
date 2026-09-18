@@ -363,49 +363,76 @@ function hangDoiKhoi(scopeList, cumOn) {
   const chiMuc = batCum ? window.TuLien.chiMucLien(scopeList) : null;
   const theoKhoa = new Map(scopeList.map((x) => [x.key, x]));
   const nghi = cumOn || {};
-  const daKeo = new Set();          // khoá đã bị kéo vào một khối nào đó rồi
+  /**
+   * Khoá đã NẰM TRONG một khối rồi — dù là khối của chính nó hay bị hút vào
+   * khối của từ khác.
+   *
+   * Phải kiểm ở CẢ HAI chỗ: lúc chọn bạn cùng cụm, VÀ ở đầu vòng lặp chính.
+   * Bản đầu chỉ kiểm ở chỗ thứ nhất, nên một từ vừa cùng cụm với từ khác vừa
+   * TỰ tới hạn thì được phát hai lần — một lần làm bạn trong khối kia, một lần
+   * làm khối của chính nó:
+   *
+   *     khối 0: A/nhin  A/dong  B/nhin
+   *     khối 1: B/nhin                    ← cùng từ, cùng đường, lần thứ hai
+   *
+   * Đo 600 từ / 180 ngày: 3.953 lượt lặp (tắt ôn kèm thì 0). Và nó không chỉ
+   * phiền mắt — `gradeWord` đọc lại trạng thái từ kho ở mỗi lượt, nên thẻ thứ
+   * hai nhân tiếp lên kết quả của thẻ thứ nhất: 7 → 14,7 → 30,9 ngày, phồng
+   * gấp 2,1 lần so với một lượt đúng lẽ ra được hưởng. Một lượt trả lời đúng bị
+   * tính thành hai, và lần sau gặp lại thì đã quá muộn so với trí nhớ thật.
+   */
+  const daXuLy = new Set();
   const khoi = [];
+  const the = (m, d, them) => Object.assign({}, m, { _d: d }, them || {});
 
   for (const it of scopeList) {
     if (it.del) continue;
+    if (daXuLy.has(it.key)) continue;      // đã bị hút vào khối của từ khác
     const han = window.Srs.denHan(it, now);
     if (!han.length) continue;
-    const k = [];
-    for (const d of han) k.push(Object.assign({}, it, { _d: d }));
+    const k = han.map((d) => the(it, d));
+    daXuLy.add(it.key);
 
-    if (batCum && !daKeo.has(it.key)) {
-      /*
-       * Thời gian nghỉ của cụm: cụm này vừa được kéo hôm kia thì thôi. Không có
-       * nó thì cụm nào có một từ giãn cách ngắn sẽ kéo cả cụm ra mỗi ngày, và
-       * mấy từ kia bị hỏi dồn dập hơn hẳn lịch của chính chúng.
-       */
-      const lanTruoc = nghi[it.key] || 0;
-      if (now - lanTruoc >= CUM_NGHI_NGAY * DAY) {
-        const ban = window.TuLien.cumCua(it, chiMuc)
-          .map((key) => theoKhoa.get(key))
-          .filter((x) => x && !x.del && !daKeo.has(x.key) &&
-                         window.Srs.denHan(x, now).length + window.Srs.duongMo(x).length > 0)
-          // Điểm thấp nhất lên trước: chúng cần được nhìn lại nhất.
-          .sort((a, b) => window.Srs.diemTu(a).tong - window.Srs.diemTu(b).tong)
-          .slice(0, CUM_TOI_DA);
-        for (const b of ban) {
+    /*
+     * CHỈ TỪ MỞ ĐẦU KHỐI mới được kéo cụm; bạn bị hút vào không kéo tiếp cụm
+     * của nó. Không có chốt ấy thì khối nở dây chuyền; có nó thì khối luôn gói
+     * gọn trong 1 + CUM_TOI_DA từ.
+     *
+     * Thời gian nghỉ của cụm: cụm vừa được kéo hôm kia thì thôi. Không có nó
+     * thì cụm nào có một từ giãn cách ngắn sẽ kéo cả cụm ra mỗi ngày, và mấy
+     * từ kia bị hỏi dồn dập hơn hẳn lịch của chính chúng.
+     */
+    if (batCum && now - (nghi[it.key] || 0) >= CUM_NGHI_NGAY * DAY) {
+      const ban = window.TuLien.cumCua(it, chiMuc)
+        .map((key) => theoKhoa.get(key))
+        .filter((x) => x && !x.del && !daXuLy.has(x.key))
+        // Điểm thấp nhất lên trước: chúng cần được nhìn lại nhất.
+        .sort((a, b) => window.Srs.diemTu(a).tong - window.Srs.diemTu(b).tong)
+        .slice(0, CUM_TOI_DA);
+      for (const b of ban) {
+        const hanB = window.Srs.denHan(b, now);
+        if (hanB.length) {
           /*
-           * Từ cùng cụm góp ĐÚNG MỘT thẻ, không phải cả bốn đường.
+           * Bạn TỰ tới hạn: hút TRỌN khối của nó vào đây, đủ mọi đường.
            *
-           * Góp cả bốn thì một cụm năm từ thành hai mươi thẻ — đúng cái "từ vựng
-           * dồn lên" vừa mới đi chữa. Việc cần ở đây là NHÌN THẤY mấy từ ấy cạnh
-           * nhau; một thẻ mỗi từ là đủ.
+           * Chỉ lấy một thẻ rồi đánh dấu đã xử lý thì hết lặp thật, nhưng những
+           * đường còn lại của nó BIẾN MẤT khỏi buổi học — hết lặp bằng cách
+           * nuốt mất việc, còn tệ hơn cái lỗi ban đầu.
            */
-          const hanB = window.Srs.denHan(b, now);
-          const d = hanB[0] || "nhin";
-          // Chưa tới hạn thì đánh dấu ÔN KÈM: lượt đúng sẽ không xếp lịch lại.
-          k.push(Object.assign({}, b, { _d: d, _som: !hanB.length, _cum: it.word }));
-          daKeo.add(b.key);
+          for (const d of hanB) k.push(the(b, d, { _cum: it.word }));
+        } else {
+          /*
+           * Bạn CHƯA tới hạn: đúng một thẻ, và đánh dấu ÔN KÈM để lượt đúng
+           * không xếp lịch lại. Góp cả bốn đường thì một cụm thành hai chục thẻ
+           * — đúng cái "từ vựng dồn lên" vừa mới đi chữa. Việc cần ở đây là
+           * NHÌN THẤY mấy từ ấy cạnh nhau; một thẻ là đủ.
+           */
+          k.push(the(b, "nhin", { _som: true, _cum: it.word }));
         }
-        if (ban.length) nghi[it.key] = now;
+        daXuLy.add(b.key);
       }
+      if (ban.length) nghi[it.key] = now;
     }
-    daKeo.add(it.key);
     khoi.push(k);
   }
   return khoi;
