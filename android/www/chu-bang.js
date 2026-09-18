@@ -8,6 +8,12 @@
   "use strict";
 
   const en = {
+    "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
+      "Question copied — over in Gemini, press {phim} then Enter.",
+    "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":
+      "Question copied — over in Gemini, long-press the chat box and choose Paste.",
+    "Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa.":
+      "Could not copy the question to the clipboard — tap the button once more.",
 
     /* --- hỏi Gemini (xem hoi-gemini.js) --- */
     "chữ Hán": "kanji",
@@ -66,13 +72,6 @@
       "Keep it tight. Do not repeat back what I just gave you.",
     "Hỏi Gemini": "Ask Gemini",
     "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "Ask Gemini about this word, with the context you saved",
-    "Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.":
-      "Opened Gemini. The question is on your clipboard too — paste it if it did not fill itself in.",
-    "Đã mở Gemini với câu hỏi điền sẵn.": "Opened Gemini with the question filled in.",
-    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.":
-      "Opened Gemini. The question was long, so the link version is shortened — the FULL one is on your clipboard; paste it to get everything.",
-    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt.":
-      "Opened Gemini. The question was long, so the link version is shortened.",
 
     /* --- khung chung --- */
     "Sổ tay NeutronDict": "NeutronDict Notebook",
@@ -912,6 +911,12 @@
   };
 
   const ja = {
+    "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
+      "質問をコピーしました — Gemini で {phim} を押して Enter。",
+    "Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán.":
+      "質問をコピーしました — Gemini の入力欄を長押しして「貼り付け」を選んでください。",
+    "Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa.":
+      "質問をクリップボードにコピーできませんでした — もう一度押してください。",
 
     /* --- hỏi Gemini (xem hoi-gemini.js) --- */
     "chữ Hán": "漢字",
@@ -965,12 +970,6 @@
     "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.": "簡潔に。今渡した情報をそのまま繰り返さないでください。",
     "Hỏi Gemini": "Gemini に聞く",
     "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "保存した文脈つきで、この語について Gemini に聞く",
-    "Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.":
-      "Gemini を開きました。質問はクリップボードにもあります — 自動入力されない場合は貼り付けてください。",
-    "Đã mở Gemini với câu hỏi điền sẵn.": "質問を入れた状態で Gemini を開きました。",
-    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.":
-      "Gemini を開きました。質問が長いためリンク版は短縮されています — 完全版はクリップボードにあるので、貼り付ければ全部入ります。",
-    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt.": "Gemini を開きました。質問が長いためリンク版は短縮されています。",
 
     /* --- khung chung --- */
     "Sổ tay NeutronDict": "NeutronDict 単語帳",

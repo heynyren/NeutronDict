@@ -1662,36 +1662,70 @@ function phuGemini(it) {
 }
 
 /**
- * Mở Gemini với câu hỏi điền sẵn.
+ * Chép một đoạn dài vào bộ nhớ tạm.
  *
- * Chép bản ĐẦY ĐỦ vào bộ nhớ tạm trước khi mở tab, và nói ra là đã chép.
- * Không phải để cho đẹp: câu hỏi đi qua thanh địa chỉ nên có trần độ dài, mà
- * mục nào lưu nguyên một đoạn văn làm ngữ cảnh thì vượt trần thật. Lúc ấy bản
- * gửi qua link bị rút bớt — còn bản đầy đủ thì vẫn nằm đó, dán một phát là có.
- * Và kể cả khi không bị rút: nếu Gemini đổi ý, không còn tự điền `?q=` nữa,
- * thì tính năng này vẫn dùng được chứ không chết câm.
+ * Hai ngả, vì ngả mới không phải lúc nào cũng có: `navigator.clipboard` đòi
+ * trang đang được nhìn, và im lặng từ chối khi không. `execCommand("copy")` thì
+ * cũ kỹ, đã bị khai tử trên giấy tờ, nhưng vẫn chạy ở đúng những chỗ ấy.
  */
-function moGemini(it) {
+async function chepChu(chu) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(chu);
+      return true;
+    }
+  } catch (e) { /* rơi xuống ngả dưới */ }
+  try {
+    const o = document.createElement("textarea");
+    o.value = chu;
+    o.setAttribute("readonly", "");
+    // Ngoài khung nhìn chứ KHÔNG display:none — ô ẩn hẳn thì không chọn được
+    // chữ trong đó, mà không chọn được thì không có gì để chép.
+    o.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
+    document.body.appendChild(o);
+    o.select();
+    o.setSelectionRange(0, chu.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(o);
+    return !!ok;
+  } catch (e) { return false; }
+}
+
+/** "⌘V" hay "Ctrl+V" — nói sai phím thì lời mách còn hại hơn không có. */
+function phimDan() {
+  const m = (navigator.userAgentData && navigator.userAgentData.platform)
+    || navigator.platform || navigator.userAgent || "";
+  return /Mac|iPhone|iPad|iPod/i.test(m) ? "\u2318V" : "Ctrl+V";
+}
+
+/**
+ * Chép câu hỏi vào bộ nhớ tạm rồi mở Gemini.
+ *
+ * Bản đầu gửi câu hỏi qua `?q=` trên đường dẫn. Đo thật thì không chạy:
+ * gemini.google.com nạp đúng đường dẫn ấy nhưng ô chat vẫn trống trơn. Và
+ * hỏng theo kiểu im lặng — trang mở ra bình thường, không báo lỗi gì, người
+ * dùng chỉ thấy ô trống và tưởng nút hỏng.
+ *
+ * Nên bộ nhớ tạm là đường CHÍNH chứ không còn là đường lui. Thêm đúng một
+ * thao tác dán, đổi lại thì chắc chắn chạy.
+ *
+ * Chép TRƯỚC khi mở tab: tab mới giành mất tiêu điểm, mà trình duyệt từ chối
+ * ghi bộ nhớ tạm từ một trang không còn được nhìn.
+ *
+ * Chép hỏng thì KHÔNG mở Gemini. Mở ra một ô trống mà chẳng có gì để dán chỉ
+ * làm người ta tưởng đã xong rồi loay hoay ở đầu bên kia.
+ */
+async function moGemini(it) {
   if (!it || !it.word) return;
   const loi = window.HoiGemini.loiHoi(it, phuGemini(it));
-  const mo = function (chep) {
-    const url = window.HoiGemini.diaChi(loi.gon);
-    try { chrome.tabs.create({ url: url }); }
-    catch (e) { window.open(url, "_blank"); }
-    toast(loi.cat
-      ? (chep ? T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.")
-              : T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt."))
-      : (chep ? T("Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.")
-              : T("Đã mở Gemini với câu hỏi điền sẵn.")));
-  };
-  // Chép xong MỚI mở tab: mở trước thì tab mới giành mất tiêu điểm, và trình
-  // duyệt từ chối ghi bộ nhớ tạm từ một trang không còn được nhìn.
-  let xong = false;
-  try {
-    const hua = navigator.clipboard && navigator.clipboard.writeText(loi.day);
-    if (hua && hua.then) { hua.then(() => { xong = true; mo(true); }, () => mo(false)); return; }
-  } catch (e) { /* không có quyền bộ nhớ tạm thì vẫn mở được Gemini */ }
-  if (!xong) mo(false);
+  if (!(await chepChu(loi))) {
+    toast(T("Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa."), "bad");
+    return;
+  }
+  const url = window.HoiGemini.GOC_URL;
+  try { chrome.tabs.create({ url: url }); }
+  catch (e) { window.open(url, "_blank"); }
+  toast(T2("Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.", { phim: phimDan() }));
 }
 
 /** Nút "hỏi Gemini" trong thẻ sổ tay. Thẻ học dùng nút riêng ở HTML (#stGemini). */

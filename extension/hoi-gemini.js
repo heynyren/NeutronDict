@@ -15,34 +15,21 @@
  * bản dịch người học tự sửa. Gõ tay lại từng ấy thứ vào ô chat thì không ai gõ
  * — nên việc nào máy làm được thì máy làm.
  *
- * Vì sao tự dựng chuỗi chứ không gọi API
- * --------------------------------------
- * Gọi API Gemini thì phải có khoá, mà khoá thì phải cất ở đâu đó và phải trả
- * tiền. Đây là app học từ vựng miễn phí, chạy trên máy người dùng. Mở thẳng
- * gemini.google.com bằng chính tài khoản họ đang đăng nhập là đường duy nhất
- * không đòi hỏi gì thêm.
+ * Đường đi của câu hỏi: BỘ NHỚ TẠM, không phải thanh địa chỉ
+ * ---------------------------------------------------------
+ * Bản đầu gửi câu hỏi qua `?q=` trên đường dẫn. ĐO THẬT thì không chạy:
+ * gemini.google.com nạp đúng đường dẫn ấy nhưng ô chat vẫn trống trơn — Google
+ * không đọc tham số đó (nữa). Mà hỏng theo kiểu im lặng: trang mở ra bình
+ * thường, không báo lỗi gì, người dùng chỉ thấy một ô trống và tưởng nút hỏng.
  *
- * Trần độ dài — chỗ dễ hỏng nhất
- * ------------------------------
- * Câu hỏi đi qua THANH ĐỊA CHỈ (`?q=`), mà tiếng Việt lẫn tiếng Nhật mã hoá ra
- * URL thì mỗi chữ nở thành 9 ký tự ("ả" → %E1%BA%A3). Một câu hỏi 1.200 chữ
- * thành hơn 10.000 ký tự URL — quá ngưỡng máy chủ thường chấp nhận, và lúc đó
- * nó không cắt bớt cho đẹp mà trả về lỗi.
+ * Nên đổi hẳn sang bộ nhớ tạm: bấm nút là chép câu hỏi, mở Gemini, rồi người
+ * học bấm Ctrl+V. Thêm đúng MỘT thao tác, đổi lại thì chắc chắn chạy, và không
+ * còn phụ thuộc vào một tính năng của bên thứ ba có thể tắt lúc nào không hay.
  *
- * Nên phải rút, và rút theo ba nước, đúng thứ tự này:
- *
- *   1. RÚT NGẮN trước. Câu bôi đen là một đoạn văn dài thì cắt bớt nó, chứ
- *      đừng vứt cả câu đi — vứt là mất đúng cái thứ mà cả tính năng này xoay
- *      quanh, trong khi giữ lấy 200 chữ đầu vẫn đủ để hiểu từ nằm ở đâu.
- *   2. BỎ KHỐI, từ ít quan trọng nhất (điểm số, nguồn) trở lên. Mỗi khối mang
- *      một MỨC ƯU TIÊN; mức 0 thì không bao giờ bỏ.
- *   3. Cắt ngang chuỗi — chỉ khi hai nước trên vẫn không đủ, và cắt xong vẫn
- *      phải chừa mấy câu hỏi lại. Cắt đuôi là hỏng nặng nhất: gửi đi một đống
- *      dữ kiện mà không hỏi gì, Gemini vẫn trả lời, vẫn trông như chạy được,
- *      chỉ là nó trả lời một câu hỏi tự đoán ra.
- *
- * Bản ĐẦY ĐỦ vẫn được trả về (`day`) để chỗ gọi chép vào bộ nhớ tạm. Không mất
- * gì: Gemini không tự điền, hay câu hỏi bị rút bớt, thì vẫn còn đường dán tay.
+ * Được thêm: bộ nhớ tạm không có trần độ dài như đường dẫn. Bản `?q=` phải cắt
+ * gọt ba nước cho vừa 7.000 ký tự (tiếng Việt lẫn tiếng Nhật mã hoá ra URL thì
+ * mỗi chữ nở thành 9 ký tự). Giờ bỏ sạch phần ấy — câu hỏi đi ĐỦ, không cắt
+ * dòng nào. Và lịch sử trình duyệt không còn dính nguyên câu hỏi trong URL.
  */
 (function (goc) {
   "use strict";
@@ -55,29 +42,8 @@
     return r;
   };
 
+  /* Trang chat trơn. Không kèm tham số nào — xem khối chú thích trên. */
   const GOC_URL = "https://gemini.google.com/app";
-
-  /*
-   * Trần tính theo ký tự SAU khi mã hoá URL, không phải theo chữ.
-   *
-   * 7.000 chọn vì đó là chỗ an toàn dưới mức 8 KiB mà phần lớn máy chủ đặt cho
-   * dòng yêu cầu HTTP, sau khi đã chừa chỗ cho tên miền và đuôi "/app?q=".
-   */
-  const TRAN_URL = 7000;
-
-  /* Ưu tiên: số CÀNG LỚN càng bị bỏ trước. Mức 0 thì không bao giờ bỏ. */
-  const UU = {
-    DE: 0,          // lời mở + chính cái từ
-    HOI: 0,         // mấy câu hỏi — bỏ cái này thì đi hỏi làm gì
-    NGUCANH: 1,     // câu bôi đen, câu ví dụ: đây là thứ cả tính năng xoay quanh
-    NGHIA: 2,       // nghĩa đang có trong sổ
-    GHICHU: 3,      // ghi chú tự viết
-    LIEN: 4,        // đồng nghĩa / trái nghĩa đã lưu
-    NGUON: 5,       // link, tên trang, mốc phút
-    CHUHAN: 6,      // on/kun/số nét/JLPT
-    ANH: 7,         // định nghĩa tiếng Anh của Free Dictionary
-    TIENDO: 8       // điểm và mức thuộc — vui là chính
-  };
 
   /** "227" -> "3:47". */
   function giay(t) {
@@ -96,12 +62,6 @@
    * thay vì mảng là chỗ này nổ. Mà nổ ở đây thì cả nút hỏi im re, trong khi
    * mục ấy nhìn vẫn bình thường trên màn hình.
    */
-  /** Cắt bớt một chuỗi quá dài, có dấu … để đọc ra là đã bị cắt. */
-  function ngan(x, n) {
-    const t = sach(x);
-    return (!isFinite(n) || t.length <= n) ? t : t.slice(0, n).trim() + "…";
-  }
-
   function dsChu(x) {
     if (!Array.isArray(x)) return x == null || x === "" ? [] : [sach(x)].filter(Boolean);
     return x.map(sach).filter(Boolean);
@@ -134,8 +94,8 @@
    * Định nghĩa tiếng Anh của Free Dictionary, gói lại cho gọn.
    *
    * `pos` là mảng {p: từ loại, defs: [...], syn: [...]}. Lấy mỗi từ loại một
-   * định nghĩa đầu: đưa cả mảng vào thì riêng nó đã ăn hết trần URL, mà phần
-   * đuôi thường là mấy nghĩa hiếm chẳng liên quan tới câu đang hỏi.
+   * định nghĩa đầu: phần đuôi thường là mấy nghĩa hiếm chẳng liên quan gì tới
+   * câu đang hỏi, mà lại đẩy phần câu hỏi trôi xuống quá xa.
    */
   function dongAnh(pos) {
     const ra = [];
@@ -158,9 +118,7 @@
    *   - `chuHan`   dòng on/kun/số nét/JLPT (window.HanTu.META).
    *   - `diem`     {tong, ten} từ window.Srs.diemTu.
    *   - `so`       tên sổ con.
-   * @returns {{day: string, gon: string, cat: boolean}}
-   *   `day` bản đầy đủ (để chép vào bộ nhớ tạm), `gon` bản đã lược cho vừa
-   *   thanh địa chỉ, `cat` có phải đã lược bớt hay không.
+   * @returns {string} câu hỏi ĐẦY ĐỦ, để chép vào bộ nhớ tạm.
    */
   function loiHoi(muc, phu) {
     const it = muc || {};
@@ -171,20 +129,14 @@
     const huong = tenHuong(it.dict);
 
     /*
-     * Dựng danh sách khối, với `mc` là mức cắt cho những trường có thể dài.
-     * Gọi hai lần: một lần Infinity cho bản đầy đủ, một lần (hoặc vài lần) với
-     * mức cắt nhỏ dần cho bản đi qua thanh địa chỉ.
-     */
-    const dung = function (mc) {
-    /* Mỗi phần tử: {uu, chu}. Thứ tự trong mảng LÀ thứ tự in ra. */
-    const khoi = [];
-    /*
+     * Mỗi phần tử: {chu, tiep}. Thứ tự trong mảng LÀ thứ tự in ra.
+     *
      * `tiep` = dòng này dính liền dòng trên, cách nhau MỘT lần xuống dòng chứ
      * không phải một dòng trống. Mấy dòng trong nhóm "đã lưu sẵn" là một danh
-     * sách; giãn mỗi dòng ra một đoạn thì đọc như mười ý rời nhau, mà còn ăn
-     * thêm chỗ trong thanh địa chỉ cho một thứ chẳng mang tin gì.
+     * sách; giãn mỗi dòng ra thành một đoạn thì đọc như mười ý rời nhau.
      */
-    const them = function (uu, chu, tiep) { if (chu) khoi.push({ uu: uu, chu: chu, tiep: !!tiep }); };
+    const khoi = [];
+    const them = function (chu, tiep) { if (chu) khoi.push({ chu: chu, tiep: !!tiep }); };
 
     /* --- lời mở --- */
     const dau = [];
@@ -198,52 +150,50 @@
     if (it.reading) dau.push(T2("Cách đọc: {doc}", { doc: sach(it.reading) })
       + (it.docSuy ? " " + T("(app suy ra từ phiên âm, có thể chưa chuẩn)") : ""));
     if (p.hanViet) dau.push(T2("Âm Hán Việt: {am}", { am: sach(p.hanViet) }));
-    them(UU.DE, dau.join("\n"));
+    them(dau.join("\n"));
 
-    /* --- ngữ cảnh: phần quan trọng nhất sau chính câu hỏi --- */
+    /* --- ngữ cảnh: phần quan trọng nhất sau chính mấy câu hỏi --- */
     const nc = [];
-    const cauBoiDen = ngan((it.src || {}).sel, mc);
+    const cauBoiDen = sach((it.src || {}).sel);
     // Mục là một CÂU thì chính nó đã là ngữ cảnh rồi; nhắc lại y nguyên là thừa.
     if (cauBoiDen && cauBoiDen !== tu) {
       nc.push(T("Câu tôi bôi đen lúc lưu:"));
       nc.push("「" + cauBoiDen + "」");
     }
-    const cauNghe = ngan((it.cauNghe || {}).cau, mc);
+    const cauNghe = sach((it.cauNghe || {}).cau);
     if (cauNghe && cauNghe !== cauBoiDen && cauNghe !== tu) {
       nc.push(T("Câu ví dụ app đã lưu để luyện nghe:"));
       nc.push("「" + cauNghe + "」");
-      const dich = ngan((it.cauNghe || {}).dich, mc);
+      const dich = sach((it.cauNghe || {}).dich);
       if (dich) nc.push(T2("(bản dịch đang có: {dich})", { dich: dich }));
     }
-    if (nc.length) them(UU.NGUCANH, T("--- NGỮ CẢNH TÔI ĐÃ GẶP ---") + "\n" + nc.join("\n"));
+    if (nc.length) them(T("--- NGỮ CẢNH TÔI ĐÃ GẶP ---") + "\n" + nc.join("\n"));
     const coNguCanh = nc.length > 0 || loai === "cau";
 
     /* --- những gì sổ tay đang giữ --- */
     const daLuu = [];
     const nghia = dsChu(it.means);
     if (nghia.length) {
-      daLuu.push({ uu: UU.NGHIA, chu: T2("Nghĩa đang có trong sổ: {nghia}", { nghia: ngan(nghia.join("; "), mc) }) });
+      daLuu.push(T2("Nghĩa đang có trong sổ: {nghia}", { nghia: nghia.join("; ") }));
       if (it.mEdit) {
-        const goc = dsChu(it.mOrig);
-        daLuu.push({ uu: UU.NGHIA, chu: goc.length
-          ? T2("(nghĩa trên do CHÍNH TÔI sửa lại; bản máy dịch ban đầu là: {goc})", { goc: ngan(goc.join("; "), mc) })
-          : T("(nghĩa trên do CHÍNH TÔI sửa lại, không phải bản máy dịch)") });
+        const g = dsChu(it.mOrig);
+        daLuu.push(g.length
+          ? T2("(nghĩa trên do CHÍNH TÔI sửa lại; bản máy dịch ban đầu là: {goc})", { goc: g.join("; ") })
+          : T("(nghĩa trên do CHÍNH TÔI sửa lại, không phải bản máy dịch)"));
       }
     }
-    if (it.note && sach(it.note)) {
-      daLuu.push({ uu: UU.GHICHU, chu: T2("Ghi chú tôi tự viết: {gc}", { gc: ngan(it.note, mc) }) });
-    }
+    if (it.note && sach(it.note)) daLuu.push(T2("Ghi chú tôi tự viết: {gc}", { gc: sach(it.note) }));
     const dong = dsChu((it.lien || {}).dong);
     const trai = dsChu((it.lien || {}).trai);
-    if (dong.length) daLuu.push({ uu: UU.LIEN, chu: T2("Đồng nghĩa tôi đã lưu: {ds}", { ds: ngan(dong.join(", "), mc) }) });
-    if (trai.length) daLuu.push({ uu: UU.LIEN, chu: T2("Trái nghĩa tôi đã lưu: {ds}", { ds: ngan(trai.join(", "), mc) }) });
-    if (p.chuHan) daLuu.push({ uu: UU.CHUHAN, chu: T2("Chữ Hán: {meta}", { meta: ngan(p.chuHan, mc) }) });
+    if (dong.length) daLuu.push(T2("Đồng nghĩa tôi đã lưu: {ds}", { ds: dong.join(", ") }));
+    if (trai.length) daLuu.push(T2("Trái nghĩa tôi đã lưu: {ds}", { ds: trai.join(", ") }));
+    if (p.chuHan) daLuu.push(T2("Chữ Hán: {meta}", { meta: sach(p.chuHan) }));
     const anh = dongAnh(it.pos);
-    if (anh.length) daLuu.push({ uu: UU.ANH, chu: T2("Định nghĩa tiếng Anh app đã lưu: {ds}", { ds: ngan(anh.join(" | "), mc) }) });
-    if (p.so) daLuu.push({ uu: UU.TIENDO, chu: T2("Nằm trong sổ con: {so}", { so: sach(p.so) }) });
+    if (anh.length) daLuu.push(T2("Định nghĩa tiếng Anh app đã lưu: {ds}", { ds: anh.join(" | ") }));
+    if (p.so) daLuu.push(T2("Nằm trong sổ con: {so}", { so: sach(p.so) }));
     if (p.diem && isFinite(p.diem.tong)) {
-      daLuu.push({ uu: UU.TIENDO, chu: T2("Mức thuộc hiện tại của tôi: {d}/100 — {ten}",
-                                          { d: p.diem.tong, ten: p.diem.ten || "" }) });
+      daLuu.push(T2("Mức thuộc hiện tại của tôi: {d}/100 — {ten}",
+                    { d: p.diem.tong, ten: p.diem.ten || "" }));
     }
 
     /*
@@ -252,34 +202,23 @@
      * Đường link không giúp Gemini hiểu từ — nó không mở được trang ấy. Chỗ nó
      * có ích là khi câu bôi đen bị cụt: "phút 3:47 của video dạy nấu ăn" cũng
      * đã đủ để đoán ra đây là nghĩa thường ngày chứ không phải nghĩa chuyên môn.
+     * Và chính người học thì mở được — câu trả lời thường làm họ muốn nghe lại
+     * đúng chỗ ấy, nên cắt link ra là bắt họ quay về app mò lại.
      */
     const src = it.src || {};
     if (src.url) {
       const yt = src.yt || {};
-      // Đường link đi kèm CẢ ở nhánh video. Gemini không mở được nó, nhưng
-      // người học thì mở — và câu trả lời thường làm họ muốn nghe lại đúng chỗ
-      // ấy. Cắt link ra khỏi đây là bắt họ quay về app mò lại.
       const md = yt.v
         ? T2("YouTube · phút {t}{kenh} — {ten} ({url})", {
-            t: giay(yt.t), kenh: yt.kenh ? " · " + ngan(yt.kenh, mc) : "",
-            ten: ngan(src.title, mc) || T("(không có tên)"), url: sach(src.url) })
-        : (sach(src.title) ? ngan(src.title, mc) + " — " + sach(src.url) : sach(src.url));
-      daLuu.push({ uu: UU.NGUON, chu: T2("Tôi lưu nó từ: {nguon}", { nguon: md }) });
+            t: giay(yt.t), kenh: yt.kenh ? " · " + sach(yt.kenh) : "",
+            ten: sach(src.title) || T("(không có tên)"), url: sach(src.url) })
+        : (sach(src.title) ? sach(src.title) + " — " + sach(src.url) : sach(src.url));
+      daLuu.push(T2("Tôi lưu nó từ: {nguon}", { nguon: md }));
     }
 
     if (daLuu.length) {
-      /*
-       * Phần này được nhóm lại nhưng KHÔNG gộp thành một khối.
-       *
-       * Gộp thì lúc vượt trần phải bỏ trọn cả nhóm — mất luôn nghĩa chỉ vì
-       * mấy dòng định nghĩa tiếng Anh dài. Để rời thì bỏ đúng dòng đáng bỏ.
-       * Cái tiêu đề thì mang ưu tiên của dòng dễ sống nhất trong nhóm, để
-       * không bao giờ còn trơ lại một tiêu đề không có gì bên dưới.
-       */
-      let nhoNhat = Infinity;
-      for (const d of daLuu) nhoNhat = Math.min(nhoNhat, d.uu);
-      them(nhoNhat, T("--- TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY ---"));
-      for (const d of daLuu) them(d.uu, d.chu, true);
+      them(T("--- TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY ---"));
+      for (const d of daLuu) them(d, true);
     }
 
     /* --- câu hỏi --- */
@@ -305,67 +244,12 @@
     hoi.push(T("6. Một mẹo ngắn để tôi nhớ được lâu."));
     hoi.push("");
     hoi.push(T("Trả lời gọn. Đừng chép lại những gì tôi vừa đưa."));
-    them(UU.HOI, hoi.join("\n"));
-    return khoi;
-    };
+    them(hoi.join("\n"));
 
-    const noi = function (ds) {
-      let r = "";
-      ds.forEach(function (k, i) { r += (i ? (k.tiep ? "\n" : "\n\n") : "") + k.chu; });
-      return r;
-    };
-    const qua = function (ds) { return encodeURIComponent(noi(ds)).length > TRAN_URL; };
-    const day = noi(dung(Infinity));
-
-    /*
-     * Nước 1 — RÚT NGẮN. Thử các mức cắt nhỏ dần cho tới khi vừa trần.
-     *
-     * Đây là nước đi trước, không phải nước cuối: mục vượt trần gần như luôn là
-     * mục có một trường dài bất thường (bôi đen cả đoạn văn rồi bấm Lưu), chứ
-     * không phải mục có nhiều thứ. Cắt đúng cái trường ấy thì mọi khối khác còn
-     * nguyên — mà "còn nguyên" mới là thứ người ta đang cần ở tính năng này.
-     */
-    let con = dung(Infinity);
-    for (const m of [1200, 600, 300, 150, 80]) {
-      if (!qua(con)) break;
-      con = dung(m);
-    }
-
-    /* Nước 2 — BỎ KHỐI, từ ưu tiên lớn nhất xuống. Mức 0 thì không bao giờ bỏ. */
-    while (qua(con)) {
-      let max = -1;
-      for (const k of con) max = Math.max(max, k.uu);
-      if (max <= 0) break;
-      con = con.filter(function (k) { return k.uu < max; });
-    }
-
-    /*
-     * Nước 3 — cắt ngang chuỗi. Chỉ tới đây khi hai nước trên vẫn không đủ, và
-     * cắt ở ĐẦU chứ không cắt đuôi: đuôi là mấy câu hỏi, mất nó thì gửi đi một
-     * đống dữ kiện mà chẳng hỏi gì.
-     */
-    let gon = noi(con);
-    if (encodeURIComponent(gon).length > TRAN_URL) {
-      const cuoi = con.length ? con[con.length - 1].chu : "";
-      const chua = TRAN_URL - encodeURIComponent(cuoi + "\n…\n\n").length;
-      let n = gon.length;
-      while (n > 200 && encodeURIComponent(gon.slice(0, n)).length > chua) n -= 100;
-      gon = gon.slice(0, Math.max(200, n)) + "\n…\n\n" + cuoi;
-    }
-
-    // `cat` là "bản gửi đi KHÁC bản đầy đủ", tính bằng cách so chứ không bằng
-    // cách đánh dấu dọc đường: đánh dấu thì mỗi lần thêm một nước rút mới lại
-    // phải nhớ cắm cờ, mà quên cắm thì màn hình im lặng nói dối là không mất gì.
-    return { day: day, gon: gon, cat: gon !== day };
+    let r = "";
+    khoi.forEach(function (k, i) { r += (i ? (k.tiep ? "\n" : "\n\n") : "") + k.chu; });
+    return r;
   }
 
-  /** Đường dẫn mở Gemini với câu hỏi điền sẵn. */
-  function diaChi(loi) {
-    return GOC_URL + "?q=" + encodeURIComponent(String(loi == null ? "" : loi));
-  }
-
-  goc.HoiGemini = {
-    GOC_URL: GOC_URL, TRAN_URL: TRAN_URL, UU: UU,
-    loiHoi: loiHoi, diaChi: diaChi, loaiCua: loaiCua
-  };
+  goc.HoiGemini = { GOC_URL: GOC_URL, loiHoi: loiHoi, loaiCua: loaiCua };
 })(typeof self !== "undefined" ? self : this);

@@ -2728,29 +2728,34 @@ async function chepChu(chu) {
 }
 
 /**
- * Mở Gemini với câu hỏi điền sẵn.
+ * Chép câu hỏi vào bộ nhớ tạm rồi mở Gemini.
  *
- * Chép bản ĐẦY ĐỦ vào bộ nhớ tạm trước khi mở, và nói ra là đã chép. Câu hỏi
- * đi qua thanh địa chỉ nên có trần độ dài, mà mục nào lưu nguyên một đoạn văn
- * làm ngữ cảnh thì vượt trần thật — lúc ấy bản gửi qua link bị rút bớt, còn
- * bản đầy đủ vẫn nằm đó, dán một phát là có. Và nếu Gemini thôi không tự điền
- * `?q=` nữa thì tính năng này vẫn dùng được chứ không chết câm.
+ * Bản đầu gửi câu hỏi qua `?q=` trên đường dẫn. Đo thật thì không chạy:
+ * gemini.google.com nạp đúng đường dẫn ấy nhưng ô chat vẫn trống trơn. Và
+ * hỏng theo kiểu im lặng — trang mở ra bình thường, không báo lỗi gì, người
+ * dùng chỉ thấy ô trống và tưởng nút hỏng.
+ *
+ * Nên bộ nhớ tạm là đường CHÍNH chứ không còn là đường lui. Thêm đúng một
+ * thao tác dán, đổi lại thì chắc chắn chạy.
+ *
+ * Chép hỏng thì KHÔNG mở Gemini. Mở ra một ô trống mà chẳng có gì để dán chỉ
+ * làm người ta tưởng đã xong rồi loay hoay ở đầu bên kia.
  */
 async function moGemini(it, tenSo) {
   if (!it || !it.word) return;
   const loi = window.HoiGemini.loiHoi(it, phuGemini(it, tenSo));
-  const chep = await chepChu(loi.day);
-  const url = window.HoiGemini.diaChi(loi.gon);
+  if (!(await chepChu(loi))) {
+    toast(T("Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa."), "bad");
+    return;
+  }
+  const url = window.HoiGemini.GOC_URL;
   // "_system" = giao cho trình duyệt của máy, giống hệt nút mở nguồn. Mở trong
   // chính WebView thì Google chặn đăng nhập, mà không đăng nhập thì Gemini
   // không dùng được.
   try { window.open(url, "_system"); }
   catch (e) { try { window.open(url, "_blank"); } catch (e2) { location.href = url; } }
-  toast(loi.cat
-    ? (chep ? T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.")
-            : T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt."))
-    : (chep ? T("Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.")
-            : T("Đã mở Gemini với câu hỏi điền sẵn.")));
+  // Trên điện thoại không có Ctrl+V — nói đúng thao tác thật của máy cảm ứng.
+  toast(T("Đã chép câu hỏi — sang Gemini, chạm giữ vào ô chat rồi chọn Dán."));
 }
 
 /** Nút "hỏi Gemini" trong thẻ sổ tay. Thẻ học dùng nút riêng ở HTML (#stGemini). */

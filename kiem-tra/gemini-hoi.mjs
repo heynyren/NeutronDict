@@ -3,21 +3,23 @@
  *
  *   node kiem-tra/gemini-hoi.mjs
  *
- * Hai bất biến đáng canh nhất ở đây, và cả hai đều hỏng ÂM THẦM:
+ * Câu hỏi đi qua BỘ NHỚ TẠM, không qua thanh địa chỉ. Bản đầu gửi bằng `?q=`
+ * và đo thật thì không chạy: gemini.google.com nạp đúng đường dẫn ấy nhưng ô
+ * chat vẫn trống trơn. Nên không còn trần độ dài nào phải canh — câu hỏi đi
+ * ĐỦ, không cắt dòng nào.
  *
- *   1. TRẦN ĐỘ DÀI. Câu hỏi đi qua thanh địa chỉ, mà tiếng Việt lẫn tiếng Nhật
- *      mã hoá ra URL thì mỗi chữ nở thành 9 ký tự. Vượt trần thì Gemini không
- *      cắt bớt cho đẹp — nó trả về lỗi, và người học chỉ thấy một trang trắng
- *      chứ chẳng thấy "câu hỏi của bạn dài quá" ở đâu cả.
+ * Ba bất biến còn lại, cả ba đều hỏng ÂM THẦM:
  *
- *   2. MẤY CÂU HỎI PHẢI SỐNG SÓT. Cách rút gọn sai lầm nhất là cắt đuôi chuỗi,
- *      vì đuôi chính là chỗ đặt câu hỏi. Cắt xong thì gửi đi một đống dữ kiện
- *      mà không hỏi gì — Gemini vẫn trả lời, vẫn trông như chạy được, chỉ là
- *      trả lời một câu hỏi nó tự đoán ra.
+ *   1. TRÍCH ĐỦ. Cả tính năng này chỉ có một lý do tồn tại: đưa cho Gemini
+ *      những gì sổ tay đang giữ. Rơi mất một trường thì câu hỏi vẫn gửi đi
+ *      được và vẫn được trả lời — chỉ là trả lời thiếu căn cứ.
  *
- * Và một bất biến về sự thật: KHÔNG có ngữ cảnh thì phải nói thẳng là không
- * có. Hỏi "trong đúng câu trên thì từ này nghĩa gì" khi ở trên trống không là
- * mời mô hình bịa ra một câu rồi trình bày nó như câu người học đã gặp.
+ *   2. KHÔNG có ngữ cảnh thì phải NÓI THẲNG là không có. Hỏi "trong đúng câu
+ *      trên thì từ này nghĩa gì" khi ở trên trống không là mời mô hình bịa ra
+ *      một câu rồi trình bày nó như câu người học đã gặp.
+ *
+ *   3. KHÔNG NHÉT GÌ VÀO ĐƯỜNG DẪN nữa. Nhét vào thì nó chẳng tới được Gemini,
+ *      mà lại nằm lại nguyên vẹn trong lịch sử trình duyệt.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -42,6 +44,9 @@ const sAnd = doc("android/www/hoi-gemini.js");
 la(sExt === sAnd, "extension/hoi-gemini.js và android/www/hoi-gemini.js giống nhau từng byte",
    "lệch " + Math.abs(sExt.length - sAnd.length) + " ký tự");
 const HG = nap(sExt);
+
+/* Dòng cuối cùng của mọi câu hỏi — dùng để chốt "không có gì rơi sau phần hỏi". */
+const T_CUOI = "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.";
 
 /* ------------------------------------------------------------------ */
 console.log("\nĐược nạp ở CẢ HAI vỏ");
@@ -81,7 +86,7 @@ const phu = { hanViet: "Cải Thiện", chuHan: "改 (カイ · あらた-める
 console.log("\nTrích xuất ĐỦ những gì đã lưu");
 {
   const r = HG.loiHoi(DU, phu);
-  const co = (x, ten) => la(r.day.indexOf(x) >= 0, ten, x.slice(0, 34));
+  const co = (x, ten) => la(r.indexOf(x) >= 0, ten, x.slice(0, 34));
   co("改善", "chính con chữ");
   co("かいぜん", "cách đọc");
   co("Cải Thiện", "âm Hán Việt");
@@ -100,36 +105,36 @@ console.log("\nTrích xuất ĐỦ những gì đã lưu");
   co("Nghe ra", "nhãn mức tư duy");
   co("Công việc", "tên sổ con");
   co("Nhật→Việt", "hướng tra");
-  la(r.day.indexOf("improvement; betterment") >= 0, "định nghĩa tiếng Anh đã lưu");
+  la(r.indexOf("improvement; betterment") >= 0, "định nghĩa tiếng Anh đã lưu");
 }
 {
   // Nguồn YouTube: cái đáng hiện là PHÚT THỨ MẤY, không phải "youtube.com".
   const m = Object.assign({}, DU, {
     src: { url: "https://youtu.be/abc", title: "Bài giảng kaizen", yt: { v: "abc", t: 227, kenh: "NHK" } } });
   const r = HG.loiHoi(m, {});
-  la(r.day.indexOf("3:47") >= 0, "mốc phút video, đọc được chứ không phải số giây", "227 → 3:47");
-  la(r.day.indexOf("NHK") >= 0, "tên kênh");
+  la(r.indexOf("3:47") >= 0, "mốc phút video, đọc được chứ không phải số giây", "227 → 3:47");
+  la(r.indexOf("NHK") >= 0, "tên kênh");
   // Gemini không mở được link, nhưng NGƯỜI HỌC thì mở — và câu trả lời thường
   // làm họ muốn nghe lại đúng chỗ ấy.
-  la(r.day.indexOf("https://youtu.be/abc") >= 0, "đường link video vẫn đi kèm");
+  la(r.indexOf("https://youtu.be/abc") >= 0, "đường link video vẫn đi kèm");
 }
 {
   // Nhóm "đã lưu sẵn" là một DANH SÁCH: các dòng sát nhau, không giãn mỗi dòng
   // thành một đoạn. Giãn ra thì đọc như mười ý rời nhau, mà còn ăn chỗ trong
   // thanh địa chỉ cho một thứ chẳng mang tin gì.
   const r = HG.loiHoi(DU, phu);
-  const i = r.day.indexOf("TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY");
-  const j = r.day.indexOf("--- HÃY TRẢ LỜI");
+  const i = r.indexOf("TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY");
+  const j = r.indexOf("--- HÃY TRẢ LỜI");
   // `trim()` ở đây không phải cho đẹp: lát cắt ôm luôn dòng trống NGĂN nhóm
   // này với phần hỏi, mà dòng trống ấy là thứ đang muốn có chứ không phải lỗi.
-  const nhom = r.day.slice(i, j).trim();
+  const nhom = r.slice(i, j).trim();
   la(nhom.indexOf("\n\n") < 0, "trong nhóm không có dòng trống nào", 
      JSON.stringify(nhom.slice(0, 60)));
   la(nhom.split("\n").length >= 6, "và vẫn đủ các dòng", nhom.split("\n").length + " dòng");
   // Giữa hai NHÓM thì ngược lại: phải có dòng trống, nếu không thì tiêu đề
   // dính vào dòng cuối của nhóm trên.
-  la(r.day.indexOf("\n\n--- TÔI ĐÃ LƯU SẴN") >= 0, "giữa hai nhóm vẫn có dòng trống");
-  la(r.day.indexOf("\n\n--- HÃY TRẢ LỜI") >= 0, "phần hỏi cũng tách khỏi nhóm trên");
+  la(r.indexOf("\n\n--- TÔI ĐÃ LƯU SẴN") >= 0, "giữa hai nhóm vẫn có dòng trống");
+  la(r.indexOf("\n\n--- HÃY TRẢ LỜI") >= 0, "phần hỏi cũng tách khỏi nhóm trên");
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,15 +142,15 @@ console.log("\nKhông bịa ngữ cảnh khi không có");
 {
   const tron = { key: "javi:改善", word: "改善", dict: "javi", means: ["cải thiện"] };
   const r = HG.loiHoi(tron, {});
-  la(r.day.indexOf("CHƯA lưu được câu ngữ cảnh nào") >= 0, "nói thẳng ra là chưa có ngữ cảnh");
-  la(r.day.indexOf("Trong ĐÚNG câu ngữ cảnh ở trên") < 0,
+  la(r.indexOf("CHƯA lưu được câu ngữ cảnh nào") >= 0, "nói thẳng ra là chưa có ngữ cảnh");
+  la(r.indexOf("Trong ĐÚNG câu ngữ cảnh ở trên") < 0,
      "KHÔNG hỏi \"trong đúng câu trên\" khi ở trên trống không");
-  la(r.day.indexOf("NGỮ CẢNH TÔI ĐÃ GẶP") < 0, "không dựng tiêu đề ngữ cảnh rỗng");
+  la(r.indexOf("NGỮ CẢNH TÔI ĐÃ GẶP") < 0, "không dựng tiêu đề ngữ cảnh rỗng");
 }
 {
   const r = HG.loiHoi(DU, phu);
-  la(r.day.indexOf("Trong ĐÚNG câu ngữ cảnh ở trên") >= 0, "có ngữ cảnh thì hỏi thẳng vào ngữ cảnh");
-  la(r.day.indexOf("CHƯA lưu được câu ngữ cảnh") < 0, "và không nói nhầm là chưa có");
+  la(r.indexOf("Trong ĐÚNG câu ngữ cảnh ở trên") >= 0, "có ngữ cảnh thì hỏi thẳng vào ngữ cảnh");
+  la(r.indexOf("CHƯA lưu được câu ngữ cảnh") < 0, "và không nói nhầm là chưa có");
 }
 {
   // Mục là một CÂU: chính nó đã là ngữ cảnh, không nhắc lại y nguyên một lần nữa.
@@ -153,107 +158,62 @@ console.log("\nKhông bịa ngữ cảnh khi không có");
   const m = { key: "javi:" + cau, word: cau, kind: "sent", dict: "javi",
               src: { url: "https://x.vn", sel: cau }, means: ["…"] };
   const r = HG.loiHoi(m, {});
-  const dem = r.day.split(cau).length - 1;
+  const dem = r.split(cau).length - 1;
   la(dem === 1, "câu giống hệt phần thân thì không in hai lần", dem + " lần");
-  la(r.day.indexOf("CHƯA lưu được câu ngữ cảnh") < 0, "mục câu vẫn coi là CÓ ngữ cảnh");
+  la(r.indexOf("CHƯA lưu được câu ngữ cảnh") < 0, "mục câu vẫn coi là CÓ ngữ cảnh");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nTrần độ dài — chỗ hỏng âm thầm nhất");
+console.log("\nKhông cắt gọt gì — bộ nhớ tạm không có trần");
 {
-  const r = HG.loiHoi(DU, phu);
-  la(r.day === r.gon, "mục bình thường thì không phải rút gọn gì",
-     encodeURIComponent(r.day).length + " ký tự URL");
-  la(!r.cat, "và cờ `cat` không bật");
-}
-{
-  // Lưu nguyên một đoạn văn làm ngữ cảnh — trường hợp thật, không phải bịa:
-  // bôi đen cả đoạn rồi bấm Lưu là ra thế này.
+  /*
+   * Đây là chỗ đổi nhiều nhất so với bản `?q=`: hồi đó câu hỏi phải rút ba
+   * nước cho vừa 7.000 ký tự URL. Giờ nó đi qua bộ nhớ tạm, nên bất biến lật
+   * ngược lại — KHÔNG được rơi rụng dòng nào, dù mục có dài tới đâu.
+   */
   const doan = "工場では毎日、品質の改善が話し合われている。".repeat(60);
-  const m = Object.assign({}, DU, {
-    note: "ghi chú rất dài ".repeat(200),
-    src: Object.assign({}, DU.src, { sel: doan })
-  });
+  const gc = "ghi chú rất dài ".repeat(200);
+  const m = Object.assign({}, DU, { note: gc, src: Object.assign({}, DU.src, { sel: doan }) });
   const r = HG.loiHoi(m, phu);
-  const n = encodeURIComponent(r.gon).length;
-  la(n <= HG.TRAN_URL, "bản gửi qua link nằm trong trần", n + " ≤ " + HG.TRAN_URL);
-  la(r.cat, "cờ `cat` bật để màn hình còn biết mà báo");
-  la(r.day.length > r.gon.length, "bản đầy đủ vẫn giữ nguyên mọi thứ để chép tay",
-     r.day.length + " vs " + r.gon.length);
-  la(r.day.indexOf("ghi chú rất dài") >= 0, "bản đầy đủ không mất ghi chú");
-  // Đây là cái gate thật: cắt kiểu gì thì cắt, mấy câu hỏi phải còn.
-  la(r.gon.indexOf("HÃY TRẢ LỜI BẰNG TIẾNG VIỆT") >= 0, "TIÊU ĐỀ phần hỏi sống sót");
-  for (const n of ["3.", "4.", "5.", "6."]) {
-    la(r.gon.indexOf("\n" + n + " ") >= 0, "câu hỏi \"" + n + "\" sống sót");
+  la(r.indexOf(doan) >= 0, "đoạn ngữ cảnh 60 lần vẫn đi NGUYÊN, không bị cắt",
+     r.length + " ký tự");
+  la(r.indexOf(gc.trim()) >= 0, "ghi chú dài cũng nguyên");
+  la(r.indexOf("42/100") >= 0, "và không khối nào bị bỏ — kể cả điểm số");
+  la(r.indexOf("…") < 0, "không còn dấu … của việc cắt chuỗi ở đâu cả");
+  for (const n of ["1.", "2.", "3.", "4.", "5.", "6."]) {
+    la(r.indexOf("\n" + n + " ") >= 0, "câu hỏi \"" + n + "\" vẫn có mặt");
   }
-  la(r.gon.indexOf("改善") >= 0, "và chính con chữ cũng còn");
 }
 {
-  // Ép tới mức chỉ riêng câu bôi đen đã vượt trần: lúc đó mới được cắt chuỗi,
-  // và vẫn phải chừa mấy câu hỏi lại.
-  const m = Object.assign({}, DU, { src: { url: "https://x.vn", sel: "あ".repeat(6000) } });
-  const r = HG.loiHoi(m, phu);
-  const n = encodeURIComponent(r.gon).length;
-  la(n <= HG.TRAN_URL, "cắt tới cùng vẫn nằm trong trần", n + " ≤ " + HG.TRAN_URL);
-  la(r.gon.indexOf("6. ") >= 0, "câu hỏi cuối vẫn còn sau khi phải cắt chuỗi");
-}
-{
-  // RÚT NGẮN đi TRƯỚC khi bỏ khối. Một câu bôi đen dài thì phải cắt bớt câu
-  // ấy, chứ không được vứt cả khối ngữ cảnh đi rồi giữ nguyên mấy dòng phụ —
-  // đó đúng là thứ cả tính năng này xoay quanh.
-  const doan = "工場では毎日、品質の改善が話し合われている。".repeat(40);
-  const m = Object.assign({}, DU, { src: Object.assign({}, DU.src, { sel: doan }) });
-  const r = HG.loiHoi(m, phu);
-  la(r.gon.indexOf("工場では毎日") >= 0, "ngữ cảnh vẫn còn, chỉ ngắn lại");
-  la(r.gon.indexOf(doan) < 0, "và đúng là đã bị cắt chứ không lọt nguyên đoạn");
-  la(r.gon.indexOf("42/100") >= 0, "rút ngắn đủ rồi thì KHÔNG bỏ khối nào cả");
-  la(r.gon.indexOf("cải thiện; cải tiến") >= 0, "nghĩa vẫn còn");
-  la(r.gon.indexOf("改良, 向上") >= 0, "tập đồng nghĩa vẫn còn");
-}
-{
-  // Ép tới mức rút ngắn KHÔNG đủ: mọi trường dài đều là một khối chữ Hán to.
-  // Lúc này mới tới lượt bỏ khối, và phải bỏ từ ÍT quan trọng nhất trước.
-  const to = "改善".repeat(400);
-  const m = Object.assign({}, DU, {
-    note: to,
-    means: [to], mOrig: [to],
-    lien: { dong: [to], trai: [to] },
-    pos: [{ p: "noun", defs: [to], syn: [] }],
-    cauNghe: { cau: to, dich: to },
-    src: { url: "https://example.com/" + "x".repeat(300), title: to, sel: to }
-  });
-  const r = HG.loiHoi(m, Object.assign({}, phu, { chuHan: to }));
-  la(encodeURIComponent(r.gon).length <= HG.TRAN_URL, "vẫn nằm trong trần",
-     encodeURIComponent(r.gon).length + " ≤ " + HG.TRAN_URL);
-  la(r.gon.indexOf("42/100") < 0, "điểm số — thứ vui là chính — bị bỏ trước");
-  la(r.gon.indexOf("Công việc") < 0, "tên sổ con cũng bị bỏ cùng tầng đó");
-  la(r.gon.indexOf("NGỮ CẢNH TÔI ĐÃ GẶP") >= 0, "còn ngữ cảnh thì giữ tới cùng");
-  la(r.gon.indexOf("HÃY TRẢ LỜI") >= 0, "và phần hỏi thì không bao giờ bỏ");
-}
-{
-  // Không bao giờ để trơ lại một tiêu đề không có gì bên dưới.
-  const doan = "あ".repeat(2400);
-  const m = Object.assign({}, DU, { src: Object.assign({}, DU.src, { sel: doan }) });
-  const r = HG.loiHoi(m, phu);
-  const iTieuDe = r.gon.indexOf("TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY");
-  if (iTieuDe < 0) la(true, "tiêu đề \"đã lưu sẵn\" bị bỏ cùng cả nhóm");
-  else la(r.gon.slice(iTieuDe).split("\n\n").length > 2,
-          "tiêu đề \"đã lưu sẵn\" luôn có ít nhất một dòng bên dưới");
+  // Mục bình thường: đủ mọi phần, theo đúng thứ tự đọc được.
+  const r = HG.loiHoi(DU, phu);
+  const thuTu = ["Từ cần hỏi", "--- NGỮ CẢNH TÔI ĐÃ GẶP ---",
+                 "--- TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY ---", "--- HÃY TRẢ LỜI"];
+  let truoc = -1, dung = true;
+  for (const t of thuTu) { const k = r.indexOf(t); if (k <= truoc) dung = false; truoc = k; }
+  la(dung, "bốn phần nằm đúng thứ tự: từ → ngữ cảnh → dữ kiện → câu hỏi");
+  la(r.trim().endsWith(T_CUOI), "câu hỏi nằm ở CUỐI, không có gì rơi sau nó",
+     JSON.stringify(r.slice(-40)));
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nĐường dẫn");
+console.log("\nĐường dẫn trơn");
 {
-  const r = HG.loiHoi(DU, phu);
-  const u = HG.diaChi(r.gon);
-  la(u.indexOf("https://gemini.google.com/app?q=") === 0, "trỏ đúng Gemini");
-  la(decodeURIComponent(u.slice("https://gemini.google.com/app?q=".length)) === r.gon,
-     "giải mã ra đúng chuỗi ban đầu, không rơi rụng ký tự");
-  la(u.length < 8000, "cả đường dẫn dưới 8 KiB", u.length + " ký tự");
-  la(u.indexOf("#") < 0 && u.indexOf(" ") < 0, "không lọt ký tự thô ra ngoài");
+  /*
+   * Bất biến cốt lõi sau lần sửa này: đường dẫn KHÔNG mang theo câu hỏi.
+   *
+   * Nhét vào `?q=` thì Gemini không đọc — đã đo — nên nó không giúp gì, mà
+   * lại để nguyên cả câu hỏi trong lịch sử trình duyệt. Tức là trả giá riêng
+   * phần hại.
+   */
+  la(HG.GOC_URL === "https://gemini.google.com/app", "trỏ thẳng trang chat", HG.GOC_URL);
+  la(HG.GOC_URL.indexOf("?") < 0, "không có tham số nào");
+  la(HG.GOC_URL.length < 60, "ngắn gọn, lịch sử duyệt web không dính câu hỏi",
+     HG.GOC_URL.length + " ký tự");
+  la(HG.diaChi === undefined, "hàm dựng `?q=` đã bỏ hẳn, không để lại mã chết");
+  la(HG.TRAN_URL === undefined && HG.UU === undefined,
+     "bộ máy rút gọn theo trần URL cũng bỏ theo");
 }
-la(HG.diaChi("").indexOf("?q=") > 0, "chuỗi rỗng vẫn ra đường dẫn hợp lệ");
-la(HG.diaChi(null).indexOf("?q=") > 0, "null cũng không nổ");
 
 /* ------------------------------------------------------------------ */
 console.log("\nDữ liệu thiếu hoặc hỏng thì không nổ");
@@ -276,9 +236,9 @@ for (const [ten, m] of Object.entries({
   let loi = null, r = null;
   try { r = HG.loiHoi(m, {}); } catch (e) { loi = e; }
   la(!loi, "\"" + ten + "\" không ném lỗi", loi && loi.message);
-  la(!loi && r && typeof r.day === "string" && typeof r.gon === "string",
-     "\"" + ten + "\" vẫn trả về hai chuỗi");
-  if (!loi && r) la(r.day.indexOf("HÃY TRẢ LỜI") >= 0, "\"" + ten + "\" vẫn có phần hỏi");
+  la(!loi && typeof r === "string" && r.length > 0,
+     "\"" + ten + "\" vẫn trả về một chuỗi", r ? r.length + " ký tự" : String(r));
+  if (!loi && r) la(r.indexOf("HÃY TRẢ LỜI") >= 0, "\"" + ten + "\" vẫn có phần hỏi");
 }
 {
   let loi = null;
@@ -303,7 +263,20 @@ console.log("\nChỗ trống trong bản dịch");
     let m; while ((m = re.exec(src))) ra.add(m[1].replace(/\\"/g, '"'));
     return ra;
   };
+  /*
+   * Quét CẢ chữ trên màn hình của hai vỏ, không chỉ chuỗi trong mô-đun.
+   *
+   * Lời mách sau khi chép mang chỗ trống `{phim}` (⌘V hay Ctrl+V tuỳ máy), và
+   * nó nằm ở notebook.js / app.js chứ không nằm ở đây. Bỏ sót thì đúng cái
+   * dòng quan trọng nhất — dòng bảo người ta bấm gì để dán — lại là dòng
+   * không ai canh.
+   */
   const keys = khoaCua(sExt);
+  for (const f of ["extension/notebook.js", "android/www/app.js"]) {
+    for (const m of doc(f).matchAll(/T2?\(\s*"((?:[^"\\]|\\.)*(?:Gemini|chép câu hỏi|bộ nhớ tạm)(?:[^"\\]|\\.)*)"/g)) {
+      keys.add(m[1].replace(/\\"/g, '"'));
+    }
+  }
   for (const p of ["extension/chu-bang.js", "android/www/chu-bang.js"]) {
     const g = {}; new Function("self", doc(p))(g);
     const B = g.CHU_BANG;
@@ -328,7 +301,7 @@ la(HG.loaiCua({ dict: "javi" }) === "tu", "từ");
 la(HG.loaiCua(null) === "tu", "mục null thì coi như từ");
 {
   const r = HG.loiHoi({ word: "改", dict: "kanji", kanji: {} }, { chuHan: "7 nét" });
-  la(r.day.indexOf("chữ Hán") >= 0, "mục chữ Hán được gọi đúng tên trong câu hỏi");
+  la(r.indexOf("chữ Hán") >= 0, "mục chữ Hán được gọi đúng tên trong câu hỏi");
 }
 
 /* ------------------------------------------------------------------ */
