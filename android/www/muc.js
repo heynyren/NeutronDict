@@ -37,6 +37,10 @@
     // video mình nghe được từ đó thì không. Xoá vì đã thuộc, vài tháng sau quên
     // mà lưu lại, đáng ra phải nghe lại được đúng chỗ cũ.
     if (it.src && it.src.url) t.src = it.src;
+    // Và link đoạn chat Gemini, đúng cùng một lẽ với đường link nguồn: câu trả
+    // lời ở đó là của riêng lượt hỏi ấy, kèm đúng ngữ cảnh mình từng lưu. Mất
+    // là mất hẳn — lịch sử Gemini không lọc được theo từ.
+    if (it.hoiAi && it.hoiAi.url) t.hoiAi = it.hoiAi;
     return t;
   }
 
@@ -61,7 +65,8 @@
     if (en.mEdit) { o.mEdit = 1; o.means = (en.means || []).slice(); }
     if (en.mOrig) o.mOrig = en.mOrig.slice();
     if (en.src && en.src.url) o.src = en.src;
-    if (!o.saved && !o.note && !o.mEdit && !o.src) return null;   // bia mộ trơn — coi như chưa có gì
+    if (en.hoiAi && en.hoiAi.url) o.hoiAi = en.hoiAi;
+    if (!o.saved && !o.note && !o.mEdit && !o.src && !o.hoiAi) return null;   // bia mộ trơn — coi như chưa có gì
     return o;
   }
 
@@ -83,6 +88,7 @@
     // Nguồn cũ chỉ dùng khi lượt lưu này KHÔNG có nguồn nào. Tra lại từ một
     // trang khác thì nguồn mới mới là chỗ mình vừa gặp lại nó.
     if (cu.src && cu.src.url && !(ne.src && ne.src.url)) ne.src = cu.src;
+    if (cu.hoiAi && cu.hoiAi.url && !(ne.hoiAi && ne.hoiAi.url)) ne.hoiAi = cu.hoiAi;
     return ne;
   }
 

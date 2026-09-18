@@ -940,6 +940,16 @@ select { cursor: pointer; }
   word-break: break-word;
 }
 .mynote .nh { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+/* Hàng link đoạn chat Gemini, nằm trong khối ghi chú.
+   Vạch ngăn phía trên chứ không phải một hộp riêng: nó là chuyện của mục này
+   chứ không phải một mục mới, mà tách thành hộp thì khối ghi chú nhìn như hai. */
+.mynote .hoiai {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line);
+  font-size: 12px; color: var(--ink-3);
+}
+.mynote .hoiai .nhan { flex: 1 1 auto; min-width: 0; }
+.mynote .hoiai .chip.nho { flex: 0 0 auto; font-size: 12px; padding: 4px 10px; cursor: pointer; }
 
 .empty { text-align: center; color: var(--ink-3); padding: 44px 16px; font-size: 14px; }
 .empty .ic { display: block; margin: 0 auto 10px; color: var(--line); }

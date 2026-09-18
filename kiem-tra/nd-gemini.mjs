@@ -68,8 +68,24 @@ await page.waitForFunction(() => document.querySelectorAll(".entry").length >= 2
  * bằng cái bẫy ghi lại, rồi soi chính cái bị ghi.
  */
 await page.evaluate(() => {
-  window.__bay = { tab: [], chep: [] };
-  chrome.tabs.create = (o) => { window.__bay.tab.push(o.url); return Promise.resolve({ id: 1 }); };
+  window.__bay = { mo: [], chep: [] };
+  /*
+   * Chặn lượt nhờ NỀN mở tab, chứ không chặn `chrome.tabs.create`.
+   *
+   * Từ lúc nền phải canh địa chỉ của tab để nhặt lại link đoạn chat, trang sổ
+   * tay không tự mở tab nữa mà gửi `MO_GEMINI` sang nền. Bẫy ở `tabs.create`
+   * thành ra không bao giờ nổ, và bài kiểm trượt vì đo nhầm chỗ chứ không phải
+   * vì nút hỏng. Việc mở tab thật và nhặt link thì `nd-geminilink.mjs` lo.
+   */
+  const guiCu = chrome.runtime.sendMessage.bind(chrome.runtime);
+  chrome.runtime.sendMessage = (msg, cb) => {
+    if (msg && msg.type === "MO_GEMINI") {
+      window.__bay.mo.push(msg.key);
+      if (cb) setTimeout(() => cb({ ok: true }), 0);
+      return;
+    }
+    return guiCu(msg, cb);
+  };
   Object.defineProperty(navigator, "clipboard", {
     configurable: true,
     value: { writeText: (t) => { window.__bay.chep.push(t); return Promise.resolve(); } }
@@ -85,16 +101,18 @@ await page.evaluate(() => {
  * cũng có thể, mà thông báo lỗi lại đọc ra như thể cái nút hỏng.
  */
 const bamTu = (tu) => page.evaluate(async (t) => {
-  window.__bay.tab.length = 0; window.__bay.chep.length = 0;
+  window.__bay.mo.length = 0; window.__bay.chep.length = 0;
   for (const e of document.querySelectorAll(".entry")) {
     const w = e.querySelector(".w");
     if (w && w.textContent.includes(t)) { e.querySelector(".iconbtn.gemini").click(); break; }
   }
   await new Promise((x) => setTimeout(x, 400));
-  return { tab: window.__bay.tab.slice(), chep: window.__bay.chep.slice() };
+  return { mo: window.__bay.mo.slice(), chep: window.__bay.chep.slice() };
 }, tu);
 
 /* ------------------------------------------------------------------ */
+const HG_URL = await page.evaluate(() => window.HoiGemini.GOC_URL);
+
 console.log("Nút trong sổ tay");
 {
   const co = await page.evaluate(() => {
@@ -113,10 +131,12 @@ console.log("Nút trong sổ tay");
 }
 {
   const r = await bamTu("改善");
-  soat("bấm vào là mở đúng một tab", r.tab.length === 1, r.tab.length + " tab");
-  const u = r.tab[0] || "", c = r.chep[0] || "";
-  soat("tab trỏ tới trang chat TRƠN", u === "https://gemini.google.com/app", u);
-  soat("đường dẫn không mang câu hỏi theo", u.indexOf("?") < 0 && u.indexOf("%") < 0);
+  soat("bấm vào là nhờ nền mở đúng một lần", r.mo.length === 1, r.mo.length + " lượt");
+  const c = r.chep[0] || "";
+  soat("và nói cho nền biết ĐÚNG mục nào đang hỏi — nền còn phải ghi link về đây",
+       r.mo[0] === "javi:改善", r.mo[0]);
+  soat("địa chỉ Gemini là trang chat TRƠN, không mang câu hỏi theo",
+       /^https:\/\/gemini\.google\.com\/app$/.test(HG_URL), HG_URL);
   soat("câu hỏi nói về ĐÚNG từ vừa bấm", c.indexOf("改善") >= 0 && c.indexOf("写真") < 0);
   soat("kèm câu bôi đen lúc lưu", c.indexOf("工場では毎日") >= 0);
   soat("kèm câu ví dụ của bài nghe", c.indexOf("品質の改善に取り組む。") >= 0);
@@ -156,16 +176,15 @@ console.log("\nNút trong buổi học");
   soat("và đang đứng ở một thẻ thật", !!r.tu, r.tu);
 
   const r2 = await page.evaluate(async () => {
-    window.__bay.tab.length = 0; window.__bay.chep.length = 0;
+    window.__bay.mo.length = 0; window.__bay.chep.length = 0;
     // Chữ trên thẻ cũng mang ruby được, nên lấy từ GỐC trong mục chứ không đọc
     // chữ trên màn rồi đem đi so.
     const tu = (theCardHienTai() || {}).word || "";
     document.getElementById("stGemini").click();
     await new Promise((x) => setTimeout(x, 400));
-    return { tu: tu, tab: window.__bay.tab.slice(), chep: window.__bay.chep.slice() };
+    return { tu: tu, mo: window.__bay.mo.slice(), chep: window.__bay.chep.slice() };
   });
-  soat("bấm trong buổi học cũng mở Gemini",
-       r2.tab.length === 1 && r2.tab[0] === "https://gemini.google.com/app", r2.tab[0]);
+  soat("bấm trong buổi học cũng nhờ nền mở", r2.mo.length === 1, r2.mo.join());
   const c2 = r2.chep[0] || "";
   soat("buổi học cũng chép câu hỏi", r2.chep.length === 1, c2.length + " ký tự");
   soat("và hỏi về ĐÚNG thẻ đang mở", c2.indexOf(r2.tu) >= 0, r2.tu);
@@ -191,18 +210,18 @@ console.log("\nLời mách sau khi chép");
     const cu = navigator.clipboard.writeText;
     Object.defineProperty(navigator, "clipboard", {
       configurable: true, value: { writeText: () => Promise.reject(new Error("thử")) } });
-    const truoc = window.__bay.tab.length;
+    const truoc = window.__bay.mo.length;
     document.querySelector(".entry .iconbtn.gemini").click();
     await new Promise((x) => setTimeout(x, 500));
-    const them = window.__bay.tab.length - truoc;
+    const them = window.__bay.mo.length - truoc;
     const t = (document.getElementById("toast") || {}).textContent || "";
     Object.defineProperty(navigator, "clipboard", {
       configurable: true, value: { writeText: cu } });
     return { them: them, toast: t };
   });
   // execCommand("copy") vẫn có thể cứu được — chỉ chốt phần KHÔNG được im lặng.
-  soat("chép hỏng thì hoặc không mở tab, hoặc vẫn chép được bằng ngả dự phòng",
-       r.them === 0 || r.them === 1, "mở thêm " + r.them + " tab");
+  soat("chép hỏng thì hoặc không mở Gemini, hoặc vẫn chép được bằng ngả dự phòng",
+       r.them === 0 || r.them === 1, "thêm " + r.them + " lượt nhờ nền mở");
   soat("và lời mách vẫn nói được điều gì đó", r.toast.length > 0, r.toast.slice(0, 60));
 }
 

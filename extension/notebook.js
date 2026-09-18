@@ -1722,16 +1722,55 @@ async function moGemini(it) {
     toast(T("Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa."), "bad");
     return;
   }
-  const url = window.HoiGemini.GOC_URL;
-  try { chrome.tabs.create({ url: url }); }
-  catch (e) { window.open(url, "_blank"); }
+  /*
+   * Nhờ NỀN mở tab chứ không tự `chrome.tabs.create` ở đây.
+   *
+   * Vì nền còn phải canh chính cái tab ấy: hỏi xong, Gemini đổi địa chỉ thành
+   * `/app/<mã đoạn chat>`, và đó là thứ đáng giữ lại cho mục này. Mở từ trang
+   * sổ tay thì trang này đóng lại là hết ai canh.
+   */
+  chrome.runtime.sendMessage({ type: "MO_GEMINI", key: it.key }, () => {
+    if (chrome.runtime.lastError) {                 // nền không trả lời — vẫn phải mở được
+      try { window.open(window.HoiGemini.GOC_URL, "_blank"); } catch (e) {}
+    }
+  });
   toast(T2("Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.", { phim: phimDan() }));
+}
+
+/**
+ * Dán tay đường link đoạn chat — đường lui cho lúc nền không bắt được.
+ *
+ * Cách bắt tự động dựa vào việc Gemini đổi địa chỉ bằng `pushState`. Đó là
+ * cách nó đang làm, nhưng là trang của người khác: họ đổi lúc nào cũng được,
+ * và lúc ấy tính năng chết câm mà không có gì báo. Nên chừa một đường tay, đi
+ * đúng lối chuột-phải mà nút nguồn ở thẻ sổ tay vẫn dùng.
+ */
+async function danLinkGemini(it) {
+  let t = "";
+  try { t = (await navigator.clipboard.readText() || "").trim(); }
+  catch (e) { toast(T("Không đọc được bộ nhớ tạm"), "bad"); return; }
+  if (!/^https:\/\/gemini\.google\.com\/app\/[\w-]+/.test(t)) {
+    // Kiểm rồi mới ghi: dán nhầm thì nút "Mở" dẫn đi đâu không biết, mà lúc
+    // bấm mới phát hiện thì đoạn chat thật có khi đã trôi khỏi lịch sử.
+    toast(T("Bộ nhớ tạm không phải link đoạn chat Gemini"), "bad");
+    return;
+  }
+  await capNhat((nb) => {
+    const e = nb[it.key];
+    if (!e || e.del) return;
+    nb[it.key] = Object.assign({}, e, { hoiAi: { url: t, ts: Date.now() } });
+  });
+  await load();
+  syncSoon();
+  toast(T("Đã lưu link đoạn chat vào ghi chú"));
 }
 
 /** Nút "hỏi Gemini" trong thẻ sổ tay. Thẻ học dùng nút riêng ở HTML (#stGemini). */
 function nutGemini(it) {
   const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", 17);
   b.addEventListener("click", (ev) => { ev.stopPropagation(); moGemini(it); });
+  // Chuột phải = dán tay link đoạn chat, cùng lối với nút nguồn ngay bên cạnh.
+  b.addEventListener("contextmenu", (ev) => { ev.preventDefault(); danLinkGemini(it); });
   return b;
 }
 
@@ -1742,13 +1781,53 @@ function nutGemini(it) {
 function currentActiveSet() { return setIn(current); }
 
 /** Khối ghi chú riêng, hiện dưới phần nghĩa. */
-function khoiGhiChu(chu) {
+/** Mở một đường link ngoài. Tab mới, không giành mất trang sổ tay. */
+function MO_LINK(url) {
+  try { chrome.tabs.create({ url: url }); }
+  catch (e) { window.open(url, "_blank"); }
+}
+
+/*
+ * Khối ghi chú hiện ra khi có ghi chú HOẶC có link đoạn chat.
+ *
+ * Điều kiện cũ chỉ xét `note`, nên mục được ghi link mà chưa từng viết ghi chú
+ * thì cả khối không dựng — link coi như mất, mà chẳng có gì báo.
+ */
+function coGhiChu(it) {
+  return !!((it.note && it.note.trim()) || (it.hoiAi && it.hoiAi.url));
+}
+
+/**
+ * Khối "Ghi chú của bạn" — chữ bạn viết, và link đoạn chat Gemini nếu có.
+ *
+ * Hai thứ nằm chung một khối nhưng KHÔNG chung một ô chữ. Nhét link vào thẳng
+ * ghi chú thì chữ máy ghi lẫn chữ bạn viết: sửa ghi chú có thể xoá nhầm link,
+ * và mỗi lần hỏi lại là ô ghi chú dài thêm một đoạn. Để rời thì mỗi bên một
+ * việc, và cái nút mở nằm đúng chỗ mắt đang nhìn.
+ *
+ * @param {string} chu    ghi chú tự viết (có thể rỗng)
+ * @param {{url:string, ts:number}} [hoiAi]  đoạn chat Gemini gần nhất
+ */
+function khoiGhiChu(chu, hoiAi) {
   const box = el("div", "mynote");
   const h = el("div", "nh");
   h.appendChild(ic("note-pencil", { size: 13 }));
   h.appendChild(el("span", null, T("Ghi chú của bạn")));
   box.appendChild(h);
-  box.appendChild(el("div", null, chu));
+  if (chu) box.appendChild(el("div", null, chu));
+  if (hoiAi && hoiAi.url) {
+    const hang = el("div", "hoiai");
+    hang.appendChild(ic("sparkle", { size: 13 }));
+    let ngay = "";
+    try { ngay = new Date(hoiAi.ts).toLocaleDateString("vi-VN"); } catch (e) { ngay = ""; }
+    hang.appendChild(el("span", "nhan", T("Hỏi Gemini") + (ngay ? " \u00b7 " + ngay : "")));
+    const mo = el("button", "chip nho", T("Mở"));
+    mo.type = "button";
+    mo.title = hoiAi.url;
+    mo.addEventListener("click", (ev) => { ev.stopPropagation(); MO_LINK(hoiAi.url); });
+    hang.appendChild(mo);
+    box.appendChild(hang);
+  }
   return box;
 }
 
@@ -1855,7 +1934,7 @@ function draw() {
     }
     const mang = khoiLien(it, true);
     if (mang) body.appendChild(mang);
-    if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
+    if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
     if (it.anh && it.anh.length) {
       const hang = el("div", "anh-hang");
       it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
@@ -2430,7 +2509,7 @@ function revealCard() {
   const mangThe = khoiLien(it, false);
   if (mangThe) $("stMean").appendChild(mangThe);
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
-  if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
+  if (coGhiChu(it)) $("stMyNote").appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
   if (it.anh && it.anh.length) {
     const hang = el("div", "anh-hang");
     it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
@@ -3125,7 +3204,11 @@ function exportCsv() {
 const COT_CHIA_SE = [
   "Từ vựng", "Furigana", "Nghĩa", "Ghi chú", "Loại", "Hướng tra", "Sổ",
   "Link nguồn", "Phút video", "Mã video", "Kênh", "Tên nguồn", "Câu gốc",
-  "Furigana theo chữ Hán", "Phát âm", "Ngày lưu"
+  "Furigana theo chữ Hán", "Phát âm", "Ngày lưu",
+  // Thêm ở CUỐI, không chen vào giữa: file cũ vẫn nạp được vì bộ nạp bám theo
+  // TÊN cột chứ không theo vị trí, nhưng chen vào giữa thì người nào đang mở
+  // file cũ trong Excel để đối chiếu sẽ thấy lệch cột.
+  "Link Gemini"
 ];
 
 /** "1:23" -> 83 giây. Trả về null nếu ô trống hoặc không đọc được. */
@@ -3162,7 +3245,8 @@ function hangChiaSe(it) {
     src.sel || "",
     (it.ruby || []).join(" "),
     it.audio || "",
-    it.ts ? new Date(it.ts).toISOString().slice(0, 10) : ""
+    it.ts ? new Date(it.ts).toISOString().slice(0, 10) : "",
+    (it.hoiAi && it.hoiAi.url) || ""
   ];
 }
 
@@ -3267,6 +3351,9 @@ async function napChiaSeFile(file) {
         if (!cu.reading && o(h, "Furigana")) { cu.reading = o(h, "Furigana"); doi = true; }
         if (!(cu.src && cu.src.url) && src.url) { cu.src = src; doi = true; }
         if (!cu.note && o(h, "Ghi chú")) { cu.note = o(h, "Ghi chú"); doi = true; }
+        if (!(cu.hoiAi && cu.hoiAi.url) && o(h, "Link Gemini")) {
+          cu.hoiAi = { url: o(h, "Link Gemini"), ts: Date.now() }; doi = true;
+        }
         if (!(cu.ruby && cu.ruby.length) && o(h, "Furigana theo chữ Hán")) {
           cu.ruby = o(h, "Furigana theo chữ Hán").split(/\s+/).filter(Boolean); doi = true;
         }
@@ -3278,6 +3365,7 @@ async function napChiaSeFile(file) {
       // người nhận, phải vào sóng ôn tập từ đầu.
       const ne = { word: tu, reading: o(h, "Furigana"), means: nghia, dict: huong, ts: Date.now() };
       if (o(h, "Ghi chú")) ne.note = o(h, "Ghi chú");
+      if (o(h, "Link Gemini")) ne.hoiAi = { url: o(h, "Link Gemini"), ts: Date.now() };
       if (o(h, "Loại") === "câu") ne.kind = "sent";
       if (o(h, "Phát âm")) ne.audio = o(h, "Phát âm");
       if (src.url) ne.src = src;

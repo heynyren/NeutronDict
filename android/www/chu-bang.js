@@ -9,6 +9,12 @@
 
   const en = {
 
+    /* --- link đoạn chat Gemini --- */
+    "Mở": "Open",
+    "Không đọc được bộ nhớ tạm": "Could not read the clipboard",
+    "Bộ nhớ tạm không phải link đoạn chat Gemini": "The clipboard is not a Gemini chat link",
+    "Đã lưu link đoạn chat vào ghi chú": "Chat link saved to the note",
+
     /* --- màn kết quả bài liên kết --- */
     "+ Lưu": "+ Save",
     "Đã có": "Saved",
@@ -921,6 +927,12 @@
   };
 
   const ja = {
+
+    /* --- link đoạn chat Gemini --- */
+    "Mở": "開く",
+    "Không đọc được bộ nhớ tạm": "クリップボードを読み取れませんでした",
+    "Bộ nhớ tạm không phải link đoạn chat Gemini": "クリップボードの内容は Gemini のチャットリンクではありません",
+    "Đã lưu link đoạn chat vào ghi chú": "チャットのリンクをメモに保存しました",
 
     /* --- màn kết quả bài liên kết --- */
     "+ Lưu": "＋保存",

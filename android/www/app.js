@@ -2118,6 +2118,7 @@ async function renderWord(entries) {
           if (old2.kind) ne2.kind = old2.kind;
           if (old2.fav) ne2.fav = old2.fav;
           if (old2.note) ne2.note = old2.note;
+          if (old2.hoiAi) ne2.hoiAi = old2.hoiAi;   // link đoạn chat Gemini
           if (old2.src && !ne2.src) ne2.src = old2.src;
           if (old2.audio && !ne2.audio) ne2.audio = old2.audio;
           if (old2.ruby && !ne2.ruby) { ne2.ruby = old2.ruby; if (old2.docSuy) ne2.docSuy = 1; }
@@ -2320,6 +2321,7 @@ async function showTranslate(text) {
           if (oldS.duong) neS.duong = oldS.duong;
           if (oldS.cauNghe) neS.cauNghe = oldS.cauNghe;
           if (oldS.lien) neS.lien = oldS.lien;
+          if (oldS.hoiAi) neS.hoiAi = oldS.hoiAi;
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
@@ -2638,13 +2640,53 @@ function favButtons(it, sauDo) {
 }
 
 /** Khối ghi chú riêng, hiện dưới phần nghĩa. */
-function khoiGhiChu(chu) {
+/** Mở một đường link ngoài bằng trình duyệt của máy, như nút mở nguồn. */
+function MO_LINK(url) {
+  try { window.open(url, "_system"); }
+  catch (e) { try { window.open(url, "_blank"); } catch (e2) { location.href = url; } }
+}
+
+/*
+ * Khối ghi chú hiện ra khi có ghi chú HOẶC có link đoạn chat.
+ *
+ * Điều kiện cũ chỉ xét `note`, nên mục được ghi link mà chưa từng viết ghi chú
+ * thì cả khối không dựng — link coi như mất, mà chẳng có gì báo.
+ */
+function coGhiChu(it) {
+  return !!((it.note && it.note.trim()) || (it.hoiAi && it.hoiAi.url));
+}
+
+/**
+ * Khối "Ghi chú của bạn" — chữ bạn viết, và link đoạn chat Gemini nếu có.
+ *
+ * Hai thứ nằm chung một khối nhưng KHÔNG chung một ô chữ. Nhét link vào thẳng
+ * ghi chú thì chữ máy ghi lẫn chữ bạn viết: sửa ghi chú có thể xoá nhầm link,
+ * và mỗi lần hỏi lại là ô ghi chú dài thêm một đoạn. Để rời thì mỗi bên một
+ * việc, và cái nút mở nằm đúng chỗ mắt đang nhìn.
+ *
+ * @param {string} chu    ghi chú tự viết (có thể rỗng)
+ * @param {{url:string, ts:number}} [hoiAi]  đoạn chat Gemini gần nhất
+ */
+function khoiGhiChu(chu, hoiAi) {
   const box = el("div", "mynote");
   const h = el("div", "nh");
   h.appendChild(ic("note-pencil", { size: 13 }));
   h.appendChild(el("span", null, T("Ghi chú của bạn")));
   box.appendChild(h);
-  box.appendChild(el("div", null, chu));
+  if (chu) box.appendChild(el("div", null, chu));
+  if (hoiAi && hoiAi.url) {
+    const hang = el("div", "hoiai");
+    hang.appendChild(ic("sparkle", { size: 13 }));
+    let ngay = "";
+    try { ngay = new Date(hoiAi.ts).toLocaleDateString("vi-VN"); } catch (e) { ngay = ""; }
+    hang.appendChild(el("span", "nhan", T("Hỏi Gemini") + (ngay ? " \u00b7 " + ngay : "")));
+    const mo = el("button", "chip nho", T("Mở"));
+    mo.type = "button";
+    mo.title = hoiAi.url;
+    mo.addEventListener("click", (ev) => { ev.stopPropagation(); MO_LINK(hoiAi.url); });
+    hang.appendChild(mo);
+    box.appendChild(hang);
+  }
   return box;
 }
 
@@ -2996,7 +3038,7 @@ async function drawNotebook() {
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     const mangNb = khoiLien(it, true);
     if (mangNb) body.appendChild(mangNb);
-    if (it.note && it.note.trim()) body.appendChild(khoiGhiChu(it.note.trim()));
+    if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
     if (it.anh && it.anh.length) {
       const hangAnh = el("div", "anh-hang");
       it.anh.forEach((f) => hangAnh.appendChild(oAnh(f, false)));
@@ -4139,7 +4181,7 @@ function revealCard() {
   if (mangThe) $("stMean").appendChild(mangThe);
   // Ghi chú riêng chỉ hiện SAU khi lật thẻ — nó thường chứa luôn đáp án.
   $("stMyNote").innerHTML = "";
-  if (it.note && it.note.trim()) $("stMyNote").appendChild(khoiGhiChu(it.note.trim()));
+  if (coGhiChu(it)) $("stMyNote").appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
   if (it.anh && it.anh.length) {
     const hangAnh = el("div", "anh-hang");
     it.anh.forEach((f) => hangAnh.appendChild(oAnh(f, false)));

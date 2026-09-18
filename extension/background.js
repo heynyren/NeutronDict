@@ -287,6 +287,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch(() => sendResponse({ ok: false, nghia: {} }));
     return true;
   }
+  if (msg.type === "MO_GEMINI") {
+    moGeminiVaCanh(msg.key)
+      .then((id) => sendResponse({ ok: true, tabId: id }))
+      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+    return true;
+  }
   if (msg.type === "LUU_NHANH") {
     luuNhanh(msg.word, msg.dict)
       .then((r) => sendResponse({ ok: true, key: r }))
@@ -506,6 +512,91 @@ async function vaDocQuaMang(toiDa) {
  * học ngồi nhìn màn hình trống mất chục giây. Đệm theo từ nên các đề sau gặp
  * lại từ cũ là có ngay.
  */
+/* ==================================================================== */
+/* Nhặt lại đường link đoạn chat Gemini                                 */
+/* ==================================================================== */
+
+/*
+ * Hỏi Gemini xong thì đoạn chat ấy có một địa chỉ riêng, và đó là thứ đáng
+ * giữ: câu trả lời thường dài, đọc một lần không nhớ hết, mà tìm lại trong
+ * lịch sử Gemini thì không có cách nào lọc theo từ.
+ *
+ * Không cần cắm mã vào trang của Google. Extension đã có quyền `tabs`, nên nền
+ * đọc được địa chỉ của chính cái tab nó vừa mở. Gemini đổi `/app` thành
+ * `/app/<mã>` bằng `pushState`, và `tabs.onUpdated` báo cả những lượt đổi kiểu
+ * đó.
+ *
+ * CHỖ DỄ HỎNG NHẤT — và lý do phải làm đúng ngay từ đầu:
+ * service worker MV3 bị giết sau khoảng 30 giây nhàn rỗi, mà người học thì
+ * ngồi đọc Gemini vài phút. Nên:
+ *
+ *   - Bảng chờ nằm trong `chrome.storage.local`, KHÔNG phải biến của tệp này.
+ *     Biến bay mất cùng service worker, và triệu chứng của nó rất dễ đọc nhầm:
+ *     mọi thứ vẫn chạy, chỉ là link không bao giờ được ghi.
+ *   - `tabs.onUpdated` đăng ký ở CẤP CAO NHẤT, để Chrome đánh thức nền dậy khi
+ *     sự kiện nổ.
+ */
+const GEMINI_CHO = "geminiCho";
+const GEMINI_HAN = 2 * 60 * 60 * 1000;      // quá hai tiếng thì coi như bỏ cuộc
+// Chỉ nhận đoạn chat THẬT. Trang `/app` trơn là trang vừa mở, chưa có gì để
+// lưu; ghi nó vào là người học bấm nút mở lại ra một ô chat trống.
+const GEMINI_RE = /^https:\/\/gemini\.google\.com\/app\/([\w-]+)/;
+
+async function geminiChoDoc() {
+  const o = await chrome.storage.local.get(GEMINI_CHO);
+  return (o && o[GEMINI_CHO]) || {};
+}
+
+/** Dọn mục quá hạn ngay lúc ghi — không cần hẹn giờ riêng cho việc này. */
+async function geminiChoGhi(cho) {
+  const bay = Date.now();
+  for (const id in cho) if (!cho[id] || bay - (cho[id].ts || 0) > GEMINI_HAN) delete cho[id];
+  await chrome.storage.local.set({ [GEMINI_CHO]: cho });
+}
+
+/** Mở Gemini rồi canh chính tab ấy cho tới khi nó có mã đoạn chat. */
+async function moGeminiVaCanh(key) {
+  const tab = await chrome.tabs.create({ url: "https://gemini.google.com/app" });
+  if (!key || !tab || tab.id == null) return tab && tab.id;
+  const cho = await geminiChoDoc();
+  cho[String(tab.id)] = { key: key, ts: Date.now() };
+  await geminiChoGhi(cho);
+  return tab.id;
+}
+
+async function geminiGhiLink(tabId, url) {
+  const cho = await geminiChoDoc();
+  const m = cho[String(tabId)];
+  if (!m || !m.key) return;
+  delete cho[String(tabId)];
+  await geminiChoGhi(cho);
+  const nb = (await chrome.storage.local.get("notebook")).notebook || {};
+  const e = nb[m.key];
+  if (!e || e.del) return;                 // mục bị xoá trong lúc chờ
+  // Chỉ giữ link MỚI NHẤT: hỏi lại là câu hỏi đã khác, đoạn chat cũ không còn
+  // là chỗ để quay về.
+  nb[m.key] = Object.assign({}, e, { hoiAi: { url: url, ts: Date.now() } });
+  await chrome.storage.local.set({ notebook: nb });
+}
+
+chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
+  // `info.url` chỉ có khi địa chỉ vừa đổi; lượt đổi tiêu đề hay favicon thì
+  // không. Lấy thêm `tab.url` cho chắc, vì với pushState thì tuỳ phiên bản
+  // Chrome mà `info.url` có thể vắng mặt.
+  const u = info.url || (tab && tab.url) || "";
+  if (!GEMINI_RE.test(u)) return;
+  geminiGhiLink(tabId, u).catch(() => {});
+});
+
+// Đóng tab mà chưa hỏi gì thì bỏ mục chờ đi, đừng để nó nằm lại chiếm chỗ.
+chrome.tabs.onRemoved.addListener((tabId) => {
+  geminiChoDoc().then((cho) => {
+    if (!cho[String(tabId)]) return;
+    delete cho[String(tabId)];
+    return geminiChoGhi(cho);
+  }).catch(() => {});
+});
+
 const nghiaDem = new Map();
 async function nghiaDs(ds, ngu) {
   const ra = {};
@@ -1598,6 +1689,7 @@ async function saveWord(entry, dict) {
     if (old.srs) e.srs = old.srs;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
+    if (old.hoiAi && !e.hoiAi) e.hoiAi = old.hoiAi;   // link đoạn chat Gemini
     if (old.kanji && !e.kanji) e.kanji = old.kanji;
     if (old.ruby && !e.ruby) { e.ruby = old.ruby; if (old.docSuy) e.docSuy = 1; }
     if (old.fav) e.fav = old.fav;
