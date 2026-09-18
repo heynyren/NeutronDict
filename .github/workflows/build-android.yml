@@ -35,8 +35,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # `packages` phải ghi rõ. Mặc định của setup-android@v3 là "tools
+      # platform-tools", mà Google đã GỠ gói `tools` khỏi kho SDK — nên từ
+      # 16/9 mọi lần chạy đều chết ngay ở đây, trước khi kịp đụng tới mã:
+      #   [command] .../sdkmanager tools
+      #   Warning: Failed to find package 'tools'
+      #   Error: ... failed with exit code 1
+      # Ảnh máy ubuntu-latest đã có sẵn platform + build-tools nên chỉ cần
+      # platform-tools là đủ (v4 cũng đã đổi mặc định thành đúng chỗ này).
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - name: Install npm dependencies
         run: npm install
