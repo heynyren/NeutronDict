@@ -17,6 +17,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Mặc định của GitHub là 6 TIẾNG. Bước dựng SDK vừa treo một lần phải vào
+    # huỷ bằng tay — có hàng rào thì lần sau nó tự đỏ sau nửa tiếng.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: android
@@ -35,18 +38,47 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # `packages` phải ghi rõ. Mặc định của setup-android@v3 là "tools
-      # platform-tools", mà Google đã GỠ gói `tools` khỏi kho SDK — nên từ
-      # 16/9 mọi lần chạy đều chết ngay ở đây, trước khi kịp đụng tới mã:
-      #   [command] .../sdkmanager tools
-      #   Warning: Failed to find package 'tools'
-      #   Error: ... failed with exit code 1
-      # Ảnh máy ubuntu-latest đã có sẵn platform + build-tools nên chỉ cần
-      # platform-tools là đủ (v4 cũng đã đổi mặc định thành đúng chỗ này).
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools'
+      # KHÔNG dùng android-actions/setup-android nữa.
+      #
+      # Hai lần liên tiếp luồng này chết ở đúng đây, cả hai lần vì chuyện chẳng
+      # liên quan gì tới mã trong kho:
+      #
+      #   16/9  Mặc định của thẻ @v3 là `sdkmanager tools platform-tools`, mà
+      #         Google đã GỠ gói `tools` khỏi kho SDK.
+      #           Warning: Failed to find package 'tools'  → hỏng sau 18 giây.
+      #
+      #   18/9  Ghi rõ `packages: platform-tools` thì qua được chỗ đó, nhưng ảnh
+      #         máy đã đổi sang cmdline-tools 12.0 trong khi @v3 chốt cứng bản
+      #         16.0. Action chê "Wrong version in preinstalled sdkmanager" rồi
+      #         đi tải commandlinetools-linux-12266719 từ dl.google.com — và
+      #         nằm im ở đó hơn 4 phút, không nhúc nhích.
+      #
+      # Cùng một hình dạng lỗi: một thẻ trôi ở ngoài đổi ý, hoặc ảnh máy đổi
+      # phiên bản, là luồng đỏ mà trong kho chẳng ai sửa gì. Mà bước này vốn
+      # không cần thiết — ảnh ubuntu-latest đã có sẵn Android SDK, cmdline-tools
+      # và giấy phép đã ký. Dùng thẳng cái có sẵn thì không còn gì để tải.
+      - name: Android SDK (dùng bản có sẵn của máy chạy)
+        run: |
+          set -eu
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK" || { echo "Không thấy Android SDK ở $SDK"; exit 1; }
+          SDKMAN="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMAN" ]; then
+            SDKMAN="$(find "$SDK/cmdline-tools" -name sdkmanager -type f -perm -u+x | sort | tail -1)"
+          fi
+          test -n "$SDKMAN" || { echo "Không thấy sdkmanager trong $SDK"; exit 1; }
+          echo "sdkmanager: $SDKMAN"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$SDK/platform-tools" >> "$GITHUB_PATH"
+          # Giấy phép: ảnh máy đã ký sẵn, chạy lại cho chắc và KHÔNG để nó chặn
+          # luồng nếu có gì đó khác đi.
+          yes | timeout 300 "$SDKMAN" --licenses > /dev/null 2>&1 || true
+          # Đúng những gì android/variables.gradle đòi. Có sẵn rồi thì lệnh này
+          # không tải gì cả; `timeout` để nếu dl.google.com lại treo thì hỏng
+          # nhanh chứ không nằm chờ.
+          yes | timeout 900 "$SDKMAN" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          "$SDKMAN" --list_installed || true
 
       - name: Install npm dependencies
         run: npm install
