@@ -84,6 +84,12 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .iconbtn.gemini:hover { color: #8ab4f8; background: rgba(138,180,248,.14); }
+  .btn.gemini { color: #8ab4f8; border-color: rgba(138,180,248,.30); }
+  .btn.gemini:hover { background: rgba(138,180,248,.12); }
+}
+
+@media (prefers-color-scheme: dark) {
   :root {
     --bg: #100c1c;
     --surface: #191428;
@@ -269,6 +275,19 @@ a { color: var(--accent); }
 .iconbtn.like.on { color: #e4405f; }
 .iconbtn.dislike.on { color: var(--ink); }
 .iconbtn.danger:hover { color: var(--bad); background: var(--bad-soft); }
+
+/*
+ * Nút hỏi Gemini — XANH, cố ý không dùng màu nhấn tím của app.
+ *
+ * Tím ở đây có nghĩa "cái này đang được chọn" (xem .iconbtn.on). Nút này không
+ * bao giờ ở trạng thái được chọn, nó là một lối đi RA NGOÀI app. Mượn màu tím
+ * thì hai nghĩa lẫn vào nhau, mà cái lẫn ấy phải nhìn cả hàng nút mới gỡ ra
+ * được. Lúc nghỉ vẫn chìm như mọi nút icon khác: cả một sổ dài mà nút nào cũng
+ * bật màu thì chẳng nút nào nổi.
+ */
+.iconbtn.gemini:hover { color: #1a73e8; background: rgba(26,115,232,.12); }
+.btn.gemini { color: #1557b0; border-color: rgba(26,115,232,.34); }
+.btn.gemini:hover { background: rgba(26,115,232,.10); }
 
 /* --------------------------------------------------------------------------
    6. Ô nhập

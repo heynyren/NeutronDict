@@ -1634,6 +1634,74 @@ function openSource(it, chiaDoi) {
 }
 
 /* ==================================================================== */
+/* Hỏi Gemini                                                           */
+/* ==================================================================== */
+
+/**
+ * Những thứ `hoi-gemini.js` không tự tính được, phải lấy từ màn này.
+ *
+ * Tách ra một hàm riêng vì cả sổ tay lẫn buổi học đều gọi — mà nếu chép tay
+ * hai bản thì sớm muộn một bên quên mất một trường, và triệu chứng của nó là
+ * "hỏi từ trong sổ thì đủ, hỏi lúc đang học thì thiếu" — rất khó nhận ra.
+ */
+function phuGemini(it) {
+  const p = {};
+  const hv = hanVietOf(it.word);
+  if (hv) p.hanViet = hv;
+  if (it.dict === "kanji" && it.kanji && window.HanTu) {
+    const m = window.HanTu.META(it.kanji);
+    if (m) p.chuHan = m;
+  }
+  try {
+    const d = window.Srs.diemTu(it);
+    if (d && isFinite(d.tong)) p.diem = { tong: d.tong, ten: d.ten };
+  } catch (e) { /* chưa có tiến độ thì thôi, không phải thứ đáng chặn */ }
+  const so = deckName(it.deck);
+  if (so) p.so = so;
+  return p;
+}
+
+/**
+ * Mở Gemini với câu hỏi điền sẵn.
+ *
+ * Chép bản ĐẦY ĐỦ vào bộ nhớ tạm trước khi mở tab, và nói ra là đã chép.
+ * Không phải để cho đẹp: câu hỏi đi qua thanh địa chỉ nên có trần độ dài, mà
+ * mục nào lưu nguyên một đoạn văn làm ngữ cảnh thì vượt trần thật. Lúc ấy bản
+ * gửi qua link bị rút bớt — còn bản đầy đủ thì vẫn nằm đó, dán một phát là có.
+ * Và kể cả khi không bị rút: nếu Gemini đổi ý, không còn tự điền `?q=` nữa,
+ * thì tính năng này vẫn dùng được chứ không chết câm.
+ */
+function moGemini(it) {
+  if (!it || !it.word) return;
+  const loi = window.HoiGemini.loiHoi(it, phuGemini(it));
+  const mo = function (chep) {
+    const url = window.HoiGemini.diaChi(loi.gon);
+    try { chrome.tabs.create({ url: url }); }
+    catch (e) { window.open(url, "_blank"); }
+    toast(loi.cat
+      ? (chep ? T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.")
+              : T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt."))
+      : (chep ? T("Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.")
+              : T("Đã mở Gemini với câu hỏi điền sẵn.")));
+  };
+  // Chép xong MỚI mở tab: mở trước thì tab mới giành mất tiêu điểm, và trình
+  // duyệt từ chối ghi bộ nhớ tạm từ một trang không còn được nhìn.
+  let xong = false;
+  try {
+    const hua = navigator.clipboard && navigator.clipboard.writeText(loi.day);
+    if (hua && hua.then) { hua.then(() => { xong = true; mo(true); }, () => mo(false)); return; }
+  } catch (e) { /* không có quyền bộ nhớ tạm thì vẫn mở được Gemini */ }
+  if (!xong) mo(false);
+}
+
+/** Nút "hỏi Gemini" — dùng chung cho sổ tay và buổi học. */
+function nutGemini(it, nho) {
+  const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", nho ? 15 : 17);
+  b.addEventListener("click", (ev) => { ev.stopPropagation(); moGemini(it); });
+  return b;
+}
+
+/* ==================================================================== */
 /* Danh sách                                                            */
 /* ==================================================================== */
 
@@ -1789,6 +1857,11 @@ function draw() {
 
     const hang = el("div", "rowx");
     hang.style.gap = "2px";
+
+    // Hỏi Gemini đứng ĐẦU hàng: mấy nút còn lại đều là sửa cái đã có, nút này
+    // là đi hỏi thêm — việc khác loại, và là việc hay cần nhất lúc gặp lại một
+    // từ mà không nhớ nó nằm trong câu nào.
+    hang.appendChild(nutGemini(it));
 
     const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 17);
     sua.addEventListener("click", () => moSua(it, "trans"));
@@ -2917,6 +2990,7 @@ $("stClose").addEventListener("click", closeStudy);
 $("stDoneClose").addEventListener("click", closeStudy);
 $("stDel").addEventListener("click", deleteCurrentCard);
 $("stUndoBtn").addEventListener("click", undoDelete);
+$("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if (it) moGemini(it); });
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
 $("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
@@ -3761,6 +3835,7 @@ function gaiIcon() {
     b.innerHTML = window.Icon(ten, { size: 15 }) + '<span class="lb" data-chu>' + chu + "</span>";
   };
   gan("stSrc", "link-simple", "Mở nguồn");
+  gan("stGemini", "sparkle", "Hỏi Gemini");
   gan("stEdit", "translate", "Sửa bản dịch");
   gan("stNote", "note-pencil", "Ghi chú");
   gan("gForgot", "arrow-counter-clockwise", "Quên");

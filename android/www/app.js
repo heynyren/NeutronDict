@@ -2668,6 +2668,98 @@ function buildTextFragment(src) {
   if (suf) frag = frag + ",-" + enc(suf);
   return frag;
 }
+/* ==================================================================== */
+/* Hỏi Gemini                                                           */
+/* ==================================================================== */
+
+/**
+ * Những thứ `hoi-gemini.js` không tự tính được, phải lấy từ màn này.
+ *
+ * `tenSo` truyền vào chứ không tự tra: ở sổ tay thì bảng sổ con đã nằm sẵn
+ * trong tầm tay, còn ở buổi học thì phải đi hỏi kho — mà chỉ để ghi thêm một
+ * dòng "nằm trong sổ X" thì không đáng bắt người ta chờ.
+ */
+function phuGemini(it, tenSo) {
+  const p = {};
+  const hv = hanVietOf(it.word);
+  if (hv) p.hanViet = hv;
+  if (it.dict === "kanji" && it.kanji && window.HanTu) {
+    const m = window.HanTu.META(it.kanji);
+    if (m) p.chuHan = m;
+  }
+  try {
+    const d = window.Srs.diemTu(it);
+    if (d && isFinite(d.tong)) p.diem = { tong: d.tong, ten: d.ten };
+  } catch (e) { /* chưa có tiến độ thì thôi */ }
+  if (tenSo) p.so = tenSo;
+  return p;
+}
+
+/**
+ * Chép một đoạn dài vào bộ nhớ tạm.
+ *
+ * WebView của Capacitor phục vụ trang qua https://localhost nên
+ * `navigator.clipboard` thường chạy được — nhưng "thường" thì chưa đủ để dựa
+ * vào, vì máy Android cũ và WebView bị hạ cấp thì nó vắng mặt. Ngả thứ hai là
+ * `execCommand("copy")`: cũ kỹ, đã bị khai tử trên giấy tờ, nhưng vẫn chạy ở
+ * đúng những chỗ mà cái mới không có.
+ */
+async function chepChu(chu) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(chu);
+      return true;
+    }
+  } catch (e) { /* rơi xuống ngả dưới */ }
+  try {
+    const o = document.createElement("textarea");
+    o.value = chu;
+    o.setAttribute("readonly", "");
+    // Ngoài khung nhìn chứ KHÔNG display:none — ô ẩn hẳn thì không chọn được
+    // chữ trong đó, mà không chọn được thì không có gì để chép.
+    o.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
+    document.body.appendChild(o);
+    o.select();
+    o.setSelectionRange(0, chu.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(o);
+    return !!ok;
+  } catch (e) { return false; }
+}
+
+/**
+ * Mở Gemini với câu hỏi điền sẵn.
+ *
+ * Chép bản ĐẦY ĐỦ vào bộ nhớ tạm trước khi mở, và nói ra là đã chép. Câu hỏi
+ * đi qua thanh địa chỉ nên có trần độ dài, mà mục nào lưu nguyên một đoạn văn
+ * làm ngữ cảnh thì vượt trần thật — lúc ấy bản gửi qua link bị rút bớt, còn
+ * bản đầy đủ vẫn nằm đó, dán một phát là có. Và nếu Gemini thôi không tự điền
+ * `?q=` nữa thì tính năng này vẫn dùng được chứ không chết câm.
+ */
+async function moGemini(it, tenSo) {
+  if (!it || !it.word) return;
+  const loi = window.HoiGemini.loiHoi(it, phuGemini(it, tenSo));
+  const chep = await chepChu(loi.day);
+  const url = window.HoiGemini.diaChi(loi.gon);
+  // "_system" = giao cho trình duyệt của máy, giống hệt nút mở nguồn. Mở trong
+  // chính WebView thì Google chặn đăng nhập, mà không đăng nhập thì Gemini
+  // không dùng được.
+  try { window.open(url, "_system"); }
+  catch (e) { try { window.open(url, "_blank"); } catch (e2) { location.href = url; } }
+  toast(loi.cat
+    ? (chep ? T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.")
+            : T("Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt."))
+    : (chep ? T("Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.")
+            : T("Đã mở Gemini với câu hỏi điền sẵn.")));
+}
+
+/** Nút "hỏi Gemini" — dùng chung cho sổ tay và buổi học. */
+function nutGemini(it, tenSo) {
+  const b = nutIcon("sparkle", T("Hỏi Gemini về từ này kèm ngữ cảnh đã lưu"), "gemini", 18);
+  b.addEventListener("click", (ev) => { ev.stopPropagation(); moGemini(it, tenSo); });
+  return b;
+}
+
 function openSourceExt(it) {
   if (!it.src || !it.src.url) return;
   const base = it.src.url;
@@ -2941,6 +3033,11 @@ async function drawNotebook() {
       drawNotebook(); syncSoon();
     });
     ctl.appendChild(sel);
+
+    // Hỏi Gemini đứng ĐẦU hàng: mấy nút còn lại đều là sửa cái đã có, nút này
+    // là đi hỏi thêm — việc khác loại, và là việc hay cần nhất lúc gặp lại một
+    // từ mà không nhớ nó nằm trong câu nào.
+    ctl.appendChild(nutGemini(it, deckName(decks, it.deck)));
 
     const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 18);
     sua.addEventListener("click", () => moSua(it, "trans"));
@@ -3829,6 +3926,7 @@ function revealCard() {
 
 $("stReveal").addEventListener("click", revealCard);
 $("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
+$("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if (it) moGemini(it); });
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
 $("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
@@ -4078,6 +4176,7 @@ function gaiIcon() {
   gan("tabDetail", "article", "Chi tiết");
   gan("tabTrans", "translate", "Dịch");
   gan("stSrc", "link-simple", "Mở nguồn", 15);
+  gan("stGemini", "sparkle", "Hỏi Gemini", 15);
   gan("stEdit", "translate", "Sửa bản dịch", 15);
   gan("stNote", "note-pencil", "Ghi chú", 15);
   gan("stReveal", "eye", "Hiện nghĩa", 19);

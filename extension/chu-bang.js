@@ -8,6 +8,72 @@
   "use strict";
 
   const en = {
+
+    /* --- hỏi Gemini (xem hoi-gemini.js) --- */
+    "chữ Hán": "kanji",
+    "câu": "sentence",
+    "từ": "word",
+    "Tôi đang học từ vựng ({huong}) bằng app NeutronDict.":
+      "I'm learning vocabulary ({huong}) with the NeutronDict app.",
+    "Tôi đang học từ vựng bằng app NeutronDict.": "I'm learning vocabulary with the NeutronDict app.",
+    "Tôi muốn hiểu cho đúng {loai} dưới đây, TRONG ĐÚNG NGỮ CẢNH tôi đã gặp nó.":
+      "I want to understand the {loai} below correctly, IN THE EXACT CONTEXT where I met it.",
+    "{Loai} cần hỏi: {tu}": "{Loai} in question: {tu}",
+    "Cách đọc: {doc}": "Reading: {doc}",
+    "(app suy ra từ phiên âm, có thể chưa chuẩn)":
+      "(inferred by the app from the romanisation; may not be exact)",
+    "Âm Hán Việt: {am}": "Sino-Vietnamese reading: {am}",
+    "Câu tôi bôi đen lúc lưu:": "The sentence I highlighted when I saved it:",
+    "Câu ví dụ app đã lưu để luyện nghe:": "The example sentence the app saved for listening practice:",
+    "(bản dịch đang có: {dich})": "(translation on file: {dich})",
+    "--- NGỮ CẢNH TÔI ĐÃ GẶP ---": "--- THE CONTEXT I MET IT IN ---",
+    "Nghĩa đang có trong sổ: {nghia}": "Meaning currently in my notebook: {nghia}",
+    "(nghĩa trên do CHÍNH TÔI sửa lại; bản máy dịch ban đầu là: {goc})":
+      "(I edited that meaning MYSELF; the original machine translation was: {goc})",
+    "(nghĩa trên do CHÍNH TÔI sửa lại, không phải bản máy dịch)":
+      "(I edited that meaning MYSELF; it is not the machine translation)",
+    "Ghi chú tôi tự viết: {gc}": "My own note: {gc}",
+    "Đồng nghĩa tôi đã lưu: {ds}": "Synonyms I saved: {ds}",
+    "Trái nghĩa tôi đã lưu: {ds}": "Antonyms I saved: {ds}",
+    "Chữ Hán: {meta}": "Kanji: {meta}",
+    "Định nghĩa tiếng Anh app đã lưu: {ds}": "English definitions the app saved: {ds}",
+    "Nằm trong sổ con: {so}": "Filed in deck: {so}",
+    "Mức thuộc hiện tại của tôi: {d}/100 — {ten}": "How well I know it right now: {d}/100 — {ten}",
+    "YouTube · phút {t}{kenh} — {ten} ({url})": "YouTube · at {t}{kenh} — {ten} ({url})",
+    "(không có tên)": "(untitled)",
+    "Tôi lưu nó từ: {nguon}": "I saved it from: {nguon}",
+    "--- TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY ---": "--- WHAT I ALREADY HAVE ON FILE ---",
+    "--- HÃY TRẢ LỜI BẰNG TIẾNG VIỆT ---": "--- PLEASE ANSWER IN ENGLISH ---",
+    "1. Trong ĐÚNG câu ngữ cảnh ở trên, {loai} này nghĩa là gì? Dịch cả câu, và nói rõ nó đóng vai trò gì trong câu.":
+      "1. In THAT EXACT sentence above, what does this {loai} mean? Translate the whole sentence and say what role it plays in it.",
+    "2. Nghĩa tôi đang lưu có khớp với ngữ cảnh đó không? Lệch chỗ nào thì nói thẳng.":
+      "2. Does the meaning I have on file fit that context? If it is off, say so plainly.",
+    "(Tôi CHƯA lưu được câu ngữ cảnh nào cho {loai} này — đừng đoán là tôi đã gặp nó ở đâu.)":
+      "(I have NOT saved any context sentence for this {loai} — do not guess where I met it.)",
+    "1. {Loai} này nghĩa là gì, và nó hay xuất hiện trong kiểu ngữ cảnh nào? Cho một câu điển hình có dịch.":
+      "1. What does this {Loai} mean, and what kind of context does it usually appear in? Give one typical sentence with a translation.",
+    "2. Nghĩa tôi đang lưu có sát không? Lệch chỗ nào thì nói thẳng.":
+      "2. Is the meaning I have on file close enough? If it is off, say so plainly.",
+    "3. Sắc thái và mức trang trọng: lúc nào dùng được, lúc nào KHÔNG nên dùng.":
+      "3. Nuance and register: when it works, and when it should NOT be used.",
+    "4. Phân biệt với những từ tôi đã lưu ở trên — mỗi từ một câu ngắn, chỉ ra chỗ khác nhau thật sự.":
+      "4. Tell it apart from the words I saved above — one short line each, naming the real difference.",
+    "4. Những {loai} nào gần nghĩa mà hay bị dùng nhầm chỗ? Phân biệt giúp tôi.":
+      "4. Which near-synonym {loai}s get misused in its place? Tell them apart for me.",
+    "5. Hai ví dụ khác cùng sắc thái, có dịch.": "5. Two more examples with the same nuance, translated.",
+    "6. Một mẹo ngắn để tôi nhớ được lâu.": "6. One short trick to help me remember it.",
+    "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.":
+      "Keep it tight. Do not repeat back what I just gave you.",
+    "Hỏi Gemini": "Ask Gemini",
+    "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "Ask Gemini about this word, with the context you saved",
+    "Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.":
+      "Opened Gemini. The question is on your clipboard too — paste it if it did not fill itself in.",
+    "Đã mở Gemini với câu hỏi điền sẵn.": "Opened Gemini with the question filled in.",
+    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.":
+      "Opened Gemini. The question was long, so the link version is shortened — the FULL one is on your clipboard; paste it to get everything.",
+    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt.":
+      "Opened Gemini. The question was long, so the link version is shortened.",
+
     /* --- khung chung --- */
     "Sổ tay NeutronDict": "NeutronDict Notebook",
     "Anh – Việt · sóng học tập": "English – Vietnamese · study rhythm",
@@ -865,6 +931,66 @@
   };
 
   const ja = {
+
+    /* --- hỏi Gemini (xem hoi-gemini.js) --- */
+    "chữ Hán": "漢字",
+    "câu": "文",
+    "từ": "単語",
+    "Tôi đang học từ vựng ({huong}) bằng app NeutronDict.": "NeutronDict で単語（{huong}）を勉強しています。",
+    "Tôi đang học từ vựng bằng app NeutronDict.": "NeutronDict で単語を勉強しています。",
+    "Tôi muốn hiểu cho đúng {loai} dưới đây, TRONG ĐÚNG NGỮ CẢNH tôi đã gặp nó.":
+      "下の{loai}を、私が実際に出会った文脈のままで正しく理解したいです。",
+    "{Loai} cần hỏi: {tu}": "対象の{Loai}: {tu}",
+    "Cách đọc: {doc}": "読み: {doc}",
+    "(app suy ra từ phiên âm, có thể chưa chuẩn)": "（アプリがローマ字から推定した読み。正確でない可能性あり）",
+    "Âm Hán Việt: {am}": "漢越音: {am}",
+    "Câu tôi bôi đen lúc lưu:": "保存したときに選択した文:",
+    "Câu ví dụ app đã lưu để luyện nghe:": "リスニング練習用にアプリが保存した例文:",
+    "(bản dịch đang có: {dich})": "（保存されている訳: {dich}）",
+    "--- NGỮ CẢNH TÔI ĐÃ GẶP ---": "--- 私が出会った文脈 ---",
+    "Nghĩa đang có trong sổ: {nghia}": "手帳にある意味: {nghia}",
+    "(nghĩa trên do CHÍNH TÔI sửa lại; bản máy dịch ban đầu là: {goc})": "（上の意味は私自身が直したものです。元の機械翻訳は: {goc}）",
+    "(nghĩa trên do CHÍNH TÔI sửa lại, không phải bản máy dịch)": "（上の意味は私自身が直したもので、機械翻訳ではありません）",
+    "Ghi chú tôi tự viết: {gc}": "自分で書いたメモ: {gc}",
+    "Đồng nghĩa tôi đã lưu: {ds}": "保存した類義語: {ds}",
+    "Trái nghĩa tôi đã lưu: {ds}": "保存した対義語: {ds}",
+    "Chữ Hán: {meta}": "漢字: {meta}",
+    "Định nghĩa tiếng Anh app đã lưu: {ds}": "アプリが保存した英語の定義: {ds}",
+    "Nằm trong sổ con: {so}": "所属デッキ: {so}",
+    "Mức thuộc hiện tại của tôi: {d}/100 — {ten}": "現在の習得度: {d}/100 — {ten}",
+    "YouTube · phút {t}{kenh} — {ten} ({url})": "YouTube · {t}{kenh} — {ten}（{url}）",
+    "(không có tên)": "（タイトルなし）",
+    "Tôi lưu nó từ: {nguon}": "保存元: {nguon}",
+    "--- TÔI ĐÃ LƯU SẴN NHỮNG THỨ NÀY ---": "--- すでに保存してある情報 ---",
+    "--- HÃY TRẢ LỜI BẰNG TIẾNG VIỆT ---": "--- 日本語で答えてください ---",
+    "1. Trong ĐÚNG câu ngữ cảnh ở trên, {loai} này nghĩa là gì? Dịch cả câu, và nói rõ nó đóng vai trò gì trong câu.":
+      "1. 上のその文の中で、この{loai}はどういう意味ですか。文全体を訳し、文中での役割も説明してください。",
+    "2. Nghĩa tôi đang lưu có khớp với ngữ cảnh đó không? Lệch chỗ nào thì nói thẳng.":
+      "2. 手帳にある意味はその文脈に合っていますか。ずれているならはっきり指摘してください。",
+    "(Tôi CHƯA lưu được câu ngữ cảnh nào cho {loai} này — đừng đoán là tôi đã gặp nó ở đâu.)":
+      "（この{loai}には文脈の文を保存できていません。どこで出会ったかを推測しないでください。）",
+    "1. {Loai} này nghĩa là gì, và nó hay xuất hiện trong kiểu ngữ cảnh nào? Cho một câu điển hình có dịch.":
+      "1. この{Loai}はどういう意味で、どんな文脈でよく使われますか。訳つきの典型的な例文を一つください。",
+    "2. Nghĩa tôi đang lưu có sát không? Lệch chỗ nào thì nói thẳng.":
+      "2. 手帳にある意味は妥当ですか。ずれているならはっきり指摘してください。",
+    "3. Sắc thái và mức trang trọng: lúc nào dùng được, lúc nào KHÔNG nên dùng.":
+      "3. ニュアンスと丁寧さ: どんなときに使えて、どんなときに使うべきでないか。",
+    "4. Phân biệt với những từ tôi đã lưu ở trên — mỗi từ một câu ngắn, chỉ ra chỗ khác nhau thật sự.":
+      "4. 上に保存した語との違い — 一語につき一行で、実際の違いを挙げてください。",
+    "4. Những {loai} nào gần nghĩa mà hay bị dùng nhầm chỗ? Phân biệt giúp tôi.":
+      "4. 意味が近くて取り違えやすい{loai}はどれですか。使い分けを教えてください。",
+    "5. Hai ví dụ khác cùng sắc thái, có dịch.": "5. 同じニュアンスの例文を訳つきで二つ。",
+    "6. Một mẹo ngắn để tôi nhớ được lâu.": "6. 長く覚えておくための短いコツを一つ。",
+    "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.": "簡潔に。今渡した情報をそのまま繰り返さないでください。",
+    "Hỏi Gemini": "Gemini に聞く",
+    "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "保存した文脈つきで、この語について Gemini に聞く",
+    "Đã mở Gemini. Câu hỏi cũng đã chép vào bộ nhớ tạm — chưa tự điền thì dán vào.":
+      "Gemini を開きました。質問はクリップボードにもあります — 自動入力されない場合は貼り付けてください。",
+    "Đã mở Gemini với câu hỏi điền sẵn.": "質問を入れた状態で Gemini を開きました。",
+    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt — bản ĐẦY ĐỦ đã chép sẵn, dán vào là có hết.":
+      "Gemini を開きました。質問が長いためリンク版は短縮されています — 完全版はクリップボードにあるので、貼り付ければ全部入ります。",
+    "Đã mở Gemini. Câu hỏi dài nên bản gửi qua link đã rút bớt.": "Gemini を開きました。質問が長いためリンク版は短縮されています。",
+
     /* --- khung chung --- */
     "Sổ tay NeutronDict": "NeutronDict 単語帳",
     "Anh – Việt · sóng học tập": "英語 – ベトナム語 · 学習のリズム",
