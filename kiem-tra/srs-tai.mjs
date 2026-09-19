@@ -36,7 +36,19 @@ const hangSo = (ten) => {
   if (!m) throw new Error("không đọc được hằng số " + ten + " trong notebook.js");
   return parseInt(m[1], 10);
 };
-const CUM_TOI_DA = hangSo("CUM_TOI_DA"), CUM_NGHI_NGAY = hangSo("CUM_NGHI_NGAY");
+const CUM_TOI_DA = hangSo("CUM_TOI_DA");
+/*
+ * `CUM_NGHI_NGAY` đã bị gỡ khỏi notebook.js, và đây là chốt cho việc ấy.
+ *
+ * Nó từng là thời gian nghỉ giữa hai lần kéo cùng một cụm, sinh ra để chặn cái
+ * tải mà mấy thẻ CHƯA tới hạn gây ra. Giờ không từ nào bị hỏi ngoài lịch của
+ * nó nữa nên lý do ấy hết, mà giữ lại thì số lượt hai từ cùng cụm đi cạnh nhau
+ * tụt từ 20.034 xuống 6.925 — tức là bóp nghẹt đúng thứ tính năng này sinh ra
+ * để làm.
+ */
+if (/const\s+CUM_NGHI_NGAY\s*=/.test(NB)) {
+  throw new Error("CUM_NGHI_NGAY đã quay lại notebook.js — xem chú thích ở kiem-tra/srs-tai.mjs");
+}
 
 const NGAY = 86400000;
 /** Tỉ lệ nhớ theo từng đường — bài khó thì quên nhiều hơn. */
@@ -149,16 +161,26 @@ la(k.capThap < 10, "dưới 10% số từ kẹt ở capChung ≤ 0", k.capThap.t
  * Luật ở đây mô phỏng `hangDoiKhoi` trong notebook.js; hai hằng số thì đọc
  * thẳng từ tệp ấy nên không lệch được.
  */
-function chayCum(batCum, soTu) {
-  let rnd = 12345;
+function chayCum(batCum, soTu, hat) {
+  let rnd = hat || 12345;
   const r = () => (rnd = (rnd * 1103515245 + 12345) % 2147483648) / 2147483648;
-  const muc = [], tk = {}, nghi = {};
-  let now = Date.now(), tong = 0, lapThe = 0;
+  /*
+   * Dòng ngẫu nhiên RIÊNG để dựng sổ.
+   *
+   * Bật và tắt ôn kèm tiêu thụ số lượt `r()` khác nhau, nên nếu dùng chung một
+   * dòng thì hai lần chạy nhận hai quyển sổ khác nhau — và chênh lệch đo được
+   * là nhiễu chứ không phải tác dụng. Đã trúng đúng bẫy này một lần: một lần
+   * chạy cho −2,1%, tám hạt giống cho −0,7% ±1,7.
+   */
+  let rnd2 = hat || 12345;
+  const r2 = () => (rnd2 = (rnd2 * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const muc = [], tk = {};
+  let now = Date.now(), tong = 0, lapThe = 0, truocHan = 0;
   const moiNgay = [];
   // Mỗi từ nối với 2–4 từ lân cận — giống cảnh người học bấm "+ Lưu" ngay ở
   // màn kết quả bài liên kết, tức là cụm được dựng dần từ chính chỗ ấy.
   const mk = (i) => {
-    const ban = [], n = 2 + Math.floor(r() * 3);
+    const ban = [], n = 2 + Math.floor(r2() * 3);
     for (let j = 1; j <= n; j++) if (i - j >= 0) ban.push("w" + (i - j));
     return { key: "k" + i, word: "w" + i, duong: {}, cauNghe: { cau: "x" },
              lien: { dong: ban.slice(0, 2), trai: ban.slice(2) } };
@@ -174,32 +196,33 @@ function chayCum(batCum, soTu) {
       if (!han.length) continue;
       for (const d of han) the.push([m, d, false]);
       daXuLy.add(m.key);
-      if (batCum && now - (nghi[m.key] || 0) >= CUM_NGHI_NGAY * NGAY) {
+      if (batCum) {
+        // CHỈ bạn đã tới hạn, và lọc TRƯỚC khi cắt theo CUM_TOI_DA.
         const ban = TuLien.cumCua(m, ci).map((k) => theoKhoa.get(k))
-          .filter((x) => x && !daXuLy.has(x.key))
+          .filter((x) => x && !daXuLy.has(x.key) && Srs.denHan(x, now).length > 0)
           .sort((a, b) => Srs.diemTu(a).tong - Srs.diemTu(b).tong)
           .slice(0, CUM_TOI_DA);
         for (const b of ban) {
-          const hb = Srs.denHan(b, now);
-          // Bạn TỰ tới hạn thì hút trọn khối của nó; chưa tới hạn thì một thẻ.
-          if (hb.length) for (const d of hb) the.push([b, d, false]);
-          else the.push([b, "nhin", true]);
+          for (const d of Srs.denHan(b, now)) the.push([b, d, false]);
           daXuLy.add(b.key);
         }
-        if (ban.length) nghi[m.key] = now;
       }
     }
     moiNgay.push(the.length);
     tong += the.length;
+    // Thẻ bị hỏi TRƯỚC hạn của chính nó. Đây là cổng thật của luật mới.
+    for (const [m, d] of the) {
+      const x = m.duong[d];
+      if (x && x.due && x.due > now) truocHan++;
+    }
     // Lặp = cùng một (khoá, đường) bị hỏi hai lần trong CÙNG một buổi.
     {
       const dem = new Map();
       for (const [m, d] of the) { const k = m.key + "|" + d; dem.set(k, (dem.get(k) || 0) + 1); }
       for (const n of dem.values()) if (n > 1) lapThe += n - 1;
     }
-    for (const [m, d, laSom] of the) {
+    for (const [m, d] of the) {
       const nho = r() < TILE[d];
-      if (laSom && nho) continue;                  // ôn kèm mà nhớ: không xếp lịch lại
       const chat = (d === "dong" || d === "trai") ? (nho ? 0.5 + r() * 0.5 : 0.3) : undefined;
       const kq = Srs.cham(m.duong[d] || null, nho, NHIP[d] * (0.6 + r() * 0.9), tk[d],
                           now, d, r(), chat);
@@ -207,16 +230,49 @@ function chayCum(batCum, soTu) {
     }
     now += NGAY;
   }
-  return { tb: tong / 180, dinh: Math.max(...moiNgay), lapThe };
+  return { tb: tong / 180, dinh: Math.max(...moiNgay), lapThe, truocHan };
 }
 {
-  console.log("\n  — ôn kèm cụm (" + CUM_TOI_DA + " bạn · nghỉ " + CUM_NGHI_NGAY + " ngày) —");
+  console.log("\n  — ôn kèm cụm (" + CUM_TOI_DA + " bạn, chỉ bạn đã tới hạn) —");
+  const HAT = [12345, 777, 90210, 31337, 555001, 8675309, 24680, 13579];
   for (const soTu of [600, 1500]) {
-    const tat = chayCum(false, soTu), bat = chayCum(true, soTu);
-    const tang = (bat.tb / tat.tb - 1) * 100;
-    la(tang <= 35, "sổ " + soTu + " từ: ôn kèm không làm tăng quá 35% số thẻ",
-       tat.tb.toFixed(0) + " → " + bat.tb.toFixed(0) + " thẻ/ngày (+" + tang.toFixed(0) + "%)");
-    la(bat.dinh <= tat.dinh * 1.45, "sổ " + soTu + " từ: ngày nặng nhất không phình quá 45%",
+    /*
+     * ĐO NHIỀU HẠT GIỐNG, không phải một.
+     *
+     * Chênh lệch giữa bật và tắt nằm trong khoảng ±2% mà độ lệch chuẩn cũng
+     * cỡ ấy, nên một lần chạy nói được rất ít: đo một lần ra −2,1%, đo tám lần
+     * ra −0,7% ±1,7. Chốt cổng theo một lần chạy thì nó đỏ lên xanh xuống theo
+     * đúng con số mình vừa gõ vào, chứ không theo mã.
+     */
+    const dThe = [];
+    let tat = null, bat = null, truocHan = 0;
+    for (const h of HAT) {
+      tat = chayCum(false, soTu, h); bat = chayCum(true, soTu, h);
+      dThe.push((bat.tb / tat.tb - 1) * 100);
+      truocHan += bat.truocHan;
+    }
+    const tbLech = dThe.reduce((a, b) => a + b, 0) / dThe.length;
+    /*
+     * ÔN KÈM CỤM PHẢI MIỄN PHÍ.
+     *
+     * Từ khi chỉ kéo bạn ĐÃ tới hạn thì nó không thêm thẻ nào vào buổi học —
+     * chỉ đổi chỗ đứng của những thẻ vốn đã có mặt. Cổng cũ cho phép tăng tới
+     * 35%, và bản cũ dùng hết 14,8% trong đó để ĐỔI LẤY 3,6 điểm bị mất. Giữ
+     * ngưỡng rộng ấy là để cửa mở cho đúng thứ vừa đi chữa.
+     */
+    la(tbLech <= 2, "sổ " + soTu + " từ: ôn kèm KHÔNG làm tăng số thẻ",
+       (tbLech >= 0 ? "+" : "") + tbLech.toFixed(2) + "% qua " + HAT.length + " hạt giống");
+    /*
+     * VÀ KHÔNG THẺ NÀO ĐƯỢC HỎI TRƯỚC HẠN CỦA NÓ.
+     *
+     * Đây mới là cổng thật. Cổng theo tải ở trên không bắt được: bản cũ kéo cả
+     * bạn chưa tới hạn mà số thẻ chỉ nhỉnh lên hơn chục phần trăm, lọt thoải
+     * mái qua mọi ngưỡng rộng rãi. Còn hậu quả thì nặng — thẻ ấy trả lời đúng
+     * không được gì, trả lời sai vẫn bị chấm quên, tức chỉ có thể làm hại.
+     */
+    la(truocHan === 0, "sổ " + soTu + " từ: không thẻ nào bị hỏi trước hạn của nó",
+       truocHan + " lượt");
+    la(bat.dinh <= tat.dinh * 1.15, "sổ " + soTu + " từ: ngày nặng nhất không phình quá 15%",
        tat.dinh + " → " + bat.dinh);
     /*
      * KHÔNG THẺ NÀO BỊ HỎI LẠI TRONG CÙNG MỘT BUỔI.

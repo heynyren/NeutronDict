@@ -64,12 +64,18 @@ const gieo = (onCum) => sw.evaluate(async ([now, onCum]) => {
         lien: { dong: ["改良", "向上"], trai: ["改悪"] },
         duong: { nhin: { lv: 2, ngay: 7, due: now - ngay, ts: now - 8 * ngay } },
         srs: { lv: 2, due: now - ngay, ts: now } },
-      "javi:改良": roi("改良", "cải tiến"),
+      // 改良 CŨNG tới hạn. Đây là cả nội dung của luật mới: bạn cùng cụm chỉ
+      // được kéo khi CHÍNH NÓ tới hạn. Hai từ còn lại để xa, để thấy chúng
+      // đứng ngoài.
+      "javi:改良": { word: "改良", dict: "javi", means: ["cải tiến"], ts: now,
+        lien: { dong: [], trai: [] },
+        duong: { nhin: { lv: 2, ngay: 7, due: now - ngay, ts: now - 8 * ngay } },
+        srs: { lv: 2, due: now - ngay, ts: now } },
       "javi:向上": roi("向上", "nâng lên"),
       "javi:改悪": roi("改悪", "làm tệ đi"),
       "javi:写真": roi("写真", "ảnh chụp")
     },
-    decks: {}, hoc: {}, nhipMs: {}, cumOn: {},
+    decks: {}, hoc: {}, nhipMs: {},
     settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false, onCum: onCum }
   });
 }, [Date.now(), onCum]);
@@ -89,28 +95,40 @@ await gieo(true);
 {
   const page = await moSo();
   const r = await page.evaluate(() => {
-    const khoi = hangDoiKhoi(currentActiveSet(), {});
+    const khoi = hangDoiKhoi(currentActiveSet());
     return {
       soKhoi: khoi.length,
-      khoi: khoi.map((k) => k.map((c) => ({ tu: c.word, d: c._d, som: !!c._som, cum: c._cum || null }))),
+      khoi: khoi.map((k) => k.map((c) => ({ tu: c.word, d: c._d, cum: c._cum || null }))),
       denHan: currentActiveSet().filter((x) => window.Srs.denHan(x, Date.now()).length)
                                 .map((x) => x.word)
     };
   });
-  soat("chỉ 改善 tự tới hạn", r.denHan.join() === "改善", r.denHan.join(" "));
+  soat("改善 và 改良 cùng tới hạn, 向上/改悪/写真 thì chưa",
+       r.denHan.slice().sort().join() === ["改善", "改良"].sort().join(), r.denHan.join(" "));
   soat("cả buổi gom về đúng MỘT khối", r.soKhoi === 1, r.soKhoi + " khối");
   const k = r.khoi[0] || [];
-  const ban = k.filter((x) => x.som);
-  soat("có từ cùng cụm bị kéo theo", ban.length > 0, ban.map((x) => x.tu).join(" ") || "không có");
-  soat("kéo tối đa 2 từ cùng cụm", ban.length <= 2, ban.length + " từ");
-  soat("từ bị kéo đều nằm trong cụm của 改善",
-       ban.every((x) => ["改良", "向上", "改悪"].indexOf(x.tu) >= 0), ban.map((x) => x.tu).join(" "));
+  const ban = k.filter((x) => x.cum);
+  soat("bạn cùng cụm ĐÃ tới hạn thì được kéo vào chung khối",
+       ban.some((x) => x.tu === "改良"), ban.map((x) => x.tu).join(" ") || "không có");
+  /*
+   * VÀ ĐÂY LÀ CỔNG THẬT CỦA LUẬT MỚI.
+   *
+   * 向上 với 改悪 cùng cụm với 改善 y như 改良, chỉ khác là lịch của chúng còn
+   * 40 ngày nữa. Bản cũ vẫn lôi chúng ra, mỗi từ một thẻ "nhìn" đánh dấu ôn
+   * kèm — mà thẻ ấy trả lời đúng không được gì, trả lời sai vẫn bị chấm quên.
+   * Tức là chỉ có thể làm hại. Đo 180 ngày: tốn thêm 14,8% số thẻ để MẤT 3,6
+   * điểm, mà số lượt hai từ đi cạnh nhau còn ít hơn hẳn.
+   */
+  soat("bạn cùng cụm CHƯA tới hạn thì KHÔNG bị lôi vào",
+       k.every((x) => x.tu !== "向上" && x.tu !== "改悪"), k.map((x) => x.tu).join(" "));
+  soat("kéo tối đa 2 từ cùng cụm", new Set(ban.map((x) => x.tu)).size <= 2,
+       new Set(ban.map((x) => x.tu)).size + " từ");
   soat("từ RỜI (写真) không bị lôi vào", k.every((x) => x.tu !== "写真"),
        k.map((x) => x.tu).join(" "));
-  soat("mỗi từ cùng cụm chỉ góp ĐÚNG MỘT thẻ",
-       ban.length === new Set(ban.map((x) => x.tu)).size);
-  soat("thẻ ôn kèm ghi rõ nó thuộc cụm nào", ban.every((x) => x.cum === "改善"),
+  soat("thẻ cùng cụm ghi rõ nó đi theo từ nào", ban.every((x) => x.cum === "改善"),
        ban.map((x) => x.cum).join(" "));
+  soat("mọi thẻ trong khối đều là thẻ ĐÃ tới hạn",
+       k.every((x) => r.denHan.indexOf(x.tu) >= 0), k.map((x) => x.tu).join(" "));
   // Cụm nằm chung MỘT khối nghĩa là chúng đi liền nhau — startStudy xáo theo
   // khối chứ không xáo phẳng, nên thứ tự trong khối không bị đánh tung.
   soat("từ tới hạn và bạn cùng cụm nằm chung một khối",
@@ -174,27 +192,21 @@ for (const nguoc of [false, true]) {
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nÔn kèm mà NHỚ thì KHÔNG xếp lịch lại");
-await gieo(true);
-{
-  const page = await moSo();
-  const r = await page.evaluate(async () => {
-    const truoc = JSON.stringify(((await chrome.storage.local.get("notebook"))
-      .notebook["javi:改良"] || {}).duong);
-    await gradeWord("javi:改良", true, 2000, "nhin", undefined, true);   // som = true
-    const sau = JSON.stringify(((await chrome.storage.local.get("notebook"))
-      .notebook["javi:改良"] || {}).duong);
-    const nhip = (await chrome.storage.local.get("nhipMs")).nhipMs || {};
-    return { truoc, sau, coNhip: !!(nhip.nhin && nhip.nhin.n) };
-  });
-  soat("`duong` giữ nguyên không đổi một chữ", r.truoc === r.sau,
-       r.truoc === r.sau ? "giữ nguyên" : r.truoc + " → " + r.sau);
-  soat("nhưng nhịp bấm vẫn được ghi — công sức bỏ ra là có thật", r.coNhip);
-  await page.close();
-}
-
-/* ------------------------------------------------------------------ */
-console.log("\nÔn kèm mà QUÊN thì PHẢI ghi");
+/*
+ * MỌI THẺ ĐỀU CHẤM NHƯ NHAU — không còn ngoại lệ nào.
+ *
+ * Từng có: thẻ bị kéo vào vì cùng cụm mà CHƯA tới hạn được chấm theo luật
+ * riêng — nhớ thì không xếp lịch lại, quên thì vẫn phạt. Bất đối xứng ấy có
+ * chủ ý, nhưng đo ra thì nó chỉ có thể làm hại: 180 ngày, sổ 600 từ, tốn thêm
+ * 14,8% số thẻ để MẤT 3,6 điểm.
+ *
+ * Giờ `hangDoiKhoi` chỉ kéo bạn ĐÃ tới hạn nên thẻ loại ấy không còn tồn tại,
+ * và tham số `som` của `gradeWord` đi theo. Chốt ở đây vì nó hỏng âm thầm:
+ * để sót tham số lại thì mã trông như đã gỡ, mà nhánh cũ vẫn chạy — chính
+ * chuyện đã xảy ra một lần lúc làm thay đổi này, và bài kiểm khi ấy vẫn xanh
+ * vì nó đang kiểm đúng cái nhánh còn sót.
+ */
+console.log("\ngradeWord không còn luật riêng cho thẻ ôn kèm");
 await gieo(true);
 {
   const page = await moSo();
@@ -202,7 +214,32 @@ await gieo(true);
     const lay = async () => ((await chrome.storage.local.get("notebook"))
       .notebook["javi:改良"].duong.nhin) || {};
     const truoc = await lay();
-    await gradeWord("javi:改良", false, 0, "nhin", undefined, true);      // som = true
+    // Truyền thừa một đối số y như mã cũ từng làm. Nếu tham số `som` còn sót
+    // thì lượt này KHÔNG được ghi, và khẳng định dưới đây đỏ.
+    await gradeWord("javi:改良", true, 2000, "nhin", undefined, true);
+    const sau = await lay();
+    const nhip = (await chrome.storage.local.get("nhipMs")).nhipMs || {};
+    return { soThamSo: gradeWord.length, truocNgay: truoc.ngay, sauNgay: sau.ngay,
+             coNhip: !!(nhip.nhin && nhip.nhin.n) };
+  });
+  soat("gradeWord nhận đúng 5 tham số — `som` đã gỡ hẳn", r.soThamSo === 5,
+       "nhận " + r.soThamSo);
+  soat("nhớ một thẻ cùng cụm thì giãn cách VẪN nới ra như mọi thẻ khác",
+       r.sauNgay > r.truocNgay, r.truocNgay + " → " + r.sauNgay + " ngày");
+  soat("và nhịp bấm vẫn được ghi", r.coNhip);
+  await page.close();
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\nQuên thì chấm như thường");
+await gieo(true);
+{
+  const page = await moSo();
+  const r = await page.evaluate(async () => {
+    const lay = async () => ((await chrome.storage.local.get("notebook"))
+      .notebook["javi:改良"].duong.nhin) || {};
+    const truoc = await lay();
+    await gradeWord("javi:改良", false, 0, "nhin");
     const sau = await lay();
     return { truocNgay: truoc.ngay, sauNgay: sau.ngay, sauDue: sau.due, bayGio: Date.now() };
   });
@@ -213,7 +250,7 @@ await gieo(true);
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nThẻ tới hạn thật thì chấm như thường (som = false)");
+console.log("\nThẻ của chính từ tới hạn thì cũng vậy");
 await gieo(true);
 {
   const page = await moSo();
@@ -231,20 +268,34 @@ await gieo(true);
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nThời gian nghỉ của cụm");
+/*
+ * KHÔNG CÒN THỜI GIAN NGHỈ GIỮA HAI LẦN KÉO CÙNG MỘT CỤM.
+ *
+ * Nó từng có, và từng cần: bản cũ kéo cả bạn chưa tới hạn, nên cụm nào có một
+ * từ giãn cách ngắn sẽ lôi cả cụm ra mỗi ngày. Giờ chỉ kéo bạn ĐÃ tới hạn nên
+ * không ai bị hỏi ngoài lịch của mình nữa, và giữ lại thời gian nghỉ chỉ còn
+ * bóp nghẹt đúng thứ tính năng này sinh ra để làm: đo 180 ngày, số lượt hai từ
+ * cùng cụm đi cạnh nhau tụt từ 20.034 xuống 6.925.
+ *
+ * `srs-tai.mjs` chốt rằng hằng số ấy không quay lại notebook.js. Ở đây chốt
+ * phần người dùng thấy: gọi hai lần liên tiếp phải ra y hệt nhau.
+ */
+console.log("\nGọi lại thì vẫn kéo — không còn thời gian nghỉ");
 await gieo(true);
 {
   const page = await moSo();
   const r = await page.evaluate(() => {
-    const lich = {};
-    const lan1 = hangDoiKhoi(currentActiveSet(), lich);
-    const lan2 = hangDoiKhoi(currentActiveSet(), lich);   // cùng bảng nghỉ
-    const dem = (kh) => kh.reduce((s, k) => s + k.filter((c) => c._som).length, 0);
-    return { a: dem(lan1), b: dem(lan2), moc: Object.keys(lich).length };
+    const goi = () => hangDoiKhoi(currentActiveSet())
+      .map((k) => k.map((c) => c.word + "/" + c._d).join(" ")).join(" | ");
+    return { a: goi(), b: goi() };
   });
-  soat("lần đầu có kéo cụm", r.a > 0, r.a + " bạn");
-  soat("lần sau KHÔNG kéo lại cụm vừa kéo", r.b === 0, r.b + " bạn");
-  soat("mốc nghỉ được ghi lại", r.moc > 0, r.moc + " cụm");
+  soat("lần đầu có kéo cụm", /改良/.test(r.a), r.a);
+  soat("gọi lại vẫn kéo y hệt", r.a === r.b, r.b);
+  soat("hangDoiKhoi không còn nhận tham số bảng nghỉ",
+       /function hangDoiKhoi\(scopeList\)/.test(
+         await page.evaluate(() => hangDoiKhoi.toString().slice(0, 40))) ||
+       (await page.evaluate(() => hangDoiKhoi.length)) === 1,
+       "nhận " + (await page.evaluate(() => hangDoiKhoi.length)) + " tham số");
   await page.close();
 }
 
@@ -254,12 +305,16 @@ await gieo(false);
 {
   const page = await moSo();
   const r = await page.evaluate(() => {
-    const khoi = hangDoiKhoi(currentActiveSet(), {});
+    const khoi = hangDoiKhoi(currentActiveSet());
     const phang = [].concat.apply([], khoi);
-    return { tu: [...new Set(phang.map((c) => c.word))], som: phang.filter((c) => c._som).length };
+    return { tu: [...new Set(phang.map((c) => c.word))].sort(),
+             cum: phang.filter((c) => c._cum).length, soKhoi: khoi.length };
   });
-  soat("chỉ còn đúng từ tới hạn", r.tu.join() === "改善", r.tu.join(" "));
-  soat("không thẻ nào bị đánh dấu ôn kèm", r.som === 0, r.som + " thẻ");
+  soat("chỉ còn đúng những từ tự tới hạn", r.tu.join() === ["改善", "改良"].sort().join(),
+       r.tu.join(" "));
+  soat("không thẻ nào mang dấu cùng cụm", r.cum === 0, r.cum + " thẻ");
+  soat("và chúng nằm ở HAI khối rời nhau, không được xếp cạnh nhau",
+       r.soKhoi === 2, r.soKhoi + " khối");
   await page.close();
 }
 

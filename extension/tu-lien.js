@@ -394,6 +394,67 @@
   }
 
   /**
+   * Thu tập liên kết của một từ DẪN XUẤT về đúng tập ban đầu.
+   *
+   * Vì sao có hàm này
+   * -----------------
+   * Trước đây mọi mục vừa lưu đều được dựng tập đồng/trái nghĩa riêng từ từ
+   * điển — kể cả mục vừa lưu từ màn kết quả bài liên kết. Nên một từ dẫn xuất
+   * lại mọc ra một tập mới, tập ấy lại đẻ ra từ dẫn xuất mới, cứ thế. Kho từ
+   * đầy lên rất nhanh mà không đi vào đâu: người học rốt cuộc có vài trăm từ
+   * rải khắp mười trường nghĩa, thay vì nắm chắc một trường.
+   *
+   * Luật
+   * ----
+   *   - VỐN ỨNG VIÊN đóng kín: chỉ gồm từ gốc và những từ đã có trong tập
+   *     đồng/trái nghĩa của CHÍNH nó. Từ điển trả về gì ngoài vốn ấy cũng bỏ.
+   *   - NỐI NGƯỢC VỀ GỐC luôn được giữ, và giữ theo đúng cực: lưu từ tập đồng
+   *     nghĩa của gốc thì gốc nằm bên đồng nghĩa của nó. Quan hệ ấy do chính
+   *     thao tác lưu xác lập — người học vừa nhìn thấy hai từ ấy cạnh nhau
+   *     trong một đề và tự tay bấm Lưu — nên không cần từ điển xác nhận lại.
+   *   - ANH EM trong tập ban đầu chỉ vào khi TỪ ĐIỂN XÁC NHẬN, tức tra chính
+   *     từ dẫn xuất mà cũng thấy tên chúng. Không thì hai từ chỉ cùng nằm
+   *     trong danh sách của gốc chứ chưa chắc liên quan tới nhau.
+   *
+   * @param {{dong:string[], trai:string[]}} ra  tập từ điển vừa trả về
+   * @param {string} tu       chính từ dẫn xuất
+   * @param {object} gocMuc   mục gốc trong sổ (cần `.word` và `.lien`)
+   * @param {"dong"|"trai"} ben  từ này nằm ở tập nào của gốc
+   * @returns {{dong:string[], trai:string[]}}
+   */
+  function locTheoCum(ra, tu, gocMuc, ben) {
+    const t = String(tu || "").trim();
+    const goc = String((gocMuc && gocMuc.word) || "").trim();
+    const l = (gocMuc && gocMuc.lien) || {};
+    const von = new Set();
+    if (goc && goc !== t) von.add(goc);
+    for (const x of (Array.isArray(l.dong) ? l.dong : [])) {
+      const v = String(x || "").trim();
+      if (v && v !== t) von.add(v);
+    }
+    for (const x of (Array.isArray(l.trai) ? l.trai : [])) {
+      const v = String(x || "").trim();
+      if (v && v !== t) von.add(v);
+    }
+    const loc = (ds) => (Array.isArray(ds) ? ds : [])
+      .map((x) => String(x || "").trim())
+      .filter((x) => x && von.has(x));
+    let dong = loc(ra && ra.dong);
+    let trai = loc(ra && ra.trai);
+    if (goc && goc !== t) {
+      // Cực do thao tác lưu quyết định, không phải do từ điển. Gỡ gốc khỏi bên
+      // kia trước: để nó nằm cả hai bên thì đề đồng nghĩa và đề trái nghĩa
+      // cùng nhận một đáp án, và bài nào cũng chấm sai một nửa.
+      const kia = ben === "trai" ? "dong" : "trai";
+      if (kia === "dong") dong = dong.filter((x) => x !== goc);
+      else trai = trai.filter((x) => x !== goc);
+      if (ben === "trai") { if (trai.indexOf(goc) < 0) trai.unshift(goc); }
+      else { if (dong.indexOf(goc) < 0) dong.unshift(goc); }
+    }
+    return { dong: gonDs(dong, t), trai: gonDs(trai, t) };
+  }
+
+  /**
    * Xếp các ô của một bài ĐÃ CHẤM thành ba nhóm, đúng thứ tự cần nhìn.
    *
    * Nằm ở đây chứ không nằm trong màn hình, vì có HAI màn hình dùng nó —
@@ -430,7 +491,7 @@
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
     tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
-    chiMucLien, cumCua, xepKetQua,
+    chiMucLien, cumCua, xepKetQua, locTheoCum,
     napBo, soManh, daNap, SO_MANH
   };
 })(typeof self !== "undefined" ? self : this);

@@ -910,7 +910,7 @@
     "Đã ôn {n} bài": "Reviewed {n} exercises",
     "Xong rồi!": "All done!",
     "Cùng cụm:": "Same cluster:",
-    "ôn kèm cụm {t}": "reviewed alongside {t}",
+    "cùng cụm với {t}": "same cluster as {t}",
     "Ôn kèm cùng nhau; điểm thì mỗi từ giữ riêng.":
       "Reviewed together; each word keeps its own score.",
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
@@ -1824,7 +1824,7 @@
     "Đã ôn {n} bài": "{n} 問を復習しました",
     "Xong rồi!": "終わりました！",
     "Cùng cụm:": "同じグループ：",
-    "ôn kèm cụm {t}": "{t} と一緒に復習",
+    "cùng cụm với {t}": "{t} と同じグループ",
     "Ôn kèm cùng nhau; điểm thì mỗi từ giữ riêng.":
       "一緒に復習しますが、点数は語ごとに別です。",
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":

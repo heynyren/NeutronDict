@@ -344,8 +344,6 @@ function dueList(scopeList) {
  */
 /** Kéo tối đa ngần này từ cùng cụm cho một khối. */
 const CUM_TOI_DA = 2;
-/** Một cụm đã kéo thì ngần này ngày sau mới kéo lại. */
-const CUM_NGHI_NGAY = 14;
 
 /**
  * Hàng đợi của một buổi học: mảng các KHỐI, mỗi khối là các thẻ phải đi liền.
@@ -354,15 +352,13 @@ const CUM_NGHI_NGAY = 14;
  * mà không đánh tung cụm — xáo phẳng thì 改善 rơi đầu buổi, 改良 rơi cuối, và cả
  * việc này thành công cốc.
  *
- * @param {object} [cumOn] khoá cụm → mốc lần kéo gần nhất
  * @returns {Array<Array>} mỗi phần tử là một khối thẻ
  */
-function hangDoiKhoi(scopeList, cumOn) {
+function hangDoiKhoi(scopeList) {
   const now = Date.now();
   const batCum = CAI.onCum !== false;
   const chiMuc = batCum ? window.TuLien.chiMucLien(scopeList) : null;
   const theoKhoa = new Map(scopeList.map((x) => [x.key, x]));
-  const nghi = cumOn || {};
   /**
    * Khoá đã NẰM TRONG một khối rồi — dù là khối của chính nó hay bị hút vào
    * khối của từ khác.
@@ -398,40 +394,54 @@ function hangDoiKhoi(scopeList, cumOn) {
      * của nó. Không có chốt ấy thì khối nở dây chuyền; có nó thì khối luôn gói
      * gọn trong 1 + CUM_TOI_DA từ.
      *
-     * Thời gian nghỉ của cụm: cụm vừa được kéo hôm kia thì thôi. Không có nó
-     * thì cụm nào có một từ giãn cách ngắn sẽ kéo cả cụm ra mỗi ngày, và mấy
-     * từ kia bị hỏi dồn dập hơn hẳn lịch của chính chúng.
+     * VÀ CHỈ KÉO BẠN ĐÃ TỚI HẠN. Đây là chỗ đổi quan trọng nhất của cả tính
+     * năng ôn kèm cụm, nên nói rõ vì sao.
+     *
+     * Bản trước còn kéo cả bạn CHƯA tới hạn — một thẻ "nhìn" đánh dấu `_som`,
+     * với ý "chỉ cho xem chứ không tính điểm". Nhưng nó chỉ nửa vời: trả lời
+     * đúng thì không được gì, trả lời SAI thì vẫn bị chấm quên và rút lịch
+     * lại. Tức là một thẻ chỉ có thể làm hại chứ không bao giờ làm lợi.
+     *
+     * Đo 180 ngày (sổ 600 từ · mô phỏng trong kiem-tra/srs-tai.mjs):
+     *
+     *                            thẻ/ngày   điểm TB   lượt xếp cạnh nhau
+     *   tắt ôn kèm cụm              281       68,4            0
+     *   kéo cả bạn chưa tới hạn     318       65,2        5.312
+     *   chỉ kéo bạn đã tới hạn      275       69,0       20.034
+     *
+     * Bản cũ trả thêm 13% số thẻ để MẤT 3 điểm, mà còn được ÍT lượt xếp cạnh
+     * nhau hơn hẳn. Bỏ thẻ chưa tới hạn đi thì ôn kèm cụm thành thuần XẾP LẠI
+     * THỨ TỰ: không thêm một thẻ nào vào buổi học, chỉ đổi chỗ đứng của những
+     * thẻ vốn đã tới hạn.
+     *
+     * Lọc TRƯỚC khi cắt theo CUM_TOI_DA, không phải sau: lọc sau thì hai suất
+     * bị mấy từ chưa tới hạn chiếm mất, và từ đã tới hạn đứng ngay sau lại
+     * không được vào.
+     *
+     * Không còn thời gian nghỉ giữa hai lần kéo cùng một cụm. Nó sinh ra để
+     * chặn đúng cái tải mà mấy thẻ chưa tới hạn gây ra; giờ không từ nào bị
+     * hỏi ngoài lịch của nó nữa nên lý do ấy hết, mà giữ lại thì số lượt xếp
+     * cạnh nhau tụt từ 20.034 xuống 6.925.
      */
-    if (batCum && now - (nghi[it.key] || 0) >= CUM_NGHI_NGAY * DAY) {
+    if (batCum) {
       const ban = window.TuLien.cumCua(it, chiMuc)
         .map((key) => theoKhoa.get(key))
-        .filter((x) => x && !x.del && !daXuLy.has(x.key))
+        .filter((x) => x && !x.del && !daXuLy.has(x.key)
+                    && window.Srs.denHan(x, now).length > 0)
         // Điểm thấp nhất lên trước: chúng cần được nhìn lại nhất.
         .sort((a, b) => window.Srs.diemTu(a).tong - window.Srs.diemTu(b).tong)
         .slice(0, CUM_TOI_DA);
       for (const b of ban) {
-        const hanB = window.Srs.denHan(b, now);
-        if (hanB.length) {
-          /*
-           * Bạn TỰ tới hạn: hút TRỌN khối của nó vào đây, đủ mọi đường.
-           *
-           * Chỉ lấy một thẻ rồi đánh dấu đã xử lý thì hết lặp thật, nhưng những
-           * đường còn lại của nó BIẾN MẤT khỏi buổi học — hết lặp bằng cách
-           * nuốt mất việc, còn tệ hơn cái lỗi ban đầu.
-           */
-          for (const d of hanB) k.push(the(b, d, { _cum: it.word }));
-        } else {
-          /*
-           * Bạn CHƯA tới hạn: đúng một thẻ, và đánh dấu ÔN KÈM để lượt đúng
-           * không xếp lịch lại. Góp cả bốn đường thì một cụm thành hai chục thẻ
-           * — đúng cái "từ vựng dồn lên" vừa mới đi chữa. Việc cần ở đây là
-           * NHÌN THẤY mấy từ ấy cạnh nhau; một thẻ là đủ.
-           */
-          k.push(the(b, "nhin", { _som: true, _cum: it.word }));
-        }
+        /*
+         * Hút TRỌN khối của bạn vào đây, đủ mọi đường đang tới hạn.
+         *
+         * Chỉ lấy một thẻ rồi đánh dấu đã xử lý thì hết lặp thật, nhưng những
+         * đường còn lại của nó BIẾN MẤT khỏi buổi học — hết lặp bằng cách nuốt
+         * mất việc, còn tệ hơn cái lỗi ban đầu.
+         */
+        for (const d of window.Srs.denHan(b, now)) k.push(the(b, d, { _cum: it.word }));
         daXuLy.add(b.key);
       }
-      if (ban.length) nghi[it.key] = now;
     }
     khoi.push(k);
   }
@@ -722,23 +732,16 @@ async function maMay() {
   return _maMay;
 }
 
-/**
- * @param {boolean} [som] thẻ ÔN KÈM — bị kéo vào buổi học vì cùng cụm với một
- *   từ tới hạn, chứ bản thân nó chưa tới hạn.
+/*
+ * Mọi thẻ vào đây đều là thẻ ĐÃ TỚI HẠN, nên chấm như nhau — không còn ngoại lệ.
  *
- *   nhớ  → KHÔNG xếp lịch lại. Nhớ được một từ TRƯỚC hạn thì không nói thêm gì
- *          về sức nhớ (lịch vốn đã đoán là còn nhớ), mà nhân tiếp giãn cách từ
- *          một lượt ôn sớm thì con số phồng lên — và nó sẽ phồng đều mỗi lần từ
- *          ấy bị kéo theo cụm. Lượt ấy là buổi TẬP, không phải phép ĐO.
- *
- *   quên → chấm bình thường. Đây mới là bằng chứng thật: từ ấy rơi sớm hơn lịch
- *          dự tính, và lịch cần biết ngay. Bất đối xứng có chủ ý, cùng tinh thần
- *          với NET_MIN bên srs.js.
- *
- * Nhịp bấm và số lượt vào tiến độ thì vẫn ghi ở cả hai chiều — công sức bỏ ra là
- * như nhau.
+ * Từng có một tham số `som` cho thẻ bị kéo vào vì cùng cụm với một từ tới hạn:
+ * nhớ thì không xếp lịch lại, quên thì vẫn phạt. Bất đối xứng ấy có chủ ý,
+ * nhưng đo ra thì nó chỉ có thể làm hại — 180 ngày, sổ 600 từ: tốn thêm 14,8%
+ * số thẻ để MẤT 3,6 điểm. Nay `hangDoiKhoi` chỉ kéo bạn ĐÃ tới hạn, nên thẻ
+ * loại ấy không còn tồn tại và tham số cũng đi theo.
  */
-async function gradeWord(key, remembered, ms, duong, chat, som) {
+async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   const tkAll = await docNhipMs();
   const tkTruoc = Object.assign({}, tkAll[d] || {});
@@ -777,9 +780,6 @@ async function gradeWord(key, remembered, ms, duong, chat, som) {
     }
     kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(),
                          chat, lich);
-    // Ôn kèm mà NHỚ: giữ nguyên lịch, chỉ lấy phần thống kê nhịp bấm. Xem chú
-    // thích trên đầu hàm.
-    if (som && remembered) return;
     const moi = Object.assign({}, e);
     moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
     // `srs` vẫn được ghi, và vẫn là thứ mọi nơi khác đọc: đồng bộ Drive, app
@@ -796,12 +796,11 @@ async function gradeWord(key, remembered, ms, duong, chat, som) {
      * Lượt ÔN KÈM không vào bảng số đo.
      *
      * Bảng ấy trả lời đúng một câu: "app hẹn N ngày, tới lúc gặp lại có nhớ
-     * không". Thẻ ôn kèm bị gặp lại SỚM HƠN hẹn, nên nó không trả lời câu ấy —
-     * thả vào thì mọi bậc thang đều trông như dễ nhớ hơn thực tế, đúng hướng
-     * làm ta tưởng thang đang vừa vặn trong khi nó không vừa. `NGAY_TOI_THIEU_DO`
-     * chỉ chặn được lượt học lại trong cùng buổi, không chặn được cảnh này.
+     * không". Chỉ lượt nào ĐÃ CHỜ QUA NGÀY mới trả lời được câu ấy, nên
+     * `ngayCho > 0` là toàn bộ điều kiện. (Trước đây còn phải loại thêm thẻ ôn
+     * kèm vì chúng bị gặp lại sớm hơn hẹn; giờ buổi học không còn thẻ loại ấy.)
      */
-    if (ngayCho > 0 && !som) {
+    if (ngayCho > 0) {
       const kho = await chrome.storage.local.get("soDoSrs");
       /*
        * Nhánh "·g2" — số đo TRƯỚC và SAU lần đổi thang phải nằm riêng.
@@ -2117,8 +2116,7 @@ async function startStudy() {
   // Xếp hàng thẳng từ danh sách đang mở: `hangDoiKhoi` đã tự hỏi từng đường
   // một, lọc qua `dueList` trước đó là lọc HAI LẦN và làm rơi mất những mục mà
   // chỉ một đường tới hạn.
-  const cumOn = Object.assign({}, (await chrome.storage.local.get("cumOn")).cumOn || {});
-  const khoi = hangDoiKhoi(currentActiveSet(), cumOn);
+  const khoi = hangDoiKhoi(currentActiveSet());
   if (!khoi.length) {
     toast(T("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!"), "bad");
     return;
@@ -2131,9 +2129,6 @@ async function startStudy() {
    */
   const due = [];
   for (const k of khoi.slice().sort(() => Math.random() - 0.5)) for (const x of k) due.push(x);
-  // Ghi lại mốc kéo cụm SAU khi chắc chắn buổi học mở được, đừng ghi lúc dựng
-  // hàng đợi: dựng xong mà người ta bấm Đóng ngay thì cụm đã mang tiếng "vừa ôn".
-  await chrome.storage.local.set({ cumOn: cumOn });
   session = { queue: due, done: 0, again: 0, deleted: 0 };
   lastDeleted = null;
   $("stUndo").style.display = "none";
@@ -2280,7 +2275,10 @@ function showCard(giuLat) {
       + "\u3000·\u3000" + T(window.Srs.TEN_DUONG[it._d || "nhin"] || "")
       + "\u3000·\u3000" + dTu.tong + "/100"
       // Không nói ra thì gặp một từ CHƯA tới hạn, người học tưởng app hỏi lặp.
-      + (it._som ? "\u3000·\u3000" + T2("ôn kèm cụm {t}", { t: it._cum || "" }) : "");
+      // Mốc là `_cum` chứ không phải `_som` nữa: thẻ này tới hạn của CHÍNH NÓ,
+      // cụm chỉ đổi chỗ đứng chứ không thêm lượt ôn nào — gọi là "ôn kèm" thì
+      // nói quá điều app vừa làm.
+      + (it._cum ? "\u3000·\u3000" + T2("cùng cụm với {t}", { t: it._cum }) : "");
   }
 
   const laNghe = it._d === "nghe";
@@ -2364,6 +2362,9 @@ function khoiLien(it, gon) {
   if (!dong.length && !trai.length) return null;
 
   const hop = el("div", "lienmang" + (gon ? " gon" : ""));
+  // `lop` ("dong"/"trai") đi theo xuống tận nút Lưu: nó là CỰC của quan hệ, và
+  // là thứ duy nhất nói được từ sắp lưu nằm bên đồng nghĩa hay trái nghĩa của
+  // mục đang mở.
   const hang = (nhan, ds, lop) => {
     if (!ds.length) return;
     const h = el("div", "lienmang-hang");
@@ -2377,7 +2378,8 @@ function khoiLien(it, gon) {
       if (coSan) b.classList.add("cosan");
       b.addEventListener("click", (ev) => {
         ev.stopPropagation();
-        moTuLien(chu, items.some((x) => !x.del && x.word === chu), b);
+        moTuLien(chu, items.some((x) => !x.del && x.word === chu), b,
+                 { goc: it.word, ben: lop });
       });
       o.appendChild(b);
     });
@@ -2399,7 +2401,12 @@ function khoiLien(it, gon) {
  *
  * @param {HTMLElement} b chính cái nút vừa bấm, để báo trạng thái ngay trên nó
  */
-function moTuLien(chu, coSan, b) {
+/**
+ * @param {{goc:string, ben:"dong"|"trai"}} [cum] từ này lưu ra từ tập
+ *   đồng/trái nghĩa của mục nào — để nền thu tập liên kết của nó về đúng tập
+ *   ban đầu thay vì dựng một tập mới từ từ điển.
+ */
+function moTuLien(chu, coSan, b, cum) {
   if (coSan) {
     const o = $("filter");
     if (o) { o.value = chu; o.dispatchEvent(new Event("input", { bubbles: true })); }
@@ -2410,7 +2417,8 @@ function moTuLien(chu, coSan, b) {
   b.disabled = true;
   const cu = b.textContent;
   b.textContent = T("Đang lưu…");
-  chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
+  chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi",
+                              cum: cum },
     async (kq) => {
       if (chrome.runtime.lastError || !kq || !kq.ok) {
         b.disabled = false; b.textContent = cu;
@@ -2536,7 +2544,7 @@ async function grade(remembered) {
   mocHienThe = 0;
   // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
   const truocDiem = window.Srs.diemTu(it).tong;
-  const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin", undefined, it._som);
+  const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin");
   let banSao = null;
   if (remembered) session.done++;
   else {
@@ -2557,14 +2565,7 @@ async function grade(remembered) {
     session.lapBuoi = session.lapBuoi || {};
     session.lapBuoi[kh] = (session.lapBuoi[kh] || 0) + 1;
     if (session.lapBuoi[kh] < LAP_TOI_DA) {
-      /*
-       * Bỏ dấu ôn kèm khi học lại.
-       *
-       * Lượt quên vừa rồi đã kéo giãn cách của từ ấy về gần đáy, tức nó ĐANG
-       * tới hạn thật. Giữ `_som` thì lượt học lại có đúng cũng không được ghi,
-       * và từ ấy kẹt ở trạng thái vừa-quên cho tới lần tới hạn sau.
-       */
-      banSao = Object.assign({}, it, { _som: false });
+      banSao = Object.assign({}, it);
       session.queue.push(banSao);                   // quên -> học lại cuối hàng
     } else {
       toast(T("Từ này để mai gặp lại — hôm nay đủ rồi"));
@@ -2680,12 +2681,12 @@ async function xongBaiLien() {
   session.queue.shift();
   // `kq.diem` là trục thứ hai: nhặt đủ hay nhặt được một nửa. Nó chỉ co giãn
   // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
-  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem, b.it._som);
+  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
   // Quên thì học lại cuối hàng, y như thẻ thường.
   if (kq.nho) session.done++;
-  else { session.again++; session.queue.push(Object.assign({}, b.it, { _som: false })); }
+  else { session.again++; session.queue.push(Object.assign({}, b.it)); }
   /*
    * KHÔNG tự sang thẻ kế nữa.
    *
@@ -2743,7 +2744,10 @@ function hangLien(chu, b) {
   nut.addEventListener("click", () => {
     nut.disabled = true;
     nut.textContent = T("Đang lưu…");
-    chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi" },
+    // `b.it.word` là từ đang học, `b.duong` là đề đang làm ("dong"/"trai") —
+    // đúng hai thứ cần để nền biết từ này sinh ra từ tập nào.
+    chrome.runtime.sendMessage({ type: "LUU_NHANH", word: chu, dict: NGU === "ja" ? "javi" : "envi",
+                                cum: { goc: b.it.word, ben: b.duong } },
       async (kq) => {
         if (chrome.runtime.lastError || !kq || !kq.ok) {
           nut.disabled = false; nut.textContent = T("+ Lưu");

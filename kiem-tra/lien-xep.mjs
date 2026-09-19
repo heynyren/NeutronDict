@@ -108,6 +108,121 @@ for (const [ten, b] of Object.entries({
 }
 
 /* ------------------------------------------------------------------ */
+/*
+ * THU TẬP LIÊN KẾT CỦA TỪ DẪN XUẤT.
+ *
+ * Trước đây mọi mục vừa lưu đều được dựng tập đồng/trái nghĩa riêng từ từ
+ * điển — kể cả mục lưu ra từ màn kết quả bài liên kết. Nên từ dẫn xuất lại đẻ
+ * tập mới, tập mới lại đẻ từ dẫn xuất, và kho từ phình ra theo cấp số nhân mà
+ * chẳng nắm chắc trường nghĩa nào.
+ *
+ * Bất biến CỨNG của bài này: KHÔNG một từ nào ngoài tập ban đầu được lọt vào,
+ * dù từ điển trả về thứ gì. Đó là thứ duy nhất chặn được vòng phình ấy, và nó
+ * hỏng âm thầm — sổ vẫn chạy, chỉ là mỗi tuần lại dày thêm.
+ */
+console.log("\nThu tập liên kết của từ DẪN XUẤT");
+la(typeof TL.locTheoCum === "function", "tu-lien.js có xuất locTheoCum");
+for (const [ten, p] of [["extension", "extension/background.js"], ["android", "android/www/app.js"]]) {
+  la(/locTheoCum\(/.test(doc(p)), ten + " gọi hàm dùng chung chứ không tự lọc lấy");
+}
+
+const MUC_GOC = { word: "改善", lien: { dong: ["改良", "向上"], trai: ["改悪"] } };
+
+{
+  // Từ điển trả về cả đống thứ ngoài tập ban đầu.
+  const r = TL.locTheoCum(
+    { dong: ["向上", "進歩", "発展", "改善"], trai: ["改悪", "悪化", "低下"] },
+    "改良", MUC_GOC, "dong");
+  la(r.dong.indexOf("進歩") < 0 && r.dong.indexOf("発展") < 0,
+     "từ MỚI mà từ điển thêm vào thì bị bỏ", r.dong.join(","));
+  la(r.trai.indexOf("悪化") < 0 && r.trai.indexOf("低下") < 0,
+     "kể cả ở phía trái nghĩa", r.trai.join(","));
+  la(r.dong.indexOf("向上") >= 0, "anh em trong tập ban đầu ĐƯỢC từ điển xác nhận thì giữ");
+  la(r.trai.indexOf("改悪") >= 0, "trái nghĩa của gốc cũng vậy");
+  const gop = r.dong.concat(r.trai);
+  const von = new Set(["改善", "改良", "向上", "改悪"]);
+  la(gop.every((x) => von.has(x)), "MỌI từ giữ lại đều nằm trong vốn ban đầu", gop.join(","));
+}
+{
+  // Anh em KHÔNG được từ điển xác nhận thì không vào, dù nằm trong tập ban đầu.
+  const r = TL.locTheoCum({ dong: [], trai: [] }, "改良", MUC_GOC, "dong");
+  la(r.dong.indexOf("向上") < 0, "anh em không được xác nhận thì KHÔNG tự vào", r.dong.join(","));
+  la(r.dong.indexOf("改善") >= 0, "nhưng nối ngược về GỐC thì luôn còn", r.dong.join(","));
+}
+{
+  // Cực do THAO TÁC LƯU quyết định, không phải do từ điển.
+  const r = TL.locTheoCum({ dong: [], trai: ["改善"] }, "改良", MUC_GOC, "dong");
+  la(r.dong.indexOf("改善") >= 0 && r.trai.indexOf("改善") < 0,
+     "từ điển xếp gốc nhầm cực thì cực của thao tác lưu thắng",
+     "dong=" + r.dong.join(",") + " trai=" + r.trai.join(","));
+}
+{
+  const r = TL.locTheoCum({ dong: ["悪化"], trai: ["改善", "改良"] }, "改悪", MUC_GOC, "trai");
+  la(r.trai.indexOf("改善") >= 0, "lưu từ tập TRÁI nghĩa thì gốc nằm bên trái nghĩa");
+  la(r.dong.indexOf("改善") < 0, "và KHÔNG nằm cả hai bên — một đáp án không được đúng ở cả hai đề");
+  la(r.trai.indexOf("改良") >= 0, "anh em được xác nhận vẫn vào đúng bên từ điển nói");
+  la(r.dong.indexOf("悪化") < 0, "còn từ mới thì vẫn bị bỏ", r.dong.join(","));
+}
+{
+  // Gốc đã bị xoá khỏi sổ: vốn chỉ còn chính nó.
+  const r = TL.locTheoCum({ dong: ["向上", "進歩"], trai: [] }, "改良", { word: "改善" }, "dong");
+  la(r.dong.join() === "改善", "gốc bị xoá thì vốn còn mỗi gốc, không rước thêm ai",
+     r.dong.join(","));
+}
+{
+  // Chính nó không bao giờ tự nối vào mình.
+  const r = TL.locTheoCum({ dong: ["改良", "改善"], trai: [] }, "改良", MUC_GOC, "dong");
+  la(r.dong.indexOf("改良") < 0, "không tự nối vào chính mình", r.dong.join(","));
+}
+console.log("  — dữ liệu thiếu hoặc hỏng —");
+for (const [ten, arg] of Object.entries({
+  "ra null": [null, "改良", MUC_GOC, "dong"],
+  "gốc null": [{ dong: ["x"] }, "改良", null, "dong"],
+  "gốc không có lien": [{ dong: ["改善"] }, "改良", { word: "改善" }, "dong"],
+  "lien không phải mảng": [{ dong: ["改善"] }, "改良", { word: "改善", lien: { dong: "改良" } }, "dong"],
+  "ben lạ": [{ dong: ["向上"] }, "改良", MUC_GOC, "xyz"],
+  "tất cả rỗng": [{}, "", {}, ""]
+})) {
+  let loi = null, r = null;
+  try { r = TL.locTheoCum(arg[0], arg[1], arg[2], arg[3]); } catch (e) { loi = e; }
+  la(!loi, "\"" + ten + "\" không ném lỗi", loi && loi.message);
+  la(!loi && r && Array.isArray(r.dong) && Array.isArray(r.trai),
+     "\"" + ten + "\" vẫn trả về hai mảng");
+}
+
+/* ------------------------------------------------------------------ */
+/*
+ * Từ dẫn xuất KHÔNG được gọi mạng để đi tìm từ mới.
+ *
+ * Tầng dịch-ngược chính là cỗ máy đẻ từ mới: nó trả về cả danh sách ứng viên
+ * cho cùng một ý. Ở đây chỉ cần biết mấy từ SẴN CÓ có được xác nhận hay không,
+ * mà bảng hạt giống với WordNet nằm ngay trong máy đã trả lời được.
+ */
+console.log("\nTừ dẫn xuất không đi hỏi mạng");
+{
+  const bg = doc("extension/background.js");
+  la(/const laDanXuat = !!\(e\.tuCum && e\.tuCum\.goc\);/.test(bg), "background.js nhận ra mục dẫn xuất");
+  la(/mang && !laDanXuat[\s\S]{0,80}dongNghiaJa/.test(bg),
+     "tầng dịch ngược tiếng Nhật bị chặn cho mục dẫn xuất");
+  la(/mang && !laDanXuat[\s\S]{0,120}fetchDictionary/.test(bg),
+     "lượt tra từ điển tiếng Anh qua mạng cũng bị chặn");
+  const aj = doc("android/www/app.js");
+  la(/const laDanXuat = !!\(e\.tuCum && e\.tuCum\.goc\);/.test(aj), "app.js nhận ra mục dẫn xuất");
+  la(/!ra\.dong\.length && !laDanXuat/.test(aj), "vòng dịch ngược bên Android cũng bị chặn");
+}
+{
+  // Hai chỗ bấm Lưu đều phải gửi kèm xuất xứ, không thì mục vào sổ như từ gốc.
+  const nb = doc("extension/notebook.js");
+  la((nb.match(/type: "LUU_NHANH"/g) || []).length === 2, "extension có đúng hai chỗ lưu nhanh");
+  la(/cum: \{ goc: b\.it\.word, ben: b\.duong \}/.test(nb), "màn kết quả gửi kèm gốc và cực");
+  la(/\{ goc: it\.word, ben: lop \}/.test(nb), "khối mạng nghĩa cũng gửi kèm");
+  la((nb.match(/cum: cum|cum: \{/g) || []).length >= 2, "và lượt hỏi mang trường `cum`");
+  const aj = doc("android/www/app.js");
+  la(/luuNhanhTu\(chu, NGU === "ja" \? "javi" : "envi", \{ goc: b\.it\.word, ben: b\.duong \}\)/.test(aj),
+     "Android gửi kèm gốc và cực");
+}
+
+/* ------------------------------------------------------------------ */
 console.log("\nBản Android đã dựng màn kết quả");
 {
   const j = doc("android/www/app.js");

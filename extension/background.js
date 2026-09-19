@@ -294,7 +294,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === "LUU_NHANH") {
-    luuNhanh(msg.word, msg.dict)
+    luuNhanh(msg.word, msg.dict, msg.cum)
       .then((r) => sendResponse({ ok: true, key: r }))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
@@ -632,7 +632,12 @@ async function nghiaDs(ds, ngu) {
  * trơ con chữ thì mục vào sổ không có cách đọc lẫn nghĩa, tức là một thẻ không
  * học được.
  */
-async function luuNhanh(word, dict) {
+/**
+ * @param {{goc:string, ben:"dong"|"trai"}} [cum] từ này lưu ra từ tập
+ *   đồng/trái nghĩa của từ nào. Có nó thì mục thành từ DẪN XUẤT: tập liên kết
+ *   của nó bị thu về đúng tập ban đầu, xem `lienVaSau`.
+ */
+async function luuNhanh(word, dict, cum) {
   const w = String(word || "").trim();
   if (!w) throw new Error("Thiếu từ");
   const d = dict || "javi";
@@ -645,7 +650,9 @@ async function luuNhanh(word, dict) {
     e = k && k.e;
   } catch (err) { e = null; }
   if (!e) e = { word: w, reading: "", means: [] };
-  return saveWord(Object.assign({}, e, { word: w }), d);
+  const them = { word: w };
+  if (cum && cum.goc) them.tuCum = { goc: String(cum.goc), ben: cum.ben === "trai" ? "trai" : "dong" };
+  return saveWord(Object.assign({}, e, them), d);
 }
 
 /**
@@ -1261,6 +1268,17 @@ async function lienVaSau(key, e, dict, choMang) {
    * đang chạy với mạng chậm 3 giây thì việc của người dùng phải đợi 3.706ms mới
    * tới lượt. Sau khi tách: dưới 20ms.
    */
+  /*
+   * Mục DẪN XUẤT: thu tập liên kết về đúng tập ban đầu, và KHÔNG gọi mạng.
+   *
+   * Không gọi mạng ở đây không phải để tiết kiệm. Tầng dịch-ngược
+   * (`dongNghiaJa`) và lượt `fetchDictionary` chính là cỗ máy đẻ từ mới: chúng
+   * trả về một danh sách ứng viên cho cùng một ý. Mà ở đây ta chỉ cần biết mấy
+   * từ SẴN CÓ trong tập của gốc có được xác nhận hay không — bảng hạt giống và
+   * 日本語WordNet nằm ngay trong máy đã trả lời được. Gọi mạng vừa chậm vừa đi
+   * ngược điều đang muốn.
+   */
+  const laDanXuat = !!(e.tuCum && e.tuCum.goc);
   const tinh = (async () => {
     const laJa = (dict === "javi" || dict === "vija");
     // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
@@ -1279,15 +1297,31 @@ async function lienVaSau(key, e, dict, choMang) {
     }
     let ra = self.TuLien.tuBang(e.word);
     if (laJa) {
-      if (!ra.dong.length && mang) ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
+      if (!ra.dong.length && mang && !laDanXuat) {
+        ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
+      }
     } else {
       // Tiếng Anh: từ điển đã có sẵn cả hai chiều trong `pos`.
       let pos = e.pos;
-      if ((!pos || !pos.length) && mang) {
+      if ((!pos || !pos.length) && mang && !laDanXuat) {
         const dd = await fetchDictionary(e.word);
         pos = dd ? posFrom(dd) : [];
       }
       ra = self.TuLien.gop(self.TuLien.tuPos(pos || [], e.word), ra);
+    }
+    if (laDanXuat) {
+      const { notebook } = await chrome.storage.local.get("notebook");
+      const nbG = notebook || {};
+      // Tìm mục gốc theo CON CHỮ, không theo khoá: khoá mang tiền tố hướng tra,
+      // mà từ dẫn xuất có thể lưu ở hướng khác với gốc.
+      let goc = null;
+      for (const k in nbG) {
+        const x = nbG[k];
+        if (x && !x.del && x.word === e.tuCum.goc) { goc = x; break; }
+      }
+      // Gốc đã bị xoá thì vốn chỉ còn chính nó — vẫn đúng tinh thần: không
+      // rước thêm từ nào mới vào.
+      ra = self.TuLien.locTheoCum(ra, e.word, goc || { word: e.tuCum.goc }, e.tuCum.ben);
     }
     return ra;
   })();
@@ -1667,6 +1701,16 @@ async function saveWord(entry, dict) {
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
   if (entry.kanji) e.kanji = entry.kanji;                     // on/kun/số nét/JLPT/bộ thủ
   if (entry.kind) e.kind = entry.kind;                        // "sent" = câu đã dịch
+  /*
+   * `tuCum` = mục này sinh ra từ tập đồng/trái nghĩa của một từ khác.
+   *
+   * Chỉ `luuNhanh` đặt nó, và chỉ khi bấm Lưu ngay trong màn kết quả hoặc
+   * khối mạng nghĩa. Lưu qua đường thường — tra rồi bấm Lưu — thì KHÔNG đặt,
+   * và chỗ dưới còn gỡ nó đi nếu mục cũ đang mang: tra xong mới lưu là một
+   * quyết định có chủ ý, mục ấy thôi làm từ dẫn xuất và được dựng lại tập
+   * liên kết đầy đủ. Không có lối gỡ ấy thì mục kẹt vĩnh viễn ở tập rút gọn.
+   */
+  if (entry.tuCum && entry.tuCum.goc) e.tuCum = entry.tuCum;
   if (entry.src && entry.src.url) e.src = entry.src;          // nguồn: {url, title, sel}
   // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
   if (entry.note != null) e.note = String(entry.note);
@@ -1685,6 +1729,18 @@ async function saveWord(entry, dict) {
     if (e.mEdit && !e.mOrig && old.mOrig) e.mOrig = old.mOrig;
   }
   if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ mọi thứ bạn đã tự làm
+    /*
+     * `tuCum` CỐ Ý không nằm trong danh sách giữ lại dưới đây.
+     *
+     * Mục cũ là từ dẫn xuất, mà lượt lưu này không phải lưu nhanh — tức là bạn
+     * đã tra rồi tự tay bấm Lưu. Đó là một quyết định có chủ ý, nên mục thôi
+     * làm từ dẫn xuất. Bỏ `tuCum` đi thì `lienVaSau` ngay dưới dựng lại tập
+     * liên kết ĐẦY ĐỦ, vì `lien` cũng không được chép từ `old` sang: `e` dựng
+     * mới ở mỗi lượt lưu.
+     *
+     * Không có lối thăng này thì mục kẹt vĩnh viễn ở tập rút gọn, mà chẳng có
+     * đường nào gỡ ngoài xoá đi lưu lại.
+     */
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
     if (old.kind && !e.kind) e.kind = old.kind;
