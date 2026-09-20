@@ -639,6 +639,7 @@ function doTranslate(raw) {
         const spk = nutLoa(engText, null);
         spk.title = NGU === "ja" ? T("Nghe câu tiếng Nhật") : T("Nghe câu tiếng Anh");
         el.appendChild(spk);
+        el.appendChild(nutGemini(muc, daCo));
       },
       veNghia: (el, dl) => {
         const tr = document.createElement("div"); tr.className = "tr grow";
@@ -652,6 +653,43 @@ function doTranslate(raw) {
       gui: (moi, coSua, xong) => guiLuu(muc, window.Ngu.nganChinh(NGU), moi, coSua, goc, xong)
     });
   });
+}
+
+/**
+ * Nút hỏi Gemini cho tab Dịch.
+ *
+ * Câu hỏi đi qua BỘ NHỚ TẠM, không qua `?q=` — Gemini không còn đọc tham số đó
+ * và hỏng IM LẶNG: trang mở ra với ô chat trống, nhìn y như nút bị liệt.
+ *
+ * Link đoạn chat chỉ gắn được khi câu này ĐÃ nằm trong sổ tay — chưa lưu thì
+ * không có mục nào để gắn vào, nên lúc đó chỉ mở Gemini chứ không hứa suông.
+ */
+function nutGemini(muc, daCo) {
+  const b = document.createElement("button");
+  b.className = "iconbtn"; b.type = "button";
+  const daLuu = !!(daCo && daCo.saved);
+  b.title = daLuu
+    ? T("Hỏi Gemini về câu này — link đoạn chat sẽ lưu vào mục trong sổ tay")
+    : T("Hỏi Gemini về câu này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)");
+  b.appendChild(ic("sparkle", { size: 17 }));
+  b.addEventListener("click", () => {
+    if (!window.HoiGemini) return;
+    const loi = window.HoiGemini.loiHoi(muc, {});
+    navigator.clipboard.writeText(loi).then(() => {
+      const khoa = daLuu ? (window.Ngu.nganChinh(NGU) + ":" + muc.word) : "";
+      const moThang = () => {
+        try { window.open(window.HoiGemini.GOC_URL, "_blank", "noopener"); } catch (e) { /* bị chặn */ }
+      };
+      // Popup KHÔNG nạp song.js, nên gửi thẳng như mọi chỗ khác trong tệp này.
+      // Phải chạm vào lastError, không thì Chrome tự in cảnh báo ra console.
+      try {
+        chrome.runtime.sendMessage({ type: "MO_GEMINI", key: khoa }, (kq) => {
+          if (chrome.runtime.lastError || !kq) moThang();
+        });
+      } catch (e) { moThang(); }
+    }).catch(() => {});
+  });
+  return b;
 }
 
 /**
