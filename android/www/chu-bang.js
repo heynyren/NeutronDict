@@ -28,12 +28,8 @@
     "Mạng nghĩa: bạn đã tắt cho từ này.": "Word links: you turned these off for this word.",
     "Mạng nghĩa: bạn đã tắt cho từ này — nhãn ở trên không tính phần đó.":
       "Word links: you turned these off for this word — the label above leaves them out.",
-    "Đóng băng ({n})": "Freeze ({n})",
     "Gỡ băng tất cả ({n})": "Unfreeze all ({n})",
-    "Tắt mạng nghĩa ({n})": "Turn off word links ({n})",
-    "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học":
-      "Froze {n} words — they will stop coming up in study sessions",
-    "Đã đưa {n} từ trở lại vòng ôn": "Brought {n} words back into review",
+    "Bật lại mạng nghĩa ({n})": "Turn word links back on ({n})",
     "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới":
       "Unfroze {n} words — they are due from the next session on",
     "Đã đóng băng lại {n} từ": "Froze {n} words again",
@@ -988,12 +984,8 @@
     "Mạng nghĩa: bạn đã tắt cho từ này.": "類義ネットワーク：この語ではオフにしています。",
     "Mạng nghĩa: bạn đã tắt cho từ này — nhãn ở trên không tính phần đó.":
       "類義ネットワーク：この語ではオフです — 上の表示には含まれません。",
-    "Đóng băng ({n})": "凍結（{n}）",
     "Gỡ băng tất cả ({n})": "すべて解除（{n}）",
-    "Tắt mạng nghĩa ({n})": "類義問題をオフ（{n}）",
-    "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học":
-      "{n} 語を凍結しました — 学習に出てこなくなります",
-    "Đã đưa {n} từ trở lại vòng ôn": "{n} 語を復習に戻しました",
+    "Bật lại mạng nghĩa ({n})": "類義問題をオンに戻す（{n}）",
     "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới":
       "{n} 語の凍結を解除しました — 次の学習から出題されます",
     "Đã đóng băng lại {n} từ": "{n} 語を凍結し直しました",

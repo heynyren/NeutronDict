@@ -299,6 +299,26 @@ for (const [ten, arg] of Object.entries({
                            ["android/www/index.html", "index.html"]]) {
     la(/id="hangLoat"/.test(doc(p3)), ten + ' có ô #hangLoat cho cụm nút hàng loạt');
   }
+  /*
+   * HÀNG LOẠT CHỈ ĐƯỢC GỠ, KHÔNG ĐƯỢC LÀM.
+   *
+   * Bản 4.25.0 có "Tắt mạng nghĩa (N)" và "Đóng băng (N)" ở đầu sổ tay, và nó
+   * làm hỏng thật: một lần chạm nhầm là tắt cả sổ, mà nút lại dựng từ danh sách
+   * những từ CHƯA tắt nên tắt hết rồi là nó biến mất — không còn đường nào bật
+   * lại hàng loạt, phải đi bấm từng từ một.
+   *
+   * Cổng này chặn đúng cái gọi đã gây ra chuyện ấy: `lamHangLoat(..., true, ...)`.
+   * Thêm một thao tác hàng loạt theo chiều LÀM là đỏ lên ngay, kèm lý do.
+   */
+  for (const [p5, ten] of [["extension/notebook.js", "notebook.js"], ["android/www/app.js", "app.js"]]) {
+    const lam = (doc(p5).match(/lamHangLoat\([^;]*?,\s*true\s*,/g) || []);
+    la(lam.length === 0, ten + ": không có thao tác hàng loạt theo chiều LÀM",
+       lam.length ? lam.join(" / ").slice(0, 90) : "chỉ có chiều gỡ");
+    la(doc(p5).indexOf('"Bật lại mạng nghĩa ({n})"') >= 0,
+       ten + ": có đường về hàng loạt cho mạng nghĩa");
+    la(doc(p5).indexOf('"Gỡ băng tất cả ({n})"') >= 0,
+       ten + ": có đường về hàng loạt cho đóng băng");
+  }
   for (const [p4, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
     la(/\.iconbtn\.tat/.test(doc(p4)) && /\.lienmang-tat/.test(doc(p4)),
        ten + " ui.css có kiểu cho trạng thái đã tắt");

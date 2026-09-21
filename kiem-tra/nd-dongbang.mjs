@@ -213,39 +213,75 @@ console.log("\nNgăn “Đóng băng”");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nTắt hàng loạt, và Hoàn tác");
+console.log("\nHàng thao tác hàng loạt CHỈ ĐƯỢC MỜI GỠ");
+{
+  /*
+   * CỔNG CHẶN CHÍNH cho lỗi của bản 4.25.0.
+   *
+   * Hồi ấy ở đây có "Tắt mạng nghĩa (N)" và "Đóng băng (N)" — một nút trơn
+   * ngay đầu danh sách, chạm nhầm là ghi lại hàng chục mục, mà nút tắt lại dựng
+   * từ danh sách những từ CHƯA tắt nên tắt hết rồi là nó biến mất: không còn
+   * đường nào bật lại hàng loạt, phải đi bấm từng từ.
+   */
+  const co = await page.evaluate(() =>
+    [...document.querySelectorAll("#hangLoat .btn")].map((b) => b.textContent.trim()));
+  soat("KHÔNG có nút tắt mạng nghĩa hàng loạt",
+       !co.some((x) => /^Tắt mạng nghĩa \(/.test(x)), co.join(" | ") || "(hàng rỗng)");
+  soat("KHÔNG có nút đóng băng hàng loạt",
+       !co.some((x) => /^Đóng băng \(/.test(x)), co.join(" | ") || "(hàng rỗng)");
+  /*
+   * VÀ HAI NÚT GỠ KHÔNG BÁM THEO NGĂN.
+   *
+   * Trước đây "Gỡ băng tất cả" chỉ hiện trong ngăn Đóng băng. Đang ở ngăn
+   * Tất cả mà có từ đóng băng thì phải thấy nó ngay — đường về không được
+   * bắt người ta đoán ra trước là phải mở ngăn nào.
+   */
+  soat("đang ở ngăn Tất cả vẫn thấy nút Gỡ băng",
+       co.some((x) => /^Gỡ băng tất cả \(\d+\)/.test(x)), co.join(" | "));
+  soat("và thấy nút Bật lại mạng nghĩa",
+       co.some((x) => /^Bật lại mạng nghĩa \(\d+\)/.test(x)), co.join(" | "));
+}
 {
   const truoc = await page.evaluate(() =>
     currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
+  soat("đang có từ bị tắt để mà gỡ", truoc.length >= 2, truoc.join(","));
+
   const nut = await page.evaluate(async () => {
     const b = [...document.querySelectorAll("#hangLoat .btn")]
-      .find((x) => /Tắt mạng nghĩa/.test(x.textContent));
+      .find((x) => /Bật lại mạng nghĩa/.test(x.textContent));
     if (!b) return null;
     const chu = b.textContent;
     b.click();
     await new Promise((x) => setTimeout(x, 900));
     return chu;
   });
-  soat("nút tắt hàng loạt có mặt và ghi rõ số từ", !!nut && /\(\d+\)/.test(nut), nut);
+  soat("nút gỡ ghi rõ số từ", !!nut && /\(\d+\)/.test(nut), nut);
   const sau = await page.evaluate(() =>
     currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
-  soat("cả danh sách đang hiện đều tắt", sau.length === 4, sau.join(","));
+  soat("bấm một cái là gỡ sạch cả danh sách đang hiện", sau.length === 0,
+       "[" + truoc.join(",") + "] → [" + sau.join(",") + "]");
+  /*
+   * VÀ NÚT BIẾN MẤT — hết cái để gỡ.
+   *
+   * Đây là mặt sau của cái cửa một chiều cũ: nút bây giờ dựng từ những từ
+   * ĐANG tắt chứ không phải những từ CHƯA tắt, nên nó chỉ vắng mặt đúng lúc
+   * không còn việc gì cho nó làm.
+   */
+  const conNut = await page.evaluate(() =>
+    [...document.querySelectorAll("#hangLoat .btn")].map((b) => b.textContent.trim()));
+  soat("gỡ xong thì nút tự biến mất",
+       !conNut.some((x) => /Bật lại mạng nghĩa/.test(x)), conNut.join(" | ") || "(hàng rỗng)");
 
-  const co = await page.evaluate(async () => {
+  const daBam = await page.evaluate(async () => {
     const b = document.querySelector(".toast-nut");
     if (!b) return false;
     b.click();
     await new Promise((x) => setTimeout(x, 900));
     return true;
   });
-  soat("lời nhắc có nút Hoàn tác", co);
+  soat("lời nhắc có nút Hoàn tác", daBam);
   const lui = await page.evaluate(() =>
     currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
-  /*
-   * ĐÚNG TRẠNG THÁI CŨ, không phải "gỡ sạch". 低下 vốn đã tắt sẵn từ đầu và
-   * 改善 thì vừa bị tắt tay ở trên — Hoàn tác chỉ được rút lại đúng những mục
-   * mà chính nó vừa đổi, chứ không được làm hơn thế.
-   */
   soat("Hoàn tác trả lại ĐÚNG trạng thái trước đó",
        lui.join(",") === truoc.join(","), "trước [" + truoc.join(",") + "] → sau [" + lui.join(",") + "]");
 }
@@ -274,32 +310,59 @@ console.log("\nHai nút trên mặt sau thẻ học");
   const d = await page.evaluate(async () => {
     const b = [...document.querySelectorAll("#stFav .btn")].find((x) => /mạng nghĩa/i.test(x.textContent));
     if (!b) return null;
+    // Thẻ rơi vào đầu hàng đợi có thể đang BẬT hoặc đang TẮT sẵn, tùy mẫu thử
+    // và tùy những gì các khối trên vừa làm. Chốt theo CHIỀU LẬT, không chốt
+    // theo một trạng thái cụ thể — không thì bài kiểm đỏ theo thứ tự hàng đợi.
+    const truoc = !!theCardHienTai().mangTat;
     b.click();
     await new Promise((x) => setTimeout(x, 700));
     const it = theCardHienTai();
     const m = ($("stProg").textContent || "").match(/(\d+)\/100/);
     return { hien: m ? Number(m[1]) : null, that: window.Srs.diemTu(it).tong,
-             tat: !!it.mangTat, tu: it.word,
+             truoc: truoc, sau: !!it.mangTat, tu: it.word,
              nhan: [...document.querySelectorAll("#stFav .btn")].map((x) => x.textContent.trim()) };
   });
-  soat("bấm được ngay giữa buổi học", !!d && d.tat === true, d && d.tu);
+  soat("bấm một cái là cờ LẬT, ngay giữa buổi học",
+       !!d && d.sau === !d.truoc, d && (d.tu + ": " + d.truoc + " → " + d.sau));
   soat("dòng tiến trình khớp với điểm thật sau khi bấm",
        d && d.hien !== null && d.hien === d.that, d && (d.tu + ": hiện " + d.hien + ", thật " + d.that));
-  soat("nhãn nút đổi theo trạng thái", d && d.nhan.some((x) => /đã tắt/i.test(x)), d && d.nhan.join(" | "));
+  soat("nhãn nút đổi theo trạng thái",
+       d && d.nhan.some((x) => (d.sau ? /đã tắt/i : /^Tắt mạng nghĩa$/i).test(x)),
+       d && d.nhan.join(" | "));
 }
 
 /* ------------------------------------------------------------------ */
 console.log("\nSống sót qua một lượt nạp lại");
 {
+  /*
+   * Chụp trạng thái NGAY TRƯỚC khi nạp lại rồi so lại đúng nó, chứ không đếm
+   * đầu: các khối trên vừa bật tắt qua lại mấy lượt, mà điều cần chốt ở đây
+   * chỉ là "nạp lại thì không mất gì".
+   *
+   * Đọc từ KHO LƯU chứ không từ mảng trong bộ nhớ. Bấm công tắc trên MẶT
+   * THẺ HỌC chỉ sửa đối tượng của thẻ ấy, không sửa mảng sổ tay — cố ý, vì
+   * vẽ lại cả danh sách giữa buổi học là thứ không ai cần, và `closeStudy` /
+   * `finishStudy` đều gọi `load()` nên tới lúc nhìn thấy là đã tươi. Lấy mảng
+   * ấy làm mốc thì bài kiểm đang so kho lưu với một ảnh chụp cũ, chứ không
+   * phải đang kiểm chuyện "nạp lại có mất không".
+   */
+  const truocNap = await sw.evaluate(async () => {
+    const nb = (await chrome.storage.local.get("notebook")).notebook || {};
+    const ds = Object.values(nb).filter((x) => x && !x.del);
+    return { bang: ds.filter((x) => x.dongBang).map((x) => x.word).sort(),
+             tat: ds.filter((x) => x.mangTat).map((x) => x.word).sort() };
+  });
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll(".entry").length >= 4, null, { timeout: 20000 });
   const r = await page.evaluate(() => {
     const a = currentActiveSet();
-    return { bang: a.filter((x) => x.dongBang).map((x) => x.word),
+    return { bang: a.filter((x) => x.dongBang).map((x) => x.word).sort(),
              tat: a.filter((x) => x.mangTat).map((x) => x.word).sort() };
   });
-  soat("cờ đóng băng còn nguyên", r.bang.join(",") === "改良", r.bang.join(","));
-  soat("cờ tắt mạng nghĩa còn nguyên", r.tat.length >= 2, r.tat.join(","));
+  soat("cờ đóng băng còn nguyên", r.bang.join(",") === truocNap.bang.join(","),
+       "[" + truocNap.bang.join(",") + "] → [" + r.bang.join(",") + "]");
+  soat("cờ tắt mạng nghĩa còn nguyên", r.tat.join(",") === truocNap.tat.join(","),
+       "[" + truocNap.tat.join(",") + "] → [" + r.tat.join(",") + "]");
 }
 
 soat("không có lỗi trang", loi.length === 0, loi.join(" | ").slice(0, 200));

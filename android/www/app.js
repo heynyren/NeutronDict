@@ -2892,11 +2892,29 @@ async function lamHangLoat(ds, ten, bat, chuXong, chuHoanTac) {
 }
 
 /**
- * Hàng thao tác hàng loạt, tác động lên ĐÚNG DANH SÁCH ĐANG HIỆN.
+ * Hàng thao tác hàng loạt — CHỈ BAO GIỜ MỜI BẠN GỠ, không bao giờ mời bạn LÀM.
  *
- * "Đang hiện" nghĩa là sau cả ngăn lẫn ô lọc — nên lọc "động từ" rồi chạm Tắt
- * mạng nghĩa là tắt đúng mấy từ ấy. Đếm N ghi thẳng trên nút, vì đây là loại
- * nút mà chạm xong mới biết mình vừa đụng tới bao nhiêu từ thì đã muộn.
+ * Bản 4.25.0 có hai nút làm-hàng-loạt ở đây ("Tắt mạng nghĩa (N)" và "Đóng
+ * băng (N)") và cả hai đều sai, theo ba cách cùng lúc:
+ *
+ *   1. CỬA MỘT CHIỀU. Nút tắt dựng từ danh sách những từ CHƯA tắt, nên tắt
+ *      hết rồi là nó biến mất — và không còn đường nào bật lại hàng loạt. Phải
+ *      đi bấm lại từng từ một.
+ *   2. MỘT NÚT TRƠN ngay đầu danh sách, không hỏi lại, chạm một cái là ghi
+ *      lại N mục.
+ *   3. CỬA SỔ HOÀN TÁC 6,5 GIÂY — đủ để đọc, không đủ để nhận ra mình
+ *      vừa bấm nhầm rồi quyết định.
+ *
+ * Còn "đóng băng toàn bộ" thì ngay cả khi bấm đúng cũng vô nghĩa: rút hết từ
+ * ra khỏi vòng ôn thì còn gì để học.
+ *
+ * LUẬT: hàng loạt được phép khi nó GỠ, không được phép khi nó LÀM. Làm thì
+ * bấm từng từ bằng `nutRutOn` — một lần bấm, một từ, bấm lại là xong.
+ *
+ * Và hai nút gỡ KHÔNG bám theo ngăn nữa (trước đây "Gỡ băng tất cả" chỉ hiện
+ * trong ngăn Đóng băng): chúng hiện khi danh sách ĐANG NHÌN có cái để gỡ. Bám
+ * theo ngăn thì "Bật lại mạng nghĩa" chẳng có ngăn nào để nấp, và lại đẻ ra đúng
+ * cái cửa một chiều vừa đi chữa.
  */
 function veHangLoat(rows) {
   const o = $("hangLoat");
@@ -2909,28 +2927,20 @@ function veHangLoat(rows) {
     b.addEventListener("click", hanhDong);
     o.appendChild(b);
   };
-  const chuaBang = rows.filter((it) => !it.dongBang);
   const daBang = rows.filter((it) => !!it.dongBang);
-  const chuaTat = rows.filter((it) => !it.mangTat);
+  const daTat = rows.filter((it) => !!it.mangTat);
 
-  if (curDeck === DONGBANG && daBang.length) {
+  if (daBang.length) {
     nut(T2("Gỡ băng tất cả ({n})", { n: daBang.length }), () =>
       lamHangLoat(daBang, "dongBang", false,
         "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới",
         "Đã đóng băng lại {n} từ"));
-  } else {
-    if (chuaBang.length) {
-      nut(T2("Đóng băng ({n})", { n: chuaBang.length }), () =>
-        lamHangLoat(chuaBang, "dongBang", true,
-          "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học",
-          "Đã đưa {n} từ trở lại vòng ôn"));
-    }
-    if (chuaTat.length) {
-      nut(T2("Tắt mạng nghĩa ({n})", { n: chuaTat.length }), () =>
-        lamHangLoat(chuaTat, "mangTat", true,
-          "Đã tắt bài đồng/trái nghĩa cho {n} từ",
-          "Đã bật lại bài đồng/trái nghĩa cho {n} từ"));
-    }
+  }
+  if (daTat.length) {
+    nut(T2("Bật lại mạng nghĩa ({n})", { n: daTat.length }), () =>
+      lamHangLoat(daTat, "mangTat", false,
+        "Đã bật lại bài đồng/trái nghĩa cho {n} từ",
+        "Đã tắt bài đồng/trái nghĩa cho {n} từ"));
   }
   o.style.display = o.children.length ? "" : "none";
 }
