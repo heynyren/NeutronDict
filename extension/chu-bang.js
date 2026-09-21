@@ -9,6 +9,39 @@
 
   const en = {
 
+    /* --- đóng băng từ, và tắt bài mạng nghĩa --- */
+    "Đóng băng": "Freeze",
+    "Đang đóng băng": "Frozen",
+    "Tắt mạng nghĩa": "Turn off word links",
+    "Mạng nghĩa đã tắt": "Word links off",
+    "Từ này đang đóng băng": "This word is frozen",
+    "Đóng băng — rút từ này khỏi chế độ học, điểm giữ nguyên":
+      "Freeze — take this word out of study; its score stays as it is",
+    "Đang đóng băng — bấm để đưa lại vào vòng ôn, từ sẽ tới hạn ngay":
+      "Frozen — tap to bring it back into review; it will be due right away",
+    "Tắt bài đồng/trái nghĩa cho từ này — danh sách liên kết vẫn giữ nguyên":
+      "Turn off the synonym/antonym exercises for this word — its links stay as they are",
+    "Bài đồng/trái nghĩa đang tắt — bấm để bật lại":
+      "Synonym/antonym exercises are off — tap to turn them back on",
+    "Bài đồng/trái nghĩa đang tắt cho từ này — các từ vẫn dùng cho từ khác.":
+      "Synonym/antonym exercises are off for this word — the links still serve the other words.",
+    "Mạng nghĩa: bạn đã tắt cho từ này.": "Word links: you turned these off for this word.",
+    "Mạng nghĩa: bạn đã tắt cho từ này — nhãn ở trên không tính phần đó.":
+      "Word links: you turned these off for this word — the label above leaves them out.",
+    "Đóng băng ({n})": "Freeze ({n})",
+    "Gỡ băng tất cả ({n})": "Unfreeze all ({n})",
+    "Tắt mạng nghĩa ({n})": "Turn off word links ({n})",
+    "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học":
+      "Froze {n} words — they will stop coming up in study sessions",
+    "Đã đưa {n} từ trở lại vòng ôn": "Brought {n} words back into review",
+    "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới":
+      "Unfroze {n} words — they are due from the next session on",
+    "Đã đóng băng lại {n} từ": "Froze {n} words again",
+    "Đã tắt bài đồng/trái nghĩa cho {n} từ":
+      "Turned off synonym/antonym exercises for {n} words",
+    "Đã bật lại bài đồng/trái nghĩa cho {n} từ":
+      "Turned synonym/antonym exercises back on for {n} words",
+
     /* --- bỏ một từ khỏi liên kết --- */
     "Bỏ “{tu}” khỏi liên kết — sẽ không ra trong bài kiểm tra nữa":
       "Remove “{tu}” from the links — it will stop appearing in exercises",
@@ -947,6 +980,39 @@
   };
 
   const ja = {
+
+    /* --- đóng băng từ, và tắt bài mạng nghĩa --- */
+    "Đóng băng": "凍結",
+    "Đang đóng băng": "凍結中",
+    "Tắt mạng nghĩa": "類義問題をオフ",
+    "Mạng nghĩa đã tắt": "類義問題はオフ",
+    "Từ này đang đóng băng": "この語は凍結中です",
+    "Đóng băng — rút từ này khỏi chế độ học, điểm giữ nguyên":
+      "凍結 — この語を学習から外します。スコアはそのままです",
+    "Đang đóng băng — bấm để đưa lại vào vòng ôn, từ sẽ tới hạn ngay":
+      "凍結中 — タップで復習に戻します。すぐに出題されます",
+    "Tắt bài đồng/trái nghĩa cho từ này — danh sách liên kết vẫn giữ nguyên":
+      "この語の類義語・対義語問題をオフにします — リンクはそのままです",
+    "Bài đồng/trái nghĩa đang tắt — bấm để bật lại":
+      "類義語・対義語問題はオフです — タップでオンに戻します",
+    "Bài đồng/trái nghĩa đang tắt cho từ này — các từ vẫn dùng cho từ khác.":
+      "この語の類義語・対義語問題はオフです — リンクは他の語では使われます。",
+    "Mạng nghĩa: bạn đã tắt cho từ này.": "類義ネットワーク：この語ではオフにしています。",
+    "Mạng nghĩa: bạn đã tắt cho từ này — nhãn ở trên không tính phần đó.":
+      "類義ネットワーク：この語ではオフです — 上の表示には含まれません。",
+    "Đóng băng ({n})": "凍結（{n}）",
+    "Gỡ băng tất cả ({n})": "すべて解除（{n}）",
+    "Tắt mạng nghĩa ({n})": "類義問題をオフ（{n}）",
+    "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học":
+      "{n} 語を凍結しました — 学習に出てこなくなります",
+    "Đã đưa {n} từ trở lại vòng ôn": "{n} 語を復習に戻しました",
+    "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới":
+      "{n} 語の凍結を解除しました — 次の学習から出題されます",
+    "Đã đóng băng lại {n} từ": "{n} 語を凍結し直しました",
+    "Đã tắt bài đồng/trái nghĩa cho {n} từ":
+      "{n} 語の類義語・対義語問題をオフにしました",
+    "Đã bật lại bài đồng/trái nghĩa cho {n} từ":
+      "{n} 語の類義語・対義語問題をオンに戻しました",
 
     /* --- bỏ một từ khỏi liên kết --- */
     "Bỏ “{tu}” khỏi liên kết — sẽ không ra trong bài kiểm tra nữa":

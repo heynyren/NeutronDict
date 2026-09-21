@@ -286,6 +286,33 @@ a { color: var(--accent); }
  * bật màu thì chẳng nút nào nổi.
  */
 .iconbtn.gemini:hover { color: #1a73e8; background: rgba(26,115,232,.12); }
+
+/*
+ * Hai công tắc rút bớt việc — trạng thái ĐỌC ĐƯỢC KHÔNG CẦN MÀU.
+ *
+ * Đóng băng thì bông tuyết đổi từ nét sang đặc (JS đổi `weight`), nên hình
+ * khác hẳn. Riêng icon `graph` thì bản đặc gần như trùng bản nét — trạng thái sẽ
+ * chỉ còn đọc được bằng màu, mà màu thì không phải ai cũng phân biệt được. Nên
+ * tắt thì đeo thêm một gạch chéo vẽ bằng CSS, giống lối `bell-slash` đã có sẵn.
+ */
+.iconbtn.bang.on { color: #2f8fd8; }
+.iconbtn.mang.on { color: var(--ink-3); }
+.iconbtn.tat { position: relative; }
+.iconbtn.tat::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 22px; height: 1.6px; background: currentColor; border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  box-shadow: 0 -1.6px 0 var(--surface);
+}
+
+/* Bài mạng nghĩa đang tắt: làm mờ, KHÔNG ẨN. Còn phải nhìn lại xem mình đã
+   tắt cái gì, và nút × vẫn còn việc — mấy từ ấy vẫn đang dùng cho từ khác. */
+.lienmang.tat .lienmang-ds { opacity: .55; }
+.lienmang-tat { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+/* Hàng thao tác hàng loạt trên đầu danh sách sổ tay. */
+.rowx.hangloat { gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+
 .btn.gemini { color: #1557b0; border-color: rgba(26,115,232,.34); }
 .btn.gemini:hover { background: rgba(26,115,232,.10); }
 

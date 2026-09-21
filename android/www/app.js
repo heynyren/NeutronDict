@@ -724,6 +724,15 @@ let diemDangXem = null;
  * nhìn thấy đúng một lần là làm khó chứ không phải dạy.
  */
 function duongOnDuoc(it, now) {
+  /*
+   * ĐÓNG BĂNG PHẢI CHẶN Ở ĐÂY NỮA, không chỉ ở `denHan`.
+   *
+   * Hàm này cố tình cho qua cả đường CHƯA HỌC BAO GIỜ (`ngayCua === 0`), vì một
+   * đường vừa mở thì chưa có `due` để mà tới hạn. Nghĩa là `denHan` rỗng VẪN
+   * KHÔNG đủ để nó trả về rỗng, và nút "Ôn bài còn lại" trong bảng điểm vẫn
+   * mọc lên trên một từ đã đóng băng.
+   */
+  if (it && it.dongBang) return [];
   const nay = now || Date.now();
   const mo = window.Srs.duongMo(it);
   const han = window.Srs.denHan(it, nay);
@@ -777,16 +786,20 @@ function moBangDiem(it) {
 
   // Nói thẳng chiều nào chưa đo được, để cái nhãn kia không bị đọc thành một
   // lời hứa rộng hơn những gì thật sự đã chứng minh.
-  $("dsChuaDo").textContent = d.chuaDo.length
-    ? T2("Chưa đo được: {ds} — nhãn ở trên chỉ nói tới phần đã đo.",
-         { ds: d.chuaDo.map((x) => T(x)).join(", ") })
-    : "";
+  $("dsChuaDo").textContent = d.mangTat
+    ? T("Mạng nghĩa: bạn đã tắt cho từ này — nhãn ở trên không tính phần đó.")
+    : (d.chuaDo.length
+      ? T2("Chưa đo được: {ds} — nhãn ở trên chỉ nói tới phần đã đo.",
+           { ds: d.chuaDo.map((x) => T(x)).join(", ") })
+      : "");
 
   const on = duongOnDuoc(it, now);
   $("dsOn").disabled = !on.length;
+  // "Chưa bài nào tới hạn" là sai sự thật với từ đóng băng — nó không chờ tới
+  // hạn, nó đã được rút ra. Nói đúng thì người ta còn biết phải đi gỡ băng.
   $("dsOn").textContent = on.length
     ? T2("Ôn {n} bài còn lại", { n: on.length })
-    : T("Chưa bài nào tới hạn");
+    : (it.dongBang ? T("Từ này đang đóng băng") : T("Chưa bài nào tới hạn"));
   $("diemSheet").classList.add("show");
 }
 
@@ -2003,6 +2016,16 @@ function khoiLien(it, gon) {
   };
   hang(T("Cùng nghĩa"), dong, "dong");
   hang(T("Trái nghĩa"), trai, "trai");
+  /*
+   * Cờ bật thì VẪN VẼ ĐỦ danh sách, chỉ làm mờ và ghi một dòng. Ẩn luôn đi
+   * thì mất hai thứ: nhìn lại xem mình đã tắt cái gì, và nút × để bỏ nốt mấy từ
+   * vô lý — mà mấy từ ấy vẫn đang có việc với những từ khác.
+   */
+  if (it && it.mangTat) {
+    hop.classList.add("tat");
+    hop.appendChild(el("div", "lienmang-tat",
+      T("Bài đồng/trái nghĩa đang tắt cho từ này — các từ vẫn dùng cho từ khác.")));
+  }
   return hop;
 }
 
@@ -2221,6 +2244,11 @@ async function renderWord(entries) {
           if (old2.note) ne2.note = old2.note;
           if (old2.hoiAi) ne2.hoiAi = old2.hoiAi;   // link đoạn chat Gemini
           if (old2.lienBo) ne2.lienBo = old2.lienBo;  // từ liên kết đã tự tay bỏ
+          // Hai công tắc rút bớt việc: tra lại rồi bấm Lưu KHÔNG có nghĩa "cho từ
+          // này học lại từ đầu". Không giữ thì mỗi lượt tra lại là một từ đã đóng
+          // băng lặng lẽ quay về hàng đợi.
+          if (old2.mangTat) ne2.mangTat = 1;
+          if (old2.dongBang) ne2.dongBang = 1;
           // `tuCum` CỐ Ý không giữ: tra rồi tự tay bấm Lưu là quyết định có chủ
           // ý, mục thôi làm từ dẫn xuất. `lien` cũng bị bỏ ngay dưới để boiThem
           // dựng lại tập đầy đủ — giữ tập rút gọn thì thăng chẳng để làm gì.
@@ -2434,6 +2462,8 @@ async function showTranslate(text) {
           if (oldS.lien) neS.lien = oldS.lien;
           if (oldS.hoiAi) neS.hoiAi = oldS.hoiAi;
           if (oldS.lienBo) neS.lienBo = oldS.lienBo;
+          if (oldS.mangTat) neS.mangTat = 1;
+          if (oldS.dongBang) neS.dongBang = 1;
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
@@ -2700,6 +2730,7 @@ $("editSheet").addEventListener("click", (e) => { if (e.target.id === "editSheet
 const ALL = "__all__", NONE = "__none__";
 const LIKE = "__like__", DISLIKE = "__dislike__";
 const HANTU = "__kanji__";   // sổ con ảo: chỉ những mục là MỘT chữ Hán
+const DONGBANG = "__freeze__";   // sổ con ảo: những từ đã rút khỏi vòng ôn
 let curDeck = ALL;
 
 function dirLabel(d) {
@@ -2749,6 +2780,159 @@ function favButtons(it, sauDo) {
   wrap.appendChild(mk(1, "heart", "like", T("Thích")));
   wrap.appendChild(mk(-1, "thumbs-down", "dislike", T("Không thích")));
   return wrap;
+}
+
+/* ==================================================================== */
+/* Hai công tắc rút bớt việc                                         */
+/* ==================================================================== */
+
+/**
+ * Bật/tắt một cờ trên một mục (`dongBang` hoặc `mangTat`).
+ *
+ * Cả hai đều chỉ là một số 1 ghi vào mục; toàn bộ hệ quả nằm trong `srs.js`
+ * (`Srs.denHan` và `Srs.duongCo` đọc chúng). Nên ở đây không có luật nào hết,
+ * và đó là chủ ý: luật nằm một chỗ thì bản extension và bản này không lệch được.
+ */
+async function datCo(key, ten, bat) {
+  await capNhat((nb) => {
+    const e = nb[key];
+    if (!e || e.del) return;
+    const ne = Object.assign({}, e, { ts: Date.now() });
+    if (bat) ne[ten] = 1; else delete ne[ten];
+    nb[key] = ne;
+  });
+  syncSoon();
+  return bat;
+}
+
+/**
+ * Hai nút trên thẻ sổ tay: Đóng băng, và Tắt bài mạng nghĩa.
+ *
+ * ĐẶT Ở ĐÂY, không nhét vào khối mạng nghĩa. `khoiLien` trả `null` khi hai
+ * danh sách đều rỗng, nên nhét vào đó thì có trường hợp cờ đang bật mà không
+ * còn nút nào để tắt.
+ *
+ * Trạng thái đọc được KHÔNG CẦN MÀU: bông tuyết đặc là đang đóng băng, còn
+ * mạng nghĩa tắt thì icon đeo một gạch chéo (lớp `tat` trong CSS).
+ */
+function nutRutOn(it, sauDo) {
+  const wrap = el("span", "rowx");
+  wrap.style.gap = "0";
+
+  const bang = !!it.dongBang;
+  const b1 = el("button", "iconbtn bang" + (bang ? " on" : ""));
+  b1.type = "button";
+  b1.title = bang
+    ? T("Đang đóng băng — bấm để đưa lại vào vòng ôn, từ sẽ tới hạn ngay")
+    : T("Đóng băng — rút từ này khỏi chế độ học, điểm giữ nguyên");
+  b1.innerHTML = window.Icon("snowflake", { size: 18, weight: bang ? "solid" : "line" });
+  b1.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (await datCo(it.key, "dongBang", !bang)) it.dongBang = 1; else delete it.dongBang;
+    if (sauDo) sauDo(); else drawNotebook();
+  });
+  wrap.appendChild(b1);
+
+  const tat = !!it.mangTat;
+  const b2 = el("button", "iconbtn mang" + (tat ? " on tat" : ""));
+  b2.type = "button";
+  b2.title = tat
+    ? T("Bài đồng/trái nghĩa đang tắt — bấm để bật lại")
+    : T("Tắt bài đồng/trái nghĩa cho từ này — danh sách liên kết vẫn giữ nguyên");
+  b2.innerHTML = window.Icon("graph", { size: 18 });
+  b2.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (await datCo(it.key, "mangTat", !tat)) it.mangTat = 1; else delete it.mangTat;
+    if (sauDo) sauDo(); else drawNotebook();
+  });
+  wrap.appendChild(b2);
+  return wrap;
+}
+
+/**
+ * Bật/tắt một cờ cho CẢ DANH SÁCH ĐANG HIỆN, một lượt ghi, một lần Hoàn tác.
+ *
+ * Một lượt `capNhat` chứ không phải N lượt: rà cả sổ là hàng trăm mục, mỗi mục
+ * một lượt ghi + một lượt đồng bộ thì vừa chậm vừa có lúc chết giữa chừng.
+ *
+ * Chụp lại ĐÚNG NHỮNG MỤC THẬT SỰ ĐỔI — không phải cả danh sách. Hoàn tác mà
+ * đi gỡ cờ của mấy mục vốn đã bật sẵn từ trước thì nó làm hơn những gì nó hứa.
+ */
+async function lamHangLoat(ds, ten, bat, chuXong, chuHoanTac) {
+  const khoa = ds.filter((it) => !!it[ten] !== bat).map((it) => it.key);
+  if (!khoa.length) return;
+  await capNhat((nb) => {
+    for (const k of khoa) {
+      const e = nb[k];
+      if (!e || e.del) continue;
+      const ne = Object.assign({}, e, { ts: Date.now() });
+      if (bat) ne[ten] = 1; else delete ne[ten];
+      nb[k] = ne;
+    }
+  });
+  await drawNotebook();
+  syncSoon();
+  toast(T2(chuXong, { n: khoa.length }), null, {
+    chu: T("Hoàn tác"),
+    lam: async () => {
+      await capNhat((nb) => {
+        for (const k of khoa) {
+          const e = nb[k];
+          if (!e) continue;
+          const ne = Object.assign({}, e, { ts: Date.now() });
+          if (bat) delete ne[ten]; else ne[ten] = 1;
+          nb[k] = ne;
+        }
+      });
+      await drawNotebook();
+      syncSoon();
+      toast(T2(chuHoanTac, { n: khoa.length }));
+    }
+  });
+}
+
+/**
+ * Hàng thao tác hàng loạt, tác động lên ĐÚNG DANH SÁCH ĐANG HIỆN.
+ *
+ * "Đang hiện" nghĩa là sau cả ngăn lẫn ô lọc — nên lọc "động từ" rồi chạm Tắt
+ * mạng nghĩa là tắt đúng mấy từ ấy. Đếm N ghi thẳng trên nút, vì đây là loại
+ * nút mà chạm xong mới biết mình vừa đụng tới bao nhiêu từ thì đã muộn.
+ */
+function veHangLoat(rows) {
+  const o = $("hangLoat");
+  if (!o) return;
+  o.innerHTML = "";
+  const nut = (chu, hanhDong) => {
+    const b = el("button", "btn sm");
+    b.type = "button";
+    b.textContent = chu;
+    b.addEventListener("click", hanhDong);
+    o.appendChild(b);
+  };
+  const chuaBang = rows.filter((it) => !it.dongBang);
+  const daBang = rows.filter((it) => !!it.dongBang);
+  const chuaTat = rows.filter((it) => !it.mangTat);
+
+  if (curDeck === DONGBANG && daBang.length) {
+    nut(T2("Gỡ băng tất cả ({n})", { n: daBang.length }), () =>
+      lamHangLoat(daBang, "dongBang", false,
+        "Đã gỡ băng {n} từ — chúng tới hạn ngay từ buổi học tới",
+        "Đã đóng băng lại {n} từ"));
+  } else {
+    if (chuaBang.length) {
+      nut(T2("Đóng băng ({n})", { n: chuaBang.length }), () =>
+        lamHangLoat(chuaBang, "dongBang", true,
+          "Đã đóng băng {n} từ — chúng thôi xuất hiện trong buổi học",
+          "Đã đưa {n} từ trở lại vòng ôn"));
+    }
+    if (chuaTat.length) {
+      nut(T2("Tắt mạng nghĩa ({n})", { n: chuaTat.length }), () =>
+        lamHangLoat(chuaTat, "mangTat", true,
+          "Đã tắt bài đồng/trái nghĩa cho {n} từ",
+          "Đã bật lại bài đồng/trái nghĩa cho {n} từ"));
+    }
+  }
+  o.style.display = o.children.length ? "" : "none";
 }
 
 /** Khối ghi chú riêng, hiện dưới phần nghĩa. */
@@ -2997,7 +3181,8 @@ async function drawNotebook() {
   // Nhớ lại danh sách từ đã có, cho mạng nghĩa ở cả sổ tay lẫn mặt sau thẻ học.
   tuDaLuu = new Set(activeItems.map((x) => x.word).filter(Boolean));
   mucDaLuu = activeItems;
-  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU && !deckName(decks, curDeck)) curDeck = ALL;
+  if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE
+      && curDeck !== HANTU && curDeck !== DONGBANG && !deckName(decks, curDeck)) curDeck = ALL;
 
   /* --- hàng chip sổ con --- */
   const bar = $("deckBar");
@@ -3053,6 +3238,12 @@ async function drawNotebook() {
   // Học chữ và học từ là hai buổi khác nhau, nên Hán tự có ngăn riêng. Bên
   // tiếng Anh không có ngăn này.
   if (laNhat()) mk(HANTU, T("Hán tự"), "text-aa");
+  /*
+   * Ngăn Đóng băng KHÔNG bao giờ mọc nút Học, mà không phải vì có dòng nào
+   * đi chặn: `denHanIn` gọi `isDue` → `Srs.denHan`, mà `denHan` đã trả rỗng cho
+   * mọi từ đóng băng. Chỉ hiện khi đã có từ nào đóng băng.
+   */
+  if (countIn(DONGBANG)) mk(DONGBANG, T("Đóng băng"), "snowflake");
   activeDecks.forEach((d) => mk(d.id, d.name, "folder-simple"));
 
   const add = el("button", "chip add");
@@ -3069,7 +3260,8 @@ async function drawNotebook() {
   });
   bar.appendChild(add);
   $("deckActions").style.display =
-    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE && curDeck !== HANTU) ? "" : "none";
+    (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE
+     && curDeck !== HANTU && curDeck !== DONGBANG) ? "" : "none";
 
   /* --- danh sách --- */
   const kw = $("filter").value.trim().toLowerCase();
@@ -3078,6 +3270,7 @@ async function drawNotebook() {
   else if (curDeck === LIKE) rows = rows.filter((i) => i.fav === 1);
   else if (curDeck === DISLIKE) rows = rows.filter((i) => i.fav === -1);
   else if (curDeck === HANTU) rows = rows.filter((i) => i.dict === "kanji");
+  else if (curDeck === DONGBANG) rows = rows.filter((i) => !!i.dongBang);
   else if (curDeck !== ALL) rows = rows.filter((i) => i.deck === curDeck);
   if (kw) {
     rows = rows.filter((it) =>
@@ -3088,6 +3281,7 @@ async function drawNotebook() {
   }
   $("nbCount").textContent = T2("Đang hiện {n} mục", { n: rows.length })
     + (rows.length !== activeItems.length ? " trong " + activeItems.length : "");
+  veHangLoat(rows);
 
   const list = $("nbList");
   list.innerHTML = "";
@@ -3129,6 +3323,7 @@ async function drawNotebook() {
     // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
     head.appendChild(cumGhiAm(it.key));
     head.appendChild(favButtons(it));
+    head.appendChild(nutRutOn(it));
     head.appendChild(el("span", "tag", dirLabel(it.dict)));
     if (it.mEdit) {
       const t = el("span", "tag edited");
@@ -3361,6 +3556,12 @@ function setIn(list, id) {
   if (id === LIKE) return list.filter((i) => i.fav === 1);
   if (id === DISLIKE) return list.filter((i) => i.fav === -1);
   if (id === HANTU) return list.filter((i) => i.dict === "kanji");
+  /*
+   * Từ đóng băng VẪN NẰM TRONG "Tất cả" — ngăn này là một lối xem, không
+   * phải một chỗ cất. Ẩn chúng đi thì có từ "biến mất" khỏi sổ và khỏi ô
+   * tìm kiếm, rồi vài tháng sau người ta tưởng mình đã xoá nhầm.
+   */
+  if (id === DONGBANG) return list.filter((i) => !!i.dongBang);
   return list.filter((i) => i.deck === id);
 }
 
@@ -3370,6 +3571,7 @@ function nhanNgan(id) {
   if (id === LIKE) return T("Thích");
   if (id === DISLIKE) return T("Không thích");
   if (id === HANTU) return T("Hán tự");
+  if (id === DONGBANG) return T("Đóng băng");
   return "";
 }
 
@@ -3626,6 +3828,34 @@ async function hocRieng(it, ds) {
   showCard();
 }
 
+/**
+ * Dòng tiến trình trên mặt thẻ học.
+ *
+ * Tách ra thành hàm riêng vì có hai chỗ cần vẽ nó: lúc đổi thẻ, và lúc chạm
+ * "Tắt mạng nghĩa" ngay trên thẻ — tắt là trọng số chia lại nên ĐIỂM ĐỔI NGAY,
+ * mà con số cũ nằm nguyên đó thì trông như nút không ăn.
+ */
+function veTienTrinh(it) {
+  /*
+   * Nói luôn ĐANG KIỂM ĐƯỜNG NÀO và từ này đang được mấy điểm.
+   *
+   * Từ khi mỗi đường một lịch riêng, cùng một từ có thể hiện ra dưới bốn kiểu
+   * đề khác nhau. Không nói ra thì người học gặp đề nghe của một từ mình vừa
+   * làm đề nhìn hôm qua và tưởng app hỏi lặp. Còn con số điểm thì đây là chỗ
+   * nó cần có mặt nhất: ngay lúc người ta đang bỏ công ra làm cho nó lên.
+   */
+  const dTu = window.Srs.diemTu(it);
+  $("stProg").textContent =
+    T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done })
+    + "\u3000·\u3000" + T(window.Srs.TEN_DUONG[it._d || "nhin"] || "")
+    + "\u3000·\u3000" + dTu.tong + "/100"
+    // Không nói ra thì gặp một từ CHƯA tới hạn, người học tưởng app hỏi lặp.
+    // Mốc là `_cum` chứ không phải `_som` nữa: thẻ này tới hạn của CHÍNH NÓ,
+    // cụm chỉ đổi chỗ đứng chứ không thêm lượt ôn nào — gọi là "ôn kèm" thì
+    // nói quá điều app vừa làm.
+    + (it._cum ? "\u3000·\u3000" + T2("cùng cụm với {t}", { t: it._cum }) : "");
+}
+
 function renderStudyFav(it) {
   const box = $("stFav");
   box.innerHTML = "";
@@ -3643,6 +3873,30 @@ function renderStudyFav(it) {
   };
   box.appendChild(mk(1, "heart", T("Thích")));
   box.appendChild(mk(-1, "thumbs-down", T("Không thích")));
+
+  /*
+   * Hai công tắc rút bớt việc cũng nằm ở đây, vì ĐÂY MỚI LÀ LÚC NGHĨ RA.
+   *
+   * "Mấy từ đồng nghĩa này chẳng dính gì tới từ gốc" và "từ này mình thuộc hẳn
+   * rồi" đều là ý nảy ra giữa buổi học, khi đang nhìn chính cái thẻ ấy. Bắt người
+   * ta nhớ để lát nữa vào sổ tay tìm lại thì chẳng ai làm.
+   */
+  const co = (ten, iconTen, bat, chu, chuBat) => {
+    const b = el("button", "btn sm" + (bat ? " tinted" : ""));
+    b.type = "button";
+    b.innerHTML = window.Icon(iconTen, { size: 17, weight: bat ? "solid" : "line" });
+    b.appendChild(el("span", "lb", bat ? chuBat : chu));
+    b.addEventListener("click", async () => {
+      if (await datCo(it.key, ten, !bat)) it[ten] = 1; else delete it[ten];
+      renderStudyFav(it);
+      veTienTrinh(it);
+    });
+    return b;
+  };
+  box.appendChild(co("dongBang", "snowflake", !!it.dongBang,
+    T("Đóng băng"), T("Đang đóng băng")));
+  box.appendChild(co("mangTat", "graph", !!it.mangTat,
+    T("Tắt mạng nghĩa"), T("Mạng nghĩa đã tắt")));
 }
 
 /** @param {boolean} giuLat  true = vẽ lại thẻ nhưng giữ nguyên trạng thái đã lật */
@@ -3800,26 +4054,7 @@ function showCard(giuLat) {
   }
   if (laLien) veBaiLien(it);
 
-  /*
-   * Nói luôn ĐANG KIỂM ĐƯỜNG NÀO và từ này đang được mấy điểm.
-   *
-   * Từ khi mỗi đường một lịch riêng, cùng một từ có thể hiện ra dưới bốn kiểu
-   * đề khác nhau. Không nói ra thì người học gặp đề nghe của một từ mình vừa
-   * làm đề nhìn hôm qua và tưởng app hỏi lặp. Còn con số điểm thì đây là chỗ
-   * nó cần có mặt nhất: ngay lúc người ta đang bỏ công ra làm cho nó lên.
-   */
-  {
-    const dTu = window.Srs.diemTu(it);
-    $("stProg").textContent =
-      T2("Còn {n} mục · đã xong {xong}", { n: session.queue.length, xong: session.done })
-      + "\u3000·\u3000" + T(window.Srs.TEN_DUONG[it._d || "nhin"] || "")
-      + "\u3000·\u3000" + dTu.tong + "/100"
-      // Không nói ra thì gặp một từ CHƯA tới hạn, người học tưởng app hỏi lặp.
-      // Mốc là `_cum` chứ không phải `_som` nữa: thẻ này tới hạn của CHÍNH NÓ,
-      // cụm chỉ đổi chỗ đứng chứ không thêm lượt ôn nào — gọi là "ôn kèm" thì
-      // nói quá điều app vừa làm.
-      + (it._cum ? "\u3000·\u3000" + T2("cùng cụm với {t}", { t: it._cum }) : "");
-  }
+  veTienTrinh(it);
   $("stCard").className = "studycard" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "");
   $("stWord").textContent = it.word;
   $("stWord").className = "cw" + (laNhat() ? " ja" : "");
@@ -4100,6 +4335,8 @@ async function luuNhanhTu(word, dict, cum) {
       if (cu.note) ne.note = cu.note;
       if (cu.hoiAi) ne.hoiAi = cu.hoiAi;
       if (cu.lienBo) ne.lienBo = cu.lienBo;
+      if (cu.mangTat) ne.mangTat = 1;
+      if (cu.dongBang) ne.dongBang = 1;
       if (cu.tuCum && !ne.tuCum) ne.tuCum = cu.tuCum;
       if (cu.src) ne.src = cu.src;
       if (cu.audio && !ne.audio) ne.audio = cu.audio;

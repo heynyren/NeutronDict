@@ -453,15 +453,34 @@
      * được tính là đã đạt.
      */
     const chuaDo = [];
+    const tuTat = !!(muc && muc.mangTat);
     let bac = tong > 0 ? 1 : 0;
     for (let i = 0; i < CHIEU.length; i++) {
       const c = CHIEU[i];
       const cuaChieu = c.duong.filter((t) => co.indexOf(t) >= 0);
-      if (!cuaChieu.length) { chuaDo.push(c.ten); continue; }   // không có gì để đo
+      if (!cuaChieu.length) {
+        /*
+         * VẮNG VÌ TỰ TẮT khác hẳn VẮNG VÌ KHÔNG CÓ DỮ LIỆU.
+         *
+         * Không tra được từ đồng nghĩa là chuyện của từ điển, người học không
+         * có nút nào bấm để sửa — nên chiều ấy bị BƯỚC QUA, và bậc dừng lại ở
+         * chiều đạt sâu nhất trước đó. Còn tự tay tắt là một QUYẾT ĐỊNH ("từ
+         * này không cần mạng nghĩa"), nên chiều ấy tính là xong.
+         *
+         * Nói thẳng cái giá: nhãn "Gọi ra được lúc cần" của một từ đã tắt thôi
+         * còn bảo đảm là gọi được từ ra giữa đám từ gần nghĩa — nó thành "nhìn
+         * và nghe đều chắc". Vì vậy `mangTat` được trả kèm ra ngoài, để chỗ
+         * nào hiện bậc cũng nói được là từ này đã tắt.
+         */
+        if (tuTat && c.ma === "mang") { bac = i + 2; continue; }
+        chuaDo.push(c.ten);                                     // không có gì để đo
+        continue;
+      }
       if (!cuaChieu.every((t) => ngayCua(d[t]) >= NGUONG_BAC)) break;
       bac = i + 2;                                              // 0,1 dành cho chưa học / mới gặp
     }
-    return { tong: tong, phan: phan, bac: bac, ten: TEN_BAC[bac], chuaDo: chuaDo };
+    return { tong: tong, phan: phan, bac: bac, ten: TEN_BAC[bac],
+             chuaDo: chuaDo, mangTat: tuTat };
   }
 
   /* ------------------------------------------------------------------ */
@@ -753,9 +772,23 @@
   function duongCo(muc) {
     const ds = ["nhin"];
     if (muc && muc.cauNghe && muc.cauNghe.cau) ds.push("nghe");
-    const l = (muc && muc.lien) || {};
-    if ((l.dong || []).length >= 2) ds.push("dong");
-    if ((l.trai || []).length >= 1) ds.push("trai");
+    /*
+     * `mangTat` — người học TỰ TAY tắt bài mạng nghĩa cho từ này.
+     *
+     * Chặn ở đây chứ không đi xoá `lien`, và đó là toàn bộ điểm khác nhau giữa
+     * công tắc này với nút × bỏ từng từ. Nút × bỏ CẢ HAI CHIỀU theo thiết kế,
+     * nên dùng nó để tắt bài cho một từ là đi phá tập liên kết của mọi từ hàng
+     * xóm. Còn cờ này chỉ nói về ĐÚNG mục đang mang nó: từ bên kia vẫn kể tên
+     * nó, bài của từ bên kia vẫn chạy, cụm ôn kèm vẫn xếp hai từ cạnh nhau.
+     *
+     * Một chỗ chặn là xong cả chuỗi: `duongMo` → `denHan` thôi hỏi hai bài ấy,
+     * `diemTu` chia lại trọng số trên đúng những đường còn mở.
+     */
+    if (!(muc && muc.mangTat)) {
+      const l = (muc && muc.lien) || {};
+      if ((l.dong || []).length >= 2) ds.push("dong");
+      if ((l.trai || []).length >= 1) ds.push("trai");
+    }
     return ds;
   }
 
@@ -833,6 +866,19 @@
    * @returns {string[]} rỗng nghĩa là chưa tới lượt mục này
    */
   function denHan(muc, now) {
+    /*
+     * `dongBang` — "từ này tôi thấy mình thuộc rồi, cất đi".
+     *
+     * CHẶN Ở ĐÂY, TUYỆT ĐỐI KHÔNG Ở `duongMo`. `duongMo` còn nuôi `capChung`
+     * và `gomSrs`; bịt nó thì từ đóng băng báo `lv: -1` / `null` ra đồng bộ
+     * Drive, máy chủ MCP và bản extension cũ — tức là "CHƯA HỌC BAO GIỜ", và
+     * một lượt gộp hai máy là mất sạch tiến độ. Điểm phải đứng yên đúng chỗ
+     * người ta bấm đóng băng.
+     *
+     * Và vì `due` không hề bị đụng tới, gỡ băng ra là mọi đường đã quá hạn
+     * tới hạn lại NGAY — đúng cái người ta muốn, không cần thêm dòng nào.
+     */
+    if (muc && muc.dongBang) return [];
     const bayGio = now || Date.now();
     const d = (muc && muc.duong) || {};
     const ra = [];

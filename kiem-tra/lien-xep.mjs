@@ -270,6 +270,42 @@ for (const [ten, arg] of Object.entries({
   // Đánh giá của người học phải sống qua bia mộ — cùng hạng với ghi chú.
   la(/t\.lienBo = it\.lienBo/.test(doc("extension/muc.js")), "biaMo giữ lại sổ đen khi xoá mục");
   la(doc("extension/muc.js") === doc("android/www/muc.js"), "hai bản muc.js giống nhau từng byte");
+  /*
+   * icons.js cũng phải giống nhau từng byte.
+   *
+   * Tệp này do máy sinh ra nên lâu nay chẳng ai đụng, và cũng chẳng ai canh.
+   * Nhưng thêm một icon cho một bên thì bên kia `Icon()` trả về chuỗi RỖNG —
+   * nút vẫn bấm được, chỉ là không có hình, và không có gì báo.
+   */
+  la(doc("extension/icons.js") === doc("android/www/icons.js"),
+     "hai bản icons.js giống nhau từng byte");
+  for (const t of ["snowflake", "graph"]) {
+    la(doc("extension/icons.js").indexOf('"' + t + '"') >= 0,
+       "icons.js có icon " + t + " (hai công tắc rút bớt việc dùng nó)");
+  }
+  // Hai công tắc phải có đủ ở CẢ HAI bản — cùng một lẽ với mọi cổng song đôi
+  // khác trong tệp này: thiếu một bên thì cờ đồng bộ sang máy kia mà không
+  // có nút nào gỡ được nữa.
+  for (const [p2, ten] of [["extension/notebook.js", "notebook.js"], ["android/www/app.js", "app.js"]]) {
+    for (const h of ["function datCo", "function nutRutOn", "function veHangLoat",
+                     "function lamHangLoat", "function veTienTrinh"]) {
+      la(doc(p2).indexOf(h) >= 0, ten + " có " + h.replace("function ", "") + "()");
+    }
+    la(/DONGBANG = "__freeze__"/.test(doc(p2)), ten + " có ngăn ảo Đóng băng");
+  }
+  // `veHangLoat` vẽ vào một ô có sẵn trong HTML; thiếu ô thì hàm thoát sớm và
+  // cả cụm nút hàng loạt biến mất, lặng lẽ, chỉ ở đúng một bản.
+  for (const [p3, ten] of [["extension/notebook.html", "notebook.html"],
+                           ["android/www/index.html", "index.html"]]) {
+    la(/id="hangLoat"/.test(doc(p3)), ten + ' có ô #hangLoat cho cụm nút hàng loạt');
+  }
+  for (const [p4, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
+    la(/\.iconbtn\.tat/.test(doc(p4)) && /\.lienmang-tat/.test(doc(p4)),
+       ten + " ui.css có kiểu cho trạng thái đã tắt");
+  }
+  // Đóng băng phải chặn ở `denHan`, KHÔNG ở `duongMo` — xem srs-tat.mjs.
+  la(/function denHan\([^)]*\)\s*\{[\s\S]{0,1200}?muc\.dongBang\) return \[\]/.test(doc("extension/srs.js")),
+     "srs.js chặn đóng băng ngay trong denHan");
 }
 
 /* ------------------------------------------------------------------ */

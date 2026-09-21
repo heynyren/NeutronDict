@@ -277,6 +277,25 @@ a { color: var(--accent); }
 .iconbtn.danger:hover { color: var(--bad); background: var(--bad-soft); }
 
 /*
+ * Hai công tắc rút bớt việc — trạng thái ĐỌC ĐƯỢC KHÔNG CẦN MÀU.
+ *
+ * Đóng băng thì bông tuyết đổi từ nét sang đặc (JS đổi `weight`), nên hình
+ * khác hẳn. Riêng icon `graph` thì bản đặc gần như trùng bản nét — trạng thái
+ * sẽ chỉ còn đọc được bằng màu, mà màu thì không phải ai cũng phân biệt được.
+ * Nên tắt thì đeo thêm một gạch chéo vẽ bằng CSS, giống lối `bell-slash` /
+ * `subtitles-slash` đã dùng sẵn trong bộ icon.
+ */
+.iconbtn.bang.on { color: #2f8fd8; }
+.iconbtn.mang.on { color: var(--ink-3); }
+.iconbtn.tat { position: relative; }
+.iconbtn.tat::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 21px; height: 1.6px; background: currentColor; border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  box-shadow: 0 -1.6px 0 var(--surface);
+}
+
+/*
  * Nút hỏi Gemini — XANH, cố ý không dùng màu nhấn tím của app.
  *
  * Tím ở đây có nghĩa "cái này đang được chọn" (xem .iconbtn.on). Nút này không
@@ -1202,6 +1221,14 @@ table.sodo tr.thieu td { opacity: .45; }
 .lienmang-tu.cosan + .lienmang-bo { border-style: solid; background: var(--surface-2); }
 .lienmang-bo:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
 .lienmang.gon .lienmang-bo { min-width: 17px; padding: 0 4px; font-size: 12px; }
+
+/* Bài mạng nghĩa đang tắt: làm mờ, KHÔNG ẨN. Còn phải nhìn lại xem mình đã
+   tắt cái gì, và nút × vẫn còn việc — mấy từ ấy vẫn đang dùng cho từ khác. */
+.lienmang.tat .lienmang-ds { opacity: .55; }
+.lienmang-tat { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+/* Hàng thao tác hàng loạt trên đầu danh sách sổ tay. */
+.topbar.hangloat { gap: 6px; flex-wrap: wrap; margin-top: -2px; }
 
 /* Nút ngay trong lời nhắc — dùng cho "Hoàn tác". */
 .toast-nut {

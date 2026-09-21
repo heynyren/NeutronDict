@@ -1753,6 +1753,19 @@ async function saveWord(entry, dict) {
     // với ghi chú và bản dịch tự sửa — tra lại một từ không được xoá nó đi rồi
     // bắt họ xét lại từ đầu.
     if (old.lienBo && !e.lienBo) e.lienBo = old.lienBo;
+    /*
+     * Hai công tắc rút bớt việc, giữ NGUYÊN qua lượt lưu đè.
+     *
+     * Tra lại một từ rồi bấm Lưu là chuyện xảy ra hàng ngày, và nó KHÔNG có
+     * nghĩa "cho từ này học lại từ đầu". Không giữ thì mỗi lần tra lại là một
+     * từ đã đóng băng lặng lẽ quay về hàng đợi, và người ta chẳng nối được
+     * chuyện ấy với thao tác mình vừa làm.
+     *
+     * Khác với `tuCum` ngay trên: `tuCum` bị BỎ đi vì lưu tử tế là thăng hạng
+     * cho mục. Hai cờ này thì không liên quan gì tới chuyện ấy.
+     */
+    if (old.mangTat) e.mangTat = 1;
+    if (old.dongBang) e.dongBang = 1;
     if (old.kanji && !e.kanji) e.kanji = old.kanji;
     if (old.ruby && !e.ruby) { e.ruby = old.ruby; if (old.docSuy) e.docSuy = 1; }
     if (old.fav) e.fav = old.fav;
