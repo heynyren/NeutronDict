@@ -1148,6 +1148,10 @@
     }
     .ln:hover .sv, .ln.on .sv { visibility: visible; }
     .ln .sv.done { color: var(--good); background: var(--good-soft); border-color: transparent; }
+    /* Nút Gemini nhạt hơn nút Lưu: nó là việc làm SAU khi đã lưu, không được
+       tranh chỗ nhìn với việc chính. */
+    .ln .sv.gm { color: var(--ink-2); }
+    .ln .sv.gm:hover { color: var(--accent); border-color: var(--accent); }
     /* Nút sửa của dòng ĐÃ SỬA thì hiện thường trực: đó là dấu cho biết dòng này
        không còn là bản của YouTube nữa, mà giấu đi thì chẳng còn chỗ nào nói. */
     .ln .sv.ed.done { visibility: visible; }
@@ -1686,6 +1690,16 @@
       ed.addEventListener("click", (e) => { e.stopPropagation(); moSua(i); });
       nut.appendChild(ed);
 
+      if (self.HoiGemini) {
+        const gm = document.createElement("button");
+        gm.className = "sv gm"; gm.type = "button";
+        gm.title = T("Lưu câu này rồi hỏi Gemini về nó");
+        gm.appendChild(ic("sparkle", 12));
+        const gmt = document.createElement("span"); gmt.textContent = T("Gemini"); gm.appendChild(gmt);
+        gm.addEventListener("click", (e) => { e.stopPropagation(); hoiGeminiCau(i, gm); });
+        nut.appendChild(gm);
+      }
+
       // Đọc theo ngay tại dòng: nghe câu, đọc lại, nghe lại giọng mình. Ba nút
       // xếp NGANG trong cụm dọc — chúng chỉ có hình, không có chữ, nên một hàng
       // ngang vẫn hẹp hơn cái nút Lưu ở trên.
@@ -1922,6 +1936,7 @@
       // chỗ: trong phiên đang xem, và trong kho — không thì lần sau mở lại video
       // này, kho lại dọn ra đúng bản dịch cũ đã sai ấy.
       S.dich.delete(i);
+      daHoiId.delete(i);                 // câu đã khác thì mục cũ không còn đúng
       boDichTrongKho(S.v, maBanHienTai(), i);
       await ghiSua(S.v, S.sua);
       veDanhSach();
@@ -2174,6 +2189,55 @@
   }
 
   /* --- lưu một câu vào sổ tay --- */
+  /* --- hỏi Gemini về một dòng thoại ---
+     Lưu TRƯỚC rồi mới hỏi: hỏi xong nền gắn link đoạn chat vào mục trong sổ, mà
+     chưa có mục thì không có chỗ nào để gắn.
+
+     Chữ lấy từ `c.s`, tức bản ĐANG hiện trên bảng — nếu bạn đã sửa lại dòng chép
+     sai thì `dapSua` đã ghi bản sửa vào đúng chỗ đó, nên câu hỏi đi kèm bản sửa
+     chứ không phải bản YouTube nghe nhầm. */
+  const daHoiId = new Map();          // chỉ số câu -> khoá mục trong sổ
+
+  function hoiGeminiCau(i, nut) {
+    const c = S.cau[i];
+    if (!c || !self.HoiGemini) return;
+    const khoa = daHoiId.has(i) ? daHoiId.get(i) : (nganLuu() + ":" + c.s);
+    const muc = {
+      key: khoa, word: c.s, reading: "", kind: "sent",
+      dict: nganLuu(),
+      means: S.dich.get(i) ? [S.dich.get(i)] : [],
+      src: nguon(i)
+    };
+    const moThang = () => {
+      try { window.open(self.HoiGemini.GOC_URL, "_blank", "noopener"); } catch (e) { /* trình duyệt chặn */ }
+    };
+    const xong = () => {
+      const loi = self.HoiGemini.loiHoi(muc, {});
+      navigator.clipboard.writeText(loi).then(() => {
+        // Song.gui đã NUỐT chrome.runtime.lastError rồi (nếu không Chrome tự in
+        // cảnh báo), nên lỗi về qua tham số thứ hai — đọc lastError ở đây thì
+        // lúc nào cũng rỗng và đường lui không bao giờ chạy. Và gui() trả false
+        // khi nền đã chết, lúc đó callback không bao giờ được gọi.
+        const di = self.Song.gui({ type: "MO_GEMINI", key: khoa }, (kq, loi) => {
+          if (loi || !kq) moThang();
+        });
+        if (!di) moThang();
+        nut.classList.add("done");
+      }).catch(() => { nut.disabled = false; });
+    };
+    if (daHoiId.has(i)) { xong(); return; }
+    nut.disabled = true;
+    self.Song.gui({
+      type: "SAVE_WORD",
+      entry: { word: c.s, reading: "", means: muc.means, kind: "sent", src: muc.src },
+      dict: nganLuu()
+    }, () => {
+      nut.disabled = false;
+      daHoiId.set(i, khoa);
+      xong();
+    }) || (function () { nut.disabled = false; xong(); })();
+  }
+
   function luuCau(i, nut, nhan) {
     const c = S.cau[i];
     if (!c) return;
