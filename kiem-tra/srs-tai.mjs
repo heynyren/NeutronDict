@@ -51,16 +51,28 @@ if (/const\s+CUM_NGHI_NGAY\s*=/.test(NB)) {
 }
 
 const NGAY = 86400000;
+/*
+ * MỐC THỜI GIAN GHI CỨNG, không phải `Date.now()`.
+ *
+ * `Srs.lichHen` và `Srs.cham` chia việc theo MỐC NGÀY thật, nên cả bộ mô
+ * phỏng đổi kết quả theo hôm nay là ngày nào. Quét 30 mốc ngày/giờ thì 4 mốc
+ * làm cả bộ đỏ, mà mã không đổi một dòng nào — tức là lượt "tất cả đạt" cũng
+ * chẳng chứng minh được gì. Chốt mốc lại thì cả bộ mới lặp lại được.
+ */
+const MOC = Date.UTC(2026, 0, 1, 0, 0, 0);
+/** Tám hạt giống dùng chung cho mọi phép đo lấy trung bình trong tệp này. */
+const HAT = [12345, 777, 90210, 31337, 555001, 8675309, 24680, 13579];
 /** Tỉ lệ nhớ theo từng đường — bài khó thì quên nhiều hơn. */
 const TILE = { nhin: 0.88, nghe: 0.75, dong: 0.70, trai: 0.70 };
 /** Nhịp bấm thật của từng loại bài (ms). */
 const NHIP = { nhin: 2200, nghe: 4500, dong: 14000, trai: 14000 };
 
-function chay({ soTu = 600, soNgay = 180, moiNgayThem = 10, raiTai = true } = {}) {
-  let rnd = 12345;
+function chay({ soTu = 600, soNgay = 180, moiNgayThem = 10, raiTai = true,
+                hat = 12345, moc = MOC } = {}) {
+  let rnd = hat;
   const r = () => (rnd = (rnd * 1103515245 + 12345) % 2147483648) / 2147483648;
   const muc = [], tk = {};
-  let now = Date.now();
+  let now = moc;
   const tai = { nhin: 0, nghe: 0, dong: 0, trai: 0 };
   const lap = {};
   const moiNgay = [];
@@ -137,10 +149,27 @@ la(k.capThap < 10, "dưới 10% số từ kẹt ở capChung ≤ 0", k.capThap.t
   la(k.diem.every((x) => x >= 0 && x <= 100), "mọi điểm nằm trong 0..100");
 }
 {
-  // Rải tải phải hạ được đỉnh, và không được làm tăng tổng việc.
+  /*
+   * RẢI TẢI PHẢI HẠ ĐƯỢC ĐỈNH — đo qua NHIỀU hạt giống, không phải một.
+   *
+   * Một lượt chạy nói được rất ít. Đo 64 cặp (tám hạt giống × tám giờ trong
+   * ngày): trung bình rải tải hạ đỉnh 3,95% (±3,19), nhưng 9 trong 64 lượt ĐƠN
+   * LẺ vẫn ra dương. Chốt cổng theo một lượt thì nó đỏ lên xanh xuống theo đúng
+   * cái hôm nay là ngày nào, chứ không theo mã — đúng cái bẫy đã ghi ở `chayCum`.
+   */
+  const lech = [];
+  let dat = 0;
+  for (const h of HAT) {
+    const co = chay({ hat: h }), khong = chay({ raiTai: false, hat: h });
+    lech.push((co.dinh / khong.dinh - 1) * 100);
+    if (co.dinh <= khong.dinh) dat++;
+  }
+  const tbLech = lech.reduce((a, b) => a + b, 0) / lech.length;
+  la(tbLech <= 0, "rải tải hạ được ngày nặng nhất",
+     (tbLech >= 0 ? "+" : "") + tbLech.toFixed(2) + "% qua " + HAT.length + " hạt giống");
+  la(dat / HAT.length >= 0.75, "và hạ được ở phần lớn hạt giống", dat + "/" + HAT.length + " lượt");
+
   const khong = chay({ raiTai: false });
-  la(k.dinh <= khong.dinh, "rải tải hạ được ngày nặng nhất",
-     khong.dinh + " → " + k.dinh);
   la(k.tb <= khong.tb * 1.05, "rải tải không làm tăng tổng số thẻ",
      khong.tb.toFixed(0) + " → " + k.tb.toFixed(0));
 }
@@ -175,7 +204,7 @@ function chayCum(batCum, soTu, hat) {
   let rnd2 = hat || 12345;
   const r2 = () => (rnd2 = (rnd2 * 1103515245 + 12345) % 2147483648) / 2147483648;
   const muc = [], tk = {};
-  let now = Date.now(), tong = 0, lapThe = 0, truocHan = 0;
+  let now = MOC, tong = 0, lapThe = 0, truocHan = 0;
   const moiNgay = [];
   // Mỗi từ nối với 2–4 từ lân cận — giống cảnh người học bấm "+ Lưu" ngay ở
   // màn kết quả bài liên kết, tức là cụm được dựng dần từ chính chỗ ấy.
@@ -234,7 +263,6 @@ function chayCum(batCum, soTu, hat) {
 }
 {
   console.log("\n  — ôn kèm cụm (" + CUM_TOI_DA + " bạn, chỉ bạn đã tới hạn) —");
-  const HAT = [12345, 777, 90210, 31337, 555001, 8675309, 24680, 13579];
   for (const soTu of [600, 1500]) {
     /*
      * ĐO NHIỀU HẠT GIỐNG, không phải một.

@@ -1,7 +1,7 @@
 /**
  * NÚT HỎI GEMINI TRONG BẢNG LỜI THOẠI — và trong tab Dịch của popup.
  *
- *   node kiem-tra/nd-geminibang.mjs /home/user/neutrondict/extension
+ *   node kiem-tra/nd-geminibang.mjs /home/user/NeutronDict/extension
  *
  * Hai chỗ này trước giờ KHÔNG có nút hỏi, dù đó đúng là lúc người học vấp: đang
  * nghe dở một câu, hoặc vừa dịch xong một đoạn. Bài này soát đúng những chỗ mà
@@ -18,7 +18,10 @@
  */
 import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
 import { mkdtempSync } from "node:fs"; import { tmpdir } from "node:os"; import { join } from "node:path";
-const EXT = process.argv[2] || "/home/user/neutrondict/extension";
+// Tên thư mục có CHỮ HOA. Viết thường thì Chromium nạp một đường dẫn không tồn
+// tại, không có extension nào, và bài kiểm chết ở lượt chờ service worker với
+// thông báo chẳng liên quan gì tới nguyên nhân.
+const EXT = process.argv[2] || "/home/user/NeutronDict/extension";
 const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(),"pw-")), {
   channel:"chromium", headless:true, args:[`--disable-extensions-except=${EXT}`,`--load-extension=${EXT}`] });
 let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent("serviceworker",{timeout:20000});
