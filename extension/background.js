@@ -1323,7 +1323,10 @@ async function lienVaSau(key, e, dict, choMang) {
       // rước thêm từ nào mới vào.
       ra = self.TuLien.locTheoCum(ra, e.word, goc || { word: e.tuCum.goc }, e.tuCum.ben);
     }
-    return ra;
+    // Những từ người học đã tự tay bỏ thì đừng dựng lại. Lọc ở ĐÂY, chỗ dựng,
+    // chứ không ở chỗ đọc: lọc lúc đọc thì mỗi màn phải tự nhớ lọc, mà quên
+    // một chỗ là từ đã bỏ lại hiện ra.
+    return self.TuLien.locBo(ra, e.lienBo);
   })();
   const ra = await tinh;
   if (!ra.dong.length && !ra.trai.length) return false;
@@ -1746,6 +1749,10 @@ async function saveWord(entry, dict) {
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.hoiAi && !e.hoiAi) e.hoiAi = old.hoiAi;   // link đoạn chat Gemini
+    // Những từ liên kết người học đã tự tay bỏ. Là ĐÁNH GIÁ của họ, cùng hạng
+    // với ghi chú và bản dịch tự sửa — tra lại một từ không được xoá nó đi rồi
+    // bắt họ xét lại từ đầu.
+    if (old.lienBo && !e.lienBo) e.lienBo = old.lienBo;
     if (old.kanji && !e.kanji) e.kanji = old.kanji;
     if (old.ruby && !e.ruby) { e.ruby = old.ruby; if (old.docSuy) e.docSuy = 1; }
     if (old.fav) e.fav = old.fav;

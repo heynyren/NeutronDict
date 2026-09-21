@@ -41,6 +41,10 @@
     // lời ở đó là của riêng lượt hỏi ấy, kèm đúng ngữ cảnh mình từng lưu. Mất
     // là mất hẳn — lịch sử Gemini không lọc được theo từ.
     if (it.hoiAi && it.hoiAi.url) t.hoiAi = it.hoiAi;
+    // Và những từ liên kết bạn đã tự tay bỏ. Đó là công XÉT của bạn: đã ngồi
+    // nhìn "改善 ↔ 低下" rồi kết luận nó vô lý. Lưu lại từ ấy vài tháng sau mà
+    // mất, thì tập liên kết dựng lại y như cũ và bạn phải xét lại từ đầu.
+    if (it.lienBo && it.lienBo.length) t.lienBo = it.lienBo;
     return t;
   }
 
@@ -89,6 +93,7 @@
     // trang khác thì nguồn mới mới là chỗ mình vừa gặp lại nó.
     if (cu.src && cu.src.url && !(ne.src && ne.src.url)) ne.src = cu.src;
     if (cu.hoiAi && cu.hoiAi.url && !(ne.hoiAi && ne.hoiAi.url)) ne.hoiAi = cu.hoiAi;
+    if (cu.lienBo && cu.lienBo.length && !(ne.lienBo && ne.lienBo.length)) ne.lienBo = cu.lienBo;
     return ne;
   }
 

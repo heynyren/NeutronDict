@@ -394,6 +394,53 @@
   }
 
   /**
+   * BỎ một từ khỏi tập liên kết của một mục, theo ý người học.
+   *
+   * Vì sao phải có `lienBo` chứ không chỉ xoá khỏi `lien`
+   * ----------------------------------------------------
+   * Xoá trơ thì từ ấy quay lại được, mà quay lại bằng mấy đường không ai ngờ:
+   * nạp CSV của người khác, đồng bộ Drive từ máy chưa cập nhật, hoặc chính mục
+   * ấy bị xoá rồi lưu lại (lúc đó `lien` dựng lại từ đầu bằng từ điển). Người
+   * học đã bỏ công xét "từ này vô lý" một lần thì đừng bắt họ xét lại.
+   *
+   * Nên đánh giá của họ được cất RIÊNG, và nó là dữ liệu của họ đúng nghĩa —
+   * cùng hạng với ghi chú và bản dịch tự sửa, nên cũng được giữ qua bia mộ khi
+   * xoá mục (xem muc.js).
+   *
+   * @param {object} muc  mục sổ tay
+   * @param {string} tu   từ cần bỏ
+   * @returns {{lien:{dong:string[],trai:string[],ts:number}, lienBo:string[]}}
+   *   phần cần ghi đè lên mục. Trả về cả hai để chỗ gọi ghi một lượt.
+   */
+  function boLien(muc, tu) {
+    const t = String(tu == null ? "" : tu).trim();
+    const l = (muc && muc.lien) || {};
+    const loc = (ds) => (Array.isArray(ds) ? ds : [])
+      .map((x) => String(x == null ? "" : x).trim())
+      .filter((x) => x && x !== t);
+    const bo = (Array.isArray(muc && muc.lienBo) ? muc.lienBo : [])
+      .map((x) => String(x == null ? "" : x).trim()).filter(Boolean);
+    if (t && bo.indexOf(t) < 0) bo.push(t);
+    return { lien: { dong: loc(l.dong), trai: loc(l.trai), ts: Date.now() }, lienBo: bo };
+  }
+
+  /**
+   * Gạt những từ người học đã bỏ ra khỏi một tập vừa dựng.
+   *
+   * Gọi ở CHỖ DỰNG (`lienVaSau` / `boiThem`), không phải ở chỗ đọc. Lọc lúc
+   * đọc thì mỗi màn phải tự nhớ lọc, mà quên một chỗ là từ đã bỏ lại hiện ra —
+   * đúng thứ người học vừa bảo đừng hiện nữa.
+   */
+  function locBo(ra, lienBo) {
+    const bo = new Set((Array.isArray(lienBo) ? lienBo : [])
+      .map((x) => String(x == null ? "" : x).trim()).filter(Boolean));
+    const lay = (ds) => (Array.isArray(ds) ? ds : []);
+    if (!bo.size) return { dong: lay(ra && ra.dong), trai: lay(ra && ra.trai) };
+    return { dong: lay(ra && ra.dong).filter((x) => !bo.has(x)),
+             trai: lay(ra && ra.trai).filter((x) => !bo.has(x)) };
+  }
+
+  /**
    * Thu tập liên kết của một từ DẪN XUẤT về đúng tập ban đầu.
    *
    * Vì sao có hàm này
@@ -491,7 +538,7 @@
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
     tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
-    chiMucLien, cumCua, xepKetQua, locTheoCum,
+    chiMucLien, cumCua, xepKetQua, locTheoCum, boLien, locBo,
     napBo, soManh, daNap, SO_MANH
   };
 })(typeof self !== "undefined" ? self : this);

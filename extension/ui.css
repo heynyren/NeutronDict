@@ -1185,3 +1185,29 @@ table.sodo tr.thieu td { opacity: .45; }
 .lienmang.gon .lienmang-tu { font-size: 12px; padding: 0 6px; }
 .lienmang.gon .lienmang-tu.ja { font-size: 13px; }
 .lienmang.gon .lienmang-nhan { font-size: 10px; padding: 0 6px; }
+/* Mỗi từ liên kết = con chữ + nút BỎ dính liền. Bọc lại thành một ô để hai nút
+   không bị `flex-wrap` của .lienmang-ds tách ra hai dòng khác nhau. */
+.lienmang-o { display: inline-flex; align-items: stretch; }
+.lienmang-o .lienmang-tu { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+/* Nút BỎ: mờ lúc nghỉ, đỏ lúc chạm. Nó xoá dữ liệu nên phải thấy được, nhưng
+   cả một sổ dài mà nút nào cũng đỏ thì mắt chẳng còn bắt được gì. */
+.lienmang-bo {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; padding: 0 5px; margin-left: -1px;
+  border: 1px dashed var(--line); border-left-style: solid;
+  border-top-right-radius: var(--r-sm); border-bottom-right-radius: var(--r-sm);
+  background: none; color: var(--ink-3); cursor: pointer;
+  font: inherit; font-size: 13px; line-height: 1;
+}
+.lienmang-tu.cosan + .lienmang-bo { border-style: solid; background: var(--surface-2); }
+.lienmang-bo:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.lienmang.gon .lienmang-bo { min-width: 17px; padding: 0 4px; font-size: 12px; }
+
+/* Nút ngay trong lời nhắc — dùng cho "Hoàn tác". */
+.toast-nut {
+  margin-left: 10px; padding: 3px 10px; flex: none;
+  border: 1px solid rgba(255,255,255,.45); border-radius: var(--r-pill);
+  background: rgba(255,255,255,.14); color: inherit; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 650;
+}
+.toast-nut:hover { background: rgba(255,255,255,.26); }

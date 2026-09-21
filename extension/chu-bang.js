@@ -9,6 +9,14 @@
 
   const en = {
 
+    /* --- bỏ một từ khỏi liên kết --- */
+    "Bỏ “{tu}” khỏi liên kết — sẽ không ra trong bài kiểm tra nữa":
+      "Remove “{tu}” from the links — it will stop appearing in exercises",
+    "Đã bỏ “{tu}” khỏi liên kết":
+      "Removed “{tu}” from the links",
+    "Đã nhận lại “{tu}”":
+      "“{tu}” is back",
+
     /* --- link đoạn chat Gemini --- */
     "Mở": "Open",
     "Không đọc được bộ nhớ tạm": "Could not read the clipboard",
@@ -939,6 +947,14 @@
   };
 
   const ja = {
+
+    /* --- bỏ một từ khỏi liên kết --- */
+    "Bỏ “{tu}” khỏi liên kết — sẽ không ra trong bài kiểm tra nữa":
+      "「{tu}」をリンクから外す — 以降の問題に出なくなります",
+    "Đã bỏ “{tu}” khỏi liên kết":
+      "「{tu}」をリンクから外しました",
+    "Đã nhận lại “{tu}”":
+      "「{tu}」を戻しました",
 
     /* --- link đoạn chat Gemini --- */
     "Mở": "開く",

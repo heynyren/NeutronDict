@@ -332,14 +332,32 @@ function cumGhiAm(ma, giuLau, mocSua) {
   return cum;
 }
 
-function toast(chu, kieu) {
+/**
+ * @param {{chu:string, lam:Function}} [hanhDong] nút ngay trong lời nhắc.
+ *
+ *   Dùng cho việc XOÁ ĐƯỢC HOÀN TÁC. Hỏi "bạn chắc chứ?" trước mỗi lần bỏ một
+ *   từ liên kết thì việc nào cũng mất hai lượt bấm, mà người ta bỏ hàng chục
+ *   từ một lúc. Cho bấm ngay rồi chừa đường lui thì nhanh mà vẫn không mất gì.
+ */
+function toast(chu, kieu, hanhDong) {
   const t = $("toast");
   t.className = "toast" + (kieu ? " " + kieu : "");
   t.innerHTML = window.Icon(kieu === "bad" ? "warning-circle" : "check-circle", { size: 18, weight: "solid" });
   t.appendChild(el("span", null, chu));
+  if (hanhDong && hanhDong.lam) {
+    const b = el("button", "toast-nut", hanhDong.chu || T("Hoàn tác"));
+    b.type = "button";
+    b.addEventListener("click", () => {
+      t.classList.remove("show");
+      clearTimeout(toastTimer);
+      hanhDong.lam();
+    });
+    t.appendChild(b);
+  }
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 3600);
+  // Có nút thì để lâu hơn: 3,6 giây vừa đủ ĐỌC, chưa đủ để quyết định rồi bấm.
+  toastTimer = setTimeout(() => t.classList.remove("show"), hanhDong ? 6500 : 3600);
 }
 
 /* ==================================================================== */
@@ -1948,13 +1966,37 @@ function khoiLien(it, gon) {
     h.appendChild(el("span", "lienmang-nhan " + lop, nhan));
     const o = el("span", "lienmang-ds");
     ds.forEach((chu) => {
+      const oTu = el("span", "lienmang-o");
       const b = el("button", "lienmang-tu" + (NGU === "ja" ? " ja" : ""), chu);
       b.type = "button";
       const coSan = tuDaLuu.has(chu);
       if (coSan) b.classList.add("cosan");
       b.title = coSan ? T("Có trong sổ tay — bấm để xem") : T("Chưa có trong sổ — bấm để tra");
       b.addEventListener("click", (ev) => { ev.stopPropagation(); moTuLien(chu, coSan); });
-      o.appendChild(b);
+      oTu.appendChild(b);
+      // Nút BỎ, hiện sẵn: trên điện thoại không có chuột phải để giấu nó vào.
+      const x = el("button", "lienmang-bo", "\u00d7");
+      x.type = "button";
+      x.title = T2("Bỏ “{tu}” khỏi liên kết — sẽ không ra trong bài kiểm tra nữa", { tu: chu });
+      x.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        /*
+         * Gỡ khỏi màn hình NGAY, đừng đợi ghi xong rồi vẽ lại.
+         *
+         * Khối này còn hiện ở MẶT SAU THẺ HỌC, mà ở đó không có lượt vẽ lại
+         * nào — vẽ lại danh sách sổ tay không đụng tới thẻ đang mở. Không gỡ
+         * tay thì chữ vừa bỏ nằm nguyên đó tới khi sang thẻ khác, và người ta
+         * tưởng nút không ăn.
+         */
+        const hangCha = oTu.parentElement;
+        oTu.remove();
+        if (hangCha && !hangCha.children.length && hangCha.parentElement) {
+          hangCha.parentElement.remove();          // hết từ thì bỏ luôn cả nhãn
+        }
+        boTuLien(it, chu);
+      });
+      oTu.appendChild(x);
+      o.appendChild(oTu);
     });
     h.appendChild(o);
     hop.appendChild(h);
@@ -1962,6 +2004,61 @@ function khoiLien(it, gon) {
   hang(T("Cùng nghĩa"), dong, "dong");
   hang(T("Trái nghĩa"), trai, "trai");
   return hop;
+}
+
+/**
+ * BỎ một từ khỏi tập liên kết của một mục — theo ý người học.
+ *
+ * Bỏ CẢ HAI CHIỀU. Cụm ôn kèm (`TuLien.cumCua`) nối hai chiều theo thiết kế:
+ * A kể tên B thì hai từ đã cùng cụm, B có kể lại tên A hay không cũng vậy. Nên
+ * chỉ gỡ một phía thì hai từ vẫn bị xếp cạnh nhau trong buổi học, và người học
+ * vừa bảo "cái này vô lý" lại thấy nó ngay hôm sau.
+ *
+ * Ba thứ tắt theo, không cần làm gì thêm:
+ *   - bài đồng/trái nghĩa dựng đề từ `lien`, nên từ ấy hết là ứng viên;
+ *   - `Srs.duongCo` đòi `dong` có từ 2 từ và `trai` có từ 1 từ mới MỞ đường,
+ *     nên bỏ tới mức dưới ngưỡng là cả bài kiểm tra ấy đóng lại;
+ *   - `Srs.diemTu` chia lại trọng số trên đúng những đường đang mở, nên điểm
+ *     cũng thôi tính phần ấy — đúng như bạn muốn.
+ */
+async function boTuLien(it, chu) {
+  // Bên này `items` nằm trong thân hàm vẽ danh sách; bản chụp cấp module là
+  // `mucDaLuu`. Chép thẳng `items` sang là ném "items is not defined".
+  const kia = mucDaLuu.find((x) => !x.del && x.word === chu);
+  const truoc = [];                       // ảnh chụp để hoàn tác
+  await capNhat((nb) => {
+    const cap = [[it.key, chu]];
+    if (kia && kia.key !== it.key) cap.push([kia.key, it.word]);
+    for (const [k, tu] of cap) {
+      const e = nb[k];
+      if (!e || e.del) continue;
+      truoc.push({ key: k, lien: e.lien, lienBo: e.lienBo });
+      nb[k] = Object.assign({}, e, window.TuLien.boLien(e, tu), { ts: Date.now() });
+    }
+  });
+  drawNotebook();
+  syncSoon();
+  toast(T2("Đã bỏ “{tu}” khỏi liên kết", { tu: chu }), null, {
+    chu: T("Hoàn tác"),
+    lam: async () => {
+      await capNhat((nb) => {
+        for (const x of truoc) {
+          const e = nb[x.key];
+          if (!e) continue;
+          const ne = Object.assign({}, e, { ts: Date.now() });
+          // Trả về ĐÚNG hình dạng cũ, kể cả lúc cũ là "chưa có gì": gán lại
+          // mảng rỗng thì `lienVaSau` không dựng lại nữa (nó chỉ chạy khi
+          // `lien` vắng mặt), và mục kẹt ở tập rỗng vĩnh viễn.
+          if (x.lien) ne.lien = x.lien; else delete ne.lien;
+          if (x.lienBo) ne.lienBo = x.lienBo; else delete ne.lienBo;
+          nb[x.key] = ne;
+        }
+      });
+      drawNotebook();
+      syncSoon();
+      toast(T2("Đã nhận lại “{tu}”", { tu: chu }));
+    }
+  });
 }
 
 /** Bấm một từ trong mạng nghĩa: có trong sổ thì lọc tới nó, chưa có thì tra. */
@@ -2123,6 +2220,7 @@ async function renderWord(entries) {
           if (old2.fav) ne2.fav = old2.fav;
           if (old2.note) ne2.note = old2.note;
           if (old2.hoiAi) ne2.hoiAi = old2.hoiAi;   // link đoạn chat Gemini
+          if (old2.lienBo) ne2.lienBo = old2.lienBo;  // từ liên kết đã tự tay bỏ
           // `tuCum` CỐ Ý không giữ: tra rồi tự tay bấm Lưu là quyết định có chủ
           // ý, mục thôi làm từ dẫn xuất. `lien` cũng bị bỏ ngay dưới để boiThem
           // dựng lại tập đầy đủ — giữ tập rút gọn thì thăng chẳng để làm gì.
@@ -2335,6 +2433,7 @@ async function showTranslate(text) {
           if (oldS.cauNghe) neS.cauNghe = oldS.cauNghe;
           if (oldS.lien) neS.lien = oldS.lien;
           if (oldS.hoiAi) neS.hoiAi = oldS.hoiAi;
+          if (oldS.lienBo) neS.lienBo = oldS.lienBo;
           if (oldS.fav) neS.fav = oldS.fav;
           if (oldS.note) neS.note = oldS.note;
           if (oldS.src && !neS.src) neS.src = oldS.src;
@@ -3822,6 +3921,9 @@ async function boiThem(key) {
         // rước thêm từ nào mới vào.
         ra = window.TuLien.locTheoCum(ra, e.word, goc || { word: e.tuCum.goc }, e.tuCum.ben);
       }
+      // Những từ người học đã tự tay bỏ thì đừng dựng lại. Lọc ở chỗ DỰNG chứ
+      // không ở chỗ đọc — quên một màn là từ đã bỏ lại hiện ra.
+      ra = window.TuLien.locBo(ra, e.lienBo);
       if (ra.dong.length || ra.trai.length) {
         await capNhat((n2) => {
           const x = n2[key];
@@ -3997,6 +4099,7 @@ async function luuNhanhTu(word, dict, cum) {
       if (cu.fav) ne.fav = cu.fav;
       if (cu.note) ne.note = cu.note;
       if (cu.hoiAi) ne.hoiAi = cu.hoiAi;
+      if (cu.lienBo) ne.lienBo = cu.lienBo;
       if (cu.tuCum && !ne.tuCum) ne.tuCum = cu.tuCum;
       if (cu.src) ne.src = cu.src;
       if (cu.audio && !ne.audio) ne.audio = cu.audio;

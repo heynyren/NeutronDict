@@ -192,6 +192,88 @@ for (const [ten, arg] of Object.entries({
 
 /* ------------------------------------------------------------------ */
 /*
+ * BỎ MỘT TỪ KHỎI LIÊN KẾT — theo ý người học.
+ *
+ * Từ điển máy đưa ra không ít cặp vô lý (WordNet gộp mọi nghĩa, vòng dịch
+ * ngược thì trả cả danh sách ứng viên). Người học phải có đường gạt đi, và gạt
+ * rồi thì nó phải biến mất HẲN — kể cả khỏi phép đánh giá.
+ *
+ * Bất biến cứng: đánh giá ấy được cất RIÊNG (`lienBo`), không chỉ xoá khỏi
+ * `lien`. Xoá trơ thì từ ấy quay lại được qua nạp CSV, đồng bộ Drive từ máy
+ * chưa cập nhật, hoặc chính mục ấy bị xoá rồi lưu lại. Người học đã xét một
+ * lần thì đừng bắt xét lại.
+ */
+console.log("\nBỏ một từ khỏi liên kết");
+la(typeof TL.boLien === "function" && typeof TL.locBo === "function",
+   "tu-lien.js có xuất boLien và locBo");
+{
+  const m = { word: "改善", lien: { dong: ["改良", "向上"], trai: ["改悪"] } };
+  const r = TL.boLien(m, "向上");
+  la(r.lien.dong.join() === "改良", "từ bị bỏ biến khỏi tập đồng nghĩa", r.lien.dong.join(","));
+  la(r.lien.trai.join() === "改悪", "tập bên kia không bị đụng", r.lien.trai.join(","));
+  la(r.lienBo.join() === "向上", "và được ghi vào sổ đen", r.lienBo.join(","));
+  la(!m.lien.dong.includes("改良") === false && m.lien.dong.length === 2,
+     "KHÔNG sửa tại chỗ mục gốc — chỗ gọi tự quyết ghi hay không", m.lien.dong.join(","));
+}
+{
+  // Bỏ ở tập TRÁI nghĩa cũng vậy, và sổ đen cộng dồn chứ không ghi đè.
+  const m = { word: "改善", lien: { dong: ["改良"], trai: ["改悪"] }, lienBo: ["向上"] };
+  const r = TL.boLien(m, "改悪");
+  la(r.lien.trai.length === 0, "bỏ được cả từ trái nghĩa", r.lien.trai.join(","));
+  la(r.lienBo.join() === "向上,改悪", "sổ đen cộng dồn", r.lienBo.join(","));
+}
+{
+  const m = { word: "改善", lien: { dong: ["改良"] }, lienBo: ["改良"] };
+  la(TL.boLien(m, "改良").lienBo.join() === "改良", "bỏ lại từ đã bỏ thì không ghi trùng");
+}
+{
+  /*
+   * Đây mới là chốt thật: dựng lại tập thì từ đã bỏ KHÔNG được quay về.
+   *
+   * `lien` bị dựng lại ở nhiều đường — lưu đè một mục, nạp CSV, mục bị xoá rồi
+   * lưu lại. Chỉ xoá khỏi `lien` mà không có sổ đen thì mấy đường ấy lặng lẽ
+   * trả từ ấy về, và người học thấy nó hiện ra lại mà chẳng hiểu vì sao.
+   */
+  const r = TL.locBo({ dong: ["改良", "向上", "進歩"], trai: ["改悪", "悪化"] }, ["向上", "改悪"]);
+  la(r.dong.join() === "改良,進歩", "lọc đúng ở tập đồng nghĩa", r.dong.join(","));
+  la(r.trai.join() === "悪化", "và ở tập trái nghĩa", r.trai.join(","));
+}
+la(TL.locBo({ dong: ["a"], trai: ["b"] }, []).dong.join() === "a", "sổ đen rỗng thì giữ nguyên");
+console.log("  — dữ liệu thiếu hoặc hỏng —");
+for (const [ten, arg] of Object.entries({
+  "boLien(null, null)": () => TL.boLien(null, null),
+  "boLien mục rỗng": () => TL.boLien({}, "x"),
+  "boLien lien không phải mảng": () => TL.boLien({ lien: { dong: "x" } }, "x"),
+  "boLien lienBo không phải mảng": () => TL.boLien({ lienBo: "x" }, "y"),
+  "locBo(null, null)": () => TL.locBo(null, null),
+  "locBo sổ đen có phần tử rỗng": () => TL.locBo({ dong: ["a"] }, ["", null, "a"])
+})) {
+  let loi = null, r = null;
+  try { r = arg(); } catch (e) { loi = e; }
+  la(!loi, "\"" + ten + "\" không ném lỗi", loi && loi.message);
+  la(!loi && r && typeof r === "object", "\"" + ten + "\" vẫn trả về đối tượng");
+}
+{
+  // Chỗ DỰNG phải gọi locBo — không phải chỗ đọc. Quên một màn là từ đã bỏ
+  // lại hiện ra, mà lỗi ấy không làm vỡ gì để ai đó nhận ra.
+  la(/locBo\(ra, e\.lienBo\)/.test(doc("extension/background.js")),
+     "background.js lọc sổ đen ngay ở chỗ dựng tập");
+  la(/locBo\(ra, e\.lienBo\)/.test(doc("android/www/app.js")),
+     "app.js cũng vậy");
+  for (const [ten, p] of [["extension", "extension/notebook.js"], ["android", "android/www/app.js"]]) {
+    la(/function boTuLien\(/.test(doc(p)), ten + " có hàm boTuLien");
+    la(/lienmang-bo/.test(doc(p)), ten + " có dựng nút bỏ trong khối mạng nghĩa");
+  }
+  for (const [ten, p] of [["extension", "extension/ui.css"], ["android", "android/www/ui.css"]]) {
+    la(/\.lienmang-bo/.test(doc(p)) && /\.toast-nut/.test(doc(p)), ten + " ui.css có kiểu cho nút bỏ và nút hoàn tác");
+  }
+  // Đánh giá của người học phải sống qua bia mộ — cùng hạng với ghi chú.
+  la(/t\.lienBo = it\.lienBo/.test(doc("extension/muc.js")), "biaMo giữ lại sổ đen khi xoá mục");
+  la(doc("extension/muc.js") === doc("android/www/muc.js"), "hai bản muc.js giống nhau từng byte");
+}
+
+/* ------------------------------------------------------------------ */
+/*
  * Từ dẫn xuất KHÔNG được gọi mạng để đi tìm từ mới.
  *
  * Tầng dịch-ngược chính là cỗ máy đẻ từ mới: nó trả về cả danh sách ứng viên
