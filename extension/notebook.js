@@ -2709,6 +2709,10 @@ function khoiLien(it, gon) {
  * chỉ gỡ một phía thì hai từ vẫn bị xếp cạnh nhau trong buổi học, và người học
  * vừa bảo "cái này vô lý" lại thấy nó ngay hôm sau.
  *
+ * @param {(daBo:boolean)=>void} [khiDoi] báo cho chỗ gọi biết trạng thái vừa đổi.
+ *   Màn kết quả bài liên kết cần nó: nó nằm trên lớp phủ, không được vẽ lại theo
+ *   sổ tay, nên phải tự làm mờ hàng vừa bỏ — và tự sáng lại nếu người ta Hoàn tác.
+ *
  * Ba thứ tắt theo, không cần làm gì thêm:
  *   - bài đồng/trái nghĩa dựng đề từ `lien`, nên từ ấy hết là ứng viên;
  *   - `Srs.duongCo` đòi `dong` có từ 2 từ và `trai` có từ 1 từ mới MỞ đường,
@@ -2716,7 +2720,7 @@ function khoiLien(it, gon) {
  *   - `Srs.diemTu` chia lại trọng số trên đúng những đường đang mở, nên điểm
  *     cũng thôi tính phần ấy — đúng như bạn muốn.
  */
-async function boTuLien(it, chu) {
+async function boTuLien(it, chu, khiDoi) {
   const kia = items.find((x) => !x.del && x.word === chu);
   const truoc = [];                       // ảnh chụp để hoàn tác
   await capNhat((nb) => {
@@ -2731,6 +2735,7 @@ async function boTuLien(it, chu) {
   });
   await load();
   syncSoon();
+  if (khiDoi) khiDoi(true);
   toast(T2("Đã bỏ “{tu}” khỏi liên kết", { tu: chu }), null, {
     chu: T("Hoàn tác"),
     lam: async () => {
@@ -2750,6 +2755,7 @@ async function boTuLien(it, chu) {
       await load();
       syncSoon();
       toast(T2("Đã nhận lại “{tu}”", { tu: chu }));
+      if (khiDoi) khiDoi(false);
     }
   });
 }
@@ -3086,6 +3092,20 @@ let tiepBaiLien = null;
  * Tách ra khỏi vòng lặp để ba nhóm dưới dùng chung đúng một cách dựng hàng —
  * chia nhóm là việc của thứ tự, không được đẻ thêm ba biến thể của cùng một hàng.
  *
+ * Và một nút BỎ, cho đúng những từ THẬT SỰ nằm trong tập liên kết của từ đang
+ * học. Đây mới là lúc người ta biết một liên kết là vô lý — đang nhìn
+ * "茶寮 = căn nhà làm nghi lễ trà đạo" nằm trong đáp án của 飲食店. Bắt nhớ để
+ * lát nữa về sổ tay dò lại thì vừa mất công vừa khó soi, mà phần lớn là quên.
+ *
+ * XÉT THEO `lien`, KHÔNG THEO NHÓM. Nhóm "Đáp án" đúng là tập liên kết của cực
+ * đang kiểm, nhưng `veBaiLien` lấy nhiễu GẦN từ chính cực KIA — nên một từ nằm
+ * dưới "Từ nhiễu" vẫn có thể là liên kết thật, chỉ là ở cực ngược lại. Xét theo
+ * nhóm thì đúng mấy từ ấy lại không bỏ được.
+ *
+ * Bỏ rồi thì LÀM MỜ chứ không gỡ hàng đi: màn này là bản ghi của bài vừa làm,
+ * hàng biến mất giữa lúc đang đọc thì mất cả chỗ đang nhìn. Và `boTuLien` gọi
+ * ngược lại qua `khiDoi` nên bấm Hoàn tác là hàng sáng lại.
+ *
  * @returns {{chu:string, o:HTMLElement, hang:HTMLElement}} `o` là ô nghĩa, để
  *   lượt điền nghĩa ngay sau đó ghi vào.
  */
@@ -3122,6 +3142,28 @@ function hangLien(chu, b) {
         syncSoon();
       });
   });
+  /*
+   * NÃºt Bá» â chá» cho tá»« tháº­t sá»± náº±m trong `lien` cá»§a tá»« Äang há»c.
+   */
+  const l = (b.it && b.it.lien) || {};
+  const laLien = (l.dong || []).indexOf(chu) >= 0 || (l.trai || []).indexOf(chu) >= 0;
+  if (laLien) {
+    const xo = el("button", "lien-bo", "×");
+    xo.type = "button";
+    xo.title = T2("Bỏ “{tu}” khỏi liên kết của “{goc}”", { tu: chu, goc: b.it.word });
+    xo.addEventListener("click", () => {
+      xo.disabled = true;
+      boTuLien(b.it, chu, (daBo) => {
+        hang.classList.toggle("bo", daBo);
+        xo.disabled = false;
+        xo.textContent = daBo ? "↺" : "×";
+        xo.title = daBo
+          ? T2("Nhận lại “{tu}” vào liên kết", { tu: chu })
+          : T2("Bỏ “{tu}” khỏi liên kết của “{goc}”", { tu: chu, goc: b.it.word });
+      });
+    });
+    hang.appendChild(xo);
+  }
   hang.appendChild(nut);
   return { chu: chu, o: ngh, hang: hang };
 }

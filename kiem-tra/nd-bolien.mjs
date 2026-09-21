@@ -273,6 +273,84 @@ console.log("\nCòn nút ở MẶT SAU THẺ HỌC nữa");
 }
 
 /* ------------------------------------------------------------------ */
+/*
+ * VÀ NGAY TRÊN MÀN KẾT QUẢ BÀI LIÊN KẾT.
+ *
+ * Đây mới là lúc người ta BIẾT một liên kết là vô lý — đang nhìn nó nằm trong
+ * đáp án của từ mình vừa làm bài. Bắt nhớ để lát nữa về sổ tay dò lại thì vừa
+ * mất công vừa khó soi, mà phần lớn là quên.
+ *
+ * Ba điều chốt ở đây, cả ba đều hỏng ÂM THẦM nếu sai:
+ *   1. Nút chỉ mọc cho từ THẬT SỰ nằm trong `lien` — kể cả từ ở nhóm "Từ
+ *      nhiễu", vì `veBaiLien` lấy nhiễu GẦN từ chính cực KIA. Xét theo nhóm thì
+ *      đúng mấy từ ấy lại không bỏ được.
+ *   2. Bấm là ghi xuống KHO THẬT, cả hai chiều — cùng một đường với nút × bên
+ *      sổ tay, chứ không phải một lối riêng dễ lệch.
+ *   3. Hàng ĐƯỢC LÀM MỜ chứ không biến mất, và Hoàn tác thì sáng lại.
+ */
+console.log("\nBỏ ngay trên màn kết quả bài liên kết");
+{
+  const r = await page.evaluate(async () => {
+    const it = currentActiveSet().find((x) => x.word === "\u6539\u826f");
+    // Dựng đúng màn kết quả, qua chính `veKetQuaLien` — không chép tay bố cục.
+    document.getElementById("studyOverlay").classList.add("show");
+    document.getElementById("stLienMat").style.display = "";
+    veKetQuaLien({ it: it, duong: "dong",
+                   o: ["\u5411\u4e0a", "\u6539\u5584", "\u8336\u5bee"],
+                   dung: new Set(["\u6539\u5584"]), chon: new Set(["\u6539\u5584"]), moc: 0 }, 1, 4200);
+    await new Promise((x) => setTimeout(x, 300));
+    return [...document.querySelectorAll(".lien-hang")].map((h) => ({
+      tu: (h.querySelector(".lien-tu") || {}).textContent,
+      coNut: !!h.querySelector(".lien-bo")
+    }));
+  });
+  const co = (t) => (r.find((x) => x.tu === t) || {}).coNut;
+  soat("\u6539\u5584 \u2014 \u0111\u00e1p \u00e1n, c\u00f3 trong lien \u2014 c\u00f3 n\u00fat b\u1ecf", co("改善") === true, JSON.stringify(r));
+  soat("\u5411\u4e0a \u2014 nhi\u1ec5u, nh\u01b0ng C\u00d3 trong lien \u2014 c\u0169ng c\u00f3 n\u00fat b\u1ecf", co("向上") === true, JSON.stringify(r));
+  soat("\u8336\u5bee \u2014 nhi\u1ec5u, KH\u00d4NG trong lien \u2014 kh\u00f4ng c\u00f3 n\u00fat", co("茶寮") === false, JSON.stringify(r));
+}
+{
+  const truoc = await docMuc("改良");
+  await page.evaluate(async () => {
+    const h = [...document.querySelectorAll(".lien-hang")]
+      .find((x) => (x.querySelector(".lien-tu") || {}).textContent === "\u6539\u5584");
+    h.querySelector(".lien-bo").click();
+    await new Promise((x) => setTimeout(x, 900));
+  });
+  const sau = await docMuc("改良");
+  soat("b\u1ea5m l\u00e0 g\u1ee1 kh\u1ecfi kho th\u1eadt",
+       (truoc.lien.dong || []).indexOf("改善") >= 0 && (sau.lien.dong || []).indexOf("改善") < 0,
+       JSON.stringify(truoc.lien.dong) + " \u2192 " + JSON.stringify(sau.lien.dong));
+  soat("v\u00e0 v\u00e0o s\u1ed5 \u0111en", (sau.lienBo || []).indexOf("改善") >= 0, (sau.lienBo || []).join(","));
+  const kia = await docMuc("改善");
+  soat("g\u1ee1 C\u1ea2 HAI CHI\u1ec0U nh\u01b0 n\u00fat \u00d7 b\u00ean s\u1ed5 tay",
+       ((kia.lien || {}).dong || []).indexOf("改良") < 0, JSON.stringify((kia.lien || {}).dong));
+
+  const mo = await page.evaluate(() => {
+    const h = [...document.querySelectorAll(".lien-hang")]
+      .find((x) => (x.querySelector(".lien-tu") || {}).textContent === "\u6539\u5584");
+    return { bo: h.classList.contains("bo"), conHang: !!h.isConnected,
+             soHang: document.querySelectorAll(".lien-hang").length };
+  });
+  soat("h\u00e0ng \u0111\u01b0\u1ee3c L\u00c0M M\u1edc ch\u1ee9 kh\u00f4ng bi\u1ebfn m\u1ea5t",
+       mo.bo && mo.conHang && mo.soHang === 3, JSON.stringify(mo));
+
+  await page.evaluate(async () => {
+    document.querySelector(".toast-nut").click();
+    await new Promise((x) => setTimeout(x, 900));
+  });
+  const lui = await docMuc("改良");
+  soat("Ho\u00e0n t\u00e1c tr\u1ea3 li\u00ean k\u1ebft v\u1ec1", (lui.lien.dong || []).indexOf("改善") >= 0,
+       JSON.stringify(lui.lien.dong));
+  const sang = await page.evaluate(() => {
+    const h = [...document.querySelectorAll(".lien-hang")]
+      .find((x) => (x.querySelector(".lien-tu") || {}).textContent === "\u6539\u5584");
+    return h.classList.contains("bo");
+  });
+  soat("v\u00e0 h\u00e0ng s\u00e1ng l\u1ea1i", sang === false);
+}
+
+/* ------------------------------------------------------------------ */
 soat("không có lỗi trang", loi.length === 0, loi.slice(0, 2).join(" | "));
 
 await ctx.close();

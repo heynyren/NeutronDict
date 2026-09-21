@@ -45,6 +45,10 @@
       "Removed “{tu}” from the links",
     "Đã nhận lại “{tu}”":
       "“{tu}” is back",
+    "Bỏ “{tu}” khỏi liên kết của “{goc}”":
+      "Remove “{tu}” from the links of “{goc}”",
+    "Nhận lại “{tu}” vào liên kết":
+      "Put “{tu}” back into the links",
 
     /* --- link đoạn chat Gemini --- */
     "Mở": "Open",
@@ -1013,6 +1017,10 @@
       "「{tu}」をリンクから外しました",
     "Đã nhận lại “{tu}”":
       "「{tu}」を戻しました",
+    "Bỏ “{tu}” khỏi liên kết của “{goc}”":
+      "「{tu}」を「{goc}」のリンクから外す",
+    "Nhận lại “{tu}” vào liên kết":
+      "「{tu}」をリンクに戻す",
 
     /* --- link đoạn chat Gemini --- */
     "Mở": "開く",

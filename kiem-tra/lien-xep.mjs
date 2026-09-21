@@ -319,6 +319,27 @@ for (const [ten, arg] of Object.entries({
     la(doc(p5).indexOf('"Gỡ băng tất cả ({n})"') >= 0,
        ten + ": có đường về hàng loạt cho đóng băng");
   }
+  /*
+   * Nút BỎ cũng phải có trên MÀN KẾT QUẢ bài liên kết, ở cả hai bản.
+   *
+   * Đó là chỗ người ta biết một liên kết vô lý — đang nhìn nó nằm trong đáp án.
+   * Và điều kiện phải xét theo `lien`, không theo nhóm: `veBaiLien` lấy nhiễu
+   * GẦN từ chính cực KIA, nên một từ dưới "Từ nhiễu" vẫn có thể là liên kết thật.
+   */
+  for (const [p6, ten] of [["extension/notebook.js", "notebook.js"], ["android/www/app.js", "app.js"]]) {
+    const h = doc(p6);
+    const i = h.indexOf("function hangLien(chu, b) {");
+    const than = i >= 0 ? h.slice(i, h.indexOf("\n}\n", i)) : "";
+    la(/"lien-bo"/.test(than), ten + ": màn kết quả có nút bỏ liên kết");
+    la(/boTuLien\(b\.it, chu/.test(than),
+       ten + ": nút ấy đi chung đường với nút × bên sổ tay (boTuLien)");
+    la(/l\.dong \|\| \[\]\)\.indexOf\(chu\)[\s\S]{0,60}l\.trai/.test(than),
+       ten + ": xét theo `lien` cả hai cực, không theo nhóm");
+  }
+  for (const [p7, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
+    la(/\.lien-bo/.test(doc(p7)) && /\.lien-hang\.bo/.test(doc(p7)),
+       ten + " ui.css có kiểu cho nút bỏ và hàng đã bỏ");
+  }
   for (const [p4, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
     la(/\.iconbtn\.tat/.test(doc(p4)) && /\.lienmang-tat/.test(doc(p4)),
        ten + " ui.css có kiểu cho trạng thái đã tắt");

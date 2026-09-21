@@ -824,6 +824,25 @@ select { cursor: pointer; }
 .lien-nghia { flex: 1 1 auto; font-size: 13px; line-height: 1.4; text-align: left; }
 .lien-hang .chip.nho { flex: 0 0 auto; font-size: 12px; padding: 5px 10px; }
 
+/*
+ * Nút BỎ trên màn kết quả bài liên kết — cùng họ với `.lienmang-bo` bên sổ tay:
+ * mờ lúc nghỉ, đỏ lúc chạm. Nó sửa dữ liệu nên phải thấy được, nhưng một màn
+ * mười sáu hàng mà hàng nào cũng đỏ thì mắt chẳng còn bắt được gì.
+ */
+.lien-bo {
+  flex: 0 0 auto; min-width: 26px; padding: 4px 7px; margin-left: 2px;
+  border: 1px dashed var(--line); border-radius: var(--r-sm);
+  background: none; color: var(--ink-3); cursor: pointer;
+  font: inherit; font-size: 14px; line-height: 1;
+}
+.lien-bo:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.lien-bo:disabled { opacity: .5; cursor: default; }
+/* Đã bỏ: LÀM MỜ chứ không gỡ hàng đi. Màn này là bản ghi của bài vừa làm;
+   hàng biến mất giữa lúc đang đọc là mất cả chỗ đang nhìn. */
+.lien-hang.bo { opacity: .45; }
+.lien-hang.bo .lien-tu { text-decoration: line-through; }
+.lien-hang.bo .lien-bo { opacity: 1; border-style: solid; color: var(--good); border-color: var(--good); }
+
 /* Tiêu đề nhóm. Màn kết quả bày HẾT tối đa 16 ô — đáp án lẫn từ nhiễu — và bày
    hết là có chủ ý: nhiễu lấy từ chính sổ tay người học, gặp từ hay thì lưu luôn.
    Nhưng mười sáu hàng giống hệt nhau thì cái đáng nhìn nhất (mình làm đúng
