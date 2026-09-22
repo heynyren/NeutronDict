@@ -239,8 +239,12 @@ console.log("\nBấm vào điểm để ôn bài còn lại");
         const key = Object.keys(nbL).find((k) => de.includes(nbL[k].word));
         const l = (nbL[key] || {}).lien || {};
         const dung = new Set(/TRÁI NGHĨA/.test(de) ? (l.trai || []) : (l.dong || []));
-        for (const b of document.querySelectorAll("#stLienO button"))
-          if (dung.has((b.textContent || "").trim())) b.click();
+        // Ô đề giờ là MỘT Ô LỚN hai dòng (con chữ + nghĩa), nên `textContent` của
+        // cả nút là "改善cải thiện" chứ không phải "改善". Đọc đúng span con chữ.
+        for (const b of document.querySelectorAll("#stLienO button")) {
+          const t = b.querySelector(".lien-omot-tu");
+          if (dung.has(((t || b).textContent || "").trim())) b.click();
+        }
         document.getElementById("stLienXong").click();
         await new Promise((x) => setTimeout(x, 500));
         const tiep = document.getElementById("stLienTiep");

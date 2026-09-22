@@ -3001,12 +3001,20 @@ function veBaiLien(it) {
   const l = it.lien || {};
   const dung = (d === "dong" ? l.dong : l.trai) || [];
   const kia = (d === "dong" ? l.trai : l.dong) || [];
-  // Nhiễu lấy từ CHÍNH sổ tay: chúng là từ người học đang học nên nhìn quen
-  // mắt — nhiễu thật, chứ không phải nhiễu loại được ngay từ cái nhìn đầu.
-  const xa = items
-    .filter((x) => x.key !== it.key && !x.del && x.word && x.word !== it.word)
-    .map((x) => x.word);
-  const o = window.TuLien.dungDe(dung, kia, xa);
+  /*
+   * ĐỀ CHỈ LẤY TỪ CHÍNH TỪ ĐANG HỌC — không rước từ ngoài vào nữa.
+   *
+   * Trước đây nhiễu lấy cả từ sổ tay cho "quen mắt". Nghe xuôi, nhưng thực tế
+   * nó biến một bài đáng lẽ là "phân biệt đồng với trái nghĩa của chính từ này"
+   * thành "đãi mười sáu từ chẳng dính gì nhau" — dài, mệt, và phần khó nằm ở
+   * chỗ đọc cho hết chứ không ở chỗ nhớ.
+   *
+   * Nay ô chỉ gồm đồng nghĩa và trái nghĩa CỦA CHÍNH NÓ: đáp án là một cực, mồi
+   * nhử là cực kia. Từ nào không có cực kia thì bày toàn đáp án — bấm hết là đúng,
+   * đúng như người dùng chọn: lúc ấy nó thành một lượt ÔN tập chứ không còn là
+   * một bài kiểm tra, và điểm của đường ấy dễ lên hơn thật.
+   */
+  const o = window.TuLien.dungDe(dung, kia);
 
   baiLien = { it: it, duong: d, dung: new Set(dung), o: o, chon: new Set(), moc: performance.now() };
   $("stLienDe").textContent = d === "dong"
@@ -3019,11 +3027,29 @@ function veBaiLien(it) {
   const khung = $("stLienO");
   khung.textContent = "";
   khung.classList.remove("kq");
+  khung.classList.add("to");
   $("stLienTiep").style.display = "none";
   tiepBaiLien = null;
+  /*
+   * MỖI TỪ MỘT Ô LỚN, MỘT CỘT, CHẠM ĐÂU CŨNG ĂN.
+   *
+   * Bản cũ rải nút nhỏ theo hàng ngang cho gọn màn. Gọn thật, nhưng mắt phải
+   * nhảy ngang dọc để quét cho hết, và trên điện thoại thì vùng chạm chỉ còn
+   * bằng con chữ. Từ khi đề chỉ lấy từ của chính nó, số ô ít hẳn — một cột vừa
+   * màn mà không phải cuộn.
+   *
+   * Và MỖI Ô MANG LUÔN NGHĨA tiếng Việt. Đây là một đánh đổi có ý: bài dễ hẳn
+   * đi, bù lại là đường `dong`/`trai` thôi còn đo được nhiều như trước. Người
+   * dùng chọn như vậy để học nhanh hơn, không phải để chấm chặt hơn.
+   */
+  const dsNghia = [];
   for (const chu of o) {
-    const b = el("button", null, chu);
+    const b = el("button", "lien-omot");
     b.type = "button";
+    b.appendChild(el("span", "lien-omot-tu" + (NGU === "ja" ? " ja" : ""), chu));
+    const ngh = el("span", "lien-omot-nghia", "…");
+    b.appendChild(ngh);
+    dsNghia.push({ chu: chu, o: ngh });
     b.addEventListener("click", () => {
       if (b.disabled) return;
       if (baiLien.chon.has(chu)) { baiLien.chon.delete(chu); b.classList.remove("chon"); }
@@ -3031,6 +3057,7 @@ function veBaiLien(it) {
     });
     khung.appendChild(b);
   }
+  dienNghia(dsNghia);
 }
 
 async function xongBaiLien() {
@@ -3172,6 +3199,7 @@ function veKetQuaLien(b, dung, ms) {
   const khung = $("stLienO");
   const ds = [];
   khung.textContent = "";
+  khung.classList.remove("to");
   khung.classList.add("kq");
 
   /*
@@ -3195,9 +3223,18 @@ function veKetQuaLien(b, dung, ms) {
       ds.push(r);
     }
   };
+  /*
+   * NHÃN NHÓM BA PHẢI NÓI ĐÚNG CHÚNG LÀ GÌ.
+   *
+   * Từ khi đề chỉ lấy từ của chính từ đang học, những ô còn lại KHÔNG còn là
+   * "từ nhiễu" nữa — chúng là CỰC NGƯỢC LẠI của chính nó. Gọi là nhiễu thì vừa
+   * sai, vừa bỏ phí đúng cái đáng học nhất ở đây: "mấy từ này không phải đáp án
+   * vì chúng là trái nghĩa" — đó mới là bài học của lượt vừa rồi.
+   */
+  const nhanCuc = b.duong === "dong" ? T("Trái nghĩa của từ này") : T("Cùng nghĩa của từ này");
   veNhom(T("Đáp án"), "dap", dapAn);
   veNhom(T("Nhặt nhầm"), "nham", nhatNham);
-  veNhom(T("Từ nhiễu — gặp thì học luôn"), "", nhieu);
+  veNhom(nhanCuc, "", nhieu);
 
   $("stLienXong").style.display = "none";
   $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
@@ -3211,6 +3248,20 @@ function veKetQuaLien(b, dung, ms) {
    * giờ hụt. Hỏi mạng cho cả bảng thì mạng chập một cái là trắng trơn cả màn,
    * đúng cảnh người dùng gặp.
    */
+  dienNghia(ds);
+}
+
+/**
+ * Điền nghĩa vào một loạt ô — dùng chung cho cả màn LÀM BÀI lẫn màn KẾT QUẢ.
+ *
+ * Lấy trong SỔ TAY trước, chỉ phần còn thiếu mới đi hỏi mạng. Phần lớn ô là từ
+ * đã nằm trong sổ — nghĩa của chúng nằm sẵn ngay trong máy, hiện ra tức thì và không
+ * bao giờ hụt. Hỏi mạng cho cả bảng thì mạng chập một cái là trắng trơn cả màn.
+ *
+ * @param {Array<{chu:string, o:HTMLElement}>} ds
+ */
+function dienNghia(ds) {
+  if (!ds.length) return;
   const soTay = new Map();
   for (const x of items) {
     if (x.del || !x.word) continue;

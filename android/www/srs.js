@@ -909,13 +909,21 @@
   /**
    * Tốc độ phát câu nghe, theo cấp của chính đường nghe.
    *
-   * Cấp thấp thì chậm để nghe ra từng chữ; lên cấp thì đẩy dần về tốc độ người
-   * Nhật nói thật — nghe mãi ở tốc độ chậm thì ra đời gặp tốc độ thật vẫn điếc.
-   * Chặn trên 1,5 vì quá đó giọng máy méo tới mức không còn giống tiếng người.
+   * BẮT ĐẦU TỪ ×1,0 — tức tốc độ bình thường, không có bậc chậm nào nữa.
+   *
+   * Thang cũ khởi từ ×0,8 cho "nghe ra từng chữ". Nghe thì xuôi, dùng thì chán:
+   * giọng máy ở 0,8 kéo dài từng âm nghe rất ể, mà từ mới thì lúc nào cũng ở cấp
+   * thấp — nên gần như mọi lượt nghe đầu tiên của mọi từ đều rơi vào đúng cái
+   * bậc khó chịu nhất.
+   *
+   * Lên cấp thì đẩy dần về tốc độ người Nhật nói thật — nghe mãi ở tốc độ chậm
+   * thì ra đời gặp tốc độ thật vẫn điếc. Chặn trên 1,5 vì quá đó giọng máy méo
+   * tới mức không còn giống tiếng người.
    */
+  const TOC_DAU = 1.0;
   function tocDoNghe(lv) {
     const n = (typeof lv === "number" && isFinite(lv)) ? lv : -1;   // NaN vào thì NaN ra
-    return Math.min(1.5, Math.round((0.8 + Math.max(0, n + 1) * 0.1) * 100) / 100);
+    return Math.min(1.5, Math.round((TOC_DAU + Math.max(0, n + 1) * 0.1) * 100) / 100);
   }
 
   /* ------------------------------------------------------------------ */

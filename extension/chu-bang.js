@@ -967,7 +967,8 @@
       "Study mode: when a word comes due, also review the synonyms / antonyms of it you have saved, one right after another — to practise telling close words apart",
     "Đáp án": "Answers",
     "Nhặt nhầm": "Picked by mistake",
-    "Từ nhiễu — gặp thì học luôn": "Decoys — learn them while you are here",
+    "Trái nghĩa của từ này": "Antonyms of this word",
+    "Cùng nghĩa của từ này": "Synonyms of this word",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
 
@@ -1934,7 +1935,8 @@
       "学習モード：ある語が期限になったら、保存してある類義語・対義語も続けて出します——近い語を区別する練習のため",
     "Đáp án": "正解",
     "Nhặt nhầm": "選び間違い",
-    "Từ nhiễu — gặp thì học luôn": "ダミー — ついでに覚えよう",
+    "Trái nghĩa của từ này": "この語の対義語",
+    "Cùng nghĩa của từ này": "この語の類義語",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 

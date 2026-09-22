@@ -63,7 +63,8 @@
     "Tiếp": "Next",
     "Đáp án": "Answers",
     "Nhặt nhầm": "Picked by mistake",
-    "Từ nhiễu — gặp thì học luôn": "Distractors — learn them while you are here",
+    "Trái nghĩa của từ này": "Antonyms of this word",
+    "Cùng nghĩa của từ này": "Synonyms of this word",
     "Thiếu từ": "No word given",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "Question copied — over in Gemini, press {phim} then Enter.",
@@ -1023,7 +1024,8 @@
     "Tiếp": "次へ",
     "Đáp án": "正解",
     "Nhặt nhầm": "誤って選んだ語",
-    "Từ nhiễu — gặp thì học luôn": "ダミー語 — ついでに覚えてしまいましょう",
+    "Trái nghĩa của từ này": "この語の対義語",
+    "Cùng nghĩa của từ này": "この語の類義語",
     "Thiếu từ": "語が指定されていません",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "質問をコピーしました — Gemini で {phim} を押して Enter。",

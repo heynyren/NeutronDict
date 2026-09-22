@@ -336,6 +336,33 @@ for (const [ten, arg] of Object.entries({
     la(/l\.dong \|\| \[\]\)\.indexOf\(chu\)[\s\S]{0,60}l\.trai/.test(than),
        ten + ": xét theo `lien` cả hai cực, không theo nhóm");
   }
+  /*
+   * ĐỀ KHÔNG ĐƯỢC RƯỚC TỪ NGOÀI VÀO.
+   *
+   * `dungDe(dung, nhieuGan, nhieuXa)` — tham số thứ ba là kho từ lấy từ cả sổ tay.
+   * Truyền nó vào là bài phình từ 5 ô lên mười mấy ô, và phần khó chuyển từ
+   * "nhớ" sang "đọc cho hết". Bài vẫn chạy, vẫn chấm — không có gì đỏ lên cả.
+   */
+  for (const [p8, ten] of [["extension/notebook.js", "notebook.js"], ["android/www/app.js", "app.js"]]) {
+    const h = doc(p8);
+    const i = h.indexOf("function veBaiLien(it) {");
+    const than = i >= 0 ? h.slice(i, h.indexOf("\n}\n", i)) : "";
+    la(/dungDe\(dung, kia\)/.test(than), ten + ": đề chỉ lấy đồng + trái nghĩa của chính nó");
+    la(!/dungDe\(dung, kia,/.test(than), ten + ": không truyền kho từ ngoài vào `dungDe`");
+    la(/"lien-omot"/.test(than) && /lien-omot-nghia/.test(than),
+       ten + ": mỗi ô đề là ô lớn có kèm nghĩa");
+  }
+  for (const [p9, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
+    la(/\.lien-omot \{/.test(doc(p9)) && /min-height: 56px/.test(doc(p9)),
+       ten + " ui.css: ô đề lớn, cao tối thiểu 56px");
+    la(/\.lien-o\.to/.test(doc(p9)), ten + " ui.css: khung đề xếp một cột");
+  }
+  // Tốc độ bài nghe khởi từ ×1,0 — không còn bậc ×0,8 nghe ể.
+  {
+    const g = {}; new Function("self", doc("extension/srs.js"))(g);
+    la(g.Srs.tocDoNghe(-1) === 1, "bài nghe khởi từ ×1,0", "×" + g.Srs.tocDoNghe(-1));
+    la(g.Srs.tocDoNghe(9) === 1.5, "và vẫn chặn trên ở ×1,5", "×" + g.Srs.tocDoNghe(9));
+  }
   for (const [p7, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
     la(/\.lien-bo/.test(doc(p7)) && /\.lien-hang\.bo/.test(doc(p7)),
        ten + " ui.css có kiểu cho nút bỏ và hàng đã bỏ");
@@ -460,7 +487,10 @@ console.log("\nBản Android đã dựng màn kết quả");
 }
 {
   const need = ["+ Lưu", "Đã có", "Đang lưu…", "Đã lưu", "Không lưu được từ này",
-                "Tiếp", "Đáp án", "Nhặt nhầm", "Từ nhiễu — gặp thì học luôn",
+                // Nhóm ba không còn là "từ nhiễu": từ khi đề chỉ lấy từ của chính
+                // từ đang học, mấy ô còn lại là CỰC NGƯỢC LẠI của nó.
+                "Tiếp", "Đáp án", "Nhặt nhầm",
+                "Trái nghĩa của từ này", "Cùng nghĩa của từ này",
                 "Nhặt được {a}/{b} · {t} giây"];
   for (const p of ["extension/chu-bang.js", "android/www/chu-bang.js"]) {
     const g = {}; new Function("self", doc(p))(g);

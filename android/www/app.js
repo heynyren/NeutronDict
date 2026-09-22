@@ -3783,12 +3783,6 @@ async function updateDueButton() {
 $("stStart").addEventListener("click", async () => {
   const due = await currentDue();
   if (!due.length) { toast(T("Không có mục nào đến hạn. Quay lại sau nhé!"), "bad"); return; }
-  // Kho từ nhiễu cho bài liên kết: lấy một lần ở đây thay vì mỗi thẻ đọc lại
-  // cả sổ tay — buổi học nào cũng đọc mấy chục lần thì máy yếu thấy ngay.
-  try {
-    const nbAll = await getNBNgu();
-    tuNhieu = Object.keys(nbAll).map((k) => nbAll[k]).filter((x) => x && !x.del && x.word).map((x) => x.word);
-  } catch (e) { tuNhieu = []; }
   /*
    * Xáo theo KHỐI, trong khối giữ nguyên — xem ghi chú bên bản extension. Xáo
    * phẳng thì 改善 rơi đầu buổi còn 改良 rơi cuối, và cả việc ôn kèm cụm thành
@@ -3813,12 +3807,7 @@ $("stStart").addEventListener("click", async () => {
  * Buổi ôn của MỘT từ, mở thẳng từ chip điểm.
  *
  * Dùng lại nguyên bộ máy của buổi học thường — xem ghi chú bên bản extension.
- * Bản Android khác hai chỗ, và cả hai đều đủ sức làm hỏng việc trong im lặng:
- *
- *   - `tuNhieu` (kho từ nhiễu của bài liên kết) chỉ được nạp BÊN TRONG trình
- *     xử lý bấm nút Học. Vào thẳng đây mà quên nạp thì bài liên kết chỉ còn
- *     đúng mấy ô đáp án trên màn, không còn gì để nhặt nhầm — bài vẫn chạy,
- *     vẫn chấm, chỉ là nó không còn đo cái gì nữa.
+ * Bản Android khác một chỗ, và chỗ ấy đủ sức làm hỏng việc trong im lặng:
  *
  *   - Màn học ở đây là một VIEW chứ không phải lớp phủ như bên extension, nên
  *     phải show("Study") rồi mới dọn phần chờ. Thiếu bước ấy thì buổi học dựng
@@ -3827,11 +3816,6 @@ $("stStart").addEventListener("click", async () => {
  * @param {string[]} ds tên các đường sẽ ôn, theo đúng thứ tự
  */
 async function hocRieng(it, ds) {
-  try {
-    const nbAll = await getNBNgu();
-    tuNhieu = Object.keys(nbAll).map((k) => nbAll[k])
-      .filter((x) => x && !x.del && x.word).map((x) => x.word);
-  } catch (e) { tuNhieu = []; }
   session = { queue: ds.map((d) => Object.assign({}, it, { _d: d })),
               done: 0, again: 0, deleted: 0, rieng: it.key };
   lastDeleted = null;
@@ -4460,6 +4444,7 @@ function veKetQuaLien(b, dung, ms) {
   const khung = $("stLienO");
   const ds = [];
   khung.textContent = "";
+  khung.classList.remove("to");
   khung.classList.add("kq");
 
   // Quy tắc xếp nhóm nằm ở tu-lien.js, dùng chung với bản extension.
@@ -4477,9 +4462,18 @@ function veKetQuaLien(b, dung, ms) {
       ds.push(r);
     }
   };
+  /*
+   * NHÃN NHÓM BA PHẢI NÓI ĐÚNG CHÚNG LÀ GÌ.
+   *
+   * Từ khi đề chỉ lấy từ của chính từ đang học, những ô còn lại KHÔNG còn là
+   * "từ nhiễu" nữa — chúng là CỰC NGƯỢC LẠI của chính nó. Gọi là nhiễu thì vừa
+   * sai, vừa bỏ phí đúng cái đáng học nhất ở đây: "mấy từ này không phải đáp án
+   * vì chúng là trái nghĩa" — đó mới là bài học của lượt vừa rồi.
+   */
+  const nhanCuc = b.duong === "dong" ? T("Trái nghĩa của từ này") : T("Cùng nghĩa của từ này");
   veNhom(T("Đáp án"), "dap", nhom.dapAn);
   veNhom(T("Nhặt nhầm"), "nham", nhom.nhatNham);
-  veNhom(T("Từ nhiễu — gặp thì học luôn"), "", nhom.nhieu);
+  veNhom(nhanCuc, "", nhom.nhieu);
 
   $("stLienXong").style.display = "none";
   $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
@@ -4499,6 +4493,29 @@ function veKetQuaLien(b, dung, ms) {
     const n = (x.means || []).map(meanToStr).filter(Boolean)[0];
     if (n && !soTay.has(x.word)) soTay.set(x.word, n);
   }
+  dienNghia(ds, soTay);
+}
+
+/**
+ * Điền nghĩa vào một loạt ô — dùng chung cho cả màn LÀM BÀI lẫn màn KẾT QUẢ.
+ *
+ * Lấy trong SỔ TAY trước, chỉ phần còn thiếu mới đi hỏi mạng. Phần lớn ô là từ đã
+ * nằm trong sổ — nghĩa của chúng nằm sẵn trong máy, hiện tức thì và không hụt.
+ *
+ * @param {Array<{chu:string, o:HTMLElement}>} ds
+ * @param {Map<string,string>} [co] bảng nghĩa đã dựng sẵn; không có thì tự dựng.
+ */
+function dienNghia(ds, co) {
+  if (!ds.length) return;
+  let soTay = co;
+  if (!soTay) {
+    soTay = new Map();
+    for (const x of mucDaLuu) {
+      if (x.del || !x.word) continue;
+      const n = (x.means || []).map(meanToStr).filter(Boolean)[0];
+      if (n && !soTay.has(x.word)) soTay.set(x.word, n);
+    }
+  }
   const thieu = [];
   for (const x of ds) {
     const n = soTay.get(x.chu);
@@ -4506,7 +4523,7 @@ function veKetQuaLien(b, dung, ms) {
   }
   if (!thieu.length) return;
   nghiaDs(thieu.map((x) => x.chu)).then(
-    (co) => { for (const x of thieu) x.o.textContent = co[x.chu] || "—"; },
+    (co2) => { for (const x of thieu) x.o.textContent = co2[x.chu] || "—"; },
     () => { for (const x of thieu) x.o.textContent = "—"; });
 }
 
@@ -4514,18 +4531,24 @@ function veKetQuaLien(b, dung, ms) {
 let tiepBaiLien = null;
 
 let baiLien = null;
-/** Kho từ dùng làm NHIỄU cho bài liên kết — nạp một lần lúc mở buổi học. */
-let tuNhieu = [];
 
 function veBaiLien(it) {
   const d = it._d;
   const l = it.lien || {};
   const dung = (d === "dong" ? l.dong : l.trai) || [];
   const kia = (d === "dong" ? l.trai : l.dong) || [];
-  // Nhiễu lấy từ CHÍNH sổ tay: là từ đang học nên nhìn quen mắt — nhiễu thật,
-  // không phải nhiễu loại được ngay từ cái nhìn đầu.
-  const xa = tuNhieu.filter((w) => w && w !== it.word);
-  const o = window.TuLien.dungDe(dung, kia, xa);
+  /*
+   * ĐỀ CHỈ LẤY TỪ CHÍNH TỪ ĐANG HỌC — không rước từ ngoài vào nữa.
+   *
+   * Trước đây nhiễu lấy cả từ sổ tay cho "quen mắt". Nghe xuôi, nhưng nó biến
+   * một bài đáng lẽ là "phân biệt đồng với trái nghĩa của chính từ này" thành
+   * "đãi mười sáu từ chẳng dính gì nhau" — dài, mệt, và phần khó nằm ở chỗ đọc
+   * cho hết chứ không ở chỗ nhớ.
+   *
+   * Từ nào không có cực kia thì bày toàn đáp án — bấm hết là đúng, đúng như
+   * người dùng chọn: lúc ấy nó thành một lượt ÔN chứ không còn là bài kiểm tra.
+   */
+  const o = window.TuLien.dungDe(dung, kia);
 
   // `o` PHẢI được giữ lại: màn kết quả chia ba nhóm dựa trên đúng danh sách ô
   // đã bày ra, và không có cách nào dựng lại nó (dungDe xáo ngẫu nhiên). Thiếu
@@ -4544,9 +4567,26 @@ function veBaiLien(it) {
   const khung = $("stLienO");
   khung.classList.remove("kq");
   khung.textContent = "";
+  khung.classList.remove("kq");
+  khung.classList.add("to");
+  /*
+   * MỖI TỪ MỘT Ô LỚN, MỘT CỘT, CHẠM ĐÂU CŨNG ĂN.
+   *
+   * Bản cũ rải nút nhỏ theo hàng ngang cho gọn màn. Trên điện thoại thì vùng
+   * chạm chỉ còn bằng con chữ, và mắt phải nhảy ngang dọc để quét cho hết. Từ
+   * khi đề chỉ lấy từ của chính nó, số ô ít hẳn — một cột vừa màn.
+   *
+   * Và mỗi ô mang luôn NGHĨA tiếng Việt: bài dễ hẳn đi, bù lại là đường
+   * `dong`/`trai` thôi còn đo được nhiều như trước — một đánh đổi có ý.
+   */
+  const dsNghia = [];
   for (const chu of o) {
-    const b = el("button", null, chu);
+    const b = el("button", "lien-omot");
     b.type = "button";
+    b.appendChild(el("span", "lien-omot-tu" + (laNhat() ? " ja" : ""), chu));
+    const ngh = el("span", "lien-omot-nghia", "…");
+    b.appendChild(ngh);
+    dsNghia.push({ chu: chu, o: ngh });
     b.addEventListener("click", () => {
       if (b.disabled) return;
       if (baiLien.chon.has(chu)) { baiLien.chon.delete(chu); b.classList.remove("chon"); }
@@ -4554,6 +4594,7 @@ function veBaiLien(it) {
     });
     khung.appendChild(b);
   }
+  dienNghia(dsNghia);
 }
 
 async function xongBaiLien() {
