@@ -3095,8 +3095,8 @@ async function chepChu(chu) {
  * làm người ta tưởng đã xong rồi loay hoay ở đầu bên kia.
  */
 async function moGemini(it, tenSo) {
-  dungDongHo();                 // sang Gemini đọc thì cũng thôi là truy xuất
   if (!it || !it.word) return;
+  dungDongHo();                 // sang Gemini đọc thì cũng thôi là truy xuất
   const loi = window.HoiGemini.loiHoi(it, phuGemini(it, tenSo));
   if (!(await chepChu(loi))) {
     toast(T("Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa."), "bad");
