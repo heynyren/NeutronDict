@@ -1746,8 +1746,18 @@ window.ChamVuot.nutQuayLai(() => {
   // Ảnh nằm trên cùng nên đóng trước tiên — nó mở được từ ngay trong phiếu sửa,
   // đóng phiếu trước thì ảnh vẫn phủ kín màn và người dùng vẫn kẹt.
   if (dongAnhXem()) return true;
-  // Có gì đang mở đè lên thì đóng cái đó trước, đúng như người ta mong đợi.
-  const phu = document.querySelector(".celebrate.show, .sheet.show");
+  /*
+   * Có gì đang mở đè lên thì đóng cái đó trước, đúng như người ta mong đợi.
+   *
+   * Phải gọi ĐÚNG hàm đóng của từng lớp, đừng xé lớp `show` ra cho nhanh. Lời
+   * chúc mừng giữ trong nó cái việc phải làm sau khi đóng — với buổi học thì đó
+   * chính là sang thẻ tiếp. Xé `show` ra là tấm phủ biến mất mà thẻ bên dưới
+   * đứng im mãi; vuốt về lần nữa thì rơi xuống nhánh `ketThucSom` bên dưới và
+   * thoát thẳng khỏi buổi học. Phiếu sửa cũng vậy: `dongSua` còn dọn `dangSua`.
+   */
+  if (window.TienDo.dongMung()) return true;
+  if ($("editSheet").classList.contains("show")) { dongSua(); return true; }
+  const phu = document.querySelector(".sheet.show");
   if (phu) { phu.classList.remove("show"); return true; }
   if (session.queue.length && $("stBody").style.display !== "none") { ketThucSom(); return true; }
   if (lichSu.length > 1) {
@@ -4068,7 +4078,22 @@ function showCard(giuLat) {
     $("stLienTiep").style.display = "none";
     tiepBaiLien = null;
   }
-  $("stMatChu").style.display = laNghe ? "none" : "";
+  /*
+   * BÀI LIÊN KẾT: GIẤU CẢ CỤM ĐẦU THẺ — NÓ CHÍNH LÀ ĐÁP ÁN.
+   *
+   * Chiều cũ thì tiêu đề thẻ là CÂU HỎI, nên hiện ra là đúng. Chiều đảo thì nó
+   * là ĐÁP ÁN, và rò ở ba chỗ: `#stMatChu` (con chữ + nút loa ĐỌC TO từ gốc),
+   * `#stThaoTac` ("Nghe lại" mở đúng câu chứa nó, "Ghi chú" có thể nhắc tên nó)
+   * và `#stGhiAm` (bản thu của chính mình).
+   *
+   * Cùng một lẽ với thẻ NGHE, vốn đã giấu `#stMatChu` từ lâu. Không mất chức
+   * năng nào: `veKetQuaLien` bày lại cả cụm ngay sau khi chấm.
+   */
+  $("stMatChu").style.display = (laNghe || laLien) ? "none" : "";
+  for (const id of ["stThaoTac", "stGhiAm"]) {
+    const o = $(id);
+    if (o) o.style.display = laLien ? "none" : "";
+  }
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
   if (laNghe) {
@@ -4426,6 +4451,13 @@ function hangLien(chu, b) {
  *     nữa đi tra lại thì chẳng ai làm.
  */
 function veKetQuaLien(b, dung, ms) {
+  // Trả lại cụm đầu thẻ: đã chấm rồi thì không còn gì để lộ, mà đều là thứ
+  // người học cần ngay lúc này.
+  $("stMatChu").style.display = "";
+  for (const id of ["stThaoTac", "stGhiAm"]) {
+    const o = $(id);
+    if (o) o.style.display = "";
+  }
   const khung = $("stLienO");
   const ds = [];
   khung.textContent = "";
@@ -4552,8 +4584,16 @@ function veBaiLien(it) {
    * từ không có trái nghĩa thì đề còn đúng MỘT Ô — bấm là trúng. Nên đây là
    * lối lui, hẹp và có chủ ý, chứ không phải quay về cách cũ của bản 4.26.
    */
+  /*
+   * Mồi nhử phải là TỪ, không phải câu.
+   *
+   * Sổ tay có cả mục lưu nguyên một câu. Bày nó cạnh một từ hai chữ thì loại
+   * được ngay từ cái nhìn đầu — chẳng nhử được ai, chỉ làm đề dài ra.
+   * `TuLien.laMotTu` đã có sẵn đúng phép thử: ngắn, và không mang dấu câu.
+   */
   const xa = (mucDaLuu || [])
     .filter((x) => x && !x.del && x.word && x.word !== it.word && x.key !== it.key)
+    .filter((x) => x.kind !== "sent" && window.TuLien.laMotTu(x.word))
     .map((x) => x.word)
     .filter((w) => cum.indexOf(w) < 0);        // từ trong cụm đang ở đề, đừng bày lại
   const o = window.TuLien.dungDe([it.word], kia, xa, undefined, window.TuLien.O_DAO_TOI_DA);

@@ -2595,7 +2595,29 @@ function showCard(giuLat) {
     $("stLienO").classList.remove("kq");
     tiepBaiLien = null;
   }
-  $("stMatChu").style.display = laNghe ? "none" : "";
+  /*
+   * BÀI LIÊN KẾT: GIẤU CẢ CỤM ĐẦU THẺ — NÓ CHÍNH LÀ ĐÁP ÁN.
+   *
+   * Chiều cũ thì tiêu đề thẻ là CÂU HỎI ("nhặt các từ cùng nghĩa với 悲鳴"), nên
+   * hiện ra là đúng. Chiều đảo thì nó là ĐÁP ÁN, và không chỉ một chỗ rò:
+   *
+   *   - `#stMatChu`  con chữ to đùng, cộng nút loa ĐỌC TO từ gốc;
+   *   - `#stThaoTac` "Nghe lại 2:41" mở đúng câu chứa từ ấy, "Ghi chú" có thể
+   *                  nhắc tên nó, "Hỏi Gemini" chép cả từ vào bộ nhớ tạm;
+   *   - `#stGhiAm`   bản thu của chính mình, phát lên là nghe thấy từ gốc.
+   *
+   * Cùng một lẽ với thẻ NGHE, vốn đã giấu `#stMatChu` từ lâu: thấy chữ là mắt
+   * đọc mất, tai không phải làm gì.
+   *
+   * Không mất chức năng nào: `veKetQuaLien` bày lại cả cụm này ngay sau khi
+   * chấm, nên mọi nút vẫn dùng được — chỉ là sau khi đã trả lời.
+   */
+  const anDau = laNghe || laLien;
+  $("stMatChu").style.display = anDau ? "none" : "";
+  for (const id of ["stThaoTac", "stGhiAm"]) {
+    const o = $(id);
+    if (o) o.style.display = laLien ? "none" : "";
+  }
   if (laLien) veBaiLien(it);
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
@@ -3044,8 +3066,17 @@ function veBaiLien(it) {
    * trái nghĩa thì đề còn đúng MỘT Ô — bấm là trúng. Nên đây là lối lui, hẹp
    * và có chủ ý, chứ không phải quay về cách cũ.
    */
+  /*
+   * Mồi nhử phải là TỪ, không phải câu.
+   *
+   * Sổ tay có cả mục lưu nguyên một câu ("すみません、わざわざありがとうございます。").
+   * Bày nó cạnh 悲鳴 thì vừa buồn cười vừa vô dụng: loại được ngay từ cái nhìn
+   * đầu nên nó chẳng nhử được ai, chỉ làm đề dài ra. `TuLien.laMotTu` đã có sẵn
+   * đúng phép thử ấy — ngắn, và không mang dấu câu.
+   */
   const xa = items
     .filter((x) => x.key !== it.key && !x.del && x.word && x.word !== it.word)
+    .filter((x) => x.kind !== "sent" && window.TuLien.laMotTu(x.word))
     .map((x) => x.word)
     .filter((w) => cum.indexOf(w) < 0);        // từ trong cụm đang ở đề, đừng bày lại
   const o = window.TuLien.dungDe([it.word], kia, xa, undefined, window.TuLien.O_DAO_TOI_DA);
@@ -3245,6 +3276,13 @@ function hangLien(chu, b) {
 }
 
 function veKetQuaLien(b, dung, ms) {
+  // Trả lại cụm đầu thẻ: đã chấm rồi thì con chữ, nút loa, Mở nguồn, Ghi chú,
+  // bản thu — không còn gì để lộ, mà đều là thứ người học cần ngay lúc này.
+  $("stMatChu").style.display = "";
+  for (const id of ["stThaoTac", "stGhiAm"]) {
+    const o = $(id);
+    if (o) o.style.display = "";
+  }
   const khung = $("stLienO");
   const ds = [];
   khung.textContent = "";
@@ -3583,6 +3621,14 @@ document.addEventListener("keydown", (e) => {
     return;
   }
   if (!ovl.classList.contains("show")) return;
+  /*
+   * Có lớp nằm ĐÈ LÊN buổi học thì phím là của lớp ấy, không phải của màn học.
+   *
+   * Thứ tự lớp: buổi học 260 < phiếu 280 < chúc mừng 300 < xem ảnh 350. Thiếu
+   * cổng này thì một cái Esc lúc đang hiện lời chúc mừng huy hiệu vừa tắt lời
+   * chúc mừng vừa gọi `closeStudy` — đang học tự dưng thoát ra.
+   */
+  if (document.querySelector("#tdCelebrate.show, .anhxem.show")) return;
   if (e.key === "Escape") closeStudy();
   else if (e.key === " " || e.key === "Enter") {
     /*

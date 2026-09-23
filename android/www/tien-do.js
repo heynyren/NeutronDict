@@ -750,16 +750,43 @@
    * Hiện popup chúc mừng. Huy hiệu chưa đạt thì không báo trước ở đâu cả — chạm
    * mốc lúc đang học mới bật lên. Bất ngờ thì mới vui.
    */
+  /*
+   * Lời chúc mừng đang mở thì đóng nó cho TỬ TẾ.
+   *
+   * Nó che kín màn học, nên đường nào bỏ qua `dong()` — ví dụ nút Quay lại của
+   * Android xé lớp `show` ra — là thẻ bên dưới đứng im mãi, vì `xong` (chính là
+   * `showCard`) không bao giờ chạy. Trả về true nếu vừa đóng một cái.
+   */
+  const khongLam = () => {};
+  let dongHienTai = khongLam;
+  function dongMung() {
+    if (dongHienTai === khongLam) return false;
+    dongHienTai();
+    return true;
+  }
+
   function anMung(ids, xong) {
     const ds = (ids || [])
       .map((id) => HUY_HIEU.find((h) => h.id === id))
       .filter(Boolean);
     if (!ds.length) { if (xong) xong(); return; }
 
+    // Còn lời chúc mừng cũ đang mở thì cho nó đóng đúng cách trước, để `xong`
+    // của lần ấy chạy nốt thay vì bị tấm mới đè lên rồi mất hẳn.
+    dongMung();
+
     let ov = document.getElementById("tdCelebrate");
     if (!ov) {
       ov = el("div", "celebrate");
       ov.id = "tdCelebrate";
+      /*
+       * Gắn ĐÚNG MỘT LẦN, vì tấm phủ này dùng lại cho mọi lần mở khoá.
+       *
+       * Gắn lại ở mỗi lần gọi thì người nghe cũ vẫn còn nguyên: tới lần thứ N,
+       * một cái chạm ra nền gọi luôn N cái `dong` của N lần trước, kéo theo N
+       * cái `xong` cũ — mà `xong` của buổi học chính là `showCard`.
+       */
+      ov.addEventListener("click", (e) => { if (e.target === ov) dongHienTai(); });
       document.body.appendChild(ov);
     }
     ov.innerHTML = "";
@@ -798,15 +825,30 @@
     card.appendChild(nut);
 
     const dong = () => {
+      if (dongHienTai !== dong) return;   // đã đóng rồi thì thôi, đừng gọi `xong` hai lần
+      dongHienTai = khongLam;
       ov.classList.remove("show");
-      document.removeEventListener("keydown", phim);
+      document.removeEventListener("keydown", phim, true);
       if (xong) xong();
     };
-    const phim = (e) => { if (e.key === "Escape" || e.key === "Enter") dong(); };
+    /*
+     * BẮT Ở GIAI ĐOẠN CAPTURE RỒI CHẶN LẠI, y như bộ xem ảnh vẫn làm.
+     *
+     * Màn học cũng nghe keydown trên `document`: Esc là đóng buổi học, Enter là
+     * "Tiếp". Lời chúc mừng nằm ĐÈ LÊN màn học, mà người ta bấm Esc/Enter là để
+     * tắt chính nó. Để phím lọt xuống thì một cái Esc vừa tắt lời chúc mừng vừa
+     * THOÁT LUÔN BUỔI HỌC — đúng cái "đang học tự dưng thoát ra".
+     */
+    const phim = (e) => {
+      if (e.key !== "Escape" && e.key !== "Enter") return;
+      e.preventDefault();
+      e.stopPropagation();
+      dong();
+    };
 
+    dongHienTai = dong;
     nut.addEventListener("click", dong);
-    ov.addEventListener("click", (e) => { if (e.target === ov) dong(); });
-    document.addEventListener("keydown", phim);
+    document.addEventListener("keydown", phim, true);
 
     ov.appendChild(card);
     ov.classList.add("show");
@@ -827,6 +869,7 @@
     tongQuan,
     tao,
     veBang,
-    anMung
+    anMung,
+    dongMung
   };
 })(typeof window !== "undefined" ? window : globalThis);

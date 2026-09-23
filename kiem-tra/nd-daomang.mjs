@@ -54,6 +54,10 @@ await sw.evaluate(async (now) => {
   for (const [w, n] of [["やおら", "đột nhiên"], ["確立", "sự xác lập"], ["曖昧", "mơ hồ"],
                         ["傾向", "xu hướng"], ["把握", "nắm bắt"], ["湿度", "độ ẩm"]])
     them(w, n);
+  // Một mục lưu nguyên CÂU. Đây chính là thứ đã lọt vào đề thật, và nó vô dụng
+  // làm mồi nhử: loại được ngay từ cái nhìn đầu.
+  them("すみません、わざわざありがとうございます。", "xin lỗi, cảm ơn anh đã mất công");
+  nb["javi:すみません、わざわざありがとうございます。"].kind = "sent";
   await chrome.storage.local.set({ notebook: nb, decks: {}, hoc: {}, nhipMs: {},
     settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false } });
 }, Date.now());
@@ -78,7 +82,64 @@ const moBai = (tu) => page.evaluate(async (t) => {
   };
 }, tu);
 
-console.log("Từ KHÔNG có cực kia thì mồi nhử lấy ở sổ tay");
+console.log("MẶT TRƯỚC không để lộ đáp án ở bất cứ đâu");
+{
+  const r = await page.evaluate(async () => {
+    const it = currentActiveSet().find((x) => x.word === "改善");
+    session = { queue: [Object.assign({}, it, { _d: "dong" })], done: 0, again: 0, deleted: 0 };
+    document.getElementById("studyOverlay").classList.add("show");
+    showCard();
+    await new Promise((x) => setTimeout(x, 500));
+    const hien = (id) => {
+      const o = document.getElementById(id);
+      return !!(o && o.offsetParent !== null);
+    };
+    return { chu: hien("stMatChu"), thaoTac: hien("stThaoTac"), ghiAm: hien("stGhiAm"),
+             deBai: hien("stLienMat"),
+             chuTren: (document.getElementById("stWord").textContent || "").trim() };
+  });
+  /*
+   * CỔNG CHÍNH CỦA BẢN NÀY.
+   *
+   * Chiều cũ thì tiêu đề thẻ là CÂU HỎI nên hiện ra là đúng. Chiều đảo thì nó
+   * là ĐÁP ÁN — và rò ở ba chỗ cùng lúc: con chữ to đùng, nút loa ĐỌC TO từ
+   * gốc, "Nghe lại" mở đúng câu chứa nó, bản thu của chính mình.
+   *
+   * Không có gì đỏ lên nếu hỏng: bài vẫn chạy, vẫn chấm, điểm vẫn cộng — chỉ
+   * là nhìn lên đầu thẻ là thấy đáp án.
+   */
+  soat("đề bài có hiện", r.deBai);
+  soat("KHÔNG hiện con chữ + nút loa ở đầu thẻ", !r.chu, r.chu ? "đang hiện: " + r.chuTren : "đã giấu");
+  soat("KHÔNG hiện hàng Mở nguồn / Hỏi Gemini / Ghi chú", !r.thaoTac);
+  soat("KHÔNG hiện cụm ghi âm", !r.ghiAm);
+}
+{
+  // Nhưng chấm xong thì trả lại đủ — chỉ giấu tới lúc đã trả lời.
+  const r = await page.evaluate(async () => {
+    document.querySelector("#stLienO button").click();
+    await new Promise((x) => setTimeout(x, 120));
+    document.getElementById("stLienXong").click();
+    await new Promise((x) => setTimeout(x, 900));
+    const hien = (id) => {
+      const o = document.getElementById(id);
+      return !!(o && o.offsetParent !== null);
+    };
+    return { chu: hien("stMatChu"), thaoTac: hien("stThaoTac"), ghiAm: hien("stGhiAm") };
+  });
+  soat("chấm xong thì trả lại con chữ", r.chu);
+  soat("trả lại hàng thao tác", r.thaoTac);
+  soat("và trả lại cụm ghi âm", r.ghiAm);
+}
+
+console.log("\nMồi nhử phải là TỪ, không phải câu");
+{
+  const r = await moBai("飲食店");
+  const cauDai = r.o.filter((t) => /[。、]/.test(t || "") || (t || "").length > 14);
+  soat("không ô nào là nguyên một câu", cauDai.length === 0,
+       cauDai.length ? "lọt: " + cauDai.join(" | ") : r.o.join(" "));
+}
+
+console.log("\nTừ KHÔNG có cực kia thì mồi nhử lấy ở sổ tay");
 {
   const r = await moBai("飲食店");
   soat("cụm vẫn ra đủ ở đề", ["食堂", "料亭", "旗亭"].every((t) => r.cum.indexOf(t) >= 0), r.cum);
