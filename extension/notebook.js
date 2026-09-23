@@ -1738,6 +1738,11 @@ function openYoutube(yt, chiaDoi) {
 function openSource(it, chiaDoi) {
   const src = it.src;
   if (!src || !src.url) return;
+  // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn — nút trên thẻ,
+  // phím cách, hay chỗ nào thêm sau này — đều đi qua đây. Đặt ở nút thì sớm muộn
+  // có một lối quên, và quên thì không có gì báo. Ngoài buổi học thì nó vô hại:
+  // `mocHienThe` và `baiLien` đều rỗng nên `dungDongHo` không làm gì.
+  dungDongHo();
   if (src.yt && src.yt.v) { openYoutube(src.yt, chiaDoi); return; }
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
   const url = fragUrl(src);
@@ -1840,6 +1845,7 @@ function phimDan() {
  */
 async function moGemini(it) {
   if (!it || !it.word) return;
+  dungDongHo();                 // sang Gemini đọc thì cũng thôi là truy xuất
   const loi = window.HoiGemini.loiHoi(it, phuGemini(it));
   if (!(await chepChu(loi))) {
     toast(T("Không chép được câu hỏi vào bộ nhớ tạm — bấm lại một lần nữa."), "bad");
@@ -2531,14 +2537,34 @@ function datLoiNhac() {
  * "Hiện nghĩa" (lúc đó việc nhớ đã xong); đổi một dòng là được.
  */
 let mocHienThe = 0;
+/**
+ * Đồng hồ đã DỪNG ở mốc này (ms). null = đang chạy bình thường.
+ *
+ * `ms` sinh ra để đo THỌI GIAN TRUY XUẤT — mất bao lâu để moi từ ra khỏi đầu.
+ * Mở nguồn ra đọc lại câu gốc, hay sang Gemini hỏi, thì đó không còn là truy
+ * xuất nữa — mà đồng hồ thì vẫn chạy. Đọc năm phút rồi bấm Nhớ là lượt ấy
+ * được ghi "rất chậm" (`MS_TOI_DA` kẹp ở 60 giây), và `T_NET.rat_cham = 0,85` thì
+ * giãn cách CO LẠI — bị phạt vì đã chịu khó đi đọc lại.
+ *
+ * Nên dừng hẳn tại lúc rời thẻ, chứ không phải tạm dừng rồi chạy tiếp: quay
+ * lại thì đã nhìn thấy ngữ cảnh rồi, phần sau đó cũng chẳng đo được gì nữa.
+ */
+let msDaDung = null;
+
+/** Dừng đồng hồ ngay tại đây. Gọi nhiều lần thì giữ mốc ĐẦU TIÊN. */
+function dungDongHo() {
+  if (msDaDung !== null) return;
+  if (mocHienThe) msDaDung = Math.round(performance.now() - mocHienThe);
+  else if (baiLien && baiLien.moc) msDaDung = Math.round(performance.now() - baiLien.moc);
+}
 
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
-  goHoiNguon();
   const it = session.queue[0];
   theTrenMan = it;
   if (!it) { finishStudy(); return; }
   mocHienThe = performance.now();
+  msDaDung = null;
   const daLat = giuLat && $("stGrade").style.display !== "none";
 
   $("stBody").style.display = "";
@@ -2909,8 +2935,9 @@ async function grade(remembered) {
   if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
-  const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
-  mocHienThe = 0;
+  const ms = msDaDung !== null ? msDaDung
+    : (mocHienThe ? Math.round(performance.now() - mocHienThe) : 0);
+  mocHienThe = 0; msDaDung = null;
   // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
   const truocDiem = window.Srs.diemTu(it).tong;
   const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin");
@@ -2972,9 +2999,7 @@ async function grade(remembered) {
   if (oCu && mucSau) Object.assign(oCu, mucSau);
   toast(chuBaoCham(remembered, truocDiem, mucSau, it._d || "nhin"));
 
-  // Sau khi NHỚ, mục có nguồn thì hỏi xem có muốn quay lại nghe không — chứ
-  // không quăng thẳng sang thẻ kế.
-  const tiep = () => { if (!hoiNguon(it)) showCard(); };
+  const tiep = () => showCard();
   if (moi.length) {
     // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che
     // mất thẻ mới và người dùng bấm nhầm.
@@ -3017,6 +3042,7 @@ function veBaiLien(it) {
   const o = window.TuLien.dungDe(dung, kia);
 
   baiLien = { it: it, duong: d, dung: new Set(dung), o: o, chon: new Set(), moc: performance.now() };
+  msDaDung = null;
   $("stLienDe").textContent = d === "dong"
     ? T2("Nhặt cho hết những từ CÙNG NGHĨA với {t}", { t: it.word })
     : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
@@ -3059,7 +3085,8 @@ async function xongBaiLien() {
   if (!baiLien) return;
   const b = baiLien;
   baiLien = null;                                  // chặn bấm Xong hai lần
-  const ms = Math.round(performance.now() - b.moc);
+  const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
+  msDaDung = null;
   let dung = 0, sai = 0;
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
@@ -3313,7 +3340,6 @@ async function quayLaiThe() {
     if (i >= 0) session.queue.splice(i, 1);
   }
   session.queue.unshift(b.the);
-  goHoiNguon();
   showCard();
   toast(T("Đã lấy lại thẻ trước và huỷ lượt chấm"));
 }
@@ -3334,11 +3360,10 @@ function boQuaThe() {
   const it = theCardHienTai();
   if (!it) return;
   const i = session.queue.indexOf(it);
-  if (i < 0) { goHoiNguon(); showCard(); return; }   // đã chấm rồi: chỉ đi tiếp
+  if (i < 0) { showCard(); return; }                 // đã chấm rồi: chỉ đi tiếp
   if (session.queue.length < 2) { toast(T("Chỉ còn mỗi thẻ này thôi"), "bad"); return; }
   session.queue.splice(i, 1);
   session.queue.push(it);
-  goHoiNguon();
   showCard();
 }
 
@@ -3372,69 +3397,21 @@ async function moCuaSoRieng(url) {
   }
 }
 
-/* ==================================================================== */
-/* Cửa sổ 5 giây: quay lại nguồn nghe lại                               */
-/* ==================================================================== */
-/*
- * Nhớ được một từ xong là lúc dễ tiếp thu nhất — vừa moi nó ra khỏi trí nhớ
- * thì cả cụm liên kết quanh nó đang sáng. Nghe lại đúng câu đã gặp ngay lúc ấy
- * là nối được chữ với âm thật, thứ mà thẻ chữ không bao giờ làm được.
- *
- * Nhưng KHÔNG được bắt buộc, và không được cản. Nên: năm giây đếm ngược, không
- * bấm gì thì tự sang thẻ kế. Ai đang ôn nhanh sẽ chẳng thấy vướng, ai muốn
- * nghe thì có cửa. Bấm "Không" là đi luôn, không phải chờ hết năm giây.
- *
- * Đã chọn nghe thì KHÔNG tự chuyển thẻ nữa: mở nguồn ra là mắt rời khỏi app,
- * tự nhảy thẻ lúc đó chỉ làm mất chỗ.
- */
-// Ba giây, không phải năm. Năm giây đủ dài để thành ra đang CHỜ, mà việc này
-// vốn chỉ là một cái cửa mở hé — ai muốn nghe thì bấm, không thì đi tiếp.
-const CHO_NGUON = 3;
 /** Một thẻ quay lại tối đa ngần này lượt trong MỘT buổi. Xem grade(). */
 const LAP_TOI_DA = 2;
-let demNguon = null, xongNguon = null;
 
-function goHoiNguon() {
-  if (demNguon) { clearInterval(demNguon); demNguon = null; }
-  xongNguon = null;
-  const a = $("stHoiNguon"), b = $("stDaNghe");
-  if (a) a.style.display = "none";
-  if (b) b.style.display = "none";
-}
-
-/**
- * @returns {boolean} có mở cửa sổ hỏi không. false = cứ sang thẻ kế như cũ.
+/*
+ * CỬA SỔ "MỞ LẠI NGUỒN NGHE LẠI?" ĐÃ BỊ GỠ HẲN.
+ *
+ * Nó từng chặn giữa hai thẻ: chấm xong một từ là hiện ra một câu hỏi kèm đếm
+ * ngược ba giây. Ý định là "một cái cửa mở hé", nhưng đặt giữa mạch ôn thì nó
+ * là một cái chắn: mỗi thẻ có nguồn đều phải bấm thêm một lần để đi tiếp, hoặc
+ * ngồi đợi ba giây. Một buổi trăm thẻ là trăm lần như thế.
+ *
+ * Nút "Mở nguồn" vẫn nằm ngay trên mặt thẻ, bấm lúc nào cũng được — nên cái
+ * cửa ấy không hề mất, chỉ thôi tự chìa ra trước mặt. Và phần đáng lo của việc
+ * đi đọc nguồn — bị chấm là "rất chậm" — nay do `dungDongHo` lo.
  */
-function hoiNguon(it) {
-  if (!it || !it.src || !it.src.url) return false;      // không có nguồn thì thôi
-  const o = $("stHoiNguon");
-  if (!o) return false;
-  goHoiNguon();
-  $("stGrade").style.display = "none";
-  o.style.display = "";
-  xongNguon = it;
-  let con = CHO_NGUON;
-  $("stDem").textContent = "(" + con + ")";
-  demNguon = setInterval(() => {
-    con -= 1;
-    if (con > 0) { $("stDem").textContent = "(" + con + ")"; return; }
-    goHoiNguon();
-    showCard();
-  }, 1000);
-  return true;
-}
-
-function coNgheLai() {
-  const it = xongNguon;
-  if (demNguon) { clearInterval(demNguon); demNguon = null; }
-  $("stHoiNguon").style.display = "none";
-  if (!it) { showCard(); return; }
-  $("stDaNghe").style.display = "";
-  openSource(it, true);          // từ chế độ học thì chia đôi màn hình
-  speak(it.word, it.audio);
-}
-
-function khongNgheLai() { goHoiNguon(); showCard(); }
 
 async function deleteCurrentCard() {
   const it = theCardHienTai();
@@ -3470,7 +3447,6 @@ async function undoDelete() {
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
   theTrenMan = null;
-  goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
   $("stDone").style.display = "";
@@ -3511,7 +3487,6 @@ async function finishStudy() {
 function closeStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
   theTrenMan = null;
-  goHoiNguon();
   if (window.NhacTau) window.NhacTau.tat();
   ovl.classList.remove("show");
   load();
@@ -3541,9 +3516,6 @@ if ($("stPhimAn")) $("stPhimAn").addEventListener("click", async () => {
   const { settings } = await chrome.storage.local.get("settings");
   await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { anPhim: true }) });
 });
-$("stCoNghe").addEventListener("click", coNgheLai);
-$("stKhongNghe").addEventListener("click", khongNgheLai);
-$("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
 $("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
@@ -3567,16 +3539,14 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === " " || e.key === "Enter") {
     /*
      * Space làm ba việc, theo đúng thứ tự người ta cần chúng:
-     *   thẻ đang úp   -> lật ra
-     *   cửa sổ 3 giây -> mở nguồn nghe lại (khỏi phải với chuột trong 3 giây)
-     *   đã lật rồi    -> mở nguồn
+     *   thẻ đang úp -> lật ra
+     *   đã lật rồi  -> mở nguồn
      * Một phím cho cả mạch thao tác, tay không phải rời bàn phím.
      */
     e.preventDefault();
     // Màn kết quả bài liên kết đang chờ: phím cách là "Tiếp".
     if (tiepBaiLien) { tiepBaiLien(); return; }
     if ($("stReveal").style.display !== "none") { revealCard(); return; }
-    if ($("stHoiNguon").style.display !== "none") { coNgheLai(); return; }
     const it = theCardHienTai();
     if (it && it.src && it.src.url) openSource(it, true);
   } else if (e.key === "ArrowLeft") { e.preventDefault(); quayLaiThe(); }

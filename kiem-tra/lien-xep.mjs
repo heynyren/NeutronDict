@@ -374,6 +374,40 @@ for (const [ten, arg] of Object.entries({
        ten + " ui.css: không còn kiểu cho nghĩa trong ô đề");
     la(/\.lien-o\.to/.test(doc(p9)), ten + " ui.css: khung đề xếp một cột");
   }
+  /*
+   * ĐỒNG HỒ SRS PHẢI DỪNG ĐƯỢC, Ở CẢ HAI BẢN.
+   *
+   * `ms` đo thời gian truy xuất. Mở nguồn ra đọc năm phút rồi bấm Nhớ thì lượt
+   * ấy bị ghi "rất chậm", mà `T_NET.rat_cham = 0,85` làm giãn cách CO LẠI — bị
+   * phạt đúng vì đã chịu khó đi đọc lại. Không có gì đỏ, không có gì chậm; chỉ
+   * là lịch ôn của những từ mình chăm nhất lại ngắn đi.
+   *
+   * Và phải dừng BÊN TRONG hàm mở nguồn, không phải ở từng nút: đặt ở nút thì
+   * sớm muộn có một lối quên.
+   */
+  for (const [pA, ten, moNguon] of [["extension/notebook.js", "notebook.js", "function openSource(it, chiaDoi) {"],
+                                    ["android/www/app.js", "app.js", "function openSourceExt(it) {"]]) {
+    const h = doc(pA);
+    la(/function dungDongHo\(\)/.test(h), ten + ": có dungDongHo()");
+    la(/let msDaDung = null;/.test(h), ten + ": có mốc đồng hồ đã dừng");
+    const i = h.indexOf(moNguon);
+    const than = i >= 0 ? h.slice(i, i + 700) : "";
+    la(/dungDongHo\(\);/.test(than), ten + ": mở nguồn thì dừng đồng hồ (dừng BÊN TRONG hàm)");
+    la(/msDaDung !== null \? msDaDung/.test(h), ten + ": lượt chấm đọc mốc đã dừng");
+  }
+  /*
+   * VÀ CỬA SỔ ĐẾM NGƯỢC ĐÃ BỊ GỠ HẲN — cả mã lẫn giao diện.
+   *
+   * Chấm xong mỗi thẻ có nguồn là phải bấm thêm một lần, hoặc ngồi đợi ba giây.
+   * Một buổi trăm thẻ là trăm lần như thế.
+   */
+  for (const pB of ["extension/notebook.js", "android/www/app.js",
+                    "extension/notebook.html", "android/www/index.html"]) {
+    const h = doc(pB);
+    const sot = ["stHoiNguon", "stDaNghe", "stDem", "hoiNguon(", "CHO_NGUON"]
+      .filter((k) => h.indexOf(k) >= 0);
+    la(sot.length === 0, pB + ": không còn dấu vết cửa sổ đếm ngược", sot.join(" "));
+  }
   // Tốc độ bài nghe khởi từ ×1,0 — không còn bậc ×0,8 nghe ể.
   {
     const g = {}; new Function("self", doc("extension/srs.js"))(g);

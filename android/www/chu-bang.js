@@ -621,10 +621,6 @@
     "Đang phát: nhạc ga {ten}": "Now playing: {ten} station jingle",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "A soft click when you tap a button, the way Android apps do",
-    "Mở lại nguồn và nghe câu này?": "Open the source and listen to this sentence?",
-    "Không, từ tiếp theo": "No, next word",
-    "Có, nghe lại": "Yes, listen again",
-    "Từ tiếp theo": "Next word",
     "Nghe câu": "Play the sentence",
     "Tốc độ ×{t} — nhanh dần theo cấp": "Speed ×{t} — faster as the level rises",
     "Xong": "Done",
@@ -1577,10 +1573,6 @@
     "Đang phát: nhạc ga {ten}": "再生中：{ten}駅の発車メロディ",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "ボタンを押すと軽いクリック音——Android アプリと同じ感じ",
-    "Mở lại nguồn và nghe câu này?": "出典を開いてこの文を聞きますか？",
-    "Không, từ tiếp theo": "いいえ、次の語へ",
-    "Có, nghe lại": "はい、聞き直す",
-    "Từ tiếp theo": "次の語へ",
     "Nghe câu": "文を聞く",
     "Tốc độ ×{t} — nhanh dần theo cấp": "速度 ×{t}——レベルが上がるほど速く",
     "Xong": "完了",

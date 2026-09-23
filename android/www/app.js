@@ -1714,8 +1714,7 @@ function show(view, huong) {
 
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
-  if (view !== "Study") goHoiNguon();
-  if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
+  if (view !== "Study")  if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
   if (view === "Progress") { veTienDo(); pullAndRefresh(); }
@@ -3096,6 +3095,7 @@ async function chepChu(chu) {
  * làm người ta tưởng đã xong rồi loay hoay ở đầu bên kia.
  */
 async function moGemini(it, tenSo) {
+  dungDongHo();                 // sang Gemini đọc thì cũng thôi là truy xuất
   if (!it || !it.word) return;
   const loi = window.HoiGemini.loiHoi(it, phuGemini(it, tenSo));
   if (!(await chepChu(loi))) {
@@ -3120,6 +3120,9 @@ function nutGemini(it, tenSo) {
 }
 
 function openSourceExt(it) {
+  // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn đều đi qua đây.
+  // Đặt ở nút thì sớm muộn có một lối quên, và quên thì không có gì báo.
+  dungDongHo();
   if (!it.src || !it.src.url) return;
   const base = it.src.url;
   const frag = buildTextFragment(it.src) || encodeURIComponent((it.word || "").slice(0, 60));
@@ -4009,6 +4012,26 @@ if ($("nghThu")) $("nghThu").addEventListener("click", () => {
  * số; muốn tín hiệu sạch hơn thì đo tới lúc bấm "Hiện nghĩa".
  */
 let mocHienThe = 0;
+/**
+ * Đồng hồ đã DỪNG ở mốc này (ms). null = đang chạy bình thường.
+ *
+ * `ms` sinh ra để đo THỌI GIAN TRUY XUẤT — mất bao lâu để moi từ ra khỏi đầu.
+ * Mở nguồn ra đọc lại câu gốc, hay sang Gemini hỏi, thì đó không còn là truy
+ * xuất nữa — mà đồng hồ thì vẫn chạy. Đọc năm phút rồi bấm Nhớ là lượt ấy
+ * được ghi "rất chậm" (`MS_TOI_DA` kẹp ở 60 giây), và `T_NET.rat_cham = 0,85` thì
+ * giãn cách CO LẠI — bị phạt vì đã chịu khó đi đọc lại.
+ *
+ * Dừng HẲN tại lúc rời thẻ chứ không tạm dừng rồi chạy tiếp: quay lại thì đã
+ * nhìn thấy ngữ cảnh rồi, phần sau đó cũng chẳng đo được gì nữa.
+ */
+let msDaDung = null;
+
+/** Dừng đồng hồ ngay tại đây. Gọi nhiều lần thì giữ mốc ĐẦU TIÊN. */
+function dungDongHo() {
+  if (msDaDung !== null) return;
+  if (mocHienThe) msDaDung = Math.round(performance.now() - mocHienThe);
+  else if (baiLien && baiLien.moc) msDaDung = Math.round(performance.now() - baiLien.moc);
+}
 
 /**
  * Thẻ ĐANG HIỆN TRÊN MÀN — không phải đầu hàng đợi. Hai thứ đó lệch nhau đúng
@@ -4021,12 +4044,12 @@ function theCardHienTai() { return theTrenMan || session.queue[0]; }
 
 function showCard(giuLat) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
-  goHoiNguon();
   const it = session.queue[0];
   theTrenMan = it;
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
   mocHienThe = performance.now();
+  msDaDung = null;
 
   const laNghe = it._d === "nghe";
   const laLien = it._d === "dong" || it._d === "trai";
@@ -4174,55 +4197,17 @@ async function boiThem(key) {
 /* Cửa sổ 5 giây: quay lại nguồn nghe lại                               */
 /* ==================================================================== */
 /*
- * Nhớ được một từ xong là lúc dễ tiếp thu nhất — vừa moi nó ra thì cả cụm liên
- * kết quanh nó đang sáng. Nhưng KHÔNG được bắt buộc và không được cản: năm giây
- * đếm ngược, không bấm gì thì tự sang thẻ kế. Đã chọn nghe thì DỪNG LẠI — mở
- * nguồn ra là mắt rời khỏi app, tự nhảy thẻ lúc đó chỉ làm mất chỗ.
+ * CỬA SỔ "MỞ LẠI NGUỒN NGHE LẠI?" ĐÃ BỊ GỠ HẲN.
+ *
+ * Nó từng chặn giữa hai thẻ: chấm xong một từ là hiện ra một câu hỏi kèm đếm
+ * ngược ba giây. Ý định là "một cái cửa mở hé", nhưng đặt giữa mạch ôn thì nó
+ * là một cái chắn: mỗi thẻ có nguồn đều phải bấm thêm một lần để đi tiếp, hoặc
+ * ngồi đợi ba giây. Một buổi trăm thẻ là trăm lần như thế.
+ *
+ * Nút "Mở nguồn" vẫn nằm ngay trên mặt thẻ — cái cửa không mất, chỉ thôi tự
+ * chìa ra trước mặt. Phần đáng lo của việc đi đọc nguồn — bị chấm là "rất
+ * chậm" — nay do `dungDongHo` lo.
  */
-// Ba giây, không phải năm. Năm giây đủ dài để thành ra đang CHỜ, mà việc này
-// vốn chỉ là một cái cửa mở hé — ai muốn nghe thì bấm, không thì đi tiếp.
-const CHO_NGUON = 3;
-let demNguon = null, xongNguon = null;
-
-function goHoiNguon() {
-  if (demNguon) { clearInterval(demNguon); demNguon = null; }
-  xongNguon = null;
-  if ($("stHoiNguon")) $("stHoiNguon").style.display = "none";
-  if ($("stDaNghe")) $("stDaNghe").style.display = "none";
-}
-
-/** @returns {boolean} có mở cửa sổ hỏi không. false = cứ sang thẻ kế như cũ. */
-function hoiNguon(it) {
-  if (!it || !it.src || !it.src.url) return false;
-  const o = $("stHoiNguon");
-  if (!o) return false;
-  goHoiNguon();
-  $("stGrade").style.display = "none";
-  o.style.display = "";
-  xongNguon = it;
-  let con = CHO_NGUON;
-  $("stDem").textContent = "(" + con + ")";
-  demNguon = setInterval(() => {
-    con -= 1;
-    if (con > 0) { $("stDem").textContent = "(" + con + ")"; return; }
-    goHoiNguon();
-    showCard();
-  }, 1000);
-  return true;
-}
-
-function coNgheLai() {
-  const it = xongNguon;
-  if (demNguon) { clearInterval(demNguon); demNguon = null; }
-  $("stHoiNguon").style.display = "none";
-  if (!it) { showCard(); return; }
-  $("stDaNghe").style.display = "";
-  openSourceExt(it);
-  speak(it.word, it.audio);
-}
-if ($("stCoNghe")) $("stCoNghe").addEventListener("click", coNgheLai);
-if ($("stKhongNghe")) $("stKhongNghe").addEventListener("click", () => { goHoiNguon(); showCard(); });
-if ($("stTiep")) $("stTiep").addEventListener("click", () => { goHoiNguon(); showCard(); });
 
 /**
  * Phát câu nghe. Tốc độ theo cấp của chính đường nghe — cấp thấp nghe chậm cho
@@ -4554,6 +4539,7 @@ function veBaiLien(it) {
   // đã bày ra, và không có cách nào dựng lại nó (dungDe xáo ngẫu nhiên). Thiếu
   // nó thì `xepKetQua` nhận mảng rỗng và màn kết quả trống trơn.
   baiLien = { it: it, duong: d, dung: new Set(dung), o: o, chon: new Set(), moc: performance.now() };
+  msDaDung = null;
   $("stLienDe").textContent = d === "dong"
     ? T2("Nhặt cho hết những từ CÙNG NGHĨA với {t}", { t: it.word })
     : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
@@ -4598,7 +4584,8 @@ async function xongBaiLien() {
   if (!baiLien) return;
   const b = baiLien;
   baiLien = null;                                  // chặn bấm Xong hai lần
-  const ms = Math.round(performance.now() - b.moc);
+  const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
+  msDaDung = null;
   let dung = 0, sai = 0;
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
@@ -4696,7 +4683,9 @@ async function grade(remembered) {
   if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
-  const ms = mocHienThe ? Math.round(performance.now() - mocHienThe) : 0;
+  const ms = msDaDung !== null ? msDaDung
+    : (mocHienThe ? Math.round(performance.now() - mocHienThe) : 0);
+  msDaDung = null;
   mocHienThe = 0;
   // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
   const truocDiem = window.Srs.diemTu(it).tong;
@@ -4713,7 +4702,7 @@ async function grade(remembered) {
   // Chờ xem hết chúc mừng rồi mới sang thẻ tiếp — nếu không thì popup che mất
   // thẻ mới và người dùng bấm nhầm.
   // Sau khi NHỚ, mục có nguồn thì hỏi có muốn quay lại nghe không.
-  const tiep = () => { if (!hoiNguon(it)) showCard(); };
+  const tiep = () => showCard();
   mung(moi, tiep);
 }
 $("gKnow").addEventListener("click", () => grade(true));
@@ -4760,7 +4749,6 @@ function ketThucSom() {
 async function finishStudy() {
   if (window.NhipDoc) window.NhipDoc.dung();
   if (window.NhacTau) window.NhacTau.tat();
-  goHoiNguon();
   theTrenMan = null;
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
