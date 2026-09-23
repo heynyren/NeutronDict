@@ -4570,23 +4570,21 @@ function veBaiLien(it) {
   khung.classList.remove("kq");
   khung.classList.add("to");
   /*
-   * MỖI TỪ MỘT Ô LỚN, MỘT CỘT, CHẠM ĐÂU CŨNG ĂN.
+   * MỖI TỪ MỘT Ô LỚN, MỘT CỘT, CHẠM ĐÂU CŨNG ĂN — NHƯNG KHÔNG CÓ NGHĨA.
    *
-   * Bản cũ rải nút nhỏ theo hàng ngang cho gọn màn. Trên điện thoại thì vùng
-   * chạm chỉ còn bằng con chữ, và mắt phải nhảy ngang dọc để quét cho hết. Từ
-   * khi đề chỉ lấy từ của chính nó, số ô ít hẳn — một cột vừa màn.
+   * Bản 4.27.0 có in nghĩa tiếng Việt dưới mỗi ô cho "dễ học". Đó là một
+   * lỗi thật sự: đề hỏi "nhặt các từ cùng nghĩa với 汁", mà 液体 ghi sẵn "chất
+   * lỏng", リキッド ghi "chất lỏng.", 流動体 ghi "chất lỏng" — không cần biết
+   * một chữ tiếng Nhật nào, chỉ cần so chuỗi tiếng Việt là xong. Đáp án được in
+   * sẵn lên thẻ, nên bài thôi đo cái gì cả.
    *
-   * Và mỗi ô mang luôn NGHĨA tiếng Việt: bài dễ hẳn đi, bù lại là đường
-   * `dong`/`trai` thôi còn đo được nhiều như trước — một đánh đổi có ý.
+   * Nghĩa vẫn có — ở MÀN KẾT QUẢ, sau khi đã trả lời. Đó mới đúng chỗ của nó:
+   * phần thưởng để đọc, không phải gợi ý để chọn.
    */
-  const dsNghia = [];
   for (const chu of o) {
     const b = el("button", "lien-omot");
     b.type = "button";
     b.appendChild(el("span", "lien-omot-tu" + (laNhat() ? " ja" : ""), chu));
-    const ngh = el("span", "lien-omot-nghia", "…");
-    b.appendChild(ngh);
-    dsNghia.push({ chu: chu, o: ngh });
     b.addEventListener("click", () => {
       if (b.disabled) return;
       if (baiLien.chon.has(chu)) { baiLien.chon.delete(chu); b.classList.remove("chon"); }
@@ -4594,7 +4592,6 @@ function veBaiLien(it) {
     });
     khung.appendChild(b);
   }
-  dienNghia(dsNghia);
 }
 
 async function xongBaiLien() {

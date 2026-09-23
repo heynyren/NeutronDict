@@ -349,12 +349,29 @@ for (const [ten, arg] of Object.entries({
     const than = i >= 0 ? h.slice(i, h.indexOf("\n}\n", i)) : "";
     la(/dungDe\(dung, kia\)/.test(than), ten + ": đề chỉ lấy đồng + trái nghĩa của chính nó");
     la(!/dungDe\(dung, kia,/.test(than), ten + ": không truyền kho từ ngoài vào `dungDe`");
-    la(/"lien-omot"/.test(than) && /lien-omot-nghia/.test(than),
-       ten + ": mỗi ô đề là ô lớn có kèm nghĩa");
+    la(/"lien-omot"/.test(than), ten + ": mỗi ô đề là một ô lớn");
+    /*
+     * VÀ MÀN LÀM BÀI KHÔNG ĐƯỢC IN NGHĨA.
+     *
+     * Bản 4.27.0 in nghĩa tiếng Việt dưới mỗi ô cho "dễ học" — há ra là in sẵn
+     * đáp án: đề hỏi "cùng nghĩa với 汁" mà ba ô cùng ghi "chất lỏng". Bài vẫn
+     * chạy, vẫn chấm, điểm vẫn cộng — chỉ là nó thôi đo trí nhớ. Nghĩa chỉ được
+     * hiện ở `veKetQuaLien`, sau khi đã trả lời.
+     */
+    la(!/lien-omot-nghia/.test(than) && !/dienNghia\(/.test(than),
+       ten + ": màn LÀM BÀI không in nghĩa (in ra là in sẵn đáp án)");
+    // Nhưng màn KẾT QUẢ thì vẫn phải có — đó là phần thưởng để đọc.
+    {
+      const i2 = h.indexOf("function veKetQuaLien(");
+      const than2 = i2 >= 0 ? h.slice(i2, h.indexOf("\n}\n", i2)) : "";
+      la(/dienNghia\(/.test(than2), ten + ": màn KẾT QUẢ vẫn điền nghĩa");
+    }
   }
   for (const [p9, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
     la(/\.lien-omot \{/.test(doc(p9)) && /min-height: 56px/.test(doc(p9)),
        ten + " ui.css: ô đề lớn, cao tối thiểu 56px");
+    la(!/\.lien-omot-nghia/.test(doc(p9)),
+       ten + " ui.css: không còn kiểu cho nghĩa trong ô đề");
     la(/\.lien-o\.to/.test(doc(p9)), ten + " ui.css: khung đề xếp một cột");
   }
   // Tốc độ bài nghe khởi từ ×1,0 — không còn bậc ×0,8 nghe ể.

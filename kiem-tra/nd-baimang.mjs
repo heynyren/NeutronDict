@@ -14,9 +14,12 @@
  *      tay đầy từ khác. Lọt một từ thì bài vẫn chạy, vẫn chấm, chỉ là dài ra và
  *      người học không biết vì sao.
  *   2. Đáp án là một cực, mồi nhử là cực kia — không thiếu, không thừa.
- *   3. Mỗi ô là MỘT Ô LỚN mang cả con chữ lẫn nghĩa, và chạm đâu trong ô cũng
- *      ăn. Đây là chỗ dễ hỏng nhất khi ai đó sửa DOM: nút vẫn bấm được ở giữa
- *      mà mép ô thì không, và trên điện thoại thì đó là phần lớn cú chạm.
+ *   3. Mỗi ô là MỘT Ô LỚN, chạm đâu trong ô cũng ăn — nhưng TUYỆT ĐỐI KHÔNG
+ *      MANG NGHĨA. Bản 4.27.0 có in nghĩa tiếng Việt dưới mỗi ô cho "dễ học", và
+ *      đó là để đáp án in sẵn lên thẻ: đề hỏi "cùng nghĩa với 汁" mà 液体,
+ *      リキッド, 流動体 đều ghi sẵn "chất lỏng" — chỉ cần so chuỗi tiếng Việt là
+ *      xong, không cần biết một chữ tiếng Nhật nào. Bài vẫn chạy, vẫn chấm, chỉ là
+ *      nó thôi đo cái gì. Nghĩa chỉ được hiện ở MÀN KẾT QUẢ, sau khi trả lời.
  *   4. Nhãn nhóm ba trên màn kết quả nói ĐÚNG chúng là gì (trái nghĩa của từ
  *      này), chứ không còn gọi là "từ nhiễu".
  */
@@ -85,7 +88,10 @@ const moBai = () => page.evaluate(async () => {
   await new Promise((x) => setTimeout(x, 600));
   return [...document.querySelectorAll("#stLienO button")].map((b) => ({
     tu: (b.querySelector(".lien-omot-tu") || {}).textContent,
-    nghia: (b.querySelector(".lien-omot-nghia") || {}).textContent,
+    nghia: (b.querySelector(".lien-omot-nghia") || {}).textContent || "",
+    // `ca` = chữ của CẢ Ô. So nó với `tu` thì bắt được mọi kiểu nhét nghĩa vào,
+    // kể cả nhét bằng một lớp khác tên.
+    ca: (b.textContent || "").trim(),
     lop: b.className
   }));
 });
@@ -108,12 +114,21 @@ const o = await moBai();
   soat("nên đề gọn đúng 5 ô thay vì mười mấy", o.length === 5, o.length + " ô");
 }
 
-console.log("\nMỗi ô là một Ô LỚN, có nghĩa, chạm đâu cũng ăn");
+console.log("\nMỗi ô là một Ô LỚN, chạm đâu cũng ăn — và KHÔNG có nghĩa");
 {
   soat("mỗi ô mang lớp ô-lớn", o.every((x) => /lien-omot/.test(x.lop)), o[0] && o[0].lop);
-  soat("và mang cả con chữ lẫn nghĩa tiếng Việt",
-       o.every((x) => x.tu && x.nghia && x.nghia !== "…" && x.nghia !== "—"),
-       o.map((x) => x.tu + "=" + x.nghia).join(" · ").slice(0, 90));
+  soat("mọi ô đều có con chữ", o.every((x) => !!x.tu), o.map((x) => x.tu).join(" "));
+  /*
+   * CỔNG CHẶN CHÍNH CỦA BÀI NÀY.
+   *
+   * In nghĩa ra đây là in sẵn đáp án: ba ô cùng ghi "chất lỏng" thì chỉ cần so
+   * chuỗi tiếng Việt. Không có gì đỏ lên, bài vẫn chấm bình thường — chỉ là nó
+   * thôi đo trí nhớ, mà điểm thì vẫn cộng đều.
+   */
+  soat("KHÔNG ô nào in nghĩa ra — đó là in sẵn đáp án",
+       o.every((x) => !x.nghia), o.map((x) => x.tu + (x.nghia ? "=" + x.nghia : "")).join(" · "));
+  soat("và cả ô không chứa chữ tiếng Việt nào", o.every((x) => x.ca === x.tu),
+       o.map((x) => JSON.stringify(x.ca)).join(" "));
   const d = await page.evaluate(() => {
     const khung = document.getElementById("stLienO");
     const b = khung.querySelector("button");
@@ -126,14 +141,21 @@ console.log("\nMỗi ô là một Ô LỚN, có nghĩa, chạm đâu cũng ăn")
   soat("và chiếm trọn chiều ngang (một cột)", d.rong >= d.rongKhung - 2,
        d.rong + "/" + d.rongKhung + "px");
   soat("khung xếp một cột", /\bto\b/.test(d.cot), d.cot);
-  // Chạm vào Ô NGHĨA — phần mép dưới — cũng phải chọn được ô.
+  /*
+   * Chạm vào MÉP Ô — chỗ cách con chữ xa nhất — cũng phải chọn được.
+   *
+   * Đây là phần lớn cú chạm trên điện thoại. Nếu ai đó sau này gắn trình xử lý
+   * vào span con chữ thay vì cả nút thì nút vẫn bấm được ở giữa, chỉ mép là chết.
+   */
   const an = await page.evaluate(async () => {
     const b = document.querySelector("#stLienO button");
-    b.querySelector(".lien-omot-nghia").click();
+    const r = b.getBoundingClientRect();
+    const el2 = document.elementFromPoint(Math.round(r.right - 6), Math.round(r.bottom - 6));
+    if (el2) el2.click();
     await new Promise((x) => setTimeout(x, 150));
     return b.classList.contains("chon");
   });
-  soat("chạm vào dòng NGHĨA cũng chọn được ô", an);
+  soat("chạm vào MÉP ô cũng chọn được", an);
 }
 
 console.log("\nMàn kết quả gọi đúng tên nhóm ba");
