@@ -347,8 +347,16 @@ for (const [ten, arg] of Object.entries({
     const h = doc(p8);
     const i = h.indexOf("function veBaiLien(it) {");
     const than = i >= 0 ? h.slice(i, h.indexOf("\n}\n", i)) : "";
-    la(/dungDe\(dung, kia\)/.test(than), ten + ": đề chỉ lấy đồng + trái nghĩa của chính nó");
-    la(!/dungDe\(dung, kia,/.test(than), ten + ": không truyền kho từ ngoài vào `dungDe`");
+    /*
+     * ĐỀ ĐẢO: đáp án dựng từ CHÍNH TỪ GỐC, và trần 5 ô.
+     *
+     * Lỡ tay trả `dungDe(cum, ...)` như chiều cũ thì bài vẫn chạy, vẫn chấm,
+     * chỉ là nó quay về hỏi "nhận ra" — mà điểm thì vẫn cộng đều.
+     */
+    la(/dungDe\(\[it\.word\], kia, xa/.test(than),
+       ten + ": đáp án là TỪ GỐC, mồi nhử cực kia rồi mới tới sổ tay");
+    la(/O_DAO_TOI_DA/.test(than), ten + ": hạ trần xuống 5 ô cho đề đảo");
+    la(/lien-cum/.test(than), ten + ": đề bày cụm ra để đọc");
     la(/"lien-omot"/.test(than), ten + ": mỗi ô đề là một ô lớn");
     /*
      * VÀ MÀN LÀM BÀI KHÔNG ĐƯỢC IN NGHĨA.
@@ -365,11 +373,23 @@ for (const [ten, arg] of Object.entries({
       const i2 = h.indexOf("function veKetQuaLien(");
       const than2 = i2 >= 0 ? h.slice(i2, h.indexOf("\n}\n", i2)) : "";
       la(/dienNghia\(/.test(than2), ten + ": màn KẾT QUẢ vẫn điền nghĩa");
+      /*
+       * VÀ MÀN KẾT QUẢ PHẢI BÀY CẢ CỤM Ở ĐỀ BÀI.
+       *
+       * Chiều đảo chuyển cụm từ ô sang đề, nên nếu màn kết quả chỉ liệt kê các
+       * ô thì mất sạch nút × (bỏ một từ vô lý khỏi liên kết) và + Lưu cho đúng
+       * mấy từ trong cụm — thứ người dùng dặn phải giữ nguyên. Không có gì đỏ
+       * lên: màn vẫn đẹp, chỉ là thiếu hẳn một nhóm.
+       */
+      la(/b\.cum \|\| \[\]/.test(than2),
+         ten + ": màn KẾT QUẢ bày cả cụm ở đề (để còn × và + Lưu)");
     }
   }
   for (const [p9, ten] of [["extension/ui.css", "extension"], ["android/www/ui.css", "android"]]) {
     la(/\.lien-omot \{/.test(doc(p9)) && /min-height: 56px/.test(doc(p9)),
        ten + " ui.css: ô đề lớn, cao tối thiểu 56px");
+    la(/\.lien-cum \{/.test(doc(p9)),
+       ten + " ui.css: cụm ở đề nhìn khác hẳn ô để chọn");
     la(!/\.lien-omot-nghia/.test(doc(p9)),
        ten + " ui.css: không còn kiểu cho nghĩa trong ô đề");
     la(/\.lien-o\.to/.test(doc(p9)), ten + " ui.css: khung đề xếp một cột");
@@ -542,7 +562,10 @@ console.log("\nBản Android đã dựng màn kết quả");
                 // từ đang học, mấy ô còn lại là CỰC NGƯỢC LẠI của nó.
                 "Tiếp", "Đáp án", "Nhặt nhầm",
                 "Trái nghĩa của từ này", "Cùng nghĩa của từ này",
-                "Nhặt được {a}/{b} · {t} giây"];
+                // Chiều đảo: đề mới, nhóm mới, lời báo kết quả mới.
+                "Mấy từ này CÙNG NGHĨA với từ nào?", "Mấy từ này TRÁI NGHĨA với từ nào?",
+                "Từ khác trong sổ", "Cùng nghĩa với nó", "Trái nghĩa với nó",
+                "Tìm ra rồi · {t} giây", "Chưa ra · {t} giây"];
   for (const p of ["extension/chu-bang.js", "android/www/chu-bang.js"]) {
     const g = {}; new Function("self", doc(p))(g);
     const B = g.CHU_BANG;

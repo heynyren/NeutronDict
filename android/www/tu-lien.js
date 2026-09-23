@@ -225,6 +225,13 @@
 
   /** Số ô tối đa trên một đề. Nhiều quá thì thành trò tìm chữ, không phải nhớ từ. */
   const O_TOI_DA = 16;
+  /**
+   * Trần riêng cho ĐỀ ĐẢO (cho cụm, đi tìm từ gốc).
+   *
+   * Đề đảo chỉ có MỘT đáp án, nên mười sáu ô là mười lăm lần đọc thừa. Năm ô
+   * đủ để có mồi nhử thật mà vẫn liếc một cái là hết.
+   */
+  const O_DAO_TOI_DA = 5;
 
   /**
    * Dựng một mớ lộn xộn: tập đúng + các từ gây nhiễu.
@@ -241,21 +248,39 @@
    * @param {string[]} nhieuXa nhiễu lấy từ sổ tay
    * @param {function} [ngau] hàm ngẫu nhiên, truyền vào để kiểm cho tất định
    */
-  function dungDe(dung, nhieuGan, nhieuXa, ngau) {
+  function dungDe(dung, nhieuGan, nhieuXa, ngau, tran) {
     const rnd = ngau || Math.random;
     const co = new Set(dung);
-    const nhieu = [];
-    for (const x of (nhieuGan || []).concat(nhieuXa || [])) {
-      if (!co.has(x) && nhieu.indexOf(x) < 0) nhieu.push(x);
-    }
-    const canThem = Math.max(0, Math.min(O_TOI_DA - dung.length, nhieu.length));
-    // Xáo phần nhiễu rồi mới cắt, để lần nào cũng ra một mớ khác
-    const xao = nhieu.slice();
-    for (let i = xao.length - 1; i > 0; i--) {
-      const j = Math.floor(rnd() * (i + 1));
-      const t = xao[i]; xao[i] = xao[j]; xao[j] = t;
-    }
-    const o = dung.concat(xao.slice(0, canThem));
+    const xaoLai = (ds) => {
+      const a = ds.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rnd() * (i + 1));
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    };
+    /*
+     * GẦN TRƯỚC, XA SAU — xáo RIÊNG từng tầng rồi mới nối.
+     *
+     * Bản cũ nối hai tầng rồi xáo chung, nên `nhieuGan` chẳng được ưu tiên gì:
+     * một từ có hai trái nghĩa mà sổ tay có nghìn từ thì mồi nhử gần như toàn
+     * từ ngoài. Đề vẫn đủ ô, vẫn chấm được — chỉ là nó thôi hỏi "phân biệt
+     * đồng với trái nghĩa của chính từ này", mà chẳng có gì báo.
+     *
+     * Xáo riêng từng tầng thì vẫn mỗi lượt một mớ khác, nhưng tầng gần luôn
+     * được vét trước.
+     */
+    const loc = (ds) => {
+      const ra = [];
+      for (const x of ds || []) if (!co.has(x) && ra.indexOf(x) < 0) ra.push(x);
+      return ra;
+    };
+    const gan = loc(nhieuGan);
+    const xa = loc(nhieuXa).filter((x) => gan.indexOf(x) < 0);
+    const nhieu = xaoLai(gan).concat(xaoLai(xa));
+    const tranO = (typeof tran === "number" && tran > 0) ? tran : O_TOI_DA;
+    const canThem = Math.max(0, Math.min(tranO - dung.length, nhieu.length));
+    const o = dung.concat(nhieu.slice(0, canThem));
     for (let i = o.length - 1; i > 0; i--) {
       const j = Math.floor(rnd() * (i + 1));
       const t = o[i]; o[i] = o[j]; o[j] = t;
@@ -536,7 +561,7 @@
   }
 
   goc.TuLien = {
-    CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, SAN_DAT,
+    CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, O_DAO_TOI_DA, SAN_DAT,
     tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
     chiMucLien, cumCua, xepKetQua, locTheoCum, boLien, locBo,
     napBo, soManh, daNap, SO_MANH

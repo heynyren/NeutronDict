@@ -4455,14 +4455,31 @@ function veKetQuaLien(b, dung, ms) {
    * sai, vừa bỏ phí đúng cái đáng học nhất ở đây: "mấy từ này không phải đáp án
    * vì chúng là trái nghĩa" — đó mới là bài học của lượt vừa rồi.
    */
-  const nhanCuc = b.duong === "dong" ? T("Trái nghĩa của từ này") : T("Cùng nghĩa của từ này");
   veNhom(T("Đáp án"), "dap", nhom.dapAn);
   veNhom(T("Nhặt nhầm"), "nham", nhom.nhatNham);
-  veNhom(nhanCuc, "", nhom.nhieu);
+  /*
+   * NHÓM MỒI NHỬ: nhãn nói ĐÚNG chúng từ đâu ra. Mồi nhử lấy cực kia trước,
+   * hết mới lấy ở sổ tay — nên một đề có thể có cả hai loại.
+   */
+  const trongCuc = new Set(b.kia || []);
+  veNhom(b.duong === "dong" ? T("Trái nghĩa của từ này") : T("Cùng nghĩa của từ này"),
+         "", nhom.nhieu.filter((x) => trongCuc.has(x)));
+  veNhom(T("Từ khác trong sổ"), "", nhom.nhieu.filter((x) => !trongCuc.has(x)));
+  /*
+   * VÀ CẢ CỤM Ở ĐỀ BÀI — đây là chỗ dễ đánh rơi nhất khi đảo chiều.
+   *
+   * Chiều cũ thì cụm CHÍNH LÀ các ô, nên nút × và + Lưu đi kèm ô là đủ. Chiều
+   * đảo thì cụm nằm ở ĐỀ, còn ô chỉ gồm từ gốc + mồi nhử — liệt kê mỗi các ô
+   * là mất sạch khả năng bỏ một từ vô lý khỏi liên kết, hay lưu một từ hay vào
+   * sổ. Hai việc ấy phải giữ nguyên.
+   */
+  veNhom(b.duong === "dong" ? T("Cùng nghĩa với nó") : T("Trái nghĩa với nó"),
+         "dap", (b.cum || []).slice());
 
   $("stLienXong").style.display = "none";
-  $("stLienKq").textContent = T2("Nhặt được {a}/{b} · {t} giây",
-    { a: dung, b: b.dung.size, t: Math.round(ms / 100) / 10 });
+  $("stLienKq").textContent = dung
+    ? T2("Tìm ra rồi · {t} giây", { t: Math.round(ms / 100) / 10 })
+    : T2("Chưa ra · {t} giây", { t: Math.round(ms / 100) / 10 });
 
   /*
    * NGHĨA: lấy trong SỔ TAY trước, chỉ phần còn thiếu mới đi hỏi mạng.
@@ -4520,29 +4537,51 @@ let baiLien = null;
 function veBaiLien(it) {
   const d = it._d;
   const l = it.lien || {};
-  const dung = (d === "dong" ? l.dong : l.trai) || [];
-  const kia = (d === "dong" ? l.trai : l.dong) || [];
   /*
-   * ĐỀ CHỈ LẤY TỪ CHÍNH TỪ ĐANG HỌC — không rước từ ngoài vào nữa.
+   * ĐỀ ĐẢO: BÀY CỤM, ĐI TÌM TỪ GỐC.
    *
-   * Trước đây nhiễu lấy cả từ sổ tay cho "quen mắt". Nghe xuôi, nhưng nó biến
-   * một bài đáng lẽ là "phân biệt đồng với trái nghĩa của chính từ này" thành
-   * "đãi mười sáu từ chẳng dính gì nhau" — dài, mệt, và phần khó nằm ở chỗ đọc
-   * cho hết chứ không ở chỗ nhớ.
-   *
-   * Từ nào không có cực kia thì bày toàn đáp án — bấm hết là đúng, đúng như
-   * người dùng chọn: lúc ấy nó thành một lượt ÔN chứ không còn là bài kiểm tra.
+   * Chiều cũ hỏi theo lối NHẬN RA: bày từ gốc, nhặt cho hết những từ liên kết
+   * với nó. Chiều này hỏi theo lối GỌI RA: bày cả cụm, đi tìm từ gốc — đáp án
+   * chỉ còn MỘT. Đó đúng là thứ bậc cao nhất của app vẫn hứa ("Gọi ra được lúc
+   * cần") mà chiều cũ chưa bao giờ đo được.
    */
-  const o = window.TuLien.dungDe(dung, kia);
+  const cum = (d === "dong" ? l.dong : l.trai) || [];      // bày ra làm ĐỀ
+  const kia = (d === "dong" ? l.trai : l.dong) || [];      // cực ngược lại: mồi nhử
+  /*
+   * MỒI NHỬ lấy cực kia trước; HẾT thì mới lấy ở sổ tay. Đáp án chỉ một từ, mà
+   * từ không có trái nghĩa thì đề còn đúng MỘT Ô — bấm là trúng. Nên đây là
+   * lối lui, hẹp và có chủ ý, chứ không phải quay về cách cũ của bản 4.26.
+   */
+  const xa = (mucDaLuu || [])
+    .filter((x) => x && !x.del && x.word && x.word !== it.word && x.key !== it.key)
+    .map((x) => x.word)
+    .filter((w) => cum.indexOf(w) < 0);        // từ trong cụm đang ở đề, đừng bày lại
+  const o = window.TuLien.dungDe([it.word], kia, xa, undefined, window.TuLien.O_DAO_TOI_DA);
 
-  // `o` PHẢI được giữ lại: màn kết quả chia ba nhóm dựa trên đúng danh sách ô
-  // đã bày ra, và không có cách nào dựng lại nó (dungDe xáo ngẫu nhiên). Thiếu
-  // nó thì `xepKetQua` nhận mảng rỗng và màn kết quả trống trơn.
-  baiLien = { it: it, duong: d, dung: new Set(dung), o: o, chon: new Set(), moc: performance.now() };
+  // `o` PHẢI được giữ lại: màn kết quả chia nhóm dựa trên đúng danh sách ô đã
+  // bày ra, và không có cách nào dựng lại nó (dungDe xáo ngẫu nhiên).
+  baiLien = { it: it, duong: d, dung: new Set([it.word]), o: o, chon: new Set(),
+              cum: cum, kia: kia, moc: performance.now() };
   msDaDung = null;
-  $("stLienDe").textContent = d === "dong"
-    ? T2("Nhặt cho hết những từ CÙNG NGHĨA với {t}", { t: it.word })
-    : T2("Nhặt cho hết những từ TRÁI NGHĨA với {t}", { t: it.word });
+
+  /*
+   * MẶT TRƯỚC TOÀN TIẾNG NHẬT — không một chữ tiếng Việt nào.
+   *
+   * Nếu đề in nghĩa từ gốc mà ô đáp án cũng in nghĩa thì ô đáp án hiện đúng
+   * chuỗi tiếng Việt đề vừa ghi — chỉ cần so chuỗi là xong. Nghĩa để dành cho
+   * MẶT SAU.
+   */
+  const de = $("stLienDe");
+  de.textContent = "";
+  de.appendChild(el("div", null, d === "dong"
+    ? T("Mấy từ này CÙNG NGHĨA với từ nào?")
+    : T("Mấy từ này TRÁI NGHĨA với từ nào?")));
+  // Danh sách cụm phải NHÌN KHÁC HẲN mấy ô để chọn: cùng một hàng chữ Nhật
+  // trần, để giống nhau thì người học chạm nhầm vào đề.
+  const oCum = el("div", "lien-cum" + (laNhat() ? " ja" : ""));
+  oCum.textContent = cum.join("\u3000\u00b7\u3000");
+  de.appendChild(oCum);
+
   $("stLienKq").textContent = "";
   $("stLienXong").style.display = "";
   // Dọn dấu vết của bài TRƯỚC: lớp `kq` đổi cả bố cục khung, và nút Tiếp còn

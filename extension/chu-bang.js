@@ -640,9 +640,6 @@
     "Không lưu được từ này": "Could not save this word",
     "Đang dịch câu…": "Translating the sentence…",
     "Chưa dịch được câu — bấm để thử lại": "Could not translate the sentence — tap to retry",
-    "Nhặt cho hết những từ CÙNG NGHĨA với {t}": "Pick every word that MEANS THE SAME as {t}",
-    "Nhặt cho hết những từ TRÁI NGHĨA với {t}": "Pick every word that MEANS THE OPPOSITE of {t}",
-    "Nhặt được {a}/{b} · {t} giây": "Found {a}/{b} · {t} s",
     "Phím tắt": "Shortcuts",
     "lật thẻ · rồi mở nguồn": "flip the card · then open the source",
     "thẻ trước (huỷ lượt chấm)": "previous card (undo that grade)",
@@ -962,6 +959,20 @@
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
       "Study mode: when a word comes due, also review the synonyms / antonyms of it you have saved, one right after another — to practise telling close words apart",
     "Đáp án": "Answers",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "These words are SYNONYMS of which word?",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "These words are ANTONYMS of which word?",
+    "Từ khác trong sổ":
+      "Other words from your notebook",
+    "Cùng nghĩa với nó":
+      "Its synonyms",
+    "Trái nghĩa với nó":
+      "Its antonyms",
+    "Tìm ra rồi · {t} giây":
+      "Found it · {t}s",
+    "Chưa ra · {t} giây":
+      "Not this time · {t}s",
     "Nhặt nhầm": "Picked by mistake",
     "Trái nghĩa của từ này": "Antonyms of this word",
     "Cùng nghĩa của từ này": "Synonyms of this word",
@@ -1604,9 +1615,6 @@
     "Không lưu được từ này": "この語を保存できませんでした",
     "Đang dịch câu…": "文を翻訳中…",
     "Chưa dịch được câu — bấm để thử lại": "文を翻訳できませんでした — タップで再試行",
-    "Nhặt cho hết những từ CÙNG NGHĨA với {t}": "{t} と同じ意味の語をすべて選ぶ",
-    "Nhặt cho hết những từ TRÁI NGHĨA với {t}": "{t} と反対の意味の語をすべて選ぶ",
-    "Nhặt được {a}/{b} · {t} giây": "{a}/{b} 個 · {t} 秒",
     "Phím tắt": "ショートカット",
     "lật thẻ · rồi mở nguồn": "カードをめくる・次に出典を開く",
     "thẻ trước (huỷ lượt chấm)": "前のカード（採点を取り消す）",
@@ -1926,6 +1934,20 @@
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
       "学習モード：ある語が期限になったら、保存してある類義語・対義語も続けて出します——近い語を区別する練習のため",
     "Đáp án": "正解",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "これらはどの語の類義語ですか？",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "これらはどの語の対義語ですか？",
+    "Từ khác trong sổ":
+      "単語帳の他の語",
+    "Cùng nghĩa với nó":
+      "その類義語",
+    "Trái nghĩa với nó":
+      "その対義語",
+    "Tìm ra rồi · {t} giây":
+      "正解 · {t}秒",
+    "Chưa ra · {t} giây":
+      "不正解 · {t}秒",
     "Nhặt nhầm": "選び間違い",
     "Trái nghĩa của từ này": "この語の対義語",
     "Cùng nghĩa của từ này": "この語の類義語",

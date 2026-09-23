@@ -228,19 +228,19 @@ console.log("\nBấm vào điểm để ôn bài còn lại");
       const lien = document.getElementById("stLienMat");
       if (lien && lien.style.display !== "none") {
         /*
-         * Nhặt ĐÚNG những ô đáng nhặt, không nhặt hết.
+         * Nhặt ĐÚNG ô đáng nhặt, không nhặt bừa.
          *
-         * Nhặt hết là cách THUA: chamBai trừ mỗi ô nhặt nhầm đúng bằng một ô bỏ
-         * sót, nên nhặt bừa cả nhiễu thì điểm về 0 và lượt ấy tính là QUÊN. Thẻ
-         * quay lại cuối hàng và buổi ôn không bao giờ kết thúc.
+         * Nhặt bừa là cách THUA: chamBai trừ mỗi ô nhặt nhầm đúng bằng một ô bỏ
+         * sót, nên điểm về 0 và lượt ấy tính là QUÊN. Thẻ quay lại cuối hàng và
+         * buổi ôn không bao giờ kết thúc.
+         *
+         * Đọc đáp án thẳng từ `baiLien.dung` chứ không dò tên từ trong đề bài.
+         * Từ bản 4.29.0 đề đảo chiều: đề chỉ còn "Mấy từ này CÙNG NGHĨA với từ
+         * nào?" kèm cụm, KHÔNG còn chứa tên từ gốc, và đáp án là chính từ gốc
+         * chứ không phải cụm. Dò theo chữ trong đề là hỏng cả hai đầu.
          */
-        const de = document.getElementById("stLienDe").textContent || "";
-        const nbL = (await chrome.storage.local.get("notebook")).notebook;
-        const key = Object.keys(nbL).find((k) => de.includes(nbL[k].word));
-        const l = (nbL[key] || {}).lien || {};
-        const dung = new Set(/TRÁI NGHĨA/.test(de) ? (l.trai || []) : (l.dong || []));
-        // Ô đề giờ là MỘT Ô LỚN hai dòng (con chữ + nghĩa), nên `textContent` của
-        // cả nút là "改善cải thiện" chứ không phải "改善". Đọc đúng span con chữ.
+        const dung = baiLien ? baiLien.dung : new Set();
+        // Ô đề là MỘT Ô LỚN, con chữ nằm trong span riêng.
         for (const b of document.querySelectorAll("#stLienO button")) {
           const t = b.querySelector(".lien-omot-tu");
           if (dung.has(((t || b).textContent || "").trim())) b.click();

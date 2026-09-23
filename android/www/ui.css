@@ -796,6 +796,21 @@ select { cursor: pointer; }
  * dọc để quét cho hết, và trên điện thoại vùng chạm chỉ bằng con chữ. 56px là
  * ngưỡng vùng chạm thoải mái cho ngón tay cái.
  */
+/*
+ * Danh sách cụm trên ĐỀ BÀI của bài đảo — bày ra để đọc, KHÔNG phải để bấm.
+ *
+ * Nó với mấy ô đáp án cùng là một hàng chữ Nhật trần, nên phải nhìn khác hẳn:
+ * không viền, nền chìm, chữ nhỏ hơn ô đáp án một bậc. Để giống nhau thì người
+ * học chạm vào đề rồi tưởng nút hỏng.
+ */
+.lien-cum {
+  margin-top: 8px; padding: 10px 14px;
+  border-radius: 12px; background: var(--surface-2);
+  font-size: 17px; font-weight: 600; line-height: 1.5; color: var(--ink);
+  user-select: none;
+}
+.lien-cum.ja { font-size: 19px; }
+
 .lien-o.to { flex-direction: column; align-items: stretch; gap: 8px; }
 .lien-omot {
   /* Một dòng duy nhất (con chữ), căn GIỮA theo chiều dọc — nghĩa đã bị gỡ

@@ -62,6 +62,20 @@
     "Không lưu được từ này": "Could not save this word",
     "Tiếp": "Next",
     "Đáp án": "Answers",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "These words are SYNONYMS of which word?",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "These words are ANTONYMS of which word?",
+    "Từ khác trong sổ":
+      "Other words from your notebook",
+    "Cùng nghĩa với nó":
+      "Its synonyms",
+    "Trái nghĩa với nó":
+      "Its antonyms",
+    "Tìm ra rồi · {t} giây":
+      "Found it · {t}s",
+    "Chưa ra · {t} giây":
+      "Not this time · {t}s",
     "Nhặt nhầm": "Picked by mistake",
     "Trái nghĩa của từ này": "Antonyms of this word",
     "Cùng nghĩa của từ này": "Synonyms of this word",
@@ -624,9 +638,6 @@
     "Nghe câu": "Play the sentence",
     "Tốc độ ×{t} — nhanh dần theo cấp": "Speed ×{t} — faster as the level rises",
     "Xong": "Done",
-    "Nhặt cho hết những từ CÙNG NGHĨA với {t}": "Pick every word that MEANS THE SAME as {t}",
-    "Nhặt cho hết những từ TRÁI NGHĨA với {t}": "Pick every word that MEANS THE OPPOSITE of {t}",
-    "Nhặt được {a}/{b} · {t} giây": "Found {a}/{b} · {t} s",
     "Phím tắt": "Shortcuts",
     "lật thẻ · rồi mở nguồn": "flip the card · then open the source",
     "thẻ trước (huỷ lượt chấm)": "previous card (undo that grade)",
@@ -1019,6 +1030,20 @@
     "Không lưu được từ này": "この語を保存できませんでした",
     "Tiếp": "次へ",
     "Đáp án": "正解",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "これらはどの語の類義語ですか？",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "これらはどの語の対義語ですか？",
+    "Từ khác trong sổ":
+      "単語帳の他の語",
+    "Cùng nghĩa với nó":
+      "その類義語",
+    "Trái nghĩa với nó":
+      "その対義語",
+    "Tìm ra rồi · {t} giây":
+      "正解 · {t}秒",
+    "Chưa ra · {t} giây":
+      "不正解 · {t}秒",
     "Nhặt nhầm": "誤って選んだ語",
     "Trái nghĩa của từ này": "この語の対義語",
     "Cùng nghĩa của từ này": "この語の類義語",
@@ -1576,9 +1601,6 @@
     "Nghe câu": "文を聞く",
     "Tốc độ ×{t} — nhanh dần theo cấp": "速度 ×{t}——レベルが上がるほど速く",
     "Xong": "完了",
-    "Nhặt cho hết những từ CÙNG NGHĨA với {t}": "{t} と同じ意味の語をすべて選ぶ",
-    "Nhặt cho hết những từ TRÁI NGHĨA với {t}": "{t} と反対の意味の語をすべて選ぶ",
-    "Nhặt được {a}/{b} · {t} giây": "{a}/{b} 個 · {t} 秒",
     "Phím tắt": "ショートカット",
     "lật thẻ · rồi mở nguồn": "カードをめくる・次に出典を開く",
     "thẻ trước (huỷ lượt chấm)": "前のカード（採点を取り消す）",

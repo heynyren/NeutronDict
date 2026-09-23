@@ -86,32 +86,39 @@ const moBai = () => page.evaluate(async () => {
   document.getElementById("stLienMat").style.display = "";
   veBaiLien(Object.assign({}, it, { _d: "dong" }));
   await new Promise((x) => setTimeout(x, 600));
-  return [...document.querySelectorAll("#stLienO button")].map((b) => ({
+  const de = document.getElementById("stLienDe");
+  return {
+    de: (de.textContent || "").trim(),
+    cum: ((de.querySelector(".lien-cum") || {}).textContent || "").trim(),
+    o: [...document.querySelectorAll("#stLienO button")].map((b) => ({
     tu: (b.querySelector(".lien-omot-tu") || {}).textContent,
     nghia: (b.querySelector(".lien-omot-nghia") || {}).textContent || "",
     // `ca` = chữ của CẢ Ô. So nó với `tu` thì bắt được mọi kiểu nhét nghĩa vào,
     // kể cả nhét bằng một lớp khác tên.
     ca: (b.textContent || "").trim(),
     lop: b.className
-  }));
+  }))
+  };
 });
 
-console.log("Đề CHỈ lấy từ của chính từ đang học");
-const o = await moBai();
+console.log("Đề ĐẢO: bày cụm, đi tìm từ gốc");
+const r0 = await moBai();
+const o = r0.o;
 {
   const tu = o.map((x) => x.tu);
-  const dapAn = ["食堂", "料亭", "旗亭"], moi = ["自宅", "野宿"];
-  soat("bày đủ 3 đáp án", dapAn.every((t) => tu.indexOf(t) >= 0), tu.join(" "));
-  soat("và đủ 2 mồi nhử là TRÁI NGHĨA của chính nó",
-       moi.every((t) => tu.indexOf(t) >= 0), tu.join(" "));
+  const cum = ["食堂", "料亭", "旗亭"], moi = ["自宅", "野宿"];
+  soat("cụm nằm ở ĐỀ BÀI, không phải ở ô chọn",
+       cum.every((t) => r0.cum.indexOf(t) >= 0), r0.cum);
+  soat("và KHÔNG từ nào trong cụm bị bày lại làm ô chọn",
+       cum.every((t) => tu.indexOf(t) < 0), tu.join(" "));
   /*
-   * CỔNG CHÍNH. Sổ tay có 12 từ chẳng dính gì; không từ nào được lọt vào.
+   * ĐÁP ÁN CHỈ CÒN MỘT, và nó là TỪ GỐC. Đây là cả điểm của chiều đảo: hỏi
+   * theo lối GỌI RA thay vì NHẬN RA.
    */
-  const vonCo = new Set(dapAn.concat(moi));
-  const ngoai = tu.filter((t) => !vonCo.has(t));
-  soat("KHÔNG một từ ngoài nào lọt vào đề", ngoai.length === 0,
-       ngoai.length ? "lọt: " + ngoai.join(" ") : tu.length + " ô, sạch");
-  soat("nên đề gọn đúng 5 ô thay vì mười mấy", o.length === 5, o.length + " ô");
+  soat("từ gốc có mặt trong các ô", tu.indexOf("飲食店") >= 0, tu.join(" "));
+  soat("mồi nhử là TRÁI NGHĨA của chính nó, lấy trước từ sổ tay",
+       moi.every((t) => tu.indexOf(t) >= 0), tu.join(" "));
+  soat("đề gọn đúng 5 ô", o.length === 5, o.length + " ô");
 }
 
 console.log("\nMỗi ô là một Ô LỚN, chạm đâu cũng ăn — và KHÔNG có nghĩa");
@@ -129,6 +136,18 @@ console.log("\nMỗi ô là một Ô LỚN, chạm đâu cũng ăn — và KHÔN
        o.every((x) => !x.nghia), o.map((x) => x.tu + (x.nghia ? "=" + x.nghia : "")).join(" · "));
   soat("và cả ô không chứa chữ tiếng Việt nào", o.every((x) => x.ca === x.tu),
        o.map((x) => JSON.stringify(x.ca)).join(" "));
+  /*
+   * MẶT TRƯỚC KHÔNG MỘT CHỮ TIẾNG VIỆT NÀO — soi bằng NỘI DUNG THẬT.
+   *
+   * Cổng cũ chỉ soi tên lớp `lien-omot-nghia`. Chiều đảo có thêm hẳn một chỗ
+   * rò nữa là ĐỀ BÀI, mà nghĩa nhét vào đó thì tên lớp nào cũng được. Bắt bằng
+   * một biểu thức quét chữ Việt có dấu thì kiểu nhét nào cũng đỏ.
+   */
+  const CO_DAU = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
+  soat("mặt trước: ĐỀ BÀI không một chữ Việt có dấu nào",
+       !CO_DAU.test(r0.cum), JSON.stringify(r0.cum));
+  soat("mặt trước: các ô cũng không",
+       !o.some((x) => CO_DAU.test(x.ca)), o.map((x) => x.ca).join(" "));
   const d = await page.evaluate(() => {
     const khung = document.getElementById("stLienO");
     const b = khung.querySelector("button");
