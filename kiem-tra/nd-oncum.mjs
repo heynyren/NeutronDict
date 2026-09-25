@@ -78,17 +78,6 @@ const gieo = (onCum) => sw.evaluate(async ([now, onCum]) => {
     decks: {}, hoc: {}, nhipMs: {},
     settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false, onCum: onCum }
   });
-  // Mẫu thử lịch SRS đã có đầy đủ cách đọc: tác vụ vá furigana lúc mở
-  // trang không được ghi lại sổ mẫu trong khi bài kiểm đang chấm.
-  const notebook = (await chrome.storage.local.get("notebook")).notebook;
-  const cachDoc = { "改善": "かいぜん", "改良": "かいりょう", "向上": "こうじょう",
-                    "改悪": "かいあく", "写真": "しゃしん" };
-  for (const e of Object.values(notebook)) {
-    e.reading = cachDoc[e.word];
-    e.ruby = self.Kana.gonRuby(self.Kana.ghepFurigana(e.word, e.reading));
-    if (!self.Kana.rubyKhop(e.word, e.ruby)) throw new Error("Mẫu thiếu furigana: " + e.word);
-  }
-  await chrome.storage.local.set({ notebook });
 }, [Date.now(), onCum]);
 
 async function moSo() {

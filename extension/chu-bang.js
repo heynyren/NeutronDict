@@ -2031,6 +2031,9 @@
   en["Xem đáp án"] = "Show answer";
   ja["Xem đáp án"] = "答えを見る";
 
+  en["Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."] = "Progress changed in another window. This older review cannot be undone.";
+  ja["Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."] = "別のウィンドウで進捗が更新されたため、以前の復習は取り消せません。";
+
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

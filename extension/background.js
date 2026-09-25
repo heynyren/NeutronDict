@@ -1,3 +1,4 @@
+importScripts("kho-ghi.js");   // khóa ghi chung với các trang sổ tay
 importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính âm Hán Việt ở nền
 importScripts("kana.js");      // self.Kana — suy furigana khi từ điển không cho
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
@@ -565,6 +566,7 @@ async function moGeminiVaCanh(key) {
 }
 
 async function geminiGhiLink(tabId, url) {
+  return vaSau(async () => {
   const cho = await geminiChoDoc();
   const m = cho[String(tabId)];
   if (!m || !m.key) return;
@@ -577,6 +579,7 @@ async function geminiGhiLink(tabId, url) {
   // là chỗ để quay về.
   nb[m.key] = Object.assign({}, e, { hoiAi: { url: url, ts: Date.now() } });
   await chrome.storage.local.set({ notebook: nb });
+  });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
@@ -675,7 +678,7 @@ async function dichCauNghe(key) {
   return vaSau(async () => {
     const kho = (await chrome.storage.local.get("notebook")).notebook || {};
     const cu = kho[key];
-    if (!cu || cu.del || !cu.cauNghe) return dich;
+    if (!cu || cu.del || !cu.cauNghe || cu.cauNghe.cau !== cau) return dich;
     kho[key] = Object.assign({}, cu, {
       cauNghe: Object.assign({}, cu.cauNghe, { dich: dich }) });
     await chrome.storage.local.set({ notebook: kho });
@@ -1383,8 +1386,9 @@ async function cauNgheVaSau(key, e, dict, nhanh) {
  */
 let hangVa = Promise.resolve();
 function vaSau(lam) {
-  hangVa = hangVa.then(lam).catch(() => {});
-  return hangVa;
+  const chay = hangVa.then(() => self.KhoGhi.chay(lam));
+  hangVa = chay.catch(() => {}); // lỗi không làm kẹt lượt sau
+  return chay;                   // caller vẫn nhận được lỗi ghi
 }
 
 async function rubyVaSau(key, word) {
@@ -1683,11 +1687,9 @@ async function daLuuCau(text) {
 // ==== Lưu từ vào sổ tay ====
 async function saveWord(entry, dict) {
   if (!entry || !entry.word) throw new Error("Thiếu dữ liệu từ");
-  const { notebook } = await chrome.storage.local.get("notebook");
-  const nb = notebook || {};
   const d = (entry.dict && entry.dict !== "auto") ? entry.dict : (dict === "auto" ? "envi" : dict);
   const key = d + ":" + entry.word;
-  const old = nb[key];
+  let old;
   const e = {
     word: entry.word, reading: entry.reading || "", means: entry.means || [], dict: d, ts: Date.now()
   };
@@ -1718,6 +1720,10 @@ async function saveWord(entry, dict) {
   // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
   if (entry.note != null) e.note = String(entry.note);
   if (entry.mEdit) { e.mEdit = 1; if (entry.mOrig) e.mOrig = entry.mOrig; }
+  await vaSau(async () => {
+  const nb = (await chrome.storage.local.get("notebook")).notebook || {};
+  old = nb[key];
+  e.ts = Date.now();
   // Lưu lại một mục ĐÃ XOÁ: chỉ nhặt lại phần bạn tự viết, không nhặt lại tiến
   // độ ôn hay sổ con — bạn xoá nó vì đã thuộc, không phải vì viết nhầm.
   if (old && old.del) {
@@ -1746,6 +1752,7 @@ async function saveWord(entry, dict) {
      */
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
+    if (old.duong) e.duong = old.duong;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.hoiAi && !e.hoiAi) e.hoiAi = old.hoiAi;   // link đoạn chat Gemini
@@ -1783,6 +1790,7 @@ async function saveWord(entry, dict) {
   }
   nb[key] = e;
   await chrome.storage.local.set({ notebook: nb });
+  });
   // Còn trắng cách đọc mà vẫn có chữ Hán, tức đây là một CÂU (hoặc một cụm dài)
   // — thứ mà `docKana` cố tình không đụng tới, nên câu lời thoại YouTube lưu
   // xong là chẳng có cách đọc nào. Ghép furigana theo từng khúc chữ Hán.
@@ -1791,13 +1799,13 @@ async function saveWord(entry, dict) {
   // lượt lưu đứng chờ một lượt hỏi mạng chỉ để làm đẹp cách đọc là đổi một thứ
   // chắc chắn lấy một thứ hên xui — mạng chậm thì nút treo, mạng hỏng thì mất
   // luôn cảm giác "đã lưu".
-  if ((d === "javi" || d === "vija") && !e.reading && !e.ruby) rubyVaSau(key, e.word);
+  if ((d === "javi" || d === "vija") && !e.reading && !e.ruby) rubyVaSau(key, e.word).catch(() => {});
   // Câu ngữ cảnh cho bài NGHE — cũng vá SAU và KHÔNG chờ, vì nó phải gọi máy
   // dịch. Mục nào không moi được câu trọn vẹn thì đơn giản là không có đường
   // nghe; xem cau-nghe.js về việc vì sao thà bỏ còn hơn dựng câu cụt.
-  if (!e.cauNghe) cauNgheVaSau(key, e, d);
+  if (!e.cauNghe) cauNgheVaSau(key, e, d).catch(() => {});
   // Tập đồng nghĩa / trái nghĩa — cũng vá SAU và KHÔNG chờ.
-  if (!e.lien) lienVaSau(key, e, d);
+  if (!e.lien) lienVaSau(key, e, d).catch(() => {});
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
   if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));
@@ -2052,7 +2060,7 @@ async function gopCloudCu() {
 
   const may = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
   let nb = may.notebook || {}, decks = may.decks || {};
-  const hoc = self.Ngu.tachHoc(may.hoc);
+  let hoc = self.Ngu.tachHoc(may.hoc);
 
   for (const ngu of self.Ngu.DS) {
     const k = self.Ngu.khoaSync(ngu);
@@ -2077,7 +2085,14 @@ async function gopCloudCu() {
     hoc[ngu] = self.TienDo.tron(hoc[ngu], xaHoc[ngu] || (data.hoc && !data.hoc.ja && !data.hoc.en ? data.hoc : null));
   }
 
-  await chrome.storage.local.set({ notebook: nb, decks: decks, hoc: hoc });
+  await vaSau(async () => {
+    const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
+    nb = traAnh(mergeByTs(fresh.notebook || {}, nb), fresh.notebook || {});
+    decks = mergeByTs(fresh.decks || {}, decks);
+    const freshHoc = self.Ngu.tachHoc(fresh.hoc);
+    for (const n of self.Ngu.DS) hoc[n] = self.TienDo.tron(freshHoc[n], hoc[n]);
+    await chrome.storage.local.set({ notebook: nb, decks: decks, hoc: hoc });
+  });
   /*
    * Ghi trọn lên kho chung, không lọc theo ngôn ngữ nữa.
    *
@@ -2244,6 +2259,7 @@ async function doSync(rawNgu) {
 
   // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
   // loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
+  const { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua } = await vaSau(async () => {
   const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua"]);
   const freshHoc = self.Ngu.tachHoc(fresh.hoc);
   // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
@@ -2269,6 +2285,9 @@ async function doSync(rawNgu) {
   const finalSua = self.Muc.tron(fresh.phuDeSua || {}, mergedSua);
   await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc,
                                    luyenNoi: finalNoi, soDoSrs: finalDo, phuDeSua: finalSua });
+
+    return { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua };
+  });
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác

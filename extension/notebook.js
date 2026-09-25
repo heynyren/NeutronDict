@@ -220,8 +220,6 @@ async function getStore() {
   const s = await chrome.storage.local.get(["notebook", "decks"]);
   return { nb: s.notebook || {}, decks: s.decks || {} };
 }
-async function setNotebook(nb) { await chrome.storage.local.set({ notebook: nb }); }
-async function setDecks(d) { await chrome.storage.local.set({ decks: d }); }
 
 function active(list) { return list.filter((it) => !it.del); }
 function activeDecks() {
@@ -254,7 +252,7 @@ function meanToStr(m) {
 let hangDoiGhi = Promise.resolve();
 function suaSoTay(fn) {
   // .then(fn, fn) để một lượt ghi hỏng không làm kẹt mọi lượt ghi sau nó.
-  const chay = hangDoiGhi.then(fn, fn);
+  const chay = hangDoiGhi.then(() => window.KhoGhi.chay(fn));
   hangDoiGhi = chay.then(() => {}, () => {});
   return chay;
 }
@@ -272,8 +270,8 @@ function capNhat(fn) {
 /**
  * Như capNhat, nhưng KHÔNG ghi gì khi fn báo là chẳng có gì đổi.
  *
- * Hàng đợi ghi ở trên chỉ xếp hàng trong TRANG NÀY. Nền cũng sửa sổ tay — nó
- * bồi furigana, câu ngữ cảnh, tập đồng/trái nghĩa — và hai bên không thấy nhau.
+ * Khóa chung bảo vệ cả trang và nền. Chỉ ghi khi có thay đổi vẫn cần thiết
+ * để tránh phát sự kiện lưu và nạp lại giao diện khi dữ liệu không đổi.
  * Nên mỗi lượt "đọc cả sổ rồi ghi cả sổ" của trang là một cửa sổ để đè mất thứ
  * nền vừa ghi xong.
  *
@@ -779,83 +777,39 @@ async function maMay() {
  */
 async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
-  const tkAll = await docNhipMs();
-  const tkTruoc = Object.assign({}, tkAll[d] || {});
-  /*
-   * Bảng đếm thẻ theo ngày, để `Srs.cham` né được ngày đã đông.
-   *
-   * Dựng lại ở TỪNG lượt chấm chứ không giữ một bản cho cả buổi: trong một buổi
-   * có thể chấm cả trăm thẻ, mà mỗi lượt lại hẹn thêm một ngày mới. Giữ bản cũ
-   * thì cả trăm thẻ ấy cùng nhìn một tấm lịch đã lỗi và cùng dồn vào đúng cái
-   * ngày mà tấm lịch ấy tưởng là vắng — đúng hiện tượng đang đi chữa.
-   *
-   * Đọc từ `items` đang có sẵn trong bộ nhớ nên không tốn lượt đọc đĩa nào.
-   */
-  const lich = window.Srs.lichHen(items);
-  let kq = null, truoc = null;
-  let ngayCho = 0, lvTruoc = -1;
-  await capNhat((nb) => {
+  return suaSoTay(async () => {
+    // Đọc lịch, nhịp và số đo mới nhất SAU khi đã có khóa chung.
+    const kho = await chrome.storage.local.get(["notebook", "nhipMs", "soDoSrs"]);
+    const nb = kho.notebook || {};
     const e = nb[key];
-    if (!e) return;
+    if (!e || e.del) return null;
+    const tkAll = kho.nhipMs || {};
+    const tkTruoc = Object.assign({}, tkAll[d] || {});
+    const lich = window.Srs.lichHen(Object.values(nb));
     const cu = (e.duong && e.duong[d]) || null;
-    // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
-    // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
-    truoc = cu ? Object.assign({}, cu) : null;      // để phím ← hoàn tác được
-    /*
-     * SỐ ĐO THẬT: app đã hẹn bao nhiêu ngày ở bậc nào, và tới lúc gặp lại có
-     * nhớ không. Phải lấy TRƯỚC khi chấm — sau khi chấm thì `ts` đã bị ghi đè
-     * và không còn biết lượt này đã chờ bao lâu.
-     *
-     * Đây là thứ duy nhất nói được thang 1/3/7/14/30/60/120 có hợp với chính
-     * người này không. Mọi con số trong thang ấy là tôi chọn, không phải đo.
-     */
-    if (batDau && batDau.ts) {
-      ngayCho = (Date.now() - batDau.ts) / 86400000;
-      lvTruoc = typeof batDau.lv === "number" ? batDau.lv : -1;
-    }
-    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(),
-                         chat, lich);
-    const moi = Object.assign({}, e);
-    moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
-    // `srs` vẫn được ghi, và vẫn là thứ mọi nơi khác đọc: đồng bộ Drive, app
-    // Android, máy chủ MCP, bản extension chưa cập nhật. Nó là bản GỘP của các
-    // đường — xem Srs.gomSrs.
+    const truoc = cu ? Object.assign({}, cu) : null;
+    const ngayCho = batDau && batDau.ts ? (Date.now() - batDau.ts) / 86400000 : 0;
+    const lvTruoc = batDau && typeof batDau.lv === "number" ? batDau.lv : -1;
+    const kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d,
+                             Math.random(), chat, lich);
+    const moi = Object.assign({}, e, {
+      duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }),
+      ts: Date.now()
+    });
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
-    moi.ts = Date.now();
     nb[key] = moi;
-  });
-  if (kq) {
-    nhipMs[d] = kq.tk;
-    await chrome.storage.local.set({ nhipMs: nhipMs });
-    /*
-     * Lượt ÔN KÈM không vào bảng số đo.
-     *
-     * Bảng ấy trả lời đúng một câu: "app hẹn N ngày, tới lúc gặp lại có nhớ
-     * không". Chỉ lượt nào ĐÃ CHỜ QUA NGÀY mới trả lời được câu ấy, nên
-     * `ngayCho > 0` là toàn bộ điều kiện. (Trước đây còn phải loại thêm thẻ ôn
-     * kèm vì chúng bị gặp lại sớm hơn hẹn; giờ buổi học không còn thẻ loại ấy.)
-     */
+    tkAll[d] = kq.tk;
+    const ghi = { notebook: nb, nhipMs: tkAll };
     if (ngayCho > 0) {
-      const kho = await chrome.storage.local.get("soDoSrs");
-      /*
-       * Nhánh "·g2" — số đo TRƯỚC và SAU lần đổi thang phải nằm riêng.
-       *
-       * Bảng này gom theo "đường|cấp", và mục đích tự tuyên bố của nó là "chỉ
-       * có dữ liệu thật mới chọn được thang". Lần đổi này sửa hẳn cách tính
-       * giãn cách của hai bài liên kết, nên trộn lượt cũ với lượt mới vào cùng
-       * một ô là lấy trung bình của hai cái lịch khác nhau rồi kết luận về cả
-       * hai — phá đúng thứ bảng này sinh ra để giữ.
-       *
-       * Không mất gì: `ghiSoDo` vốn đã phân nhánh theo máy và `tronSoDo` giữ
-       * nguyên từng nhánh, nên số cũ vẫn nằm đó dưới nhánh cũ.
-       */
-      const so = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho, !!remembered,
-                                    (await maMay()) + "·g2");
-      await chrome.storage.local.set({ soDoSrs: so });
+      ghi.soDoSrs = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho,
+        !!remembered, (await maMay()) + "·g2");
     }
-  }
-  return kq ? Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc }) : null;
+    // Một lượt ghi giữ lịch và thống kê tương ứng với cùng một lần chấm.
+    await chrome.storage.local.set(ghi);
+    nhipMs = tkAll;
+    return Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc });
+  });
 }
 
 /* ==================================================================== */
@@ -1008,8 +962,13 @@ async function napSoTay() {
   }
   // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
   // lần cho xong — lần sau khỏi phải suy nữa.
-  const gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
-  if (gan.doi) { await chrome.storage.local.set({ decks: gan.decks }); syncSoon(); }
+  const gan = await suaSoTay(async () => {
+    const fresh = await getStore();
+    const ra = window.Ngu.ganNguChoSo(fresh.decks, fresh.nb);
+    if (ra.doi) await chrome.storage.local.set({ decks: ra.decks });
+    return ra;
+  });
+  if (gan.doi) syncSoon();
   decks = window.Ngu.locSoCon(gan.decks, s.nb, NGU);
   // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
   // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
@@ -1140,11 +1099,9 @@ async function createDeck() {
   const name = (prompt(T("Tên sổ con mới (ví dụ: Bài 5 - Kanji):")) || "").trim();
   if (!name) return;
   const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const d = (await getStore()).decks;
-  // Gắn nhãn ngôn ngữ ngay: sổ tiếng Nhật không được lẫn sang danh sách
-  // tiếng Anh, và ngược lại.
-  d[id] = { id, name, ngu: NGU, ts: Date.now() };
-  await setDecks(d);
+  await capNhat((nb, d) => {
+    d[id] = { id, name, ngu: NGU, ts: Date.now() };
+  });
   current = id;
   await load();
   syncSoon();
@@ -1155,9 +1112,10 @@ async function renameDeck() {
   const cur = deckName(current) || "";
   const name = (prompt(T("Đổi tên sổ:"), cur) || "").trim();
   if (!name || name === cur) return;
-  const d = (await getStore()).decks;
-  if (d[current]) d[current] = Object.assign({}, d[current], { name, ts: Date.now() });
-  await setDecks(d);
+  const id = current;
+  await capNhat((nb, d) => {
+    if (d[id] && !d[id].del) d[id] = Object.assign({}, d[id], { name, ts: Date.now() });
+  });
   await load();
   syncSoon();
 }
@@ -2232,7 +2190,7 @@ function draw() {
     const del = nutIcon("trash", T("Xoá khỏi sổ tay"), "danger", 17);
     del.addEventListener("click", async () => {
       await capNhat((nb) => {
-        nb[it.key] = window.Muc.biaMo(it);
+        if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
       });
       await load();
       syncSoon();
@@ -2994,7 +2952,7 @@ async function grade(remembered) {
   if (kqCham) {
     session.lichSu = (session.lichSu || []).concat([{
       the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
-      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, banSao: banSao
+      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, sau: kqCham.duong, tkSau: kqCham.tk, banSao: banSao
     }]).slice(-20);
   }
 
@@ -3383,18 +3341,32 @@ async function quayLaiThe() {
   const ds = session.lichSu || [];
   const b = ds.pop();
   if (!b) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
-  await capNhat((nb) => {
+  const daHoanTac = await suaSoTay(async () => {
+    const kho = await chrome.storage.local.get(["notebook", "nhipMs"]);
+    const nb = kho.notebook || {};
     const e = nb[b.key];
-    if (!e) return;
+    if (!e || e.del) return false;
+    // Không để phím hoàn tác ở trang cũ xóa lượt chấm mới ở trang khác.
+    if (b.sau && JSON.stringify((e.duong || {})[b.duong]) !== JSON.stringify(b.sau)) return false;
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[b.key] = moi;
+    const ghi = { notebook: nb };
+    const tk = kho.nhipMs || {};
+    if (b.tkTruoc && typeof b.tkTruoc.n === "number"
+        && (!b.tkSau || JSON.stringify(tk[b.duong]) === JSON.stringify(b.tkSau))) {
+      tk[b.duong] = b.tkTruoc;
+      ghi.nhipMs = tk;
+    }
+    await chrome.storage.local.set(ghi);
+    nhipMs = tk;
+    return true;
   });
-  if (b.tkTruoc && typeof b.tkTruoc.n === "number") {
-    nhipMs[b.duong] = b.tkTruoc;
-    await chrome.storage.local.set({ nhipMs: nhipMs });
+  if (!daHoanTac) {
+    toast(T("Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."), "bad");
+    return;
   }
   if (b.nho) session.done = Math.max(0, session.done - 1);
   else {
@@ -3484,7 +3456,7 @@ async function deleteCurrentCard() {
   await capNhat((nb) => {
     const original = nb[it.key];
     lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-    nb[it.key] = window.Muc.biaMo(it);
+    if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
   });
 
   // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
@@ -3953,7 +3925,7 @@ async function clearAll() {
   if (!confirm(T2("Xoá {n} mục trong {noi}? Việc xoá cũng đồng bộ sang máy khác.", { n: list.length, noi: where }))) return;
   await capNhat((nb) => {
     const now = Date.now();
-    for (const it of list) nb[it.key] = window.Muc.biaMo(it);
+    for (const it of list) if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
   });
   await load();
   syncSoon();
