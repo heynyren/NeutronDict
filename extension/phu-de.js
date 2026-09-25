@@ -1030,6 +1030,7 @@
       url: "https://www.youtube.com/watch?v=" + S.v,
       title: S.tieuDe || document.title,
       sel: (chu || c.s).slice(0, 400),
+      cau: c.s.slice(0, 400), // câu gốc cho Luyện ngữ pháp, kể cả khi chỉ chọn một từ
       yt: { v: S.v, t: t, dur: Math.max(1, Math.round(dai == null ? (c.tEnd - c.t) : dai)), kenh: S.kenh }
     };
   }
