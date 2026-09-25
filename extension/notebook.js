@@ -4437,7 +4437,15 @@ window.NguPhapUI.khoiTao({
     const { ytKho } = await chrome.storage.local.get("ytKho");
     return window.NguPhap.boSungTuKho(items.filter((it) => !it.del), ytKho);
   },
-  ngonNgu: () => NGU
+  ngonNgu: () => NGU,
+  dichCau: (cau) => new Promise((giai) => {
+    let xong = false;
+    const tra = (text) => { if (!xong) { xong = true; giai(text || ""); } };
+    chrome.runtime.sendMessage({ type: "TRANSLATE", text: cau, from: "ja", to: "vi" }, (res) => {
+      tra(chrome.runtime.lastError || !res || !res.ok ? "" : res.text);
+    });
+    setTimeout(() => tra(""), 10000);
+  })
 });
 $("grammar").addEventListener("click", () => moMan("grammar"));
 $("speak").addEventListener("click", () => moMan("speak"));
