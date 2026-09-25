@@ -1,0 +1,37 @@
+name: Diagnose concurrent SRS writes
+
+on:
+  push:
+    branches: [codex/neutrondict-work]
+    paths:
+      - 'cong-cu/chan-doan-ghi-srs.mjs'
+      - '.github/workflows/diagnose-srs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/nd-test" playwright
+          "$RUNNER_TEMP/nd-test/node_modules/.bin/playwright" install --with-deps chromium
+          sudo mkdir -p /opt/node22/lib/node_modules
+          sudo ln -s "$RUNNER_TEMP/nd-test/node_modules/playwright" /opt/node22/lib/node_modules/playwright
+      - name: Diagnose real extension writers with synthetic data
+        run: timeout 180s node cong-cu/chan-doan-ghi-srs.mjs "$GITHUB_WORKSPACE/extension" "$RUNNER_TEMP/srs-write-report.json"
+      - name: Publish diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: srs-write-report
+          path: ${{ runner.temp }}/srs-write-report.json
+          if-no-files-found: error
