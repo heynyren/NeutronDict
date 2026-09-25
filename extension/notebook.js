@@ -4432,7 +4432,13 @@ function moMan(ten) {
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
-window.NguPhapUI.khoiTao({ layMuc: async () => items.filter((it) => !it.del), ngonNgu: () => NGU });
+window.NguPhapUI.khoiTao({
+  layMuc: async () => {
+    const { ytKho } = await chrome.storage.local.get("ytKho");
+    return window.NguPhap.boSungTuKho(items.filter((it) => !it.del), ytKho);
+  },
+  ngonNgu: () => NGU
+});
 $("grammar").addEventListener("click", () => moMan("grammar"));
 $("speak").addEventListener("click", () => moMan("speak"));
 $("spAdd").addEventListener("click", themDoanNoi);
