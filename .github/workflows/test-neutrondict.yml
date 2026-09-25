@@ -1,0 +1,64 @@
+name: Test NeutronDict
+
+on:
+  push:
+    branches:
+      - codex/neutrondict-work
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Node tests
+        shell: bash
+        run: |
+          set -u
+          failed=0
+          for file in kiem-tra/*.mjs; do
+            if grep -q '/opt/node22/lib/node_modules/playwright/index.mjs' "$file"; then
+              continue
+            fi
+            echo "::group::$file"
+            timeout 300s node "$file" || failed=1
+            echo "::endgroup::"
+          done
+          exit "$failed"
+
+  browser-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/nd-test" playwright
+          "$RUNNER_TEMP/nd-test/node_modules/.bin/playwright" install --with-deps chromium
+          sudo mkdir -p /opt/node22/lib/node_modules
+          sudo ln -s "$RUNNER_TEMP/nd-test/node_modules/playwright" /opt/node22/lib/node_modules/playwright
+      - name: Run browser tests
+        shell: bash
+        run: |
+          set -u
+          failed=0
+          for file in kiem-tra/*.mjs; do
+            if ! grep -q '/opt/node22/lib/node_modules/playwright/index.mjs' "$file"; then
+              continue
+            fi
+            echo "::group::$file"
+            timeout 300s node "$file" "$GITHUB_WORKSPACE/extension" || failed=1
+            echo "::endgroup::"
+          done
+          exit "$failed"
