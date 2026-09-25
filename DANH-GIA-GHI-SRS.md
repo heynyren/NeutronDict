@@ -2,7 +2,22 @@
 
 Ngày: 2026-09-25. Phạm vi xác nhận: extension Chromium trên nhánh `codex/neutrondict-work`.
 
-## Kết luận
+## Trạng thái sau bản sửa
+
+**Đã sửa cơ chế ghi trong extension**, kiểm chứng bằng [14 ca hồi quy trên cloud](https://github.com/heynyren/NeutronDict/actions/runs/36123191616), tại commit [26a23fc](https://github.com/heynyren/NeutronDict/commit/26a23fcfcc09062f97af7ecc9ca91f5436055bb1).
+
+- `extension/kho-ghi.js` dùng một khóa Web Locks có cùng tên trong tất cả trang sổ tay và service worker. Khóa bao trọn việc đọc dữ liệu mới nhất, sửa và lưu; không gọi lồng khóa, không giữ khóa khi gọi mạng. [Cơ chế Web Locks](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API).
+- Chấm SRS lưu lịch, thống kê nhịp và số đo trong cùng lượt ghi. Lưu lại từ giữ cả `srs` lẫn `duong`. Hoàn tác kiểm tra lượt chấm hiện tại để tránh hủy tiến độ mới ở cửa sổ khác.
+- Các đường ghi notebook của trang sổ tay, vá cách đọc/liên kết/câu nghe, lưu từ, link Gemini, gộp cloud cũ và bước ghi cuối khi đồng bộ đều dùng khóa chung.
+- Các ca từng mất lịch nay giữ đúng giá trị đã tính: cùng từ 16,50 → 16,50 ngày; khác từ 15,73 → 15,73 ngày. Hai trang chấm cùng từ/khác từ giữ cả hai mẫu nhịp.
+- Kiểm thử thêm bia mộ khi xóa, lỗi ghi, lưu từ chờ tra cứu, đồng bộ chờ mạng, khóa bước ghi cuối của đồng bộ, link Gemini và đóng tab giữ khóa. Báo cáo: `REGRESSIONS_PASSED`, không có lỗi trang.
+- Đã trả mẫu `nd-oncum.mjs` về trạng thái thiếu cách đọc như trước để kiểm tra SRS ngay cả khi tác vụ bổ sung nền chạy.
+
+Bản sửa ngăn các lượt ghi tiếp theo làm mất cập nhật theo những đường đã kiểm tra; không tự khôi phục những lượt học đã bị ghi đè trước đây. Phạm vi kiểm chứng là extension Chromium; không phải bản vá APK Android hay thay đổi máy chủ cloud.
+
+Toàn bộ [30 bài kiểm thử của dự án](https://github.com/heynyren/NeutronDict/actions/runs/36123191580) đã đạt ở cùng commit: 8 bài Node và 22 bài Chromium.
+
+## Phát hiện trước khi sửa
 
 **Đã xác nhận lỗi mất cập nhật, mức ưu tiên P1 (cao).** Trang sổ tay và tác vụ nền có thể ghi đè tiến độ SRS vừa lưu. Lỗi nằm ở việc phối hợp ghi dữ liệu; trong các ca tái hiện, SRS tính lịch mới đúng và lịch đã xuất hiện trong kho trước khi bị lượt ghi sau thay bằng bản cũ.
 
@@ -52,7 +67,7 @@ Hai lượt CI trước đã có ca SRS đọc lại 7 ngày thay vì lịch m�
 
 Chưa đo được tần suất lỗi trên máy thật, chưa kết luận sổ của người dùng đã mất bao nhiêu lượt học. Chưa tái hiện trường hợp này trên APK Android; không áp dụng kết luận về service worker của extension sang Android.
 
-## Cách khắc phục đề xuất
+## Hướng xử lý được đề xuất ở lượt đánh giá
 
 Ưu tiên thống nhất mọi thao tác thay đổi notebook của extension về một đầu mối ghi trong background:
 
@@ -64,6 +79,6 @@ Chưa đo được tần suất lỗi trên máy thật, chưa kết luận sổ
 
 Chỉ thêm thời gian chờ, chỉ tăng số lần chạy lại kiểm thử, hay chỉ sửa hàng đợi `vaSau` không giải quyết đủ vấn đề giữa các ngữ cảnh.
 
-## Trạng thái
+## Lịch sử
 
-Lượt này bổ sung chẩn đoán và đánh giá. **Chưa thay đổi cơ chế ghi của ứng dụng.**
+Báo cáo ban đầu chỉ xác nhận lỗi. Phần “Trạng thái sau bản sửa” ở đầu tài liệu ghi lại cơ chế đã triển khai và bằng chứng kiểm thử mới.

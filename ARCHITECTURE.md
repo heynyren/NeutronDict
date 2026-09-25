@@ -59,11 +59,12 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 - `tien-do.js`: tiến độ học và huy hiệu.
 - `extension/phu-de.js`, `extension/phu-de-trang.js`, `extension/cat-cau.js`: lấy phụ đề YouTube, ghép cue thành câu, đồng bộ lời thoại với video và lưu câu có nguồn.
 - `tu-lien.js`, `cau-nghe.js`, `kana.js`, `han-tu.js`: dữ liệu và bài học ngôn ngữ.
+- `extension/kho-ghi.js`: khóa ghi dùng chung giữa các trang extension và service worker, bảo vệ toàn bộ lượt đọc–sửa–ghi notebook.
 - `extension/background.js` và `android/www/app.js`: hai bộ điều phối tra cứu, lưu và đồng bộ.
 
 ## Kiểm thử và phát hành
 
-- `kiem-tra/` hiện có 29 bài: 8 bài Node và 21 bài Playwright. Các bài giao diện mới kiểm tra cả thành phần extension lẫn Android trong Chromium.
+- `kiem-tra/` hiện có 30 bài: 8 bài Node và 22 bài Playwright. Các bài giao diện mới kiểm tra cả thành phần extension lẫn Android trong Chromium.
 - `test-neutrondict.yml` chạy toàn bộ bài trong `kiem-tra/*.mjs` khi đẩy commit lên nhánh `codex/neutrondict-work`. Lần chạy đầu tiên đạt cả 25 bài. Workflow đang tạo đường dẫn Playwright tương thích với các import cố định trong bài kiểm thử; đó là bước hỗ trợ CI, chưa phải giải pháp di động lâu dài.
 - `build-android.yml` build APK khi phần `android/` thay đổi trên `main`, hoặc khi chạy thủ công. Workflow này còn phát hành `latest-debug`; không được để một bản build thử trên nhánh làm việc ghi đè bản phát hành này.
 - Thay đổi native cần chạy `npx cap sync android`, `node patch-android.js` và build Gradle; kiểm thử Playwright của extension không xác nhận phần native Android.
@@ -76,7 +77,7 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 4. **Tài liệu phiên bản:** README gốc còn mô tả phiên bản cũ so với `extension/manifest.json` và `android/package.json`.
 5. **Nối transcript với đường ôn nghe:** `phu-de.js` lưu `src.sel` là chữ/câu được chọn, không kèm `prefix`/`suffix`; `CauNghe.tuNguon` cần một câu đầy đủ chứa từ hoặc văn cảnh hai bên. Với mục lưu trực tiếp từ bảng lời thoại, `word` thường bằng `src.sel`, nên không sinh `cauNghe`. Cần kiểm thử ca này và truyền câu gốc đầy đủ khi lưu từ transcript.
 
-6. **Ghi đồng thời giữa sổ tay và background — đã xác nhận:** hai hàng đợi riêng đọc/ghi toàn bộ notebook có thể làm mất lịch SRS vừa lưu, kể cả khi sửa hai từ khác nhau. Chẩn đoán Chromium trên cloud ngày 2026-09-25 tái hiện cả ghi đè SRS, mất bản vá cách đọc và hai trang sổ tay ghi đè nhau. Hai ca chạy lần lượt không mất dữ liệu. Xem [đánh giá và bằng chứng](DANH-GIA-GHI-SRS.md). Mẫu SRS có reading/ruby chỉ giúp cô lập bài kiểm lịch; cơ chế ghi đồng thời chưa được sửa.
+6. **Ghi đồng thời giữa sổ tay và background — đã sửa trong extension:** `kho-ghi.js` dùng khóa Web Locks chung giữa các trang và service worker. Lượt đọc–sửa–ghi phải nằm trọn trong khóa, phần gọi mạng ở ngoài và không xin khóa lồng nhau. Chấm SRS lưu lịch và thống kê cùng một lượt; lưu lại từ giữ `duong`. Các đường lưu từ, link Gemini, bản vá nền và gộp đồng bộ cũng dùng khóa. `kiem-tra/ghi-srs-dong-thoi.mjs` kiểm tra 14 ca trong Chromium, gồm hai trang, xóa, lỗi ghi, mạng chậm và đóng tab. Xem [bằng chứng trước/sau](DANH-GIA-GHI-SRS.md).
 
 ## Quy tắc làm việc trên nhánh
 
