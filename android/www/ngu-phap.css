@@ -1,0 +1,36 @@
+/* Luyện ngữ pháp — xếp các mảnh của câu gốc, riêng ngoài SRS. */
+#viewGrammar [hidden] { display: none !important; }
+.np-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  margin: 8px 0 18px;
+}
+.np-answer { border-style: dashed; background: var(--surface-2, var(--surface)); }
+.np-piece {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.45;
+  padding: 9px 12px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--sh-1);
+}
+.np-piece:hover { border-color: var(--accent); }
+.np-piece:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.np-piece:disabled { cursor: default; opacity: .85; }
+.np-placeholder { color: var(--ink-3); font-size: 14px; }
+.np-label { color: var(--ink-2); font-size: 13px; font-weight: 700; margin-top: 16px; }
+.np-feedback { min-height: 28px; font-size: 15px; font-weight: 650; margin: 12px 0; }
+.np-feedback.sai { color: var(--bad, #b32731); }
+.np-feedback.dung { color: var(--good, #237a49); }
+.np-feedback.dap-an { color: var(--ink); }
