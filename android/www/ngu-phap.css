@@ -34,3 +34,10 @@
 .np-feedback.sai { color: var(--bad, #b32731); }
 .np-feedback.dung { color: var(--good, #237a49); }
 .np-feedback.dap-an { color: var(--ink); }
+.np-result {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 8px;
+  margin: 10px 0 16px;
+}
+.np-original { font-size: 19px; line-height: 1.7; font-weight: 650; overflow-wrap: anywhere; }
+.np-translation { font-size: 15px; line-height: 1.6; color: var(--ink-2); overflow-wrap: anywhere; }
