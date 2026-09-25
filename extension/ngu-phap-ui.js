@@ -5,7 +5,7 @@
 (function (goc) {
   "use strict";
 
-  let layMuc = null, ngonNgu = null, tatCa = [], buoi = null, daGan = false;
+  let layMuc = null, ngonNgu = null, dichCau = null, tatCa = [], buoi = null, daGan = false;
   const $ = (id) => document.getElementById(id);
 
   function thongBao(chu, loai) {
@@ -33,7 +33,7 @@
     });
     $("npHint").textContent = q.tu !== q.cau
       ? T2("Từ đã lưu: {tu}", { tu: q.tu })
-      : (q.nghia ? T2("Nghĩa: {nghia}", { nghia: q.nghia }) : T("Ghép lại câu đã lưu"));
+      : T("Ghép lại câu đã lưu");
     const daChon = buoi.chon;
     const oDap = $("npAnswer"), oNguon = $("npOptions");
     oDap.textContent = "";
@@ -74,6 +74,23 @@
     $("npCheck").disabled = daChon.length !== q.manh.length;
     $("npSkip").hidden = buoi.xong;
     $("npNext").hidden = !buoi.xong;
+    $("npResult").hidden = !buoi.xong;
+  }
+
+  async function hienKetQua() {
+    if (!buoi || !buoi.xong) return;
+    const hienTai = buoi, viTri = buoi.i, q = buoi.ds[viTri];
+    $("npOriginal").textContent = q.cau;
+    $("npTranslation").textContent = q.nghia || T("Đang dịch câu gốc…");
+    if (q.nghia || !dichCau) {
+      if (!q.nghia) $("npTranslation").textContent = T("Chưa dịch được câu này.");
+      return;
+    }
+    let dich = "";
+    try { dich = String((await dichCau(q.cau)) || "").trim(); } catch (e) { /* thử lại ở buổi sau */ }
+    if (buoi !== hienTai || buoi.i !== viTri) return;
+    if (dich && dich !== q.cau) q.nghia = dich;
+    $("npTranslation").textContent = q.nghia || T("Chưa dịch được câu này.");
   }
 
   function batDau() {
@@ -97,13 +114,15 @@
     buoi.dung++;
     thongBao(T("Đúng rồi!"), "dung");
     ve();
+    hienKetQua();
   }
 
   function boQua() {
     if (!buoi || buoi.xong) return;
     buoi.xong = true;
-    thongBao(T2("Câu gốc: {cau}", { cau: buoi.ds[buoi.i].cau }), "dap-an");
+    thongBao(T("Đây là đáp án."), "dap-an");
     ve();
+    hienKetQua();
   }
 
   function tiep() {
@@ -138,6 +157,7 @@
   function khoiTao(cauHinh) {
     layMuc = cauHinh.layMuc;
     ngonNgu = cauHinh.ngonNgu;
+    dichCau = cauHinh.dichCau;
     if (!daGan) {
       $("npStart").addEventListener("click", batDau);
       $("npCheck").addEventListener("click", kiemTra);
