@@ -1,0 +1,56 @@
+# Kiến trúc NeutronDict
+
+Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau có điểm xuất phát chung. Mã nguồn và bài kiểm thử là nguồn xác nhận cuối cùng; cập nhật tài liệu khi luồng dữ liệu thay đổi.
+
+## Thành phần
+
+| Thư mục | Vai trò |
+| --- | --- |
+| `extension/` | Extension Chrome/Edge Manifest V3. `background.js` là service worker tra cứu, lưu mục và đồng bộ; `content.js` xử lý tương tác trên trang; `popup.js` và `notebook.js` dựng giao diện. `manifest.json` khai báo quyền, content scripts và lệnh tắt. |
+| `android/` | App Capacitor. `www/index.html` nạp các mô-đun và `www/app.js` chứa luồng app, dữ liệu và đồng bộ. `native/MainActivity.java` và `patch-android.js` thêm tích hợp Android. |
+| `mcp/` | MCP server Node qua stdio, cho phép trợ lý đọc/sửa sổ tay qua Apps Script hoặc tệp JSON. |
+| `kiem-tra/` | Các bài kiểm thử Node và Playwright; `DOC-TRUOC.md` hướng dẫn chạy. |
+| `cong-cu/` | Công cụ xử lý dữ liệu. |
+| `.github/workflows/` | Workflow build APK và kiểm thử. |
+
+## Luồng tra cứu và lưu
+
+1. Trong extension, popup/content script gửi thông điệp như `LOOKUP`, `SAVE_WORD`, `TRANSLATE` đến service worker trong `background.js`. Service worker gọi nguồn từ điển/dịch, ghi `chrome.storage.local` và hẹn đồng bộ.
+2. Android nạp các mô-đun trong `www/index.html`, rồi `app.js` gọi nguồn tra cứu và quản lý màn hình. `Store` dùng Capacitor Preferences khi có plugin, hoặc `localStorage` khi chạy thử trên trình duyệt.
+3. Hai bề mặt cùng dùng nhiều mô-đun JS. Các bản trong `extension/` và `android/www/` được chép riêng; khi sửa một mô-đun dùng chung phải kiểm tra cả hai bản. `chu-bang.js` hiện không giống hệt giữa hai bề mặt.
+
+## Dữ liệu cần bảo toàn
+
+- `notebook` là tập mục theo khóa có tiền tố: `javi:` và `kanji:` cho tiếng Nhật, `envi:` cho tiếng Anh. `ngu.js` quyết định cách lọc ngôn ngữ. Mục đã xóa dùng bia mộ `del` để lần đồng bộ sau không hồi sinh.
+- Một mục có `ts` cho thay đổi nội dung. SRS có mốc riêng `srs.ts`; mỗi đường trong `duong` cũng có mốc chấm riêng. `Muc.tron` gộp nội dung và tiến độ theo các mốc khác nhau. Không thay phép gộp bằng cách lấy toàn bộ mục mới nhất.
+- Các đường SRS là `nhin`, `nghe`, `dong`, `trai`. `srs.js` tính lịch, điểm và hồ sơ học. Một số trường cũ vẫn tồn tại để tương thích dữ liệu và phiên bản cũ.
+- Gói đồng bộ có thể chứa `notebook`, `decks`, `hoc`, `luyenNoi`, `soDoSrs`, `phuDeSua`. Apps Script lưu nguyên gói `data` được gửi lên. Vì vậy mọi lối ghi phải giữ những trường nó không sửa.
+- Ảnh đính kèm nằm cục bộ trong IndexedDB; khi đồng bộ, app bỏ mô tả ảnh trước khi gửi và giữ ảnh cục bộ khi gộp dữ liệu tải về.
+- Cấu hình cũ có cloud riêng cho từng ngôn ngữ. Cấu hình kho chung đưa cả hai ngôn ngữ vào một Apps Script; các lối cũ vẫn cần hoạt động.
+
+## Các mô-đun trung tâm
+
+- `ngu.js`: định tuyến ngôn ngữ, tiền tố khóa, cấu hình cloud và tương thích dữ liệu cũ.
+- `muc.js`: bia mộ, khôi phục phần người dùng tự sửa, gộp hai bản của một mục.
+- `srs.js`: lịch ôn bốn đường, điểm, thống kê và gộp số đo.
+- `tien-do.js`: tiến độ học và huy hiệu.
+- `tu-lien.js`, `cau-nghe.js`, `kana.js`, `han-tu.js`: dữ liệu và bài học ngôn ngữ.
+- `extension/background.js` và `android/www/app.js`: hai bộ điều phối tra cứu, lưu và đồng bộ.
+
+## Kiểm thử và phát hành
+
+- `kiem-tra/` hiện có 25 bài: 6 bài Node thuần, 19 bài Playwright chạy Chromium với extension thật.
+- `test-neutrondict.yml` chạy toàn bộ 25 bài khi đẩy commit lên nhánh `codex/neutrondict-work`. Lần chạy đầu tiên đạt cả 25 bài. Workflow đang tạo đường dẫn Playwright tương thích với các import cố định trong bài kiểm thử; đó là bước hỗ trợ CI, chưa phải giải pháp di động lâu dài.
+- `build-android.yml` build APK khi phần `android/` thay đổi trên `main`, hoặc khi chạy thủ công. Workflow này còn phát hành `latest-debug`; không được để một bản build thử trên nhánh làm việc ghi đè bản phát hành này.
+- Thay đổi native cần chạy `npx cap sync android`, `node patch-android.js` và build Gradle; kiểm thử Playwright của extension không xác nhận phần native Android.
+
+## Rủi ro cần xử lý trước khi mở rộng
+
+1. **Ghi từ MCP lên cloud:** `mcp/neutrondict-mcp.mjs` gọi Apps Script `save` với `data: { notebook: nb }`. Apps Script ghi đè cả gói, nên một lượt sửa qua MCP có thể làm mất `decks`, `hoc`, `luyenNoi`, `soDoSrs`, `phuDeSua` trên cloud. Cần thêm bài kiểm thử giữ nguyên các trường rồi sửa lối ghi.
+2. **Kiểm thử tương thích SRS:** `kiem-tra/srs-diem.mjs` so bản đang chạy với `git show HEAD:extension/srs.js`. Trong CI trên commit đã tạo, hai bản này có thể chính là cùng một file; phép so không bảo vệ khỏi thay đổi tương thích. Cần một baseline có chủ đích.
+3. **Mô-đun chép đôi:** mới có bài thử byte-for-byte rõ ràng cho `srs.js`; những file dùng chung khác vẫn có thể lệch giữa extension và Android.
+4. **Tài liệu phiên bản:** README gốc còn mô tả phiên bản cũ so với `extension/manifest.json` và `android/package.json`.
+
+## Quy tắc làm việc trên nhánh
+
+Mọi thay đổi trước mắt thực hiện trên `codex/neutrondict-work`. Với thay đổi dữ liệu hoặc đồng bộ, kiểm tra dữ liệu cũ, bia mộ, nhiều thiết bị và cả hai ngôn ngữ. Chạy workflow kiểm thử của nhánh và xem log thật; nếu thay đổi Android, kiểm tra thêm build APK trên nhánh bằng workflow không phát hành.
