@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title data-chu>Sổ tay NeutronDict</title>
   <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="ngu-phap.css">
   <style>
     /* ----------------------------------------------------------------------
        Bố cục riêng của trang Sổ tay: cột trái cố định, cột phải cuộn.
@@ -121,6 +122,8 @@
   <button id="study" class="btn primary block lg" type="button">
     <span id="studyLabel" data-chu>Học ngay</span><span id="studyCho" hidden></span> <span id="dueCount" class="tag" style="background:rgba(255,255,255,.22);color:#fff">0</span>
   </button>
+
+  <button id="grammar" class="btn block" type="button" style="margin-top:8px;display:none" data-chu>Luyện ngữ pháp</button>
 
   <button id="speak" class="btn block" type="button" style="margin-top:8px" data-chu>
     Luyện nói
@@ -296,6 +299,29 @@
       <div id="hangLoat" class="topbar hangloat" style="display:none"></div>
       <div class="card pad-0">
         <div id="list" class="list"></div>
+      </div>
+    </section>
+
+    <section id="viewGrammar" class="view">
+      <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
+      <div class="card">
+        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.</div>
+        <div id="npCount" class="t-small muted" style="margin:14px 0"></div>
+        <button id="npStart" class="btn primary lg" type="button" hidden data-chu>Bắt đầu luyện</button>
+        <div id="npExercise" hidden>
+          <div id="npProgress" class="t-small muted"></div>
+          <div id="npHint" class="t-small" style="margin-top:8px"></div>
+          <div class="np-label" data-chu>Câu của bạn</div>
+          <div id="npAnswer" class="np-pieces np-answer" aria-live="polite"></div>
+          <div class="np-label" data-chu>Các mảnh bị xáo trộn</div>
+          <div id="npOptions" class="np-pieces"></div>
+          <div id="npFeedback" class="np-feedback" role="status" aria-live="polite"></div>
+          <div class="rowx wrap" style="gap:8px">
+            <button id="npCheck" class="btn primary" type="button" data-chu>Kiểm tra</button>
+            <button id="npSkip" class="btn" type="button" data-chu>Xem câu gốc</button>
+            <button id="npNext" class="btn primary" type="button" hidden data-chu>Câu tiếp</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -539,6 +565,8 @@
   <script src="ngu.js"></script>
   <script src="srs.js"></script>
   <script src="cau-nghe.js"></script>
+  <script src="ngu-phap.js"></script>
+  <script src="ngu-phap-ui.js"></script>
   <script src="tu-lien.js"></script>
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
