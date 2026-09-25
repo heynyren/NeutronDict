@@ -27,6 +27,14 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 4. Nút lưu tạo mục câu kèm bản dịch và `src.yt` chứa mã video, mốc giây và thông tin đoạn. Sổ tay giữ nguồn video để quay lại đúng đoạn. Ngay tại bảng lời thoại, người học có thể ghi âm giọng mình, nghe lại và đọc theo. Mục lưu trực tiếp từ bảng này hiện chưa tự tạo `cauNghe` cho đường ôn nghe; xem rủi ro bên dưới.
 5. Bản chép lời và bản dịch được lưu cục bộ để xem lại. Cần kiểm thử riêng các đường lấy phụ đề và trường hợp YouTube đổi cấu trúc trang; 25 bài hiện có chưa chứng minh được tích hợp này hoạt động trên mọi video thực tế.
 
+## Luyện ngữ pháp tiếng Nhật
+
+- Chế độ `Luyện ngữ pháp` có màn riêng trong sổ tay extension và tab riêng trên Android; chỉ hiện khi đang dùng Nhật–Việt. Mỗi buổi lấy tối đa 10 câu từ những mục đã lưu, không đọc/ghi điểm, lịch hay huy hiệu SRS.
+- `ngu-phap.js` ưu tiên câu `cauNghe.cau`, rồi câu đầy đủ `src.cau` từ transcript, rồi mục lưu nguyên câu, cuối cùng thử cắt câu từ `src.prefix`/`src.suffix` bằng `CauNghe.tuNguon`. Câu phải chứa đúng từ đã lưu, đủ dài và có chữ Nhật. `Intl.Segmenter("ja")` tạo 2–4 mảnh ở ranh giới từ; app xáo trộn và người học chạm từng mảnh để xếp lại.
+- Ghép đúng hoặc chọn xem đáp án đều hiện câu gốc và bản dịch tiếng Việt. Ưu tiên bản dịch câu đã lưu; nếu chưa có thì gọi đường dịch Nhật→Việt hiện hành. Lỗi dịch được báo trên màn, không ghi một bản dịch đoán vào sổ.
+- `phu-de.js` nay lưu thêm `src.cau` và bản dịch câu (nếu đã có) khi lưu từ lời thoại. Với mục video cũ, chế độ có thể khôi phục câu từ `ytKho` cục bộ nếu cache còn và khớp video, thời gian, từ. Mục cũ không có câu và cache đã hết thì chưa có đủ dữ liệu để tạo bài.
+- `kiem-tra/ngu-phap.mjs` kiểm tra chọn câu, cắt/xáo mảnh, cache và cú pháp hai bề mặt; `kiem-tra/ngu-phap-giao-dien.mjs` dùng Chromium xác nhận màn extension/Android hiện đáp án và bản dịch sau khi ghép đúng hoặc xem đáp án.
+
 ## Dữ liệu cần bảo toàn
 
 - `notebook` là tập mục theo khóa có tiền tố: `javi:` và `kanji:` cho tiếng Nhật, `envi:` cho tiếng Anh. `ngu.js` quyết định cách lọc ngôn ngữ. Mục đã xóa dùng bia mộ `del` để lần đồng bộ sau không hồi sinh.
