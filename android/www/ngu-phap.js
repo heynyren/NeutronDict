@@ -76,7 +76,7 @@
       const v = key.split("|")[0];
       if (!v || !ban || !Array.isArray(ban.cau)) continue;
       if (!nhom.has(v)) nhom.set(v, []);
-      nhom.get(v).push(...ban.cau);
+      nhom.get(v).push(...ban.cau.map((c, i) => Object.assign({}, c, { cauDich: (ban.dich || {})[i] || "" })));
     }
     return (items || []).map((it) => {
       const src = it && it.src;
@@ -91,9 +91,9 @@
         const trong = t >= dau - 1 && t <= (Number.isFinite(cuoi) ? cuoi : dau + 6) + 1;
         if (!trong) continue;
         const d = Math.abs(t - dau);
-        if (d < cach) { best = c.s; cach = d; }
+        if (d < cach) { best = c; cach = d; }
       }
-      return best ? Object.assign({}, it, { src: Object.assign({}, src, { cau: best }) }) : it;
+      return best ? Object.assign({}, it, { src: Object.assign({}, src, { cau: best.s, cauDich: best.cauDich }) }) : it;
     });
   }
 
@@ -110,8 +110,11 @@
       cau: cau,
       manh: manh,
       xao: xao,
-      nghia: chuan((it.cauNghe && it.cauNghe.dich) ||
-        (it.kind === "sent" && Array.isArray(it.means) && it.means[0]) || "")
+      nghia: chuan(
+        (it.cauNghe && chuan(it.cauNghe.cau) === cau && it.cauNghe.dich) ||
+        (it.src && chuan(it.src.cau) === cau && it.src.cauDich) ||
+        (it.kind === "sent" && chuan(it.word) === cau && Array.isArray(it.means) && it.means[0]) || ""
+      )
     };
   }
 
