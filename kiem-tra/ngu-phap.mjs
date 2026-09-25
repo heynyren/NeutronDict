@@ -50,6 +50,18 @@ for (const sentence of [
 }
 assert.equal(np.catCau("短い。"), null);
 
+const videoCu = { key: "javi:勉強-cũ", word: "勉強",
+  src: { sel: "勉強", yt: { v: "abc", t: 42 } } };
+const daBoSung = np.boSungTuKho([videoCu], {
+  "abc|ja:auto": { cau: [{ t: 39, tEnd: 45, s: "私は毎朝日本語を勉強します。" }] },
+  "khac|ja": { cau: [{ t: 39, tEnd: 45, s: "勉強は楽しいです。" }] }
+});
+assert.equal(daBoSung[0].src.cau, "私は毎朝日本語を勉強します。");
+assert.equal(videoCu.src.cau, undefined);
+assert.equal(np.boSungTuKho([{ ...videoCu, src: { ...videoCu.src, yt: { v: "abc", t: 100 } } }], {
+  "abc|ja": { cau: [{ t: 39, tEnd: 45, s: "私は毎朝日本語を勉強します。" }] }
+})[0].src.cau, undefined);
+
 const videoQuiz = np.taoBai(tuVideo, () => 0.9999);
 assert.ok(videoQuiz);
 assert.equal(videoQuiz.cau, tuVideo.src.cau);
