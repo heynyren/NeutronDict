@@ -16,12 +16,13 @@
     const tu = chuan(it.word);
     if (!tu) return "";
     const src = it.src || {};
+    let tuNguon = null;
+    try { if (goc.CauNghe) tuNguon = goc.CauNghe.tuNguon(src, tu); } catch (e) { /* dữ liệu nguồn cũ có thể sai */ }
     const co = [
       it.cauNghe && it.cauNghe.cau,
       src.cau,
       it.kind === "sent" ? it.word : "",
-      goc.CauNghe && goc.CauNghe.tuNguon(src, tu)
-        ? goc.CauNghe.tuNguon(src, tu).cau : ""
+      tuNguon && tuNguon.cau
     ];
     for (const raw of co) {
       const cau = chuan(raw);
@@ -65,6 +66,37 @@
     return ra;
   }
 
+  /**
+   * Mục video cũ chỉ có mã video và mốc giây. Nếu bản chép lời còn trong
+   * cache cục bộ, tìm lại câu chứa từ để có bài tập mà không sửa dữ liệu SRS.
+   */
+  function boSungTuKho(items, kho) {
+    const nhom = new Map();
+    for (const [key, ban] of Object.entries(kho || {})) {
+      const v = key.split("|")[0];
+      if (!v || !ban || !Array.isArray(ban.cau)) continue;
+      if (!nhom.has(v)) nhom.set(v, []);
+      nhom.get(v).push(...ban.cau);
+    }
+    return (items || []).map((it) => {
+      const src = it && it.src;
+      const yt = src && src.yt;
+      if (!src || src.cau || !yt || !yt.v || !it.word) return it;
+      const t = Number(yt.t);
+      if (!Number.isFinite(t)) return it;
+      let best = null, cach = Infinity;
+      for (const c of (nhom.get(yt.v) || [])) {
+        const dau = Number(c.t), cuoi = Number(c.tEnd);
+        if (!Number.isFinite(dau) || !c.s || !c.s.includes(it.word)) continue;
+        const trong = t >= dau - 1 && t <= (Number.isFinite(cuoi) ? cuoi : dau + 6) + 1;
+        if (!trong) continue;
+        const d = Math.abs(t - dau);
+        if (d < cach) { best = c.s; cach = d; }
+      }
+      return best ? Object.assign({}, it, { src: Object.assign({}, src, { cau: best }) }) : it;
+    });
+  }
+
   function taoBai(it, random) {
     const cau = layCau(it);
     if (!cau) return null;
@@ -99,5 +131,5 @@
     return ra;
   }
 
-  goc.NguPhap = { layCau, catCau, xaoTron, taoBai, danhSach };
+  goc.NguPhap = { layCau, catCau, xaoTron, boSungTuKho, taoBai, danhSach };
 })(typeof self !== "undefined" ? self : this);
