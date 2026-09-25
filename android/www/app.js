@@ -1683,7 +1683,11 @@ async function themDoanNoi() {
   veLuyenNoi();
 }
 
-const MAN = ["Lookup", "Notebook", "Study", "Speak", "Progress"];
+window.NguPhapUI.khoiTao({
+  layMuc: async () => Object.entries(await getNBNgu()).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del),
+  ngonNgu: () => NGU
+});
+const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Speak", "Progress"];
 let manHienTai = "Lookup";
 /** Chồng màn đã đi qua, để nút Quay lại của Android lùi từng bước. */
 const lichSu = ["Lookup"];
@@ -1717,6 +1721,7 @@ function show(view, huong) {
   if (view !== "Study")  if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
+  if (view === "Grammar") window.NguPhapUI.lamMoi();
   if (view === "Progress") { veTienDo(); pullAndRefresh(); }
 }
 
@@ -1726,7 +1731,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
 /** Vẽ lại icon thanh tab: tab đang mở dùng icon đặc. */
 function veNav() {
   const bo = { Lookup: "magnifying-glass", Notebook: "notebook", Study: "graduation-cap",
-               Speak: "microphone", Progress: "chart-line-up" };
+               Grammar: "books", Speak: "microphone", Progress: "chart-line-up" };
   MAN.forEach((v) => {
     const b = $("nav" + v);
     const on = b.classList.contains("active");
@@ -5042,6 +5047,8 @@ function veNgu() {
   // Tab "Chi tiết" là IPA/định nghĩa Anh; "Hán tự" chỉ có nghĩa với tiếng Nhật.
   $("tabDetail").style.display = laNhat() ? "none" : "";
   $("tabKanji").style.display = laNhat() ? "" : "none";
+  $("navGrammar").style.display = laNhat() ? "" : "none";
+  if (!laNhat() && manHienTai === "Grammar") show("Notebook");
   $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");
   const b = $("nguBtn");
   b.textContent = laNhat() ? "日→V" : "EN→V";
