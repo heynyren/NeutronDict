@@ -78,6 +78,17 @@ const gieo = (onCum) => sw.evaluate(async ([now, onCum]) => {
     decks: {}, hoc: {}, nhipMs: {},
     settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false, onCum: onCum }
   });
+  // Mẫu thử lịch SRS đã có đầy đủ cách đọc: tác vụ vá furigana lúc mở
+  // trang không được ghi lại sổ mẫu trong khi bài kiểm đang chấm.
+  const notebook = (await chrome.storage.local.get("notebook")).notebook;
+  const cachDoc = { "改善": "かいぜん", "改良": "かいりょう", "向上": "こうじょう",
+                    "改悪": "かいあく", "写真": "しゃしん" };
+  for (const e of Object.values(notebook)) {
+    e.reading = cachDoc[e.word];
+    e.ruby = self.Kana.gonRuby(self.Kana.ghepFurigana(e.word, e.reading));
+    if (!self.Kana.rubyKhop(e.word, e.ruby)) throw new Error("Mẫu thiếu furigana: " + e.word);
+  }
+  await chrome.storage.local.set({ notebook });
 }, [Date.now(), onCum]);
 
 async function moSo() {
@@ -258,10 +269,12 @@ await gieo(true);
     const lay = async () => ((await chrome.storage.local.get("notebook"))
       .notebook["javi:改善"].duong.nhin) || {};
     const truoc = await lay();
-    await gradeWord("javi:改善", true, 2000, "nhin");
+    const kq = await gradeWord("javi:改善", true, 2000, "nhin");
     const sau = await lay();
-    return { truocNgay: truoc.ngay, sauNgay: sau.ngay };
+    return { truocNgay: truoc.ngay, sauNgay: sau.ngay, tinhNgay: kq && kq.duong.ngay };
   });
+  soat("kết quả chấm được giữ nguyên trong kho", r.sauNgay === r.tinhNgay,
+       "tính " + r.tinhNgay + " / lưu " + r.sauNgay);
   soat("nhớ một thẻ tới hạn thì giãn cách PHẢI nới ra", r.sauNgay > r.truocNgay,
        r.truocNgay + " → " + r.sauNgay + " ngày");
   await page.close();

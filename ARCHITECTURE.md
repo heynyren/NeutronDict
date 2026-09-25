@@ -76,6 +76,8 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 4. **Tài liệu phiên bản:** README gốc còn mô tả phiên bản cũ so với `extension/manifest.json` và `android/package.json`.
 5. **Nối transcript với đường ôn nghe:** `phu-de.js` lưu `src.sel` là chữ/câu được chọn, không kèm `prefix`/`suffix`; `CauNghe.tuNguon` cần một câu đầy đủ chứa từ hoặc văn cảnh hai bên. Với mục lưu trực tiếp từ bảng lời thoại, `word` thường bằng `src.sel`, nên không sinh `cauNghe`. Cần kiểm thử ca này và truyền câu gốc đầy đủ khi lưu từ transcript.
 
+6. **Ghi đồng thời giữa sổ tay và background:** `suaSoTay` trong notebook và `vaSau` trong background là hai hàng đợi riêng; cả hai đọc/ghi toàn bộ notebook. Bài `nd-oncum.mjs` từng đọc lại lịch cũ (7 ngày) sau khi chấm ở hai lượt CI; mẫu thiếu cách đọc kích hoạt vá furigana khi mở trang. Mẫu SRS nay có sẵn reading/ruby để cô lập phép kiểm lịch; vẫn cần bài riêng tái hiện và xử lý ghi đồng thời giữa hai ngữ cảnh.
+
 ## Quy tắc làm việc trên nhánh
 
 Mọi thay đổi trước mắt thực hiện trên `codex/neutrondict-work`. Với thay đổi dữ liệu hoặc đồng bộ, kiểm tra dữ liệu cũ, bia mộ, nhiều thiết bị và cả hai ngôn ngữ. Chạy workflow kiểm thử của nhánh và xem log thật; nếu thay đổi Android, kiểm tra thêm build APK trên nhánh bằng workflow không phát hành.
