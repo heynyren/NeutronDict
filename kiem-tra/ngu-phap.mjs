@@ -8,6 +8,14 @@ context.self = context;
 vm.runInNewContext(readFileSync(new URL("extension/cau-nghe.js", root), "utf8"), context);
 vm.runInNewContext(readFileSync(new URL("extension/ngu-phap.js", root), "utf8"), context);
 const np = context.NguPhap;
+for (const file of [
+  "extension/ngu-phap-ui.js", "android/www/ngu-phap-ui.js",
+  "extension/notebook.js", "android/www/app.js"
+]) new vm.Script(readFileSync(new URL(file, root), "utf8"), { filename: file });
+assert.equal(
+  readFileSync(new URL("extension/ngu-phap.js", root), "utf8"),
+  readFileSync(new URL("android/www/ngu-phap.js", root), "utf8")
+);
 
 const tuWeb = {
   key: "javi:天気", word: "天気",
