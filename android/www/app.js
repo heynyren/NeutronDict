@@ -1691,13 +1691,16 @@ window.NguPhapUI.khoiTao({
   ngonNgu: () => NGU
 });
 const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Speak", "Progress"];
+const manCoTheMo = () => MAN.filter((v) => v !== "Grammar" || laNhat());
 let manHienTai = "Lookup";
 /** Chồng màn đã đi qua, để nút Quay lại của Android lùi từng bước. */
 const lichSu = ["Lookup"];
 
 function show(view, huong) {
-  const tu = MAN.indexOf(manHienTai);
-  const den = MAN.indexOf(view);
+  if (view === "Grammar" && !laNhat()) return;
+  const tab = manCoTheMo();
+  const tu = tab.indexOf(manHienTai);
+  const den = tab.indexOf(view);
   const chieu = huong != null ? huong : (den > tu ? 1 : -1);
 
   MAN.forEach((v) => {
@@ -1744,9 +1747,9 @@ function veNav() {
 
 /* --- vuốt ngang đổi tab --- */
 window.ChamVuot.vuotDoiTab(
-  () => MAN.indexOf(manHienTai),
-  () => MAN.length,
-  (toi) => show(MAN[toi], toi > MAN.indexOf(manHienTai) ? 1 : -1)
+  () => manCoTheMo().indexOf(manHienTai),
+  () => manCoTheMo().length,
+  (toi) => show(manCoTheMo()[toi], toi > manCoTheMo().indexOf(manHienTai) ? 1 : -1)
 );
 
 /* --- nút Quay lại của Android --- */
