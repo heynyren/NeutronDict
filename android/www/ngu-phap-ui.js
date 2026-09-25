@@ -95,7 +95,15 @@
 
   function batDau() {
     if (!tatCa.length) return;
-    buoi = { ds: tatCa.slice(0, 10), i: 0, dung: 0, chon: [], xong: false };
+    // Mỗi buổi đi hết danh sách; luyện lại xáo câu và mảnh, không kẹt ở 10 câu đầu.
+    const ds = tatCa.map((q) => Object.assign({}, q, {
+      xao: goc.NguPhap.xaoTron(q.manh) || q.xao
+    }));
+    for (let i = ds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ds[i], ds[j]] = [ds[j], ds[i]];
+    }
+    buoi = { ds: ds, i: 0, dung: 0, chon: [], xong: false };
     $("npCount").textContent = T("Chạm từng mảnh để ghép câu gốc.");
     thongBao("");
     ve();

@@ -2000,6 +2000,13 @@
     "“Cho đi là còn mãi.”": "「与えたものだけが残る。」"
   };
 
+  en["Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm."] = "Not enough unambiguous choices. Recall the word, then reveal the answer; this round is not scored.";
+  ja["Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm."] = "明確な選択肢が足りません。単語を思い出してから答えを確認してください。今回は採点しません。";
+  en["Đã xem đáp án · Không tính điểm SRS"] = "Answer revealed · No SRS score";
+  ja["Đã xem đáp án · Không tính điểm SRS"] = "解答を確認しました · SRSの採点なし";
+  en["Xem đáp án"] = "Show answer";
+  ja["Xem đáp án"] = "答えを見る";
+
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

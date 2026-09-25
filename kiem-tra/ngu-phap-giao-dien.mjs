@@ -53,9 +53,41 @@ try {
     await page.locator("#npSkip").click();
     await page.waitForFunction((expected) => document.getElementById("npTranslation").textContent === expected, dich);
     assert.equal(await page.locator("#npOriginal").textContent(), cau, surface + ": skip answer");
+    await page.locator("#npNext").click();
+
+    // Hơn 10 câu: phải đi qua câu 11 đến câu cuối, mỗi câu đúng một lượt.
+    const nhieuCau = Array.from({ length: 13 }, (_, i) => ({
+      key: "javi:勉強:" + i, word: "勉強",
+      src: { cau: "私は毎朝" + (i + 1) + "分間日本語を勉強します。", cauDich: "Câu " + (i + 1) }
+    }));
+    await page.evaluate(async (ds) => {
+      window.NguPhapUI.khoiTao({ layMuc: async () => ds, ngonNgu: () => "ja" });
+      await window.NguPhapUI.lamMoi();
+    }, nhieuCau);
+    for (let luot = 0; luot < 2; luot++) {
+      await page.locator("#npStart").click();
+      const daGap = new Set();
+      for (let i = 0; i < nhieuCau.length; i++) {
+        assert.match(await page.locator("#npProgress").textContent(),
+          new RegExp("Câu " + (i + 1) + "/13"), surface + ": progress past ten");
+        assert.equal(await page.locator("#npResult").isVisible(), false);
+        await page.locator("#npSkip").click();
+        const goc = await page.locator("#npOriginal").textContent();
+        const q = nhieuCau.find((x) => x.src.cau === goc);
+        assert.ok(q, surface + ": saved source sentence");
+        assert.equal(await page.locator("#npTranslation").textContent(), q.src.cauDich);
+        assert.equal(daGap.has(goc), false, surface + ": no repeats before finishing");
+        daGap.add(goc);
+        await page.locator("#npNext").click();
+      }
+      assert.equal(daGap.size, 13, surface + ": reaches every eligible sentence");
+      assert.equal(await page.locator("#npExercise").isVisible(), false);
+      assert.match(await page.locator("#npCount").textContent(), /0\/13/);
+      assert.equal(await page.locator("#npStart").textContent(), "Luyện lại");
+    }
     await page.close();
   }
-  console.log("Luyện ngữ pháp: đáp án và bản dịch sau khi ghép đúng hoặc xem đáp án OK");
+  console.log("Luyện ngữ pháp: đáp án, bản dịch, đi hết 13 câu và luyện lại trên hai nền tảng OK");
 } finally {
   await browser.close();
 }

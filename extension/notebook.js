@@ -3045,44 +3045,9 @@ let baiLien = null;         // { it, duong, dung:Set, o:[], chon:Set, moc }
 
 function veBaiLien(it) {
   const d = it._d;
-  const l = it.lien || {};
-  /*
-   * ĐỀ ĐẢO: BÀY CỤM, ĐI TÌM TỪ GỐC.
-   *
-   * Chiều cũ hỏi theo lối NHẬN RA: bày từ gốc, nhặt cho hết những từ liên kết
-   * với nó. Nhiều đáp án, và việc khó nằm ở chỗ quét cho hết danh sách.
-   *
-   * Chiều này hỏi theo lối GỌI RA: bày cả cụm, đi tìm từ gốc — đáp án chỉ còn
-   * MỘT. Đó đúng là thứ bậc cao nhất của app vẫn hứa ("Gọi ra được lúc cần")
-   * mà chiều cũ chưa bao giờ đo được.
-   */
-  const cum = (d === "dong" ? l.dong : l.trai) || [];      // bày ra làm ĐỀ
-  const kia = (d === "dong" ? l.trai : l.dong) || [];      // cực ngược lại: mồi nhử
-  /*
-   * MỒI NHỬ lấy cực kia trước; HẾT thì mới lấy ở sổ tay.
-   *
-   * Bản 4.27.0 cấm hẳn từ ngoài, và cấm đúng: hồi đó đáp án là cả một cực nên
-   * vốn đã đủ mồi nhử. Chiều đảo thì khác: đáp án chỉ một từ, mà từ không có
-   * trái nghĩa thì đề còn đúng MỘT Ô — bấm là trúng. Nên đây là lối lui, hẹp
-   * và có chủ ý, chứ không phải quay về cách cũ.
-   */
-  /*
-   * Mồi nhử phải là TỪ, không phải câu.
-   *
-   * Sổ tay có cả mục lưu nguyên một câu ("すみません、わざわざありがとうございます。").
-   * Bày nó cạnh 悲鳴 thì vừa buồn cười vừa vô dụng: loại được ngay từ cái nhìn
-   * đầu nên nó chẳng nhử được ai, chỉ làm đề dài ra. `TuLien.laMotTu` đã có sẵn
-   * đúng phép thử ấy — ngắn, và không mang dấu câu.
-   */
-  const xa = items
-    .filter((x) => x.key !== it.key && !x.del && x.word && x.word !== it.word)
-    .filter((x) => x.kind !== "sent" && window.TuLien.laMotTu(x.word))
-    .map((x) => x.word)
-    .filter((w) => cum.indexOf(w) < 0);        // từ trong cụm đang ở đề, đừng bày lại
-  const o = window.TuLien.dungDe([it.word], kia, xa, undefined, window.TuLien.O_DAO_TOI_DA);
-
+  const { cum, kia, o, khongCham } = window.TuLien.dungDeDao(it, items);
   baiLien = { it: it, duong: d, dung: new Set([it.word]), o: o, chon: new Set(),
-              cum: cum, kia: kia, moc: performance.now() };
+              cum: cum, kia: kia, khongCham: khongCham, moc: performance.now() };
   msDaDung = null;
 
   /*
@@ -3126,6 +3091,11 @@ function veBaiLien(it) {
    * Nghĩa vẫn có — ở MÀN KẾT QUẢ, sau khi đã trả lời. Đó mới đúng chỗ của nó:
    * phần thưởng để đọc, không phải gợi ý để chọn.
    */
+  $("stLienXong").textContent = khongCham ? T("Xem đáp án") : T("Xong");
+  if (khongCham) {
+    khung.appendChild(el("p", null, T("Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm.")));
+    return;
+  }
   for (const chu of o) {
     const b = el("button", "lien-omot");
     b.type = "button";
@@ -3145,6 +3115,15 @@ async function xongBaiLien() {
   baiLien = null;                                  // chặn bấm Xong hai lần
   const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
   msDaDung = null;
+  if (b.khongCham) {
+    veKetQuaLien(b, 0, ms);
+    $("stLienKq").textContent = T("Đã xem đáp án · Không tính điểm SRS");
+    session.queue.shift();
+    tiepBaiLien = () => { tiepBaiLien = null; showCard(); };
+    $("stLienTiep").style.display = "";
+    $("stLienTiep").focus();
+    return;
+  }
   let dung = 0, sai = 0;
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });

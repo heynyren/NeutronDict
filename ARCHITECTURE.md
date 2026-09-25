@@ -29,11 +29,18 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 
 ## Luyện ngữ pháp tiếng Nhật
 
-- Chế độ `Luyện ngữ pháp` có màn riêng trong sổ tay extension và tab riêng trên Android; chỉ hiện khi đang dùng Nhật–Việt. Mỗi buổi lấy tối đa 10 câu từ những mục đã lưu, không đọc/ghi điểm, lịch hay huy hiệu SRS.
+- Chế độ `Luyện ngữ pháp` có màn riêng trong sổ tay extension và tab riêng trên Android; chỉ hiện khi đang dùng Nhật–Việt. Mỗi buổi luyện toàn bộ câu đủ điều kiện từ những mục đã lưu; mỗi câu xuất hiện một lần và nút Luyện lại xáo câu/mảnh cho buổi mới, không đọc/ghi điểm, lịch hay huy hiệu SRS.
 - `ngu-phap.js` ưu tiên câu `cauNghe.cau`, rồi câu đầy đủ `src.cau` từ transcript, rồi mục lưu nguyên câu, cuối cùng thử cắt câu từ `src.prefix`/`src.suffix` bằng `CauNghe.tuNguon`. Câu phải chứa đúng từ đã lưu, đủ dài và có chữ Nhật. `Intl.Segmenter("ja")` tạo 2–4 mảnh ở ranh giới từ; app xáo trộn và người học chạm từng mảnh để xếp lại.
 - Ghép đúng hoặc chọn xem đáp án đều hiện câu gốc và bản dịch tiếng Việt. Ưu tiên bản dịch câu đã lưu; nếu chưa có thì gọi đường dịch Nhật→Việt hiện hành. Lỗi dịch được báo trên màn, không ghi một bản dịch đoán vào sổ.
 - `phu-de.js` nay lưu thêm `src.cau` và bản dịch câu (nếu đã có) khi lưu từ lời thoại. Với mục video cũ, chế độ có thể khôi phục câu từ `ytKho` cục bộ nếu cache còn và khớp video, thời gian, từ. Mục cũ không có câu và cache đã hết thì chưa có đủ dữ liệu để tạo bài.
 - `kiem-tra/ngu-phap.mjs` kiểm tra chọn câu, cắt/xáo mảnh, cache và cú pháp hai bề mặt; `kiem-tra/ngu-phap-giao-dien.mjs` dùng Chromium xác nhận màn extension/Android hiện đáp án và bản dịch sau khi ghép đúng hoặc xem đáp án.
+
+## Đề đồng nghĩa và trái nghĩa
+
+- Cả hai giao diện dùng `TuLien.dungDeDao` để dựng đề đảo. Bộ lọc loại từ cùng/gần nghĩa với từ gốc, nghĩa dịch trùng, quan hệ cùng cụm và lựa chọn có quan hệ phù hợp với gợi ý theo cả hai chiều. Bài trái nghĩa không lấy đồng nghĩa của từ gốc làm nhiễu.
+- Bằng chứng ngữ nghĩa chỉ dùng để loại lựa chọn mơ hồ, không tự coi mọi từ nối qua mạng là đáp án đúng. Bộ lọc đọc dữ liệu sổ tay và từ điển đã nạp, không ghi sửa dữ liệu hay mở rộng mạng bắc cầu.
+- Không ép đủ 5 ô. Nếu thiếu nhiễu hoặc thiếu gợi ý, cho tự nhớ và xem đáp án; lượt đó không ghi điểm/lịch SRS và vẫn bấm Tiếp được.
+- Các nguồn từ điển gộp nhiều nghĩa, nên bộ lọc không bảo đảm mọi quan hệ đúng với mọi ngữ cảnh. Vẫn giữ nút bỏ liên kết sai trên màn kết quả.
 
 ## Dữ liệu cần bảo toàn
 
@@ -56,8 +63,8 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 
 ## Kiểm thử và phát hành
 
-- `kiem-tra/` hiện có 25 bài: 6 bài Node thuần, 19 bài Playwright chạy Chromium với extension thật.
-- `test-neutrondict.yml` chạy toàn bộ 25 bài khi đẩy commit lên nhánh `codex/neutrondict-work`. Lần chạy đầu tiên đạt cả 25 bài. Workflow đang tạo đường dẫn Playwright tương thích với các import cố định trong bài kiểm thử; đó là bước hỗ trợ CI, chưa phải giải pháp di động lâu dài.
+- `kiem-tra/` hiện có 29 bài: 8 bài Node và 21 bài Playwright. Các bài giao diện mới kiểm tra cả thành phần extension lẫn Android trong Chromium.
+- `test-neutrondict.yml` chạy toàn bộ bài trong `kiem-tra/*.mjs` khi đẩy commit lên nhánh `codex/neutrondict-work`. Lần chạy đầu tiên đạt cả 25 bài. Workflow đang tạo đường dẫn Playwright tương thích với các import cố định trong bài kiểm thử; đó là bước hỗ trợ CI, chưa phải giải pháp di động lâu dài.
 - `build-android.yml` build APK khi phần `android/` thay đổi trên `main`, hoặc khi chạy thủ công. Workflow này còn phát hành `latest-debug`; không được để một bản build thử trên nhánh làm việc ghi đè bản phát hành này.
 - Thay đổi native cần chạy `npx cap sync android`, `node patch-android.js` và build Gradle; kiểm thử Playwright của extension không xác nhận phần native Android.
 
