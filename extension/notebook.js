@@ -4421,15 +4421,19 @@ function moMan(ten) {
   $("viewList").classList.toggle("show", ten === "list");
   $("viewProgress").classList.toggle("show", ten === "progress");
   $("viewSpeak").classList.toggle("show", ten === "speak");
+  $("viewGrammar").classList.toggle("show", ten === "grammar");
   // Hai nút trên đầu chỉ nói về Sổ tay / Tiến độ; Luyện nói vào bằng nút riêng
   // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
   $("pageList").classList.toggle("active", ten === "list");
   $("pageProgress").classList.toggle("active", ten === "progress");
   if (ten === "progress") { veTienDo(); veSoDo(); }
   if (ten === "speak") veLuyenNoi();
+  if (ten === "grammar") window.NguPhapUI.lamMoi();
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
+window.NguPhapUI.khoiTao({ layMuc: async () => items.filter((it) => !it.del), ngonNgu: () => NGU });
+$("grammar").addEventListener("click", () => moMan("grammar"));
 $("speak").addEventListener("click", () => moMan("speak"));
 $("spAdd").addEventListener("click", themDoanNoi);
 
@@ -4452,6 +4456,7 @@ function gaiIcon() {
   $("ebDecks").innerHTML = window.Icon("folder-simple", { size: 15 }) + "<span data-chu>Sổ con</span>";
   $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb" data-chu>Sổ tay</span>';
   $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb" data-chu>Tiến độ</span>';
+  $("grammar").innerHTML = window.Icon("books", { size: 18 }) + '<span class="lb" data-chu>Luyện ngữ pháp</span>';
 
   const st = $("study");
   const den = st.querySelector(".tag");
@@ -4694,6 +4699,8 @@ $("chuNgu").addEventListener("change", async () => {
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
   $("nguJa").classList.toggle("active", NGU === "ja");
+  $("grammar").style.display = NGU === "ja" ? "" : "none";
+  if (NGU !== "ja" && $("viewGrammar").classList.contains("show")) moMan("list");
   const sb = $("brandSub");
   if (sb) sb.textContent = T2("{ngu} · sóng học tập", { ngu: NGU === "ja" ? T("Nhật – Việt") : T("Anh – Việt") });
   // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.
