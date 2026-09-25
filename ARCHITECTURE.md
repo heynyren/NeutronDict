@@ -24,7 +24,7 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 1. `extension/phu-de-trang.js` đọc dữ liệu trình phát trong thế giới của trang YouTube. `extension/phu-de.js` lấy danh sách phụ đề của video hiện tại, thử tải JSON3 từ trang, từ content script, rồi đọc bảng bản chép lời của YouTube khi hai cách đầu không được. Tính năng dùng phụ đề sẵn có của YouTube; mã hiện tại không tự nhận dạng tiếng nói từ video không có phụ đề.
 2. `extension/cat-cau.js` ghép các cue rời thành câu, dùng khoảng lặng tương đối, dấu hiệu hình thái tiếng Nhật và điểm ranh giới. Kết quả giữ mốc thời gian của từng mẩu để tô sáng và tua chính xác.
 3. Bảng lời thoại bám theo thời gian phát, tô sáng câu và mẩu đang nói. Người học bấm câu để tua lại, bôi đen để tra, xem bản dịch tiếng Việt, hoặc sửa lời thoại nhận dạng sai. Bản sửa được lưu theo video và mốc giây trong `phuDeSua`, rồi dùng cho bản dịch và mục lưu.
-4. Nút lưu tạo mục câu kèm bản dịch và `src.yt` chứa mã video, mốc giây và thông tin đoạn. Sổ tay giữ nguồn video để quay lại đúng đoạn; câu nguồn còn được dùng cho đường ôn nghe khi phù hợp. Ngay tại bảng lời thoại, người học có thể ghi âm giọng mình, nghe lại và đọc theo.
+4. Nút lưu tạo mục câu kèm bản dịch và `src.yt` chứa mã video, mốc giây và thông tin đoạn. Sổ tay giữ nguồn video để quay lại đúng đoạn. Ngay tại bảng lời thoại, người học có thể ghi âm giọng mình, nghe lại và đọc theo. Mục lưu trực tiếp từ bảng này hiện chưa tự tạo `cauNghe` cho đường ôn nghe; xem rủi ro bên dưới.
 5. Bản chép lời và bản dịch được lưu cục bộ để xem lại. Cần kiểm thử riêng các đường lấy phụ đề và trường hợp YouTube đổi cấu trúc trang; 25 bài hiện có chưa chứng minh được tích hợp này hoạt động trên mọi video thực tế.
 
 ## Dữ liệu cần bảo toàn
@@ -59,6 +59,7 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 2. **Kiểm thử tương thích SRS:** `kiem-tra/srs-diem.mjs` so bản đang chạy với `git show HEAD:extension/srs.js`. Trong CI trên commit đã tạo, hai bản này có thể chính là cùng một file; phép so không bảo vệ khỏi thay đổi tương thích. Cần một baseline có chủ đích.
 3. **Mô-đun chép đôi:** mới có bài thử byte-for-byte rõ ràng cho `srs.js`; những file dùng chung khác vẫn có thể lệch giữa extension và Android.
 4. **Tài liệu phiên bản:** README gốc còn mô tả phiên bản cũ so với `extension/manifest.json` và `android/package.json`.
+5. **Nối transcript với đường ôn nghe:** `phu-de.js` lưu `src.sel` là chữ/câu được chọn, không kèm `prefix`/`suffix`; `CauNghe.tuNguon` cần một câu đầy đủ chứa từ hoặc văn cảnh hai bên. Với mục lưu trực tiếp từ bảng lời thoại, `word` thường bằng `src.sel`, nên không sinh `cauNghe`. Cần kiểm thử ca này và truyền câu gốc đầy đủ khi lưu từ transcript.
 
 ## Quy tắc làm việc trên nhánh
 
