@@ -1688,7 +1688,11 @@ window.NguPhapUI.khoiTao({
     const items = Object.entries(await getNBNgu()).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
     return window.NguPhap.boSungTuKho(items, await Store.get("ytKho"));
   },
-  ngonNgu: () => NGU
+  ngonNgu: () => NGU,
+  dichCau: async (cau) => {
+    const r = await translateText(cau, "javi");
+    return r && r.text || "";
+  }
 });
 const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Speak", "Progress"];
 const manCoTheMo = () => MAN.filter((v) => v !== "Grammar" || laNhat());
