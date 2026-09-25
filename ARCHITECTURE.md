@@ -19,6 +19,14 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 2. Android nạp các mô-đun trong `www/index.html`, rồi `app.js` gọi nguồn tra cứu và quản lý màn hình. `Store` dùng Capacitor Preferences khi có plugin, hoặc `localStorage` khi chạy thử trên trình duyệt.
 3. Hai bề mặt cùng dùng nhiều mô-đun JS. Các bản trong `extension/` và `android/www/` được chép riêng; khi sửa một mô-đun dùng chung phải kiểm tra cả hai bản. `chu-bang.js` hiện không giống hệt giữa hai bề mặt.
 
+## Luồng học từ video YouTube
+
+1. `extension/phu-de-trang.js` đọc dữ liệu trình phát trong thế giới của trang YouTube. `extension/phu-de.js` lấy danh sách phụ đề của video hiện tại, thử tải JSON3 từ trang, từ content script, rồi đọc bảng bản chép lời của YouTube khi hai cách đầu không được. Tính năng dùng phụ đề sẵn có của YouTube; mã hiện tại không tự nhận dạng tiếng nói từ video không có phụ đề.
+2. `extension/cat-cau.js` ghép các cue rời thành câu, dùng khoảng lặng tương đối, dấu hiệu hình thái tiếng Nhật và điểm ranh giới. Kết quả giữ mốc thời gian của từng mẩu để tô sáng và tua chính xác.
+3. Bảng lời thoại bám theo thời gian phát, tô sáng câu và mẩu đang nói. Người học bấm câu để tua lại, bôi đen để tra, xem bản dịch tiếng Việt, hoặc sửa lời thoại nhận dạng sai. Bản sửa được lưu theo video và mốc giây trong `phuDeSua`, rồi dùng cho bản dịch và mục lưu.
+4. Nút lưu tạo mục câu kèm bản dịch và `src.yt = {v, t}`. Sổ tay giữ nguồn video để quay lại đúng đoạn; câu nguồn còn được dùng cho đường ôn nghe khi phù hợp. Ngay tại bảng lời thoại, người học có thể ghi âm giọng mình, nghe lại và đọc theo.
+5. Bản chép lời và bản dịch được lưu cục bộ để xem lại. Cần kiểm thử riêng các đường lấy phụ đề và trường hợp YouTube đổi cấu trúc trang; 25 bài hiện có chưa chứng minh được tích hợp này hoạt động trên mọi video thực tế.
+
 ## Dữ liệu cần bảo toàn
 
 - `notebook` là tập mục theo khóa có tiền tố: `javi:` và `kanji:` cho tiếng Nhật, `envi:` cho tiếng Anh. `ngu.js` quyết định cách lọc ngôn ngữ. Mục đã xóa dùng bia mộ `del` để lần đồng bộ sau không hồi sinh.
@@ -34,6 +42,7 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 - `muc.js`: bia mộ, khôi phục phần người dùng tự sửa, gộp hai bản của một mục.
 - `srs.js`: lịch ôn bốn đường, điểm, thống kê và gộp số đo.
 - `tien-do.js`: tiến độ học và huy hiệu.
+- `extension/phu-de.js`, `extension/phu-de-trang.js`, `extension/cat-cau.js`: lấy phụ đề YouTube, ghép cue thành câu, đồng bộ lời thoại với video và lưu câu có nguồn.
 - `tu-lien.js`, `cau-nghe.js`, `kana.js`, `han-tu.js`: dữ liệu và bài học ngôn ngữ.
 - `extension/background.js` và `android/www/app.js`: hai bộ điều phối tra cứu, lưu và đồng bộ.
 
