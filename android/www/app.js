@@ -1684,7 +1684,10 @@ async function themDoanNoi() {
 }
 
 window.NguPhapUI.khoiTao({
-  layMuc: async () => Object.entries(await getNBNgu()).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del),
+  layMuc: async () => {
+    const items = Object.entries(await getNBNgu()).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
+    return window.NguPhap.boSungTuKho(items, await Store.get("ytKho"));
+  },
   ngonNgu: () => NGU
 });
 const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Speak", "Progress"];
