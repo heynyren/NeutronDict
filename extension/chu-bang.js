@@ -10,6 +10,11 @@
   const en = {
 
     /* --- luyện ngữ pháp --- */
+    "Câu gốc": "Original sentence",
+    "Bản dịch tiếng Việt": "Vietnamese translation",
+    "Đang dịch câu gốc…": "Translating the original sentence…",
+    "Chưa dịch được câu này.": "Could not translate this sentence.",
+    "Đây là đáp án.": "Here is the answer.",
     "Luyện ngữ pháp": "Grammar practice",
     "Ngữ pháp": "Grammar",
     "Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.": "Arrange the shuffled pieces into the original Japanese sentence containing a word you saved. Each sentence has at most four pieces; results do not affect SRS.",
@@ -1016,6 +1021,11 @@
   const ja = {
 
     /* --- luyện ngữ pháp --- */
+    "Câu gốc": "元の文",
+    "Bản dịch tiếng Việt": "ベトナム語訳",
+    "Đang dịch câu gốc…": "元の文を翻訳中…",
+    "Chưa dịch được câu này.": "この文を翻訳できませんでした。",
+    "Đây là đáp án.": "正解はこちらです。",
     "Luyện ngữ pháp": "文法練習",
     "Ngữ pháp": "文法",
     "Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.": "順番を入れ替えた語句を並べ、保存した単語を含む元の日本語文を作りましょう。1文は最大4つの部分に分かれます。結果はSRSに影響しません。",
