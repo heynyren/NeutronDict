@@ -258,10 +258,12 @@ await gieo(true);
     const lay = async () => ((await chrome.storage.local.get("notebook"))
       .notebook["javi:改善"].duong.nhin) || {};
     const truoc = await lay();
-    await gradeWord("javi:改善", true, 2000, "nhin");
+    const kq = await gradeWord("javi:改善", true, 2000, "nhin");
     const sau = await lay();
-    return { truocNgay: truoc.ngay, sauNgay: sau.ngay };
+    return { truocNgay: truoc.ngay, sauNgay: sau.ngay, tinhNgay: kq && kq.duong.ngay };
   });
+  soat("kết quả chấm được giữ nguyên trong kho", r.sauNgay === r.tinhNgay,
+       "tính " + r.tinhNgay + " / lưu " + r.sauNgay);
   soat("nhớ một thẻ tới hạn thì giãn cách PHẢI nới ra", r.sauNgay > r.truocNgay,
        r.truocNgay + " → " + r.sauNgay + " ngày");
   await page.close();

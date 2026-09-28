@@ -353,9 +353,8 @@ for (const [ten, arg] of Object.entries({
      * Lỡ tay trả `dungDe(cum, ...)` như chiều cũ thì bài vẫn chạy, vẫn chấm,
      * chỉ là nó quay về hỏi "nhận ra" — mà điểm thì vẫn cộng đều.
      */
-    la(/dungDe\(\[it\.word\], kia, xa/.test(than),
-       ten + ": đáp án là TỪ GỐC, mồi nhử cực kia rồi mới tới sổ tay");
-    la(/O_DAO_TOI_DA/.test(than), ten + ": hạ trần xuống 5 ô cho đề đảo");
+    la(/window\.TuLien\.dungDeDao\(/.test(than),
+       ten + ": dùng bộ lọc nhiễu chung cho đề đảo");
     la(/lien-cum/.test(than), ten + ": đề bày cụm ra để đọc");
     la(/"lien-omot"/.test(than), ten + ": mỗi ô đề là một ô lớn");
     /*

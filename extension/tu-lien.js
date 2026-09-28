@@ -288,6 +288,82 @@
     return o;
   }
 
+
+  /**
+   * Đề đảo phải loại các đáp án có thể đúng khỏi tập nhiễu.
+   * Cùng nghĩa với từ gốc có thể trả lời được CẢ đề đồng lẫn trái nghĩa.
+   * Dữ liệu gộp nhiều nghĩa nên chỉ dùng bằng chứng để LOẠI nhiễu mơ hồ,
+   * không suy diễn rằng mọi từ nối qua mạng đều là đáp án đúng.
+   */
+  function dungDeDao(it, dsMuc, ngau) {
+    const chuan = (s) => String(s || "").normalize("NFKC").trim().toLowerCase();
+    const nghia = (s) => chuan(typeof s === "object" && s
+      ? s.text || s.mean || s.means || s.v : s)
+      .replace(/[\p{P}\p{S}]/gu, " ").replace(/\s+/g, " ").trim();
+    const muc = (dsMuc || []).filter((x) => x && !x.del && x.word && x.kind !== "sent");
+    const theoTu = new Map(), nho = new Map();
+    for (const x of muc.concat(it)) {
+      const t = chuan(x.word);
+      if (!theoTu.has(t)) theoTu.set(t, []);
+      theoTu.get(t).push(x);
+    }
+    const lay = (tu) => {
+      const t = chuan(tu);
+      if (nho.has(t)) return nho.get(t);
+      const r = { dong: new Set(), trai: new Set(), means: new Set() };
+      const nguon = theoTu.get(t) || [];
+      // Không cắt còn 8 từ ở bộ lọc: từ đứng cuối vẫn có thể làm đề mơ hồ.
+      const ngoai = boNho.get(tu) || (goc.TuLienBo && goc.TuLienBo[tu]) || {};
+      const bang = { dong: BANG_DONG.get(tu) || [], trai: BANG_TRAI.get(tu) || [] };
+      for (const l of [bang, ngoai].concat(nguon.map((x) => x.lien || {}))) {
+        for (const ben of ["dong", "trai"])
+          for (const w of l[ben] || []) if (chuan(w)) r[ben].add(chuan(w));
+      }
+      for (const x of nguon) {
+        for (const m of x.means || []) {
+          // Các nghĩa phân cách bằng dấu phẩy/chấm phẩy cũng là bằng chứng mơ hồ.
+          const s = typeof m === "object" && m ? m.text || m.mean || m.means || m.v : m;
+          for (const phan of String(s || "").split(/[,;\n/]+/)) {
+            const v = nghia(phan);
+            if (v) r.means.add(v);
+          }
+        }
+        if (x.tuCum && r[x.tuCum.ben] && x.tuCum.goc)
+          r[x.tuCum.ben].add(chuan(x.tuCum.goc));
+      }
+      nho.set(t, r);
+      return r;
+    };
+    const chung = (a, b) => [...a].some((x) => b.has(x));
+    const gocTu = chuan(it.word), gocLien = lay(it.word);
+    const d = it._d === "trai" ? "trai" : "dong";
+    const l = it.lien || {};
+    const cum = gonDs(l[d] || [], it.word, Number.MAX_SAFE_INTEGER);
+    const de = new Set(cum.map(chuan));
+    const moHo = (w) => {
+      const t = chuan(w), r = lay(w);
+      if (!laMotTu(w) || t === gocTu || de.has(t)) return true;
+      if (gocLien.dong.has(t) || r.dong.has(gocTu)) return true;
+      if (chung(gocLien.means, r.means)) return true;
+      if (chung(gocLien.dong, r.dong) || chung(gocLien.trai, r.trai)) return true;
+      // Xét cả hai chiều: dữ liệu một bên thường chưa lưu chiều ngược lại.
+      return cum.some((c) => r[d].has(chuan(c)) || lay(c)[d].has(t));
+    };
+    // Với đề trái nghĩa, đồng nghĩa của từ gốc KHÔNG phải mồi nhử.
+    const kia = d === "dong" ? (l.trai || []) : [];
+    const daCo = new Set([gocTu]);
+    const loc = (ds) => ds.filter((w) => {
+      const t = chuan(w);
+      if (daCo.has(t) || moHo(w)) return false;
+      daCo.add(t);
+      return true;
+    });
+    const gan = loc(kia);
+    const xa = loc(muc.map((x) => x.word));
+    const o = dungDe([it.word], gan, xa, ngau, O_DAO_TOI_DA);
+    return { cum: cum, kia: gan, o: o, khongCham: !cum.length || o.length < 2 };
+  }
+
   /* ------------------------------------------------------------------ */
   /* CỤM — những từ trong sổ nối với nhau qua tập đồng/trái nghĩa        */
   /* ------------------------------------------------------------------ */
@@ -562,7 +638,7 @@
 
   goc.TuLien = {
     CAP_TRAI_JA, NHOM_DONG_JA, O_TOI_DA, O_DAO_TOI_DA, SAN_DAT,
-    tuBang, tuPos, gop, dungDe, chamBai, gonDs, laMotTu,
+    tuBang, tuPos, gop, dungDe, dungDeDao, chamBai, gonDs, laMotTu,
     chiMucLien, cumCua, xepKetQua, locTheoCum, boLien, locBo,
     napBo, soManh, daNap, SO_MANH
   };

@@ -9,6 +9,37 @@
 
   const en = {
 
+    /* --- luyện ngữ pháp --- */
+    "Câu gốc": "Original sentence",
+    "Bản dịch tiếng Việt": "Vietnamese translation",
+    "Đang dịch câu gốc…": "Translating the original sentence…",
+    "Chưa dịch được câu này.": "Could not translate this sentence.",
+    "Đây là đáp án.": "Here is the answer.",
+    "Luyện ngữ pháp": "Grammar practice",
+    "Ngữ pháp": "Grammar",
+    "Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.": "Arrange the shuffled pieces into the original Japanese sentence containing a word you saved. Each sentence has at most four pieces; results do not affect SRS.",
+    "Bắt đầu luyện": "Start practice",
+    "Luyện lại": "Practice again",
+    "Câu của bạn": "Your sentence",
+    "Các mảnh bị xáo trộn": "Shuffled pieces",
+    "Xem câu gốc": "Show original sentence",
+    "Đã ghép đúng {dung}/{tong} câu.": "Correctly assembled {dung}/{tong} sentences.",
+    "Chạm từng mảnh để ghép câu gốc.": "Tap the pieces to rebuild the original sentence.",
+    "Câu {i}/{n} · {m} mảnh": "Sentence {i}/{n} · {m} pieces",
+    "Từ đã lưu: {tu}": "Saved word: {tu}",
+    "Nghĩa: {nghia}": "Meaning: {nghia}",
+    "Ghép lại câu đã lưu": "Rebuild the saved sentence",
+    "Bỏ mảnh khỏi câu": "Remove piece from sentence",
+    "Đưa mảnh vào câu": "Add piece to sentence",
+    "Chạm các mảnh bên dưới theo đúng thứ tự": "Tap the pieces below in the correct order",
+    "Chưa đúng. Chạm mảnh trong câu để đổi chỗ rồi thử lại.": "Not quite. Tap a piece in your sentence to move it, then try again.",
+    "Đúng rồi!": "Correct!",
+    "Câu gốc: {cau}": "Original sentence: {cau}",
+    "Chuyển sang Nhật – Việt để luyện ngữ pháp.": "Switch to Japanese–Vietnamese to practice grammar.",
+    "Có {n} câu từ sổ tay để luyện.": "{n} sentences from your notebook are ready to practice.",
+    "Chưa có câu tiếng Nhật đủ ngữ cảnh. Hãy lưu từ trong một câu trọn vẹn hoặc lưu câu từ video.": "No complete Japanese sentences are available yet. Save a word with its full sentence or save a sentence from a video.",
+    "Không đọc được sổ tay. Hãy thử mở lại mục này.": "Could not read the notebook. Please reopen this section.",
+
     /* --- đóng băng từ, và tắt bài mạng nghĩa --- */
     "Đóng băng": "Freeze",
     "Đang đóng băng": "Frozen",
@@ -977,6 +1008,37 @@
 
   const ja = {
 
+    /* --- luyện ngữ pháp --- */
+    "Câu gốc": "元の文",
+    "Bản dịch tiếng Việt": "ベトナム語訳",
+    "Đang dịch câu gốc…": "元の文を翻訳中…",
+    "Chưa dịch được câu này.": "この文を翻訳できませんでした。",
+    "Đây là đáp án.": "正解はこちらです。",
+    "Luyện ngữ pháp": "文法練習",
+    "Ngữ pháp": "文法",
+    "Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.": "順番を入れ替えた語句を並べ、保存した単語を含む元の日本語文を作りましょう。1文は最大4つの部分に分かれます。結果はSRSに影響しません。",
+    "Bắt đầu luyện": "練習を始める",
+    "Luyện lại": "もう一度練習",
+    "Câu của bạn": "組み立てた文",
+    "Các mảnh bị xáo trộn": "並べ替える部分",
+    "Xem câu gốc": "元の文を見る",
+    "Đã ghép đúng {dung}/{tong} câu.": "{tong}文中{dung}文を正しく並べました。",
+    "Chạm từng mảnh để ghép câu gốc.": "部分をタップして元の文を作りましょう。",
+    "Câu {i}/{n} · {m} mảnh": "{i}/{n}問 · {m}部分",
+    "Từ đã lưu: {tu}": "保存した単語: {tu}",
+    "Nghĩa: {nghia}": "意味: {nghia}",
+    "Ghép lại câu đã lưu": "保存した文を並べ替える",
+    "Bỏ mảnh khỏi câu": "文からこの部分を外す",
+    "Đưa mảnh vào câu": "この部分を文に入れる",
+    "Chạm các mảnh bên dưới theo đúng thứ tự": "下の部分を正しい順番でタップしてください",
+    "Chưa đúng. Chạm mảnh trong câu để đổi chỗ rồi thử lại.": "まだ違います。文中の部分をタップして戻し、もう一度試してください。",
+    "Đúng rồi!": "正解！",
+    "Câu gốc: {cau}": "元の文: {cau}",
+    "Chuyển sang Nhật – Việt để luyện ngữ pháp.": "文法練習には日越辞書に切り替えてください。",
+    "Có {n} câu từ sổ tay để luyện.": "ノートに練習できる文が{n}文あります。",
+    "Chưa có câu tiếng Nhật đủ ngữ cảnh. Hãy lưu từ trong một câu trọn vẹn hoặc lưu câu từ video.": "練習できる日本語の文がまだありません。文の中の単語か、動画の文を保存してください。",
+    "Không đọc được sổ tay. Hãy thử mở lại mục này.": "ノートを読み込めませんでした。この画面を開き直してください。",
+
     /* --- đóng băng từ, và tắt bài mạng nghĩa --- */
     "Đóng băng": "凍結",
     "Đang đóng băng": "凍結中",
@@ -1937,6 +1999,13 @@
     "Cảm ơn ♥": "ありがとう ♥",
     "“Cho đi là còn mãi.”": "「与えたものだけが残る。」"
   };
+
+  en["Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm."] = "Not enough unambiguous choices. Recall the word, then reveal the answer; this round is not scored.";
+  ja["Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm."] = "明確な選択肢が足りません。単語を思い出してから答えを確認してください。今回は採点しません。";
+  en["Đã xem đáp án · Không tính điểm SRS"] = "Answer revealed · No SRS score";
+  ja["Đã xem đáp án · Không tính điểm SRS"] = "解答を確認しました · SRSの採点なし";
+  en["Xem đáp án"] = "Show answer";
+  ja["Xem đáp án"] = "答えを見る";
 
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;

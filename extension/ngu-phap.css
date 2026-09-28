@@ -1,0 +1,50 @@
+/* Luyện ngữ pháp — xếp các mảnh của câu gốc, riêng ngoài SRS. */
+#viewGrammar [hidden] { display: none !important; }
+.np-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  margin: 8px 0 18px;
+}
+.np-answer { border-style: dashed; background: var(--surface-2, var(--surface)); }
+.np-piece {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.45;
+  padding: 9px 12px;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--sh-1);
+}
+.np-piece:hover { border-color: var(--accent); }
+.np-piece:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.np-piece:disabled { cursor: default; opacity: .85; }
+.np-placeholder { color: var(--ink-3); font-size: 14px; }
+.np-label { color: var(--ink-2); font-size: 13px; font-weight: 700; margin-top: 16px; }
+.np-feedback { min-height: 28px; font-size: 15px; font-weight: 650; margin: 12px 0; }
+.np-feedback.sai { color: var(--bad, #b32731); }
+.np-feedback.dung { color: var(--good, #237a49); }
+.np-feedback.dap-an { color: var(--ink); }
+.np-result {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 8px;
+  margin: 10px 0 16px;
+}
+.np-original { font-size: 19px; line-height: 1.7; font-weight: 650; overflow-wrap: anywhere; }
+.np-translation { font-size: 15px; line-height: 1.6; color: var(--ink-2); overflow-wrap: anywhere; }
+
+.lich-rieng-dialog { border:1px solid var(--line-soft,#ddd); border-radius:18px; padding:24px; max-width:620px; width:calc(100% - 32px); max-height:85vh; overflow:auto; color:var(--ink,#222); background:var(--surface,#fff); }
+.lich-rieng-dialog::backdrop { background:#0006; }
+.lich-rieng-dialog p { font-size:14px; }
+.lich-rieng-hang { border-top:1px solid var(--line-soft,#ddd); padding:14px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.lich-rieng-hang strong,.lich-rieng-hang p { flex-basis:100%; margin:0; }
+.lich-rieng-hang input { width:80px; padding:8px; }

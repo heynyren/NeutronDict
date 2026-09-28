@@ -544,7 +544,8 @@
       if (!m || m.del) continue;
       const d = m.duong || {};
       for (const t of DUONG) {
-        const due = d[t] && d[t].due;
+        if (biDongBang(m, t)) continue;
+        const due = hanDuong(m, t);
         if (!due) continue;
         const k = Math.floor(due / NGAY);
         lich.set(k, (lich.get(k) || 0) + 1);
@@ -820,7 +821,7 @@
   function duongMo(muc) {
     const co = duongCo(muc);
     const d = (muc && muc.duong) || {};
-    if (ngayCua(d.nhin) < MO_NGAY) return ["nhin"];
+    if (ngayCua(d.nhin) < MO_NGAY && !(((muc || {}).lichRieng || {}).nhin || {}).dongBang) return ["nhin"];
     return co;
   }
 
@@ -852,13 +853,89 @@
     let due = null, ts = 0, coGi = false;
     for (const t of ten) {
       const x = d[t];
-      if (!x) { due = 0; continue; }              // đường chưa học: tới hạn ngay
+      if (x && (x.ts || 0) > ts) ts = x.ts;
+      if ((((muc || {}).lichRieng || {})[t] || {}).dongBang) { coGi = true; continue; }
+      if (!x) { const h = hanDuong(muc, t); if (due === null || h < due) due = h;
+        if (h) coGi = true; continue; }              // đường chưa học: tới hạn ngay
       coGi = true;
-      if (due === null || (x.due || 0) < due) due = x.due || 0;
+      if (due === null || hanDuong(muc, t) < due) due = hanDuong(muc, t);
       if ((x.ts || 0) > ts) ts = x.ts;
     }
     if (!coGi) return null;
-    return { lv: capChung(muc), due: due === null ? 0 : due, ts: ts };
+    return { lv: capChung(muc), due: due === null ? 8640000000000000 : due, ts: ts };
+  }
+
+
+  /** Điều khiển lịch tách khỏi điểm và lần chấm của từng đường. */
+  function biDongBang(muc, ten) {
+    return !!(muc && (muc.dongBang || (((muc || {}).lichRieng || {})[ten] || {}).dongBang));
+  }
+  function hanDuong(muc, ten) {
+    const d = ((muc || {}).duong || {})[ten] || {};
+    const c = ((muc || {}).lichRieng || {})[ten] || {};
+    return c.hen > 0 && c.ts >= (d.ts || 0) ? c.hen : (d.due || 0);
+  }
+  function biChan(muc, ten, now) {
+    const c = ((muc || {}).lichRieng || {})[ten] || {};
+    const d = ((muc || {}).duong || {})[ten] || {};
+    return !muc || muc.del || biDongBang(muc, ten) ||
+      (!!muc.mangTat && (ten === "dong" || ten === "trai")) ||
+      (c.hen > (now || Date.now()) && c.ts >= (d.ts || 0));
+  }
+  function datLich(muc, ten, lenh, soNgay, now) {
+    if (!muc || muc.del || DUONG.indexOf(ten) < 0) throw new Error("Không còn mục để chỉnh lịch.");
+    const cu = ((muc || {}).lichRieng || {})[ten] || {};
+    const ts = Math.max(now || Date.now(), (cu.ts || 0) + 1);
+    const moi = Object.assign({}, cu, { ts: ts });
+    if (lenh === "bang") moi.dongBang = true;
+    else if (lenh === "mo") moi.dongBang = false;
+    else if (lenh === "hen") {
+      if (!Number.isInteger(soNgay) || soNgay < 1 || soNgay > 3650)
+        throw new Error("Nhập số ngày từ 1 đến 3650.");
+      moi.hen = ts + soNgay * NGAY;
+    } else if (lenh === "tuDong") moi.hen = 0;
+    else throw new Error("Thao tác lịch không hợp lệ.");
+    return Object.assign({}, muc, {
+      lichRieng: Object.assign({}, muc.lichRieng || {}, { [ten]: moi }), ts: ts
+    });
+  }
+
+  /**
+   * Giữ nguyên cham(), chỉ phối hợp NGÀY HẸN nhìn sau khi đã chấm.
+   * ngay/net/lv vẫn là lịch cơ sở: không nhân chồng hệ số, không tăng điểm giả.
+   * Chuỗi nghe đúng chỉ thu từ bản mới, chỉ đếm lượt đã đến hạn.
+   */
+  function phoiHop(muc, ten, kq, nho, now, lich) {
+    const bayGio = now || Date.now();
+    const cu = ((muc || {}).duong || {})[ten] || {};
+    const moi = Object.assign({}, kq.duong);
+    moi.saiTs = nho ? (cu.saiTs || 0) : bayGio;
+    moi.dungHanLien = cu.dungHanLien || 0;
+    moi.dungHanDau = cu.dungHanDau || 0;
+    moi.dungHanMoi = cu.dungHanMoi || 0;
+    if (!nho) { moi.dungHanLien = 0; moi.dungHanDau = 0; moi.dungHanMoi = 0; }
+    else if (hanDuong(muc, ten) <= bayGio) {
+      moi.dungHanLien++;
+      moi.dungHanDau = cu.dungHanMoi || bayGio;
+      moi.dungHanMoi = bayGio;
+    }
+    if (ten === "nhin" && nho) {
+      const nghe = ((muc || {}).duong || {}).nghe || {};
+      const du = duongCo(muc).includes("nghe") && !biDongBang(muc, "nghe") &&
+        ngayCua(moi) >= 7 && ngayCua(nghe) >= 7 && nghe.dungHanLien >= 2 &&
+        nghe.dungHanDau > (moi.saiTs || 0) && !nghe.sai &&
+        hanDuong(muc, "nghe") >= bayGio;
+      if (du) {
+        const ngayHen = Math.min(TRAN_NGAY, moi.ngay * 1.5);
+        const tai = new Map(lich instanceof Map ? lich : []);
+        const ngheNgay = Math.floor(hanDuong(muc, "nghe") / NGAY);
+        let max = 0; for (const n of tai.values()) max = Math.max(max, n);
+        tai.set(ngheNgay, max + 1);
+        moi.due = raiTai(ngayHen, tai, bayGio);
+        moi.phoiHop = 1.5;
+      }
+    }
+    return Object.assign({}, kq, { duong: moi });
   }
 
   /**
@@ -883,8 +960,9 @@
     const d = (muc && muc.duong) || {};
     const ra = [];
     for (const t of duongMo(muc)) {
-      const x = d[t];
-      if (!x || !x.due || x.due <= bayGio) ra.push(t);
+      if (biDongBang(muc, t)) continue;
+      const due = hanDuong(muc, t);
+      if (!due || due <= bayGio) ra.push(t);
     }
     return ra;
   }
@@ -1090,6 +1168,6 @@
     diemDuong, diemTu, TRONG, NGUONG_BAC, TEN_BAC, CHIEU,
     lichHen, raiTai, RAI_TOI_THIEU, RAI_RONG,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
-    tocDoNghe
+    tocDoNghe, biDongBang, hanDuong, biChan, datLich, phoiHop
   };
 })(typeof self !== "undefined" ? self : this);

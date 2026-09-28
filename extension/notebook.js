@@ -220,8 +220,6 @@ async function getStore() {
   const s = await chrome.storage.local.get(["notebook", "decks"]);
   return { nb: s.notebook || {}, decks: s.decks || {} };
 }
-async function setNotebook(nb) { await chrome.storage.local.set({ notebook: nb }); }
-async function setDecks(d) { await chrome.storage.local.set({ decks: d }); }
 
 function active(list) { return list.filter((it) => !it.del); }
 function activeDecks() {
@@ -254,7 +252,7 @@ function meanToStr(m) {
 let hangDoiGhi = Promise.resolve();
 function suaSoTay(fn) {
   // .then(fn, fn) để một lượt ghi hỏng không làm kẹt mọi lượt ghi sau nó.
-  const chay = hangDoiGhi.then(fn, fn);
+  const chay = hangDoiGhi.then(() => window.KhoGhi.chay(fn));
   hangDoiGhi = chay.then(() => {}, () => {});
   return chay;
 }
@@ -272,8 +270,8 @@ function capNhat(fn) {
 /**
  * Như capNhat, nhưng KHÔNG ghi gì khi fn báo là chẳng có gì đổi.
  *
- * Hàng đợi ghi ở trên chỉ xếp hàng trong TRANG NÀY. Nền cũng sửa sổ tay — nó
- * bồi furigana, câu ngữ cảnh, tập đồng/trái nghĩa — và hai bên không thấy nhau.
+ * Khóa chung bảo vệ cả trang và nền. Chỉ ghi khi có thay đổi vẫn cần thiết
+ * để tránh phát sự kiện lưu và nạp lại giao diện khi dữ liệu không đổi.
  * Nên mỗi lượt "đọc cả sổ rồi ghi cả sổ" của trang là một cửa sổ để đè mất thứ
  * nền vừa ghi xong.
  *
@@ -543,9 +541,10 @@ function dongDiem(it, now) {
     const co = d.phan[t] !== null;
     let trangThai;
     if (!co) trangThai = coSaoThieu(t);
+    else if (window.Srs.biDongBang(it, t)) trangThai = T("đang đóng băng");
     else if (mo.indexOf(t) < 0) trangThai = T("chưa mở");
     else if (han.indexOf(t) >= 0) trangThai = T("đến hạn");
-    else trangThai = khiNaoOn(x && x.due, nay);
+    else trangThai = khiNaoOn(window.Srs.hanDuong(it, t), nay);
     return { duong: t, ten: T(window.Srs.TEN_DUONG[t]), diem: d.phan[t],
              trangThai: trangThai, co: co, han: co && han.indexOf(t) >= 0 };
   });
@@ -641,7 +640,7 @@ function duongOnDuoc(it, now) {
   const mo = window.Srs.duongMo(it);
   const han = window.Srs.denHan(it, nay);
   return window.Srs.duongCo(it).filter((t) =>
-    mo.indexOf(t) >= 0 && (han.indexOf(t) >= 0 || window.Srs.ngayCua((it.duong || {})[t]) === 0));
+    !window.Srs.biChan(it, t, nay) && mo.indexOf(t) >= 0 && (han.indexOf(t) >= 0 || window.Srs.ngayCua((it.duong || {})[t]) === 0));
 }
 
 function moBangDiem(it) {
@@ -779,83 +778,40 @@ async function maMay() {
  */
 async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
-  const tkAll = await docNhipMs();
-  const tkTruoc = Object.assign({}, tkAll[d] || {});
-  /*
-   * Bảng đếm thẻ theo ngày, để `Srs.cham` né được ngày đã đông.
-   *
-   * Dựng lại ở TỪNG lượt chấm chứ không giữ một bản cho cả buổi: trong một buổi
-   * có thể chấm cả trăm thẻ, mà mỗi lượt lại hẹn thêm một ngày mới. Giữ bản cũ
-   * thì cả trăm thẻ ấy cùng nhìn một tấm lịch đã lỗi và cùng dồn vào đúng cái
-   * ngày mà tấm lịch ấy tưởng là vắng — đúng hiện tượng đang đi chữa.
-   *
-   * Đọc từ `items` đang có sẵn trong bộ nhớ nên không tốn lượt đọc đĩa nào.
-   */
-  const lich = window.Srs.lichHen(items);
-  let kq = null, truoc = null;
-  let ngayCho = 0, lvTruoc = -1;
-  await capNhat((nb) => {
+  return suaSoTay(async () => {
+    // Đọc lịch, nhịp và số đo mới nhất SAU khi đã có khóa chung.
+    const kho = await chrome.storage.local.get(["notebook", "nhipMs", "soDoSrs"]);
+    const nb = kho.notebook || {};
     const e = nb[key];
-    if (!e) return;
+    if (!e || e.del || window.Srs.biChan(e, d, Date.now())) return null;
+    const tkAll = kho.nhipMs || {};
+    const tkTruoc = Object.assign({}, tkAll[d] || {});
+    const lich = window.Srs.lichHen(Object.values(nb));
     const cu = (e.duong && e.duong[d]) || null;
-    // Mục cũ chưa có `duong`: lấy `srs` cũ làm điểm xuất phát cho đường "nhin",
-    // để một sổ tay đang dùng dở không bị đá về cấp 0 hết.
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
-    truoc = cu ? Object.assign({}, cu) : null;      // để phím ← hoàn tác được
-    /*
-     * SỐ ĐO THẬT: app đã hẹn bao nhiêu ngày ở bậc nào, và tới lúc gặp lại có
-     * nhớ không. Phải lấy TRƯỚC khi chấm — sau khi chấm thì `ts` đã bị ghi đè
-     * và không còn biết lượt này đã chờ bao lâu.
-     *
-     * Đây là thứ duy nhất nói được thang 1/3/7/14/30/60/120 có hợp với chính
-     * người này không. Mọi con số trong thang ấy là tôi chọn, không phải đo.
-     */
-    if (batDau && batDau.ts) {
-      ngayCho = (Date.now() - batDau.ts) / 86400000;
-      lvTruoc = typeof batDau.lv === "number" ? batDau.lv : -1;
-    }
-    kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(),
-                         chat, lich);
-    const moi = Object.assign({}, e);
-    moi.duong = Object.assign({}, e.duong || {}, { [d]: kq.duong });
-    // `srs` vẫn được ghi, và vẫn là thứ mọi nơi khác đọc: đồng bộ Drive, app
-    // Android, máy chủ MCP, bản extension chưa cập nhật. Nó là bản GỘP của các
-    // đường — xem Srs.gomSrs.
+    const truoc = cu ? Object.assign({}, cu) : null;
+    const ngayCho = batDau && batDau.ts ? (Date.now() - batDau.ts) / 86400000 : 0;
+    const lvTruoc = batDau && typeof batDau.lv === "number" ? batDau.lv : -1;
+    let kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d,
+                             Math.random(), chat, lich);
+    kq = window.Srs.phoiHop(e, d, kq, remembered, Date.now(), lich);
+    const moi = Object.assign({}, e, {
+      duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }),
+      ts: Date.now()
+    });
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
-    moi.ts = Date.now();
     nb[key] = moi;
-  });
-  if (kq) {
-    nhipMs[d] = kq.tk;
-    await chrome.storage.local.set({ nhipMs: nhipMs });
-    /*
-     * Lượt ÔN KÈM không vào bảng số đo.
-     *
-     * Bảng ấy trả lời đúng một câu: "app hẹn N ngày, tới lúc gặp lại có nhớ
-     * không". Chỉ lượt nào ĐÃ CHỜ QUA NGÀY mới trả lời được câu ấy, nên
-     * `ngayCho > 0` là toàn bộ điều kiện. (Trước đây còn phải loại thêm thẻ ôn
-     * kèm vì chúng bị gặp lại sớm hơn hẹn; giờ buổi học không còn thẻ loại ấy.)
-     */
+    tkAll[d] = kq.tk;
+    const ghi = { notebook: nb, nhipMs: tkAll };
     if (ngayCho > 0) {
-      const kho = await chrome.storage.local.get("soDoSrs");
-      /*
-       * Nhánh "·g2" — số đo TRƯỚC và SAU lần đổi thang phải nằm riêng.
-       *
-       * Bảng này gom theo "đường|cấp", và mục đích tự tuyên bố của nó là "chỉ
-       * có dữ liệu thật mới chọn được thang". Lần đổi này sửa hẳn cách tính
-       * giãn cách của hai bài liên kết, nên trộn lượt cũ với lượt mới vào cùng
-       * một ô là lấy trung bình của hai cái lịch khác nhau rồi kết luận về cả
-       * hai — phá đúng thứ bảng này sinh ra để giữ.
-       *
-       * Không mất gì: `ghiSoDo` vốn đã phân nhánh theo máy và `tronSoDo` giữ
-       * nguyên từng nhánh, nên số cũ vẫn nằm đó dưới nhánh cũ.
-       */
-      const so = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho, !!remembered,
-                                    (await maMay()) + "·g2");
-      await chrome.storage.local.set({ soDoSrs: so });
+      ghi.soDoSrs = window.Srs.ghiSoDo(kho.soDoSrs || {}, d, lvTruoc, ngayCho,
+        !!remembered, (await maMay()) + "·g2");
     }
-  }
-  return kq ? Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc }) : null;
+    // Một lượt ghi giữ lịch và thống kê tương ứng với cùng một lần chấm.
+    await chrome.storage.local.set(ghi);
+    nhipMs = tkAll;
+    return Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc });
+  });
 }
 
 /* ==================================================================== */
@@ -1008,8 +964,13 @@ async function napSoTay() {
   }
   // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
   // lần cho xong — lần sau khỏi phải suy nữa.
-  const gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
-  if (gan.doi) { await chrome.storage.local.set({ decks: gan.decks }); syncSoon(); }
+  const gan = await suaSoTay(async () => {
+    const fresh = await getStore();
+    const ra = window.Ngu.ganNguChoSo(fresh.decks, fresh.nb);
+    if (ra.doi) await chrome.storage.local.set({ decks: ra.decks });
+    return ra;
+  });
+  if (gan.doi) syncSoon();
   decks = window.Ngu.locSoCon(gan.decks, s.nb, NGU);
   // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
   // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
@@ -1140,11 +1101,9 @@ async function createDeck() {
   const name = (prompt(T("Tên sổ con mới (ví dụ: Bài 5 - Kanji):")) || "").trim();
   if (!name) return;
   const id = "d_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const d = (await getStore()).decks;
-  // Gắn nhãn ngôn ngữ ngay: sổ tiếng Nhật không được lẫn sang danh sách
-  // tiếng Anh, và ngược lại.
-  d[id] = { id, name, ngu: NGU, ts: Date.now() };
-  await setDecks(d);
+  await capNhat((nb, d) => {
+    d[id] = { id, name, ngu: NGU, ts: Date.now() };
+  });
   current = id;
   await load();
   syncSoon();
@@ -1155,9 +1114,10 @@ async function renameDeck() {
   const cur = deckName(current) || "";
   const name = (prompt(T("Đổi tên sổ:"), cur) || "").trim();
   if (!name || name === cur) return;
-  const d = (await getStore()).decks;
-  if (d[current]) d[current] = Object.assign({}, d[current], { name, ts: Date.now() });
-  await setDecks(d);
+  const id = current;
+  await capNhat((nb, d) => {
+    if (d[id] && !d[id].del) d[id] = Object.assign({}, d[id], { name, ts: Date.now() });
+  });
   await load();
   syncSoon();
 }
@@ -1603,6 +1563,36 @@ function favButtons(it, sauDo) {
  * và đó là chủ ý: luật nằm một chỗ thì bản Android và máy chủ MCP không
  * lệch được.
  */
+
+async function datLichRieng(key, duong, lenh, ngay) {
+  const moi = await capNhat((nb) => {
+    const it = nb[key]; if (!it || it.del) return null;
+    const ne = window.Srs.datLich(it, duong, lenh, ngay, Date.now());
+    ne.srs = window.Srs.gomSrs(ne) || ne.srs;
+    nb[key] = ne; return Object.assign({ key: key }, ne);
+  });
+  syncSoon();
+  await locHangDoiLich();
+  return moi;
+}
+async function locHangDoiLich() {
+  const nb = (await getStore()).nb;
+  if (session && session.queue && session.queue.length) {
+    const cu = session.queue[0];
+    session.queue = session.queue.filter((q) => nb[q.key] && !window.Srs.biChan(nb[q.key], q._d || "nhin", Date.now()));
+    if (session.queue[0] !== cu) showCard();
+  }
+}
+
+
+chrome.storage.onChanged.addListener((doi, area) => {
+  if (area !== "local" || !doi.notebook || !session.queue.length) return;
+  const cu = doi.notebook.oldValue || {}, moi = doi.notebook.newValue || {};
+  const chot = (x) => JSON.stringify(x && [x.del, x.dongBang, x.mangTat, x.lichRieng]);
+  if (session.queue.some(q => chot(cu[q.key]) !== chot(moi[q.key])))
+    locHangDoiLich().catch(() => toast(T("Không cập nhật được hàng đợi. Hãy mở lại buổi học."), "bad"));
+});
+
 async function datCo(key, ten, bat) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -1659,6 +1649,7 @@ function nutRutOn(it, sauDo) {
     if (sauDo) sauDo(); else await load();
   });
   wrap.appendChild(b2);
+  wrap.appendChild(window.LichRiengUI.nut(it, datLichRieng, async () => { await load(); }));
   return wrap;
 }
 
@@ -2232,7 +2223,7 @@ function draw() {
     const del = nutIcon("trash", T("Xoá khỏi sổ tay"), "danger", 17);
     del.addEventListener("click", async () => {
       await capNhat((nb) => {
-        nb[it.key] = window.Muc.biaMo(it);
+        if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
       });
       await load();
       syncSoon();
@@ -2354,6 +2345,7 @@ function renderStudyFav(it) {
       // Vẽ lại chip điểm trên mặt thẻ: tắt mạng nghĩa là điểm ĐỔI NGAY (trọng
       // số chia lại), mà con số cũ nằm nguyên đó thì trông như nút không ăn.
       veTienTrinh(it);
+      await locHangDoiLich();
     });
     return b;
   };
@@ -2361,6 +2353,7 @@ function renderStudyFav(it) {
     T("Đóng băng"), T("Đang đóng băng")));
   box.appendChild(co("mangTat", "graph", !!it.mangTat,
     T("Tắt mạng nghĩa"), T("Mạng nghĩa đã tắt")));
+  box.appendChild(window.LichRiengUI.nut(it, datLichRieng));
 }
 
 async function startStudy() {
@@ -2963,6 +2956,7 @@ async function grade(remembered) {
   // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
   const truocDiem = window.Srs.diemTu(it).tong;
   const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin");
+  if (!kqCham) { showCard(); return; }
   let banSao = null;
   if (remembered) session.done++;
   else {
@@ -2994,7 +2988,7 @@ async function grade(remembered) {
   if (kqCham) {
     session.lichSu = (session.lichSu || []).concat([{
       the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
-      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, banSao: banSao
+      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, sau: kqCham.duong, tkSau: kqCham.tk, banSao: banSao
     }]).slice(-20);
   }
 
@@ -3045,44 +3039,9 @@ let baiLien = null;         // { it, duong, dung:Set, o:[], chon:Set, moc }
 
 function veBaiLien(it) {
   const d = it._d;
-  const l = it.lien || {};
-  /*
-   * ĐỀ ĐẢO: BÀY CỤM, ĐI TÌM TỪ GỐC.
-   *
-   * Chiều cũ hỏi theo lối NHẬN RA: bày từ gốc, nhặt cho hết những từ liên kết
-   * với nó. Nhiều đáp án, và việc khó nằm ở chỗ quét cho hết danh sách.
-   *
-   * Chiều này hỏi theo lối GỌI RA: bày cả cụm, đi tìm từ gốc — đáp án chỉ còn
-   * MỘT. Đó đúng là thứ bậc cao nhất của app vẫn hứa ("Gọi ra được lúc cần")
-   * mà chiều cũ chưa bao giờ đo được.
-   */
-  const cum = (d === "dong" ? l.dong : l.trai) || [];      // bày ra làm ĐỀ
-  const kia = (d === "dong" ? l.trai : l.dong) || [];      // cực ngược lại: mồi nhử
-  /*
-   * MỒI NHỬ lấy cực kia trước; HẾT thì mới lấy ở sổ tay.
-   *
-   * Bản 4.27.0 cấm hẳn từ ngoài, và cấm đúng: hồi đó đáp án là cả một cực nên
-   * vốn đã đủ mồi nhử. Chiều đảo thì khác: đáp án chỉ một từ, mà từ không có
-   * trái nghĩa thì đề còn đúng MỘT Ô — bấm là trúng. Nên đây là lối lui, hẹp
-   * và có chủ ý, chứ không phải quay về cách cũ.
-   */
-  /*
-   * Mồi nhử phải là TỪ, không phải câu.
-   *
-   * Sổ tay có cả mục lưu nguyên một câu ("すみません、わざわざありがとうございます。").
-   * Bày nó cạnh 悲鳴 thì vừa buồn cười vừa vô dụng: loại được ngay từ cái nhìn
-   * đầu nên nó chẳng nhử được ai, chỉ làm đề dài ra. `TuLien.laMotTu` đã có sẵn
-   * đúng phép thử ấy — ngắn, và không mang dấu câu.
-   */
-  const xa = items
-    .filter((x) => x.key !== it.key && !x.del && x.word && x.word !== it.word)
-    .filter((x) => x.kind !== "sent" && window.TuLien.laMotTu(x.word))
-    .map((x) => x.word)
-    .filter((w) => cum.indexOf(w) < 0);        // từ trong cụm đang ở đề, đừng bày lại
-  const o = window.TuLien.dungDe([it.word], kia, xa, undefined, window.TuLien.O_DAO_TOI_DA);
-
+  const { cum, kia, o, khongCham } = window.TuLien.dungDeDao(it, items);
   baiLien = { it: it, duong: d, dung: new Set([it.word]), o: o, chon: new Set(),
-              cum: cum, kia: kia, moc: performance.now() };
+              cum: cum, kia: kia, khongCham: khongCham, moc: performance.now() };
   msDaDung = null;
 
   /*
@@ -3126,6 +3085,11 @@ function veBaiLien(it) {
    * Nghĩa vẫn có — ở MÀN KẾT QUẢ, sau khi đã trả lời. Đó mới đúng chỗ của nó:
    * phần thưởng để đọc, không phải gợi ý để chọn.
    */
+  $("stLienXong").textContent = khongCham ? T("Xem đáp án") : T("Xong");
+  if (khongCham) {
+    khung.appendChild(el("p", null, T("Chưa đủ lựa chọn rõ ràng. Hãy tự nhớ từ rồi xem đáp án; lượt này không tính điểm.")));
+    return;
+  }
   for (const chu of o) {
     const b = el("button", "lien-omot");
     b.type = "button";
@@ -3145,6 +3109,15 @@ async function xongBaiLien() {
   baiLien = null;                                  // chặn bấm Xong hai lần
   const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
   msDaDung = null;
+  if (b.khongCham) {
+    veKetQuaLien(b, 0, ms);
+    $("stLienKq").textContent = T("Đã xem đáp án · Không tính điểm SRS");
+    session.queue.shift();
+    tiepBaiLien = () => { tiepBaiLien = null; showCard(); };
+    $("stLienTiep").style.display = "";
+    $("stLienTiep").focus();
+    return;
+  }
   let dung = 0, sai = 0;
   for (const c of b.chon) { if (b.dung.has(c)) dung++; else sai++; }
   const kq = window.TuLien.chamBai({ dung: dung, tong: b.dung.size, sai: sai, ms: ms });
@@ -3157,7 +3130,8 @@ async function xongBaiLien() {
   session.queue.shift();
   // `kq.diem` là trục thứ hai: nhặt đủ hay nhặt được một nửa. Nó chỉ co giãn
   // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
-  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
+  const daCham = await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
+  if (!daCham) { showCard(); return; }
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
   // Quên thì học lại cuối hàng, y như thẻ thường.
@@ -3404,18 +3378,32 @@ async function quayLaiThe() {
   const ds = session.lichSu || [];
   const b = ds.pop();
   if (!b) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
-  await capNhat((nb) => {
+  const daHoanTac = await suaSoTay(async () => {
+    const kho = await chrome.storage.local.get(["notebook", "nhipMs"]);
+    const nb = kho.notebook || {};
     const e = nb[b.key];
-    if (!e) return;
+    if (!e || e.del || window.Srs.biChan(e, b.duong, Date.now())) return false;
+    // Không để phím hoàn tác ở trang cũ xóa lượt chấm mới ở trang khác.
+    if (b.sau && JSON.stringify((e.duong || {})[b.duong]) !== JSON.stringify(b.sau)) return false;
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[b.key] = moi;
+    const ghi = { notebook: nb };
+    const tk = kho.nhipMs || {};
+    if (b.tkTruoc && typeof b.tkTruoc.n === "number"
+        && (!b.tkSau || JSON.stringify(tk[b.duong]) === JSON.stringify(b.tkSau))) {
+      tk[b.duong] = b.tkTruoc;
+      ghi.nhipMs = tk;
+    }
+    await chrome.storage.local.set(ghi);
+    nhipMs = tk;
+    return true;
   });
-  if (b.tkTruoc && typeof b.tkTruoc.n === "number") {
-    nhipMs[b.duong] = b.tkTruoc;
-    await chrome.storage.local.set({ nhipMs: nhipMs });
+  if (!daHoanTac) {
+    toast(T("Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."), "bad");
+    return;
   }
   if (b.nho) session.done = Math.max(0, session.done - 1);
   else {
@@ -3505,7 +3493,7 @@ async function deleteCurrentCard() {
   await capNhat((nb) => {
     const original = nb[it.key];
     lastDeleted = original ? { key: it.key, entry: Object.assign({}, original) } : null;
-    nb[it.key] = window.Muc.biaMo(it);
+    if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
   });
 
   // Bỏ hết bản sao của mục này khỏi hàng đợi (khi "Quên" nó bị xếp lại cuối hàng).
@@ -3919,9 +3907,9 @@ async function napChiaSeFile(file) {
 
 async function backupJson() {
   const s = await getStore();
-  const { hoc } = await chrome.storage.local.get("hoc");
+  const { hoc, nguPhapSrs } = await chrome.storage.local.get(["hoc", "nguPhapSrs"]);
   download("neutrondict-sotay-backup.json",
-    JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null }),
+    JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null, nguPhapSrs: nguPhapSrs || {} }),
     "application/json;charset=utf-8");
 }
 /**
@@ -3940,6 +3928,10 @@ async function restoreJson(file) {
     await capNhat((nb, dks) => {
       Object.assign(nb, mergeLocal(nb, impNb));
       Object.assign(dks, mergeLocal(dks, impDecks));
+    });
+    if (imp && imp.nguPhapSrs) await suaSoTay(async () => {
+      const cu = (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {};
+      await chrome.storage.local.set({ nguPhapSrs: window.Muc.tron(cu, imp.nguPhapSrs) });
     });
     if (imp && imp.hoc) {
       // Trộn TỪNG NGÔN NGỮ một. TienDo.tron() chỉ hiểu một bản tiến độ phẳng;
@@ -3974,7 +3966,7 @@ async function clearAll() {
   if (!confirm(T2("Xoá {n} mục trong {noi}? Việc xoá cũng đồng bộ sang máy khác.", { n: list.length, noi: where }))) return;
   await capNhat((nb) => {
     const now = Date.now();
-    for (const it of list) nb[it.key] = window.Muc.biaMo(it);
+    for (const it of list) if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
   });
   await load();
   syncSoon();
@@ -4421,15 +4413,54 @@ function moMan(ten) {
   $("viewList").classList.toggle("show", ten === "list");
   $("viewProgress").classList.toggle("show", ten === "progress");
   $("viewSpeak").classList.toggle("show", ten === "speak");
+  $("viewGrammar").classList.toggle("show", ten === "grammar");
   // Hai nút trên đầu chỉ nói về Sổ tay / Tiến độ; Luyện nói vào bằng nút riêng
   // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
   $("pageList").classList.toggle("active", ten === "list");
   $("pageProgress").classList.toggle("active", ten === "progress");
   if (ten === "progress") { veTienDo(); veSoDo(); }
   if (ten === "speak") veLuyenNoi();
+  if (ten === "grammar") window.NguPhapUI.lamMoi();
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
+
+async function ghiNguPhap(q, ketQua) {
+  const ra = await suaSoTay(async () => {
+    const data = await chrome.storage.local.get(["notebook", "ytKho", "nguPhapSrs"]);
+    const nb = data.notebook || {}, ytKho = data.ytKho, kho = data.nguPhapSrs || {};
+    const ds = window.NguPhap.boSungTuKho(Object.entries(window.Ngu.locSo(nb, "ja")).map(([key,v]) => Object.assign({ key },v)), ytKho);
+    if (!window.NguPhap.danhSach(ds).some(b => b.cau === q.cau)) return null;
+    const key = window.NguPhapSrs.khoa(q.cau);
+    const moi = window.NguPhapSrs.cham(kho[key], q.cau, ketQua, Date.now(), q.onId, q.tsDau);
+    if (!moi) return null;
+    kho[key] = moi;
+    await chrome.storage.local.set({ nguPhapSrs: kho });
+    return moi;
+  });
+  if (ra) syncSoon();
+  return ra;
+}
+
+window.NguPhapUI.khoiTao({
+  docLich: async () => (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {},
+  ghiKetQua: ghiNguPhap,
+  layMuc: async () => {
+    const { notebook, ytKho } = await chrome.storage.local.get(["notebook", "ytKho"]);
+    const ds = Object.entries(window.Ngu.locSo(notebook || {}, "ja")).map(([key,v]) => Object.assign({ key },v));
+    return window.NguPhap.boSungTuKho(ds.filter((it) => !it.del), ytKho);
+  },
+  ngonNgu: () => NGU,
+  dichCau: (cau) => new Promise((giai) => {
+    let xong = false;
+    const tra = (text) => { if (!xong) { xong = true; giai(text || ""); } };
+    chrome.runtime.sendMessage({ type: "TRANSLATE", text: cau, from: "ja", to: "vi" }, (res) => {
+      tra(chrome.runtime.lastError || !res || !res.ok ? "" : res.text);
+    });
+    setTimeout(() => tra(""), 10000);
+  })
+});
+$("grammar").addEventListener("click", () => moMan("grammar"));
 $("speak").addEventListener("click", () => moMan("speak"));
 $("spAdd").addEventListener("click", themDoanNoi);
 
@@ -4452,6 +4483,7 @@ function gaiIcon() {
   $("ebDecks").innerHTML = window.Icon("folder-simple", { size: 15 }) + "<span data-chu>Sổ con</span>";
   $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb" data-chu>Sổ tay</span>';
   $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb" data-chu>Tiến độ</span>';
+  $("grammar").innerHTML = window.Icon("books", { size: 18 }) + '<span class="lb" data-chu>Luyện ngữ pháp</span>';
 
   const st = $("study");
   const den = st.querySelector(".tag");
@@ -4694,6 +4726,8 @@ $("chuNgu").addEventListener("change", async () => {
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
   $("nguJa").classList.toggle("active", NGU === "ja");
+  $("grammar").style.display = NGU === "ja" ? "" : "none";
+  if (NGU !== "ja" && $("viewGrammar").classList.contains("show")) moMan("list");
   const sb = $("brandSub");
   if (sb) sb.textContent = T2("{ngu} · sóng học tập", { ngu: NGU === "ja" ? T("Nhật – Việt") : T("Anh – Việt") });
   // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.

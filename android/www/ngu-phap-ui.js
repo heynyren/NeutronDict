@@ -1,0 +1,224 @@
+/**
+ * Màn luyện ngữ pháp dùng chung cho extension và Android.
+ * Lịch theo câu được lưu qua các hàm do nền tảng cung cấp; không chấm từ vựng.
+ */
+(function (goc) {
+  "use strict";
+
+  let layMuc = null, ngonNgu = null, dichCau = null, tatCa = [], buoi = null, daGan = false;
+  let docLich = null, ghiKetQua = null, kho = {}, dangGhi = false;
+  const $ = (id) => document.getElementById(id);
+
+  function thongBao(chu, loai) {
+    const o = $("npFeedback");
+    o.textContent = chu || "";
+    o.className = "np-feedback" + (loai ? " " + loai : "");
+  }
+
+  function ve() {
+    const nutBat = $("npStart"), bai = $("npExercise"), dem = $("npCount");
+    if (ghiKetQua && $("npStats")) {
+      const t = goc.NguPhapSrs.thongKe(tatCa, kho);
+      $("npStats").textContent = T2("{m} câu mới · {d} câu đến hạn · {t} câu tổng cộng", { m:t.moi, d:t.den, t:t.tong });
+    }
+    const due = $("npDue");
+    if (due) { due.hidden = !ghiKetQua || !tatCa.length || !!(buoi && buoi.i < buoi.ds.length);
+      due.disabled = dangGhi || !tatCa.some(q => goc.NguPhapSrs.denHan(kho[goc.NguPhapSrs.khoa(q.cau)])); }
+    if ($("npSchedule")) $("npSchedule").hidden = !buoi;
+    if (!buoi || buoi.i >= buoi.ds.length) {
+      bai.hidden = true;
+      nutBat.hidden = !tatCa.length;
+      nutBat.textContent = ghiKetQua ? T("Luyện tất cả") : (buoi ? T("Luyện lại") : T("Bắt đầu luyện"));
+      if (buoi) dem.textContent = T2("Đã ghép đúng {dung}/{tong} câu.", {
+        dung: buoi.dung, tong: buoi.ds.length
+      });
+      return;
+    }
+    nutBat.hidden = true;
+    bai.hidden = false;
+    const q = buoi.ds[buoi.i];
+    $("npProgress").textContent = T2("Câu {i}/{n} · {m} mảnh", {
+      i: buoi.i + 1, n: buoi.ds.length, m: q.manh.length
+    });
+    $("npHint").textContent = q.tu !== q.cau
+      ? T2("Từ đã lưu: {tu}", { tu: q.tu })
+      : T("Ghép lại câu đã lưu");
+    const daChon = buoi.chon;
+    const oDap = $("npAnswer"), oNguon = $("npOptions");
+    oDap.textContent = "";
+    oNguon.textContent = "";
+    if (!daChon.length) {
+      const goi = document.createElement("span");
+      goi.className = "np-placeholder";
+      goi.textContent = T("Chạm các mảnh bên dưới theo đúng thứ tự");
+      oDap.appendChild(goi);
+    }
+    function nutMảnh(p, noi, bam) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "np-piece";
+      b.textContent = p.text.trim();
+      b.disabled = buoi.xong;
+      b.setAttribute("aria-label", noi);
+      b.addEventListener("click", bam);
+      return b;
+    }
+    for (const id of daChon) {
+      const p = q.manh[id];
+      oDap.appendChild(nutMảnh(p, T("Bỏ mảnh khỏi câu"), () => {
+        buoi.chon = buoi.chon.filter((x) => x !== id);
+        thongBao("");
+        ve();
+      }));
+    }
+    for (const p of q.xao) {
+      if (daChon.includes(p.id)) continue;
+      oNguon.appendChild(nutMảnh(p, T("Đưa mảnh vào câu"), () => {
+        buoi.chon.push(p.id);
+        thongBao("");
+        ve();
+      }));
+    }
+    $("npCheck").hidden = buoi.xong;
+    $("npCheck").disabled = daChon.length !== q.manh.length;
+    $("npSkip").hidden = buoi.xong;
+    $("npNext").hidden = !buoi.xong;
+    $("npNext").disabled = dangGhi;
+    $("npResult").hidden = !buoi.xong;
+  }
+
+  async function hienKetQua() {
+    if (!buoi || !buoi.xong) return;
+    const hienTai = buoi, viTri = buoi.i, q = buoi.ds[viTri];
+    $("npOriginal").textContent = q.cau;
+    $("npTranslation").textContent = q.nghia || T("Đang dịch câu gốc…");
+    if (q.nghia || !dichCau) {
+      if (!q.nghia) $("npTranslation").textContent = T("Chưa dịch được câu này.");
+      return;
+    }
+    let dich = "";
+    try { dich = String((await dichCau(q.cau)) || "").trim(); } catch (e) { /* thử lại ở buổi sau */ }
+    if (buoi !== hienTai || buoi.i !== viTri) return;
+    if (dich && dich !== q.cau) q.nghia = dich;
+    $("npTranslation").textContent = q.nghia || T("Chưa dịch được câu này.");
+  }
+
+  async function batDau(theoLich) {
+    if (!tatCa.length || dangGhi) return;
+    theoLich = theoLich === true && !!ghiKetQua;
+    if (docLich) { try { kho = await docLich(); } catch(e) { thongBao(T("Không đọc được lịch. Hãy thử lại."), "sai"); return; } }
+    const nguon = theoLich ? tatCa.filter(q => goc.NguPhapSrs.denHan(kho[goc.NguPhapSrs.khoa(q.cau)])) : tatCa;
+    if (!nguon.length) { thongBao(T("Đã hết câu đến hạn. Bạn vẫn có thể luyện tất cả.")); ve(); return; }
+    // Mỗi buổi đi hết danh sách; luyện lại xáo câu và mảnh, không kẹt ở 10 câu đầu.
+    const ds = nguon.map((q) => Object.assign({}, q, {
+      xao: goc.NguPhap.xaoTron(q.manh) || q.xao
+    }));
+    for (let i = ds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ds[i], ds[j]] = [ds[j], ds[i]];
+    }
+    for (const q of ds) { q.tsDau = (kho[goc.NguPhapSrs.khoa(q.cau)] || {}).ts || 0;
+      q.onId = Date.now() + ":" + Math.random().toString(36).slice(2); }
+    buoi = { ds: ds, i: 0, dung: 0, chon: [], xong: false, sai: false, theoLich: theoLich };
+    if ($("npSchedule")) $("npSchedule").textContent = theoLich ? T("Ôn theo lịch ngữ pháp") : T("Luyện tự do · không thay đổi lịch");
+    $("npCount").textContent = T("Chạm từng mảnh để ghép câu gốc.");
+    thongBao("");
+    ve();
+  }
+
+  async function ketThuc(kq) {
+    const b = buoi, q = b.ds[b.i];
+    if (!b.theoLich || q.cungCo || !ghiKetQua) return;
+    dangGhi = true; ve();
+    try {
+      const r = await ghiKetQua(q, kq);
+      if (r) kho[goc.NguPhapSrs.khoa(q.cau)] = r;
+      if (buoi !== b) return;
+      if ($("npSchedule")) $("npSchedule").textContent = r
+        ? T2("Cấp ngữ pháp {lv} · ôn lại sau {n} ngày", { lv: r.lv, n: r.ngay })
+        : T("Lịch đã thay đổi hoặc câu không còn trong sổ. Lượt này không tăng cấp.");
+      if (kq !== "dung" && r) b.ds.push(Object.assign({}, q, { cungCo: true, xao: goc.NguPhap.xaoTron(q.manh) || q.xao }));
+    } catch(e) {
+      if (buoi === b) { b.chuaGhi = kq; thongBao(T("Chưa lưu được lịch. Bấm Câu tiếp để thử lưu lại."), "sai"); }
+    } finally { dangGhi = false; if (buoi === b) ve(); }
+  }
+
+  async function kiemTra() {
+    if (!buoi || buoi.xong) return;
+    const q = buoi.ds[buoi.i];
+    if (buoi.chon.length !== q.manh.length) return;
+    const cau = buoi.chon.map((id) => q.manh[id].text).join("");
+    if (cau !== q.cau) {
+      buoi.sai = true;
+      thongBao(T("Chưa khớp câu gốc. Chạm mảnh trong câu để đổi chỗ rồi thử lại."), "sai");
+      return;
+    }
+    buoi.xong = true;
+    buoi.dung++;
+    thongBao(T("Đúng rồi!"), "dung");
+    ve();
+    hienKetQua();
+    await ketThuc(buoi.sai ? "sua" : "dung");
+  }
+
+  async function boQua() {
+    if (!buoi || buoi.xong) return;
+    buoi.xong = true;
+    thongBao(T("Đây là đáp án."), "dap-an");
+    ve();
+    hienKetQua();
+    await ketThuc("xem");
+  }
+
+  async function tiep() {
+    if (!buoi || !buoi.xong || dangGhi) return;
+    if (buoi.chuaGhi) { const kq = buoi.chuaGhi; delete buoi.chuaGhi; await ketThuc(kq); if (buoi.chuaGhi) return; }
+    buoi.i++;
+    buoi.chon = [];
+    buoi.xong = false;
+    buoi.sai = false;
+    if ($("npSchedule")) $("npSchedule").textContent = buoi.ds[buoi.i] && buoi.ds[buoi.i].cungCo ? T("Củng cố · không tăng cấp") : (buoi.theoLich ? T("Ôn theo lịch ngữ pháp") : T("Luyện tự do · không thay đổi lịch"));
+    thongBao("");
+    ve();
+  }
+
+  async function lamMoi() {
+    if (!layMuc || !ngonNgu) return;
+    if (ngonNgu() !== "ja") {
+      tatCa = []; buoi = null;
+      $("npCount").textContent = T("Chuyển sang Nhật – Việt để luyện ngữ pháp.");
+      ve();
+      return;
+    }
+    try {
+      tatCa = goc.NguPhap.danhSach(await layMuc());
+      if (docLich) kho = await docLich();
+      if (ghiKetQua && $("npStats")) { const t = goc.NguPhapSrs.thongKe(tatCa, kho);
+        $("npStats").textContent = T2("{m} câu mới · {d} câu đến hạn · {t} câu tổng cộng", { m:t.moi, d:t.den, t:t.tong }); }
+      if (!buoi) $("npCount").textContent = tatCa.length
+        ? T2("Có {n} câu từ sổ tay để luyện.", { n: tatCa.length })
+        : T("Chưa có câu tiếng Nhật đủ ngữ cảnh. Hãy lưu từ trong một câu trọn vẹn hoặc lưu câu từ video.");
+    } catch (e) {
+      tatCa = [];
+      $("npCount").textContent = T("Không đọc được sổ tay. Hãy thử mở lại mục này.");
+    }
+    ve();
+  }
+
+  function khoiTao(cauHinh) {
+    layMuc = cauHinh.layMuc;
+    ngonNgu = cauHinh.ngonNgu;
+    dichCau = cauHinh.dichCau;
+    docLich = cauHinh.docLich || null; ghiKetQua = cauHinh.ghiKetQua || null;
+    if (!daGan) {
+      $("npStart").addEventListener("click", () => batDau(false));
+      if ($("npDue")) $("npDue").addEventListener("click", () => batDau(true));
+      $("npCheck").addEventListener("click", kiemTra);
+      $("npSkip").addEventListener("click", boQua);
+      $("npNext").addEventListener("click", tiep);
+      daGan = true;
+    }
+  }
+
+  goc.NguPhapUI = { khoiTao, lamMoi };
+})(typeof self !== "undefined" ? self : this);
