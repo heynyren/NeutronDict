@@ -1584,6 +1584,15 @@ async function locHangDoiLich() {
   }
 }
 
+
+chrome.storage.onChanged.addListener((doi, area) => {
+  if (area !== "local" || !doi.notebook || !session.queue.length) return;
+  const cu = doi.notebook.oldValue || {}, moi = doi.notebook.newValue || {};
+  const chot = (x) => JSON.stringify(x && [x.del, x.dongBang, x.mangTat, x.lichRieng]);
+  if (session.queue.some(q => chot(cu[q.key]) !== chot(moi[q.key])))
+    locHangDoiLich().catch(() => toast(T("Không cập nhật được hàng đợi. Hãy mở lại buổi học."), "bad"));
+});
+
 async function datCo(key, ten, bat) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -3373,7 +3382,7 @@ async function quayLaiThe() {
     const kho = await chrome.storage.local.get(["notebook", "nhipMs"]);
     const nb = kho.notebook || {};
     const e = nb[b.key];
-    if (!e || e.del) return false;
+    if (!e || e.del || window.Srs.biChan(e, b.duong, Date.now())) return false;
     // Không để phím hoàn tác ở trang cũ xóa lượt chấm mới ở trang khác.
     if (b.sau && JSON.stringify((e.duong || {})[b.duong]) !== JSON.stringify(b.sau)) return false;
     const d = Object.assign({}, e.duong || {});

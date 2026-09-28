@@ -66,6 +66,15 @@ try {
   await sw.evaluate(()=>chrome.storage.local.set({nguPhapSrs:{}}));
   const p2=await ctx.newPage();p2.on("pageerror",e=>errors.push(e.message));
   await p2.goto("chrome-extension://"+id+"/notebook.html");await p2.waitForFunction(()=>typeof ghiNguPhap==="function");
+  await p2.evaluate(async()=>{
+    const it={key:"javi:勉強",...(await getStore()).nb["javi:勉強"]};
+    await datLichRieng(it.key,"nhin","mo",0); await datLichRieng(it.key,"nghe","tuDong",0);
+    session={queue:[{...it,_d:"nhin"},{...it,_d:"nghe"}],done:0,again:0,deleted:0};
+    document.getElementById("studyOverlay").classList.add("show");showCard();
+  });
+  await page.evaluate(()=>datLichRieng("javi:勉強","nhin","bang",0));
+  await p2.waitForFunction(()=>session.queue.length===1&&session.queue[0]._d==="nghe");
+  await p2.evaluate(()=>{session.queue=[];document.getElementById("studyOverlay").classList.remove("show");});
   const results=await Promise.all([page,p2].map((p,i)=>p.evaluate(([cau,i])=>ghiNguPhap({cau,tsDau:0,onId:"race"+i},"dung"),[cau,i])));
   assert.equal(results.filter(Boolean).length,1);
   grammar=await page.evaluate(async()=>(await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs);

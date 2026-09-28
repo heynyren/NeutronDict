@@ -1380,6 +1380,7 @@ async function doSync(rawNgu) {
       JSON.stringify(dungChung ? finalHoc : finalHocNgu) !== JSON.stringify(mergedHoc) ||
       JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar)) syncSoon();
 
+  await locHangDoiLich();
   let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
   return n;
 }
