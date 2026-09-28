@@ -113,9 +113,6 @@ try{
   });
   await page.locator("#npDue").click();
   for(let i=0;i<13;i++){
-   // Submit original order without needing to see the answer.
-   const answer=await page.evaluate(()=>[...document.querySelectorAll("#npOptions button")].map(b=>b.textContent));
-   const sentence="";void answer;void sentence;
    await page.locator("#npSkip").click();await page.locator("#npNext").click();
   }
   assert.equal(await page.evaluate(()=>Object.keys(testKho).length),13);
@@ -128,3 +125,44 @@ try{
   await page.close();
  }
 }finally{await browser.close();}
+
+const androidBrowser=await chromium.launch({headless:true});
+try {
+ const p=await androidBrowser.newPage(),errs=[];
+ p.on("pageerror",e=>errs.push(e.message));
+ const dir=path.join(root,"android/www");
+ await p.route("https://android.test/**",async route=>{
+   const name=new URL(route.request().url()).pathname.slice(1)||"index.html";
+   try { await route.fulfill({body:readFileSync(path.join(dir,name)),
+     contentType:name.endsWith(".js")?"application/javascript":name.endsWith(".css")?"text/css":"text/html"}); }
+   catch { await route.fulfill({status:404,body:""}); }
+ });
+ await p.addInitScript(cau=>{
+  if(localStorage.getItem("__seed"))return;
+  const t=Date.now(),d={lv:3,ngay:14,net:2.1,due:t-1,ts:t-15*86400000};
+  localStorage.setItem("settings",JSON.stringify({ngu:"ja",chu:"vi",coVu:false,nhip:false,nhacTau:false}));
+  localStorage.setItem("notebook",JSON.stringify({"javi:勉強":{word:"勉強",dict:"javi",reading:"べんきょう",
+    means:["học"],src:{cau,cauDich:"nghĩa"},cauNghe:{cau,dich:"nghĩa"},duong:{nhin:{...d},nghe:{...d}},ts:t}}));
+  localStorage.setItem("__seed","1");
+ },cau);
+ await p.goto("https://android.test/index.html");
+ await p.waitForFunction(()=>typeof datLichRieng==="function"&&typeof ghiNguPhap==="function");
+ const r=await p.evaluate(async(cau)=>{
+   const before=(await getNB())["javi:勉強"].duong;
+   await datLichRieng("javi:勉強","nhin","bang",0);
+   const rejected=await gradeWord("javi:勉強",true,1000,"nhin");
+   const heard=await gradeWord("javi:勉強",true,8000,"nghe");
+   const grades=await Promise.all([1,2].map(i=>ghiNguPhap({cau,tsDau:0,onId:"android-"+i},"dung")));
+   return {before,after:(await getNB())["javi:勉強"],rejected,heard,grades};
+ },cau);
+ assert.equal(r.rejected,null);assert.ok(r.heard);
+ assert.deepEqual(r.after.duong.nhin,r.before.nhin);
+ assert.equal(r.after.lichRieng.nhin.dongBang,true);
+ assert.equal(r.grades.filter(Boolean).length,1);
+ await p.reload();
+ await p.waitForFunction(()=>typeof getNB==="function");
+ assert.equal(await p.evaluate(async()=>(await getNB())["javi:勉強"].lichRieng.nhin.dongBang),true);
+ assert.equal(await p.evaluate(async()=>Object.values(await Store.get("nguPhapSrs"))[0].lv),1);
+ assert.equal(errs.length,0,errs.join("\n"));
+ console.log("Android app: real storage, frozen visual route, listening grade, concurrent grammar grade, reload OK");
+} finally {await androidBrowser.close();}

@@ -59,6 +59,16 @@ for (const dir of ["extension", "android/www"]) {
     {...it,duong:{...it.duong,nhin:{...it.duong.nhin,saiTs:now-D}}},
     S.datLich(it,"nghe","bang",0,now)
   ]) assert.equal(S.phoiHop(x,"nhin",raw,true,now).duong.phoiHop,undefined);
+  // Two fresh listening successes restore coordination after a visual lapse.
+  let recovered = {...it,duong:{...it.duong,nhin:{...it.duong.nhin,saiTs:now-3*D},
+    nghe:{...it.duong.nghe,due:now-2*D,dungHanDau:now-20*D,dungHanMoi:now-10*D}}};
+  for (const t of [now-2*D,now-D]) {
+    recovered.duong.nghe.due = t;
+    const rr = S.phoiHop(recovered,"nghe",S.cham(recovered.duong.nghe,true,0,null,t,"nghe",0.5),true,t);
+    recovered.duong.nghe = rr.duong;
+  }
+  assert.equal(S.phoiHop(recovered,"nhin",raw,true,now).duong.phoiHop,1.5);
+  assert.doesNotThrow(()=>S.gomSrs(null)); assert.doesNotThrow(()=>S.duongMo(null));
   const off = {...it,mangTat:1};
   assert(!S.denHan(off,now).some(d=>d==="dong"||d==="trai"));
   assert(S.biChan(off,"dong",now));

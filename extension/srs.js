@@ -821,7 +821,7 @@
   function duongMo(muc) {
     const co = duongCo(muc);
     const d = (muc && muc.duong) || {};
-    if (ngayCua(d.nhin) < MO_NGAY && !((muc.lichRieng || {}).nhin || {}).dongBang) return ["nhin"];
+    if (ngayCua(d.nhin) < MO_NGAY && !(((muc || {}).lichRieng || {}).nhin || {}).dongBang) return ["nhin"];
     return co;
   }
 
@@ -854,8 +854,9 @@
     for (const t of ten) {
       const x = d[t];
       if (x && (x.ts || 0) > ts) ts = x.ts;
-      if (((muc.lichRieng || {})[t] || {}).dongBang) { coGi = true; continue; }
-      if (!x) { due = hanDuong(muc, t); continue; }              // đường chưa học: tới hạn ngay
+      if ((((muc || {}).lichRieng || {})[t] || {}).dongBang) { coGi = true; continue; }
+      if (!x) { const h = hanDuong(muc, t); if (due === null || h < due) due = h;
+        if (h) coGi = true; continue; }              // đường chưa học: tới hạn ngay
       coGi = true;
       if (due === null || hanDuong(muc, t) < due) due = hanDuong(muc, t);
       if ((x.ts || 0) > ts) ts = x.ts;
@@ -867,7 +868,7 @@
 
   /** Điều khiển lịch tách khỏi điểm và lần chấm của từng đường. */
   function biDongBang(muc, ten) {
-    return !!(muc && (muc.dongBang || ((muc.lichRieng || {})[ten] || {}).dongBang));
+    return !!(muc && (muc.dongBang || (((muc || {}).lichRieng || {})[ten] || {}).dongBang));
   }
   function hanDuong(muc, ten) {
     const d = ((muc || {}).duong || {})[ten] || {};
@@ -883,7 +884,7 @@
   }
   function datLich(muc, ten, lenh, soNgay, now) {
     if (!muc || muc.del || DUONG.indexOf(ten) < 0) throw new Error("Không còn mục để chỉnh lịch.");
-    const cu = (muc.lichRieng || {})[ten] || {};
+    const cu = ((muc || {}).lichRieng || {})[ten] || {};
     const ts = Math.max(now || Date.now(), (cu.ts || 0) + 1);
     const moi = Object.assign({}, cu, { ts: ts });
     if (lenh === "bang") moi.dongBang = true;
@@ -911,10 +912,12 @@
     moi.saiTs = nho ? (cu.saiTs || 0) : bayGio;
     moi.dungHanLien = cu.dungHanLien || 0;
     moi.dungHanDau = cu.dungHanDau || 0;
-    if (!nho) { moi.dungHanLien = 0; moi.dungHanDau = 0; }
+    moi.dungHanMoi = cu.dungHanMoi || 0;
+    if (!nho) { moi.dungHanLien = 0; moi.dungHanDau = 0; moi.dungHanMoi = 0; }
     else if (hanDuong(muc, ten) <= bayGio) {
       moi.dungHanLien++;
-      if (!moi.dungHanDau) moi.dungHanDau = bayGio;
+      moi.dungHanDau = cu.dungHanMoi || bayGio;
+      moi.dungHanMoi = bayGio;
     }
     if (ten === "nhin" && nho) {
       const nghe = ((muc || {}).duong || {}).nghe || {};
