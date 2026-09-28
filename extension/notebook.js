@@ -541,9 +541,10 @@ function dongDiem(it, now) {
     const co = d.phan[t] !== null;
     let trangThai;
     if (!co) trangThai = coSaoThieu(t);
+    else if (window.Srs.biDongBang(it, t)) trangThai = T("đang đóng băng");
     else if (mo.indexOf(t) < 0) trangThai = T("chưa mở");
     else if (han.indexOf(t) >= 0) trangThai = T("đến hạn");
-    else trangThai = khiNaoOn(x && x.due, nay);
+    else trangThai = khiNaoOn(window.Srs.hanDuong(it, t), nay);
     return { duong: t, ten: T(window.Srs.TEN_DUONG[t]), diem: d.phan[t],
              trangThai: trangThai, co: co, han: co && han.indexOf(t) >= 0 };
   });
@@ -639,7 +640,7 @@ function duongOnDuoc(it, now) {
   const mo = window.Srs.duongMo(it);
   const han = window.Srs.denHan(it, nay);
   return window.Srs.duongCo(it).filter((t) =>
-    mo.indexOf(t) >= 0 && (han.indexOf(t) >= 0 || window.Srs.ngayCua((it.duong || {})[t]) === 0));
+    !window.Srs.biChan(it, t, nay) && mo.indexOf(t) >= 0 && (han.indexOf(t) >= 0 || window.Srs.ngayCua((it.duong || {})[t]) === 0));
 }
 
 function moBangDiem(it) {
@@ -782,7 +783,7 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     const kho = await chrome.storage.local.get(["notebook", "nhipMs", "soDoSrs"]);
     const nb = kho.notebook || {};
     const e = nb[key];
-    if (!e || e.del) return null;
+    if (!e || e.del || window.Srs.biChan(e, d, Date.now())) return null;
     const tkAll = kho.nhipMs || {};
     const tkTruoc = Object.assign({}, tkAll[d] || {});
     const lich = window.Srs.lichHen(Object.values(nb));
@@ -791,8 +792,9 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     const truoc = cu ? Object.assign({}, cu) : null;
     const ngayCho = batDau && batDau.ts ? (Date.now() - batDau.ts) / 86400000 : 0;
     const lvTruoc = batDau && typeof batDau.lv === "number" ? batDau.lv : -1;
-    const kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d,
+    let kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d,
                              Math.random(), chat, lich);
+    kq = window.Srs.phoiHop(e, d, kq, remembered, Date.now(), lich);
     const moi = Object.assign({}, e, {
       duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }),
       ts: Date.now()
@@ -1561,6 +1563,27 @@ function favButtons(it, sauDo) {
  * và đó là chủ ý: luật nằm một chỗ thì bản Android và máy chủ MCP không
  * lệch được.
  */
+
+async function datLichRieng(key, duong, lenh, ngay) {
+  const moi = await capNhat((nb) => {
+    const it = nb[key]; if (!it || it.del) return null;
+    const ne = window.Srs.datLich(it, duong, lenh, ngay, Date.now());
+    ne.srs = window.Srs.gomSrs(ne) || ne.srs;
+    nb[key] = ne; return Object.assign({ key: key }, ne);
+  });
+  syncSoon();
+  await locHangDoiLich();
+  return moi;
+}
+async function locHangDoiLich() {
+  const nb = (await getStore()).nb;
+  if (session && session.queue && session.queue.length) {
+    const cu = session.queue[0];
+    session.queue = session.queue.filter((q) => nb[q.key] && !window.Srs.biChan(nb[q.key], q._d || "nhin", Date.now()));
+    if (session.queue[0] !== cu) showCard();
+  }
+}
+
 async function datCo(key, ten, bat) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -1617,6 +1640,7 @@ function nutRutOn(it, sauDo) {
     if (sauDo) sauDo(); else await load();
   });
   wrap.appendChild(b2);
+  wrap.appendChild(window.LichRiengUI.nut(it, datLichRieng, async () => { await load(); }));
   return wrap;
 }
 
@@ -2312,6 +2336,7 @@ function renderStudyFav(it) {
       // Vẽ lại chip điểm trên mặt thẻ: tắt mạng nghĩa là điểm ĐỔI NGAY (trọng
       // số chia lại), mà con số cũ nằm nguyên đó thì trông như nút không ăn.
       veTienTrinh(it);
+      await locHangDoiLich();
     });
     return b;
   };
@@ -2319,6 +2344,7 @@ function renderStudyFav(it) {
     T("Đóng băng"), T("Đang đóng băng")));
   box.appendChild(co("mangTat", "graph", !!it.mangTat,
     T("Tắt mạng nghĩa"), T("Mạng nghĩa đã tắt")));
+  box.appendChild(window.LichRiengUI.nut(it, datLichRieng));
 }
 
 async function startStudy() {
@@ -2921,6 +2947,7 @@ async function grade(remembered) {
   // Điểm TRƯỚC lượt chấm, để lời báo nói được là nó vừa nhích lên bao nhiêu.
   const truocDiem = window.Srs.diemTu(it).tong;
   const kqCham = await gradeWord(it.key, remembered, ms, it._d || "nhin");
+  if (!kqCham) { showCard(); return; }
   let banSao = null;
   if (remembered) session.done++;
   else {
@@ -3094,7 +3121,8 @@ async function xongBaiLien() {
   session.queue.shift();
   // `kq.diem` là trục thứ hai: nhặt đủ hay nhặt được một nửa. Nó chỉ co giãn
   // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
-  await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
+  const daCham = await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
+  if (!daCham) { showCard(); return; }
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
   // Quên thì học lại cuối hàng, y như thẻ thường.
@@ -3870,9 +3898,9 @@ async function napChiaSeFile(file) {
 
 async function backupJson() {
   const s = await getStore();
-  const { hoc } = await chrome.storage.local.get("hoc");
+  const { hoc, nguPhapSrs } = await chrome.storage.local.get(["hoc", "nguPhapSrs"]);
   download("neutrondict-sotay-backup.json",
-    JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null }),
+    JSON.stringify({ notebook: s.nb, decks: s.decks, hoc: hoc || null, nguPhapSrs: nguPhapSrs || {} }),
     "application/json;charset=utf-8");
 }
 /**
@@ -3891,6 +3919,10 @@ async function restoreJson(file) {
     await capNhat((nb, dks) => {
       Object.assign(nb, mergeLocal(nb, impNb));
       Object.assign(dks, mergeLocal(dks, impDecks));
+    });
+    if (imp && imp.nguPhapSrs) await suaSoTay(async () => {
+      const cu = (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {};
+      await chrome.storage.local.set({ nguPhapSrs: window.Muc.tron(cu, imp.nguPhapSrs) });
     });
     if (imp && imp.hoc) {
       // Trộn TỪNG NGÔN NGỮ một. TienDo.tron() chỉ hiểu một bản tiến độ phẳng;
@@ -4383,10 +4415,31 @@ function moMan(ten) {
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
+
+async function ghiNguPhap(q, ketQua) {
+  const ra = await suaSoTay(async () => {
+    const data = await chrome.storage.local.get(["notebook", "ytKho", "nguPhapSrs"]);
+    const nb = data.notebook || {}, ytKho = data.ytKho, kho = data.nguPhapSrs || {};
+    const ds = window.NguPhap.boSungTuKho(Object.entries(window.Ngu.locSo(nb, "ja")).map(([key,v]) => Object.assign({ key },v)), ytKho);
+    if (!window.NguPhap.danhSach(ds).some(b => b.cau === q.cau)) return null;
+    const key = window.NguPhapSrs.khoa(q.cau);
+    const moi = window.NguPhapSrs.cham(kho[key], q.cau, ketQua, Date.now(), q.onId, q.tsDau);
+    if (!moi) return null;
+    kho[key] = moi;
+    await chrome.storage.local.set({ nguPhapSrs: kho });
+    return moi;
+  });
+  if (ra) syncSoon();
+  return ra;
+}
+
 window.NguPhapUI.khoiTao({
+  docLich: async () => (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {},
+  ghiKetQua: ghiNguPhap,
   layMuc: async () => {
-    const { ytKho } = await chrome.storage.local.get("ytKho");
-    return window.NguPhap.boSungTuKho(items.filter((it) => !it.del), ytKho);
+    const { notebook, ytKho } = await chrome.storage.local.get(["notebook", "ytKho"]);
+    const ds = Object.entries(window.Ngu.locSo(notebook || {}, "ja")).map(([key,v]) => Object.assign({ key },v));
+    return window.NguPhap.boSungTuKho(ds.filter((it) => !it.del), ytKho);
   },
   ngonNgu: () => NGU,
   dichCau: (cau) => new Promise((giai) => {

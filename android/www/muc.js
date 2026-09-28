@@ -159,6 +159,9 @@
 
   function gopSrs(thang, thua) {
     if (!thang || !thua || thang.del || thua.del) return thang;
+    // Cài đặt từng đường có ts riêng, không bị lượt chấm/sửa nghĩa đè mất.
+    if (thang.lichRieng || thua.lichRieng)
+      thang = Object.assign({}, thang, { lichRieng: gopDuong(thang.lichRieng, thua.lichRieng) });
     // `duong` gộp theo từng đường, KHÔNG theo bên thắng — xem gopDuong.
     if (thang.duong || thua.duong) {
       const r2 = Object.assign({}, thang);

@@ -41,3 +41,10 @@
 }
 .np-original { font-size: 19px; line-height: 1.7; font-weight: 650; overflow-wrap: anywhere; }
 .np-translation { font-size: 15px; line-height: 1.6; color: var(--ink-2); overflow-wrap: anywhere; }
+
+.lich-rieng-dialog { border:1px solid var(--line-soft,#ddd); border-radius:18px; padding:24px; max-width:620px; width:calc(100% - 32px); max-height:85vh; overflow:auto; color:var(--ink,#222); background:var(--surface,#fff); }
+.lich-rieng-dialog::backdrop { background:#0006; }
+.lich-rieng-dialog p { font-size:14px; }
+.lich-rieng-hang { border-top:1px solid var(--line-soft,#ddd); padding:14px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.lich-rieng-hang strong,.lich-rieng-hang p { flex-basis:100%; margin:0; }
+.lich-rieng-hang input { width:80px; padding:8px; }

@@ -1753,6 +1753,7 @@ async function saveWord(entry, dict) {
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
     if (old.duong) e.duong = old.duong;
+    if (old.lichRieng) e.lichRieng = old.lichRieng;
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.hoiAi && !e.hoiAi) e.hoiAi = old.hoiAi;   // link đoạn chat Gemini
@@ -2101,9 +2102,9 @@ async function gopCloudCu() {
    * chung. Lượt gộp này chỉ chạy một lần lúc chuyển nếp, nhưng một lần cũng đủ
    * mất các đoạn Luyện nói người dùng tự viết.
    */
-  const them = await chrome.storage.local.get(["luyenNoi", "soDoSrs", "phuDeSua"]);
+  const them = await chrome.storage.local.get(["luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
   await driveRequest({ action: "save", data: { notebook: boAnh(nb), decks: decks, hoc: hoc,
-    luyenNoi: them.luyenNoi || {}, soDoSrs: them.soDoSrs || {},
+    luyenNoi: them.luyenNoi || {}, soDoSrs: them.soDoSrs || {}, nguPhapSrs: them.nguPhapSrs || {},
     phuDeSua: them.phuDeSua || {} } }, "ja");
   return countActive(nb);
 }
@@ -2188,7 +2189,7 @@ async function doSync(rawNgu) {
   // lọc lại cho sạch.
   const remoteCuaToi = dungChung ? remoteNb : self.Ngu.locSo(remoteNb, ngu);
 
-  const store = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua"]);
+  const store = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
   const hocTach = self.Ngu.tachHoc(store.hoc);
   const nbCuaToi = dungChung ? (store.notebook || {}) : self.Ngu.locSo(store.notebook || {}, ngu);
 
@@ -2249,18 +2250,19 @@ async function doSync(rawNgu) {
    * vẫn chạy giữa hai lần mở trên cùng một máy.
    */
   const mergedSua = self.Muc.tron(store.phuDeSua || {}, remoteSua);
+  const mergedGrammar = self.Muc.tron(store.nguPhapSrs || {}, data.nguPhapSrs || {});
 
   const guiDi = boAnh(mergedNgu);
   await driveRequest({
     action: "save",
     data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
-            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua }
+            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua, nguPhapSrs: mergedGrammar }
   }, ngu);
 
   // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
   // loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
-  const { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua } = await vaSau(async () => {
-  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua"]);
+  const { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar } = await vaSau(async () => {
+  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
   const freshHoc = self.Ngu.tachHoc(fresh.hoc);
   // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
   // traAnh: bản trên Drive không mang `anh`, nên nếu để nguyên thì mỗi lượt
@@ -2283,10 +2285,11 @@ async function doSync(rawNgu) {
   const finalNoi = self.Muc.tron(fresh.luyenNoi || {}, mergedNoi);
   const finalDo = self.Srs.tronSoDo(fresh.soDoSrs || {}, mergedDo);
   const finalSua = self.Muc.tron(fresh.phuDeSua || {}, mergedSua);
+  const finalGrammar = self.Muc.tron(fresh.nguPhapSrs || {}, mergedGrammar);
   await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc,
-                                   luyenNoi: finalNoi, soDoSrs: finalDo, phuDeSua: finalSua });
+                                   luyenNoi: finalNoi, soDoSrs: finalDo, phuDeSua: finalSua, nguPhapSrs: finalGrammar });
 
-    return { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua };
+    return { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar };
   });
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
@@ -2300,7 +2303,8 @@ async function doSync(rawNgu) {
       JSON.stringify(hocSo) !== JSON.stringify(mergedHoc) ||
       JSON.stringify(finalNoi) !== JSON.stringify(mergedNoi) ||
       JSON.stringify(finalDo) !== JSON.stringify(mergedDo) ||
-      JSON.stringify(finalSua) !== JSON.stringify(mergedSua)) {
+      JSON.stringify(finalSua) !== JSON.stringify(mergedSua) ||
+       JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar)) {
     scheduleSync(ngu);
   }
   return countActive(self.Ngu.locSo(finalNb, ngu));

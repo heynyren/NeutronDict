@@ -366,8 +366,11 @@
     <section id="viewGrammar" class="view">
       <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
       <div class="card">
-        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh; kết quả không ảnh hưởng SRS.</div>
+        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Lịch ôn ngữ pháp riêng, cấp 1 bắt đầu từ 3 ngày; không cộng vào chế độ Học.</div>
         <div id="npCount" class="t-small muted" style="margin:14px 0"></div>
+        <p id="npStats" class="t-small muted"></p>
+        <button id="npDue" class="btn primary lg" type="button" hidden data-chu>Ôn ngữ pháp đến hạn và câu mới</button>
+        <p id="npSchedule" class="t-small muted" hidden aria-live="polite"></p>
         <button id="npStart" class="btn primary lg" type="button" hidden data-chu>Bắt đầu luyện</button>
         <div id="npExercise" hidden>
           <div id="npProgress" class="t-small muted"></div>
@@ -533,6 +536,7 @@
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
   <script src="srs.js"></script>
+  <script src="lich-rieng-ui.js"></script>
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>

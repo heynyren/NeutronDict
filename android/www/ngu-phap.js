@@ -136,3 +136,37 @@
 
   goc.NguPhap = { layCau, catCau, xaoTron, boSungTuKho, taoBai, danhSach };
 })(typeof self !== "undefined" ? self : this);
+
+/** SRS ngữ pháp độc lập, khoá theo nội dung câu tiếng Nhật đã chuẩn hoá. */
+(function(goc) {
+  "use strict";
+  const NGAY = 86400000, MOC = [3, 7, 14, 30, 60, 120, 240, 365];
+  function khoa(cau) { return "ja:" + String(cau || "").replace(/\s+/g, " ").trim(); }
+  function denHan(cu, now) { return !cu || !cu.due || cu.due <= (now || Date.now()); }
+  function cham(cu, cau, kq, now, id, tsDau) {
+    const t = now || Date.now();
+    if (!["dung", "sua", "xem"].includes(kq)) throw new Error("Kết quả ngữ pháp không hợp lệ.");
+    // Cửa sổ cũ, bấm hai lần, hoặc luyện trước hạn: không chấm thêm.
+    if ((cu && cu.onId === id) || (cu && cu.ts || 0) !== (tsDau || 0) || !denHan(cu, t)) return null;
+    let lv = Math.max(0, Math.min(MOC.length, Math.floor(cu && cu.lv || 0)));
+    let phucHoi = false, ngay;
+    if (kq === "dung") {
+      if (!(cu && cu.phucHoi)) lv = Math.min(MOC.length, lv + 1);
+      lv = Math.max(1, lv); ngay = MOC[lv - 1];
+    } else {
+      if (kq === "xem") lv--;
+      lv = Math.max(1, lv); ngay = 3; phucHoi = true;
+    }
+    return { cau: khoa(cau).slice(3), lv: lv, ngay: ngay, due: t + ngay * NGAY,
+      ts: Math.max(t, (cu && cu.ts || 0) + 1), phucHoi: phucHoi, onId: id, ketQua: kq };
+  }
+  function thongKe(ds, kho, now) {
+    let moi = 0, den = 0;
+    for (const q of ds || []) {
+      const cu = (kho || {})[khoa(q.cau)];
+      if (!cu) moi++; else if (denHan(cu, now)) den++;
+    }
+    return { moi: moi, den: den, tong: (ds || []).length };
+  }
+  goc.NguPhapSrs = { MOC, NGAY, khoa, cham, denHan, thongKe };
+})(typeof self !== "undefined" ? self : this);
