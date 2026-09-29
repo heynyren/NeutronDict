@@ -2369,7 +2369,9 @@ async function savePdfSelection(msg) {
   const cau = self.CauNghe.cauHopLe(msg.src && msg.src.cau, word);
   if (!word || word.length > 80 || !cau) throw new Error("Hãy chọn từ và câu chứa từ đó (tối đa 220 ký tự).");
   const raw = msg.src || {};
-  if (!/^(https?:|file:|blob:)/i.test(raw.url || "")) throw new Error("Thiếu nguồn PDF.");
+  const readerUrl = chrome.runtime.getURL("pdf-reader.html");
+  if (!/^(https?:|file:|blob:)/i.test(raw.url || "") &&
+      !(raw.url === readerUrl || String(raw.url || "").startsWith(readerUrl + "?"))) throw new Error("Thiếu nguồn PDF.");
   const ngu = await nguHienTai(), dict = self.Ngu.nganChinh(ngu), key = dict + ":" + word;
   const src = { url: String(raw.url).slice(0,4000), title: String(raw.title || "").slice(0,200),
     sel: word, cau, pdf: true, page: Math.max(1, Math.floor(Number(raw.page) || 1)),

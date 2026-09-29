@@ -2007,6 +2007,8 @@
   en["Xem đáp án"] = "Show answer";
   ja["Xem đáp án"] = "答えを見る";
 
+  en["Câu gốc tôi đã lưu:"] = "Original sentence I saved:";
+  ja["Câu gốc tôi đã lưu:"] = "保存した元の文：";
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

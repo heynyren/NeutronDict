@@ -71,7 +71,9 @@ $("urlForm").addEventListener("submit",e=>{e.preventDefault();openUrl(true);});
 $("file").addEventListener("change",async()=>{
   const request=++openRequest,f=$("file").files[0];if(!f)return;
   const original=params.get("url")||"";
-  const url=/^file:/.test(original)?original:"file:///"+encodeURIComponent(f.name);
+  const sameLocal=/^file:/.test(original) && decodeURIComponent(original.split("/").pop().split(/[?#]/)[0])===f.name;
+  // File inputs hide absolute paths. Link back to this reader instead of inventing a disk path.
+  const url=sameLocal?original:chrome.runtime.getURL("pdf-reader.html")+"?file="+encodeURIComponent(f.name);
   const bytes=new Uint8Array(await f.arrayBuffer());if(request!==openRequest)return;
   await openDocument(bytes,url,f.name);
 });

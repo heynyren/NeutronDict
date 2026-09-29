@@ -3,8 +3,9 @@
 ## Cài bản dùng thử
 Trên nhánh codex/neutrondict-work, mở GitHub Actions → Test NeutronDict →
 lần chạy xanh mới nhất → artifact NeutronDict-extension-4.30.0.
-Giải nén, mở chrome://extensions, bật Developer mode và Load unpacked thư mục
-có manifest.json (hoặc cập nhật đường dẫn bản đang cài rồi Reload).
+Nếu đã cài extension: giải nén và chép bản mới vào đúng thư mục extension đang
+dùng, rồi bấm Reload ở chrome://extensions để giữ ID và sổ tay hiện tại.
+Nếu cài lần đầu: bật Developer mode, Load unpacked thư mục có manifest.json.
 ZIP mã nguồn GitHub chưa có PDF.js; dùng gói CI đã đóng gói.
 
 ## Đọc và lưu
