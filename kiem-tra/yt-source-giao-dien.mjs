@@ -83,17 +83,14 @@ try {
  `);
  const tab=await sw.evaluate(async()=> (await chrome.tabs.query({})).find(t=>(t.url||"").includes("watch?v=quen")));
  const src=await sw.evaluate(tab=>contextSource({selectionText:"酒",pageUrl:tab.url},tab),tab);
- assert.equal(src.cau,"これは酒です。");assert.equal(src.cauDich,"Đây là rượu.");
+ assert.equal(src.cau,"これは酒です。",JSON.stringify(src));assert.equal(src.cauDich,"Đây là rượu.");
  assert.equal(src.yt.v,"quen");assert.equal(src.yt.t,1);
  await sw.evaluate(({src,tab})=>handleContextSave({selectionText:"酒",pageUrl:src.url},tab),{src,tab});
  let it=await sw.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:酒"]);
  assert.equal(it.src.cau,src.cau);assert.equal(it.cauNghe.cau,src.cau);
  assert.equal(it.cauNghe.dich,"Đây là rượu.");assert.equal(it.src.yt.t,1);
  // Original inline subtitle popup still carries full sentence/translation/timestamp.
- await sw.evaluate(tabId=>chrome.scripting.executeScript({target:{tabId},func:()=>{
-   const source=self.__ND_contextMenuSource.src;
-   self.__ND_popup(25,25,source.sel,source);
- }}),tab.id);
+ await trong(`r.querySelector(".pc").dispatchEvent(new MouseEvent("mouseup",{bubbles:true,composed:true,clientX:25,clientY:25}))`);
  const save=page.locator(".en").getByRole("button",{name:"Lưu",exact:true}).first();
  await save.waitFor({timeout:10000});await save.click();await page.waitForTimeout(250);
  it=await sw.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:酒"]);

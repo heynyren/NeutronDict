@@ -36,7 +36,7 @@ try{
    },{selector,word});
    return sw.evaluate(async({tab,word})=>contextSource({selectionText:word,pageUrl:tab.url},tab),{tab,word});
  };
- let src=await capture("#real","可否");assert.equal(src.cau,sentence);
+ let src=await capture("#real","可否");assert.equal(src.cau,sentence,JSON.stringify(src));
  assert.equal((await capture("#ruby","ケア")).cau,ruby,"furigana removed");
  assert.equal((await capture("#prefix","ケア")).cau,longPrefix+"ケアは大切です。");
  assert.equal((await capture("#bullet","ケア")).cau,"肌のケアを続ける");
@@ -65,11 +65,13 @@ try{
  await toolbar.close();
  // Freeze source before asynchronous inline lookup returns and selection disappears.
  await page.bringToFront();await capture("#ruby","ケア");
- await sw.evaluate(tabId=>chrome.scripting.executeScript({target:{tabId},func:()=>{
-   self.Song.gui=((original)=>function(msg,cb){if(msg.type==="LOOKUP")setTimeout(()=>original.call(this,msg,cb),120);else original.call(this,msg,cb);})(self.Song.gui);
-   self.__ND_popup(30,30,"ケア");
-   getSelection().removeAllRanges();
- }}),tab.id);
+ await sw.evaluate(()=>{
+   const original=handleLookup;
+   handleLookup=async(...args)=>{await new Promise(r=>setTimeout(r,150));return original(...args);};
+ });
+ await page.dispatchEvent("#ruby span","mouseup",{clientX:30,clientY:30});
+ await page.waitForTimeout(40);
+ await page.evaluate(()=>getSelection().removeAllRanges());
  const inline=page.getByRole("button",{name:"Lưu",exact:true}).first();
  await inline.waitFor({timeout:10000});await inline.click();
  await page.waitForTimeout(250);
