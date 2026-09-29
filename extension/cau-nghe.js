@@ -99,6 +99,8 @@
   function tuNguon(src, word) {
     if (!src) return null;
     const tu = src.sel || word || "";
+    const cau = cauHopLe(src.cau, word || tu);
+    if (cau) return { cau, tu: word || tu };
     // Lời thoại YouTube: `sel` vốn ĐÃ là trọn câu thoại, khỏi moi.
     if (src.yt && src.yt.v && src.sel && src.sel !== word && src.sel.indexOf(word) >= 0) {
       const c = String(src.sel).replace(/\s+/g, " ").trim();
@@ -107,5 +109,12 @@
     return moiCau(src.prefix, src.suffix, tu);
   }
 
-  goc.CauNghe = { moiCau, tuNguon, thatSuKet };
+  function cauHopLe(raw, word) {
+    const cau = String(raw || "").replace(/\s+/g, " ").trim();
+    const tu = String(word || "").trim();
+    if (!tu || !cau.includes(tu) || cau.length > 220 ||
+        cau.replace(/[。．.!?！？\s]/g, "") === tu.replace(/\s/g, "")) return "";
+    return cau;
+  }
+  goc.CauNghe = { moiCau, tuNguon, thatSuKet, cauHopLe };
 })(typeof self !== "undefined" ? self : this);

@@ -795,3 +795,5 @@ function gaiIcon() {
     setTimeout(() => { window.addEventListener("blur", () => window.close()); }, 500);
   }
 })();
+
+document.getElementById("pdfReader").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("pdf-reader.html") }));
