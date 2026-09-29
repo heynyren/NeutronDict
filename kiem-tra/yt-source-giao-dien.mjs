@@ -108,7 +108,7 @@ try {
  await page.evaluate(()=>{
    const box=document.createElement("div");box.className="ytp-caption-window-container";
    box.innerHTML='<span>今日は肌のケアをします。</span>';document.querySelector("#movie_player").appendChild(box);
-   Object.defineProperty(document.querySelector("video"),"currentTime",{value:42,configurable:true});
+   document.querySelector("video").currentTime=42;
    const n=box.firstChild.firstChild,at=n.textContent.indexOf("ケア"),rg=document.createRange();
    rg.setStart(n,at);rg.setEnd(n,at+2);const s=getSelection();s.removeAllRanges();s.addRange(rg);
  });
