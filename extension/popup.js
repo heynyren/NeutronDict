@@ -796,4 +796,9 @@ function gaiIcon() {
   }
 })();
 
-document.getElementById("pdfReader").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("pdf-reader.html") }));
+
+chrome.storage.local.get("lastContextSave").then(({lastContextSave})=>{
+  if(!lastContextSave||Date.now()-lastContextSave.ts>300000)return;
+  const el=document.getElementById("saveContextStatus");
+  el.textContent=lastContextSave.message;el.hidden=false;
+});
