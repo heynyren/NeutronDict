@@ -146,11 +146,11 @@ async function getInitialWord() {
     const url = (tab && tab.url) || "";
     const isPdf = /\.pdf(\?|#|$)/i.test(url);
     if (!isPdf && tab && tab.id && /^https?:/i.test(url)) {
-      const res = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: self.WebContext.capture
-      });
-      const captured = res && res[0] && res[0].result;
+      let captured = await chrome.tabs.sendMessage(tab.id,{type:"CAPTURE_WEB_CONTEXT"}).catch(()=>null);
+      if (!captured) {
+        const res = await chrome.scripting.executeScript({target:{tabId:tab.id},func:self.WebContext.capture});
+        captured = res && res[0] && res[0].result;
+      }
       const t = ((captured && captured.sel) || "").trim();
       if (t) {
         initialSrc = Object.assign({}, captured, { url: url, title: (tab.title || "").slice(0, 200) });

@@ -64,10 +64,15 @@ async function contextSource(info, tab) {
   let ctx = null;
   if (tab && tab.id != null && /^(https?|file):/i.test(url) && !/\.pdf(?:[?#]|$)/i.test(url)) {
     try {
-      const result = await chrome.scripting.executeScript({
-        target: { tabId: tab.id, frameIds: [info.frameId || 0] }, func: grabSelCtx, args: [info.selectionText || ""]
-      });
-      ctx = result[0] && result[0].result;
+      // Existing content scripts already have access to their own DOM. Prefer messaging;
+      // activeTab injection is the fallback for a tab opened before the extension loaded.
+      ctx = await chrome.tabs.sendMessage(tab.id,{type:"CAPTURE_WEB_CONTEXT",word:info.selectionText||""},{frameId:info.frameId||0}).catch(()=>null);
+      if (!ctx) {
+        const result = await chrome.scripting.executeScript({
+          target: { tabId: tab.id, frameIds: [info.frameId || 0] }, func: grabSelCtx, args: [info.selectionText || ""]
+        });
+        ctx = result[0] && result[0].result;
+      }
     } catch (_) {}
   }
   const src = { url, title: ((tab && tab.title) || "").slice(0,200),

@@ -43,4 +43,10 @@
     return out;
   }
   root.WebContext={capture};
+  if(typeof document!=="undefined" && /^https?:|^file:/i.test(location.protocol)){
+    chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
+      if(msg.type!=="CAPTURE_WEB_CONTEXT")return;
+      try{respond(capture(msg.word));}catch(_){respond(null);}
+    });
+  }
 })(typeof self!=="undefined"?self:globalThis);
