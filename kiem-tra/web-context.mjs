@@ -16,6 +16,7 @@ assert.ok(long.length>220);
 assert.equal(g.CauNghe.nguCanh({sel:"ケア",cau:long},"ケア").cau,long);
 assert.equal(g.CauNghe.tuNguon({sel:"ケア",cau:long},"ケア"),null,"long source retained without expanding listening load");
 assert.ok(g.HoiGemini.loiHoi({word:"ケア",src:{sel:"ケア",cau:long}},{}).includes(long));
+assert.equal(g.CauNghe.tuNguon({sel:"ケア",cau:long,yt:{v:"video",t:42}},"ケア"),null,"a long subtitle source must not add a long listening exercise");
 assert.equal(g.CauNghe.nguCanh({sel:"ケア",prefix:"肌の",suffix:"を続ける",contextStart:true,contextEnd:true},"ケア").cau,"肌のケアを続ける");
 assert.equal(g.CauNghe.nguCanh({sel:"care",prefix:"Dr. Tanaka recommends ",suffix:" every day.",contextStart:true},"care").cau,"Dr. Tanaka recommends care every day.");
 assert.equal(g.CauNghe.nguCanh({sel:"care",prefix:"Take ",suffix:" of your skin.",contextStart:true},"care").cau,"Take care of your skin.");

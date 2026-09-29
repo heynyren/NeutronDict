@@ -116,7 +116,14 @@
   function tuNguon(src,word) {
     const context=nguCanh(src,word);
     // Retain the existing transcript behaviour; ordinary source sentences have a listening limit.
-    return context && (context.cau.length<=220 || src.yt&&src.yt.v) ? context : null;
+    if(!context)return null;
+    if(context.cau.length<=220)return context;
+    // Legacy transcript entries stored the complete cue in sel instead of cau.
+    // A long new source with sel equal to the selected word must NOT create a new listening exercise.
+    if(src.yt&&src.yt.v&&src.sel&&src.sel!==word&&src.sel.includes(word)){
+      return {cau:String(src.sel).replace(/\s+/g," ").trim(),tu:word};
+    }
+    return null;
   }
 
   function cauHopLe(raw, word) {
