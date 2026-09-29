@@ -1,0 +1,33 @@
+name: Vendor PDF.js for source downloads
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/neutrondict-work]
+    paths: [.github/workflows/vendor-pdf.yml]
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned PDF.js without package scripts
+        run: npm install --prefix "$RUNNER_TEMP/nd-pdf" --ignore-scripts --no-audit --no-fund pdfjs-dist@6.3.289
+      - name: Bundle files and record integrity
+        run: |
+          node cong-cu/dong-goi-pdf.mjs "$RUNNER_TEMP/nd-pdf/node_modules/pdfjs-dist"
+          node cong-cu/pdf-integrity.mjs "$RUNNER_TEMP/nd-pdf/package-lock.json"
+      - name: Commit bundled assets to this branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- extension/vendor/pdfjs
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Vendor PDF.js 6.3.289 so GitHub source ZIP works without a build"
+          git push origin "HEAD:$GITHUB_REF_NAME"
