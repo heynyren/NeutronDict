@@ -154,14 +154,21 @@
 
     /* --- ngữ cảnh: phần quan trọng nhất sau chính mấy câu hỏi --- */
     const nc = [];
+    const cauNguon = sach((it.src || {}).cau);
+    if (cauNguon && cauNguon !== tu && cauNguon.includes(tu)) {
+      nc.push(T("Câu gốc tôi đã lưu:"));
+      nc.push("「" + cauNguon + "」");
+      const dich = sach((it.cauNghe || {}).cau === cauNguon ? (it.cauNghe || {}).dich : (it.src || {}).cauDich);
+      if (dich) nc.push(T2("(bản dịch đang có: {dich})", { dich: dich }));
+    }
     const cauBoiDen = sach((it.src || {}).sel);
     // Mục là một CÂU thì chính nó đã là ngữ cảnh rồi; nhắc lại y nguyên là thừa.
-    if (cauBoiDen && cauBoiDen !== tu) {
+    if (cauBoiDen && cauBoiDen !== tu && cauBoiDen !== cauNguon) {
       nc.push(T("Câu tôi bôi đen lúc lưu:"));
       nc.push("「" + cauBoiDen + "」");
     }
     const cauNghe = sach((it.cauNghe || {}).cau);
-    if (cauNghe && cauNghe !== cauBoiDen && cauNghe !== tu) {
+    if (cauNghe && cauNghe !== cauBoiDen && cauNghe !== tu && cauNghe !== cauNguon) {
       nc.push(T("Câu ví dụ app đã lưu để luyện nghe:"));
       nc.push("「" + cauNghe + "」");
       const dich = sach((it.cauNghe || {}).dich);

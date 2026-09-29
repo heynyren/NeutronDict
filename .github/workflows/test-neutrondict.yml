@@ -41,6 +41,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Bundle PDF reader
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/nd-pdf" --ignore-scripts --no-audit --no-fund pdfjs-dist@6.3.289
+          node cong-cu/dong-goi-pdf.mjs "$RUNNER_TEMP/nd-pdf/node_modules/pdfjs-dist"
       - name: Install Playwright and Chromium
         shell: bash
         run: |
@@ -62,3 +67,11 @@ jobs:
             echo "::endgroup::"
           done
           exit "$failed"
+
+      - name: Upload tested extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-extension-4.30.0
+          path: extension/
+          retention-days: 7
+          if-no-files-found: error
