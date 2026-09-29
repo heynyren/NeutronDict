@@ -126,7 +126,8 @@ try {
    }throw Error("subtitle selection missing for shortcut");
  `);
  const shortcut=await opened;
- await shortcut.waitForFunction(()=>initialSrc&&initialSrc.yt);
+ await shortcut.waitForURL("chrome-extension://"+id+"/popup.html?ctx=1");
+ await shortcut.waitForFunction(()=>typeof initialSrc!=="undefined"&&initialSrc&&initialSrc.yt);
  const shortcutSrc=await shortcut.evaluate(()=>initialSrc);
  assert.equal(shortcutSrc.cau,"これは酒です。");assert.equal(shortcutSrc.yt.t,1);
  await shortcut.close();
