@@ -1,6 +1,5 @@
 // Hidden PDF text extraction only. No viewer, form, upload, or document navigation.
-import * as pdfjs from "./vendor/pdfjs/pdf.mjs";
-pdfjs.GlobalWorkerOptions.workerSrc=chrome.runtime.getURL("vendor/pdfjs/pdf.worker.mjs");
+let pdfjsPromise;
 async function extract(url,word){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
   let task;
@@ -11,6 +10,14 @@ async function extract(url,word){
     if(/text\/html/i.test(type))return {ok:false,reason:"not-pdf"};
     const bytes=new Uint8Array(await response.arrayBuffer());
     if(!new TextDecoder().decode(bytes.slice(0,1024)).includes("%PDF-"))return {ok:false,reason:"not-pdf"};
+    let pdfjs;
+    try{
+      pdfjs=await (pdfjsPromise ||= import("./vendor/pdfjs/pdf.mjs"));
+      pdfjs.GlobalWorkerOptions.workerSrc=chrome.runtime.getURL("vendor/pdfjs/pdf.worker.mjs");
+    }catch(e){
+      pdfjsPromise=null;
+      return {ok:false,pdf:true,reason:"pdf-library",error:String(e.message||e)};
+    }
     task=pdfjs.getDocument({data:bytes,isEvalSupported:false,
       cMapUrl:chrome.runtime.getURL("vendor/pdfjs/cmaps/"),cMapPacked:true,
       standardFontDataUrl:chrome.runtime.getURL("vendor/pdfjs/standard_fonts/"),

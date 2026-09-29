@@ -23,6 +23,7 @@ function pdfCaptureMessage(src){
   if(src.cau)return "Đã lưu từ và câu ngữ cảnh cho Gemini, bài nghe và luyện ngữ pháp.";
   const reason=src.contextStatus;
   if(reason==="file-access")return "Đã lưu từ, chưa đọc được câu: cần bật Cho phép truy cập URL của tệp cho NeutronDict trong chrome://extensions.";
+  if(reason==="pdf-library")return "Đã lưu từ, chưa đọc được câu: bộ đọc PDF của extension bị thiếu hoặc hỏng. Hãy cập nhật đầy đủ thư mục extension rồi bấm Tải lại.";
   if(reason==="no-sentence")return "Đã lưu từ, chưa tìm được câu chứa từ trong lớp chữ của PDF.";
   return "Đã lưu từ, chưa đọc được ngữ cảnh từ nguồn này.";
 }
