@@ -1659,7 +1659,7 @@ function nutRutOn(it, sauDo) {
 
 // Hai lớp bổ trợ nhau:
 //  1) Text Fragment (#:~:text=): trình duyệt tự cuộn + tô sáng. Chạy được cả
-//     trên trang web thường LẪN trình xem PDF tích hợp của Chrome.
+//     trên trang web thường. PDF ưu tiên tab nguồn và mốc URL đã lưu.
 //  2) pendingHighlight: content script bọc <mark> bền vững, đa-node trên trang
 //     web thường (đoạn dài trải nhiều thẻ, dùng prefix/suffix chọn đúng chỗ).
 function buildTextFragment(src) {
@@ -1726,7 +1726,7 @@ function openYoutube(yt, chiaDoi) {
  * @param {boolean} [chiaDoi] mở ở cửa sổ riêng. Chỉ bật từ chế độ học — bấm
  *   link trong danh sách sổ tay mà bật thêm cửa sổ thì phiền.
  */
-function openSource(it, chiaDoi) {
+async function openSource(it, chiaDoi) {
   const src = it.src;
   if (!src || !src.url) return;
   // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn — nút trên thẻ,
@@ -1738,11 +1738,9 @@ function openSource(it, chiaDoi) {
   const text = (src.sel || it.word || "").replace(/\s+/g, " ").trim();
   const url = fragUrl(src);
   if (src.pdf) {
-    // PDF: chỉ dựa vào Text Fragment (content script không chạy trong trình xem PDF).
-    // Chép sẵn đoạn để nếu trình xem PDF không hỗ trợ thì Ctrl+F dán tìm nhanh.
-    const q = text.split(" ").slice(0, 10).join(" ");
-    try { if (navigator.clipboard) navigator.clipboard.writeText(q); } catch (e) {}
-    if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(url); else chrome.tabs.create({ url });
+    if (await window.PdfSource.activate(src)) return;
+    const pdfUrl = window.PdfSource.reopenUrl(src, url);
+    if (chiaDoi && CAI.chiaDoi !== false) moCuaSoRieng(pdfUrl); else chrome.tabs.create({ url: pdfUrl });
     return;
   }
   chrome.storage.local.set({

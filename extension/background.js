@@ -5,6 +5,7 @@ importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một exte
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
 importScripts("pdf-auto.js");
+importScripts("pdf-source.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
 importScripts("tu-lien.js");   // self.TuLien — tập đồng nghĩa / trái nghĩa
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
@@ -68,7 +69,10 @@ function grabSelCtx() {
 
 function pdfSourceUrl(info, tab) {
   // Chrome's PDF viewer may report an internal extension frame. Keep the actual document URL.
-  return [info.frameUrl, info.pageUrl, tab && tab.url].find(u => /^(https?:|file:|blob:)/i.test(u || "")) || "";
+  const url = [info.frameUrl, info.pageUrl, tab && tab.url].find(u => /^(https?:|file:|blob:)/i.test(u || "")) || "";
+  // The event's frame URL can omit the PDF's existing page/zoom fragment.
+  const top = (tab && tab.url) || "";
+  return top.includes("#") && top.split("#")[0] === url.split("#")[0] ? top : url;
 }
 async function contextSource(info, tab) {
   const url = pdfSourceUrl(info, tab);
@@ -99,6 +103,7 @@ async function contextSource(info, tab) {
       src.pdf = true; src.contextStatus = result && result.reason || "unreadable";
     }
   }
+  if (src.pdf) await self.PdfSource.remember(src, tab);
   return src;
 }
 
@@ -2367,6 +2372,8 @@ async function savePdfSelection(msg) {
     sel: word, cau, pdf: true, page: Math.max(1, Math.floor(Number(raw.page) || 1)),
     documentId: String(raw.documentId || "").slice(0,100),
     capture: "pdf-auto", contextStatus: "complete", capturedAt: Date.now() };
+  const origin = self.PdfSource.cleanOrigin(raw.pdfOrigin, raw.url);
+  if (origin) src.pdfOrigin = origin;
   if (Number.isInteger(raw.start) && Number.isInteger(raw.end)) {
     src.start = raw.start; src.end = raw.end;
   }

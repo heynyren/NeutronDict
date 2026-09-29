@@ -41,7 +41,7 @@ const ext=path.resolve(process.argv[2]||"extension");
 const profile=mkdtempSync(path.join(tmpdir(),"nd-auto-pdf-"));
 const docDir=mkdtempSync(path.join(tmpdir(),"nd-auto-doc-"));
 const file=path.join(docDir,"lesson.pdf");writeFileSync(file,fixture());
-const url=pathToFileURL(file).href;
+const url=pathToFileURL(file).href+"#page=2";
 const options={channel:"chromium",headless:true,args:["--disable-extensions-except="+ext,"--load-extension="+ext]};
 let ctx=await chromium.launchPersistentContext(profile,options),server;
 const worker=async()=>ctx.serviceWorkers()[0]||await ctx.waitForEvent("serviceworker");
@@ -72,6 +72,8 @@ try{
   let it=await read();
   assert.equal(it.src.cau,sentence);assert.equal(it.cauNghe.cau,sentence);
   assert.equal(it.src.capture,"pdf-auto");assert.equal(it.src.page,1);
+  assert.equal(it.src.pdfOrigin.url,url,"source page 2 is independent of extracted context page 1");
+  assert.ok(it.src.pdfOrigin.token);
   assert.ok(it.src.documentId);assert.equal(it.cauNghe.dich,"");
   assert.equal((await sw.evaluate(()=>chrome.tabs.query({}))).length,count,"saving must not open any tab");
   assert.equal(page.url(),url,"saving must not navigate to another reader");
@@ -88,6 +90,11 @@ try{
     phatCauNghe();
   },it);
   assert.equal(await verify.evaluate(()=>self.testSpoken),sentence,"study listening speaks the whole saved sentence");
+  const tabsBeforeReturn=(await sw.evaluate(()=>chrome.tabs.query({}))).length;
+  await verify.evaluate(it=>openSource(it,true),it);
+  assert.equal((await sw.evaluate(()=>chrome.tabs.query({}))).length,tabsBeforeReturn,"returning to a live PDF must not open a duplicate or split window");
+  const returned=await sw.evaluate(id=>chrome.tabs.get(id),tab.id);
+  assert.equal(returned.active,true);assert.equal(returned.url,url,"return must not search the first occurrence or change the URL");
   await verify.close();
 
   await sw.evaluate(async()=>{
@@ -126,5 +133,13 @@ try{
   assert.equal(failure.ok,false);assert.match(failure.message,/URL của tệp/);
   assert.equal((await read()).cauNghe.cau,sentence,"failed capture keeps earlier valid context");
   assert.equal((await sw.evaluate(()=>chrome.tabs.query({}))).length,count);
-  console.log("PDF automatic: native local PDF, same context-menu handler, first valid sentence, furigana/headword excluded, no new tab, actual study TTS, grammar/Gemini, SRS preserved, concurrent offscreen lifecycle, extensionless HTTP PDF and file permission failure OK");
+  const back=await ctx.newPage();await back.goto("chrome-extension://"+id+"/notebook.html");
+  await back.waitForFunction(()=>typeof PdfSource!=="undefined"&&typeof openSource==="function");
+  await page.close();
+  const opened=ctx.waitForEvent("page");
+  await back.evaluate(it=>openSource(it,false),it);
+  const reopened=await opened;await reopened.waitForURL(url);
+  assert.equal(reopened.url(),url,"after source tab is closed, restore saved page-2 URL, never context page 1");
+  await reopened.close();await back.close();
+  console.log("PDF automatic: live-tab and saved-page source navigation, native local PDF, same context-menu handler, first valid sentence, furigana/headword excluded, no new tab, actual study TTS, grammar/Gemini, SRS preserved, concurrent offscreen lifecycle, extensionless HTTP PDF and file permission failure OK");
 }finally{if(server)await new Promise(resolve=>server.close(resolve));await ctx.close();rmSync(profile,{recursive:true,force:true});rmSync(docDir,{recursive:true,force:true});}

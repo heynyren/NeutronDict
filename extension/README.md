@@ -28,13 +28,15 @@ Bôi đen một từ **tiếng Anh** trên trang web hoặc PDF để tra ngay: 
 
 ## Cài đặt (từ mã nguồn)
 
-1. Tải/giải nén mã nguồn.
+1. Tải/giải nén mã nguồn từ main. Từ v4.30.2, bộ đọc PDF đã có sẵn, không cần build.
 2. Mở `chrome://extensions` (Chrome) hoặc `edge://extensions` (Edge).
 3. Bật **Developer mode**.
 4. Bấm **Load unpacked** và chọn thư mục `extension/` (chứa `manifest.json`).
 5. (Tuỳ chọn) `chrome://extensions/shortcuts` để đổi phím tắt.
 
 Với PDF mở từ máy (`file:///…`): mở **Details** của tiện ích và bật **Allow access to file URLs**.
+
+Chi tiết tự lấy câu và giới hạn quay lại vị trí PDF: [PDF-NGU-CANH.md](../PDF-NGU-CANH.md).
 
 ## Nguồn dữ liệu
 
