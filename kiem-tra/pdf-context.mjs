@@ -29,3 +29,9 @@ assert.equal(g.NguPhap.layCau(it),cau);
 for(const f of ["cau-nghe.js","hoi-gemini.js"])
   assert.equal(readFileSync("extension/"+f,"utf8"),readFileSync("android/www/"+f,"utf8"));
 console.log("PDF context: ruby, bilingual, wrapping, repeated word, listening, Gemini, grammar OK");
+
+const bg=readFileSync("extension/background.js","utf8");
+const atSource=bg.indexOf("function pdfSourceUrl(");
+vm.runInContext(bg.slice(atSource,bg.indexOf("\n}",atSource)+2),g);
+assert.equal(g.pdfSourceUrl({frameUrl:"chrome-extension://internal/viewer.html",pageUrl:"file:///lesson.pdf"},{}),"file:///lesson.pdf");
+assert.equal(g.pdfSourceUrl({frameUrl:"https://example.test/download",pageUrl:"https://example.test/article"},{}),"https://example.test/download");

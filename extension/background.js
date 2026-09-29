@@ -72,6 +72,10 @@ function grabSelCtx() {
   return { sel: clean(r).trim(), prefix: clean(before).slice(-500), suffix: clean(after).slice(0,500) };
 }
 
+function pdfSourceUrl(info, tab) {
+  // Chrome's PDF viewer may report an internal extension frame. Keep the actual document URL.
+  return [info.frameUrl, info.pageUrl, tab && tab.url].find(u => /^(https?:|file:|blob:)/i.test(u || "")) || "";
+}
 async function contextSource(info, tab) {
   if (tab && (tab.url || "").startsWith(chrome.runtime.getURL("pdf-reader.html"))) {
     try {
@@ -79,7 +83,7 @@ async function contextSource(info, tab) {
       if (result && result.src) return result.src;
     } catch (_) {}
   }
-  const url = info.frameUrl || info.pageUrl || (tab && tab.url) || "";
+  const url = pdfSourceUrl(info, tab);
   let ctx = null;
   if (tab && tab.id != null && /^(https?|file):/i.test(url) && !/\.pdf(?:[?#]|$)/i.test(url)) {
     try {
@@ -99,7 +103,7 @@ async function contextSource(info, tab) {
   return src;
 }
 async function openPdfReader(info, tab) {
-  const q = new URLSearchParams({ url: info.frameUrl || info.pageUrl || (tab && tab.url) || "", word: info.selectionText || "" });
+  const q = new URLSearchParams({ url: pdfSourceUrl(info, tab), word: info.selectionText || "" });
   await chrome.tabs.create({ url: chrome.runtime.getURL("pdf-reader.html") + "?" + q });
 }
 
