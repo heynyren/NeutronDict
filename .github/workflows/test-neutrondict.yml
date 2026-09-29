@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/neutrondict-work
+      - main
   workflow_dispatch:
 
 permissions:
@@ -41,7 +42,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Bundle PDF reader
+      - name: Bundle background PDF extraction
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/nd-pdf" --ignore-scripts --no-audit --no-fund pdfjs-dist@6.3.289
@@ -71,7 +72,7 @@ jobs:
       - name: Upload tested extension
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-extension-4.30.0
+          name: NeutronDict-extension-4.30.1
           path: extension/
           retention-days: 7
           if-no-files-found: error

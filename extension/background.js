@@ -4,6 +4,7 @@ importScripts("kana.js");      // self.Kana — suy furigana khi từ điển kh
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
+importScripts("pdf-auto.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
 importScripts("tu-lien.js");   // self.TuLien — tập đồng nghĩa / trái nghĩa
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
@@ -24,10 +25,6 @@ const DEFAULT_SETTINGS = { inline: true, requireCtrl: false, maxLen: 40 };
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
-      id: "doc-pdf-neutron", title: "Đọc PDF và lưu câu bằng NeutronDict",
-      contexts: ["page", "selection"]
-    });
-    chrome.contextMenus.create({
       id: "tra-neutron-popup",
       title: 'Tra "%s" bằng NeutronDict',
       contexts: ["selection"]
@@ -41,12 +38,9 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === "doc-pdf-neutron") {
-    await openPdfReader(info, tab);
-  } else if (info.menuItemId === "tra-neutron-popup" && info.selectionText) {
+  if (info.menuItemId === "tra-neutron-popup" && info.selectionText) {
     const src = await contextSource(info, tab);
-    if (src.pdf && src.capture !== "pdf-reader") await openPdfReader(info, tab);
-    else await openPopupWindow(info.selectionText, tab, src);
+    await openPopupWindow(info.selectionText, tab, src);
   } else if (info.menuItemId === "luu-neutron" && info.selectionText) {
     await handleContextSave(info, tab);
   }
@@ -77,12 +71,6 @@ function pdfSourceUrl(info, tab) {
   return [info.frameUrl, info.pageUrl, tab && tab.url].find(u => /^(https?:|file:|blob:)/i.test(u || "")) || "";
 }
 async function contextSource(info, tab) {
-  if (tab && (tab.url || "").startsWith(chrome.runtime.getURL("pdf-reader.html"))) {
-    try {
-      const result = await chrome.tabs.sendMessage(tab.id, { type: "PDF_CONTEXT" });
-      if (result && result.src) return result.src;
-    } catch (_) {}
-  }
   const url = pdfSourceUrl(info, tab);
   let ctx = null;
   if (tab && tab.id != null && /^(https?|file):/i.test(url) && !/\.pdf(?:[?#]|$)/i.test(url)) {
@@ -100,12 +88,20 @@ async function contextSource(info, tab) {
   if (ctx && ctx.suffix) src.suffix = ctx.suffix;
   const c = self.CauNghe.tuNguon(src, src.sel);
   if (c) src.cau = c.cau;
+  // Native PDF DOM is private. Parse the original file in a hidden extension document.
+  if (!src.cau && /^(https?:|file:|blob:)/i.test(url)) {
+    const result = await extractPdfContext(url, src.sel);
+    if (result && result.ok) {
+      Object.assign(src, { cau: result.cau, pdf: true, capture: "pdf-auto",
+        page: result.page, paragraph: result.paragraph, start: result.start, end: result.end,
+        documentId: result.documentId, contextStatus: "complete" });
+    } else if (src.pdf || (result && result.pdf)) {
+      src.pdf = true; src.contextStatus = result && result.reason || "unreadable";
+    }
+  }
   return src;
 }
-async function openPdfReader(info, tab) {
-  const q = new URLSearchParams({ url: pdfSourceUrl(info, tab), word: info.selectionText || "" });
-  await chrome.tabs.create({ url: chrome.runtime.getURL("pdf-reader.html") + "?" + q });
-}
+
 
 /**
  * @param {string} [tu] mã ngôn ngữ nguồn. Nói rõ chứ đừng để "auto": một chữ
@@ -141,10 +137,10 @@ async function handleContextSave(info, tab) {
   const rawSel = (info.selectionText || "").replace(/\s+/g, " ").trim();
   if (!rawSel) return;
   const src = await contextSource(info, tab);
-  if (src.capture === "pdf-reader" && src.cau) {
-    await savePdfSelection({ word: src.sel, src }); flashBadge("✓句", "#1a9d5a"); return;
+  if (src.pdf && src.cau) {
+    await savePdfSelection({ word: src.sel, src });
+    await reportContextSave(src); return;
   }
-  if (src.pdf) { await openPdfReader(info, tab); return; }
   const ctx = { sel: src.sel || rawSel };
 
   try {
@@ -195,7 +191,7 @@ async function handleContextSave(info, tab) {
 
     await saveWord(entry, ngan);
     scheduleSync(ngu);
-    flashBadge(src.cau ? "✓句" : "!", src.cau ? "#1a9d5a" : "#b7791f");
+    await reportContextSave(src);
   } catch (e) {
     flashBadge("!", "#d33");
   }
@@ -290,14 +286,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     handleLookup(msg.word, msg.dict || "envi", msg.chiHanTu)
       .then((r) => sendResponse(r))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
-    return true;
-  }
-  if (msg.type === "PDF_SAVE") {
-    if (!sender.url || new URL(sender.url).pathname !== "/pdf-reader.html" ||
-        !sender.url.startsWith(chrome.runtime.getURL(""))) {
-      sendResponse({ ok: false, error: "Nguồn lưu không hợp lệ" }); return;
-    }
-    savePdfSelection(msg).then(sendResponse, e => sendResponse({ ok: false, error: String(e.message || e) }));
     return true;
   }
   if (msg.type === "SAVE_WORD") {
@@ -2373,17 +2361,16 @@ async function savePdfSelection(msg) {
   const cau = self.CauNghe.cauHopLe(msg.src && msg.src.cau, word);
   if (!word || word.length > 80 || !cau) throw new Error("Hãy chọn từ và câu chứa từ đó (tối đa 220 ký tự).");
   const raw = msg.src || {};
-  const readerUrl = chrome.runtime.getURL("pdf-reader.html");
-  if (!/^(https?:|file:|blob:)/i.test(raw.url || "") &&
-      !(raw.url === readerUrl || String(raw.url || "").startsWith(readerUrl + "?"))) throw new Error("Thiếu nguồn PDF.");
+  if (!/^(https?:|file:|blob:)/i.test(raw.url || "")) throw new Error("Thiếu nguồn PDF.");
   const ngu = await nguHienTai(), dict = self.Ngu.nganChinh(ngu), key = dict + ":" + word;
   const src = { url: String(raw.url).slice(0,4000), title: String(raw.title || "").slice(0,200),
     sel: word, cau, pdf: true, page: Math.max(1, Math.floor(Number(raw.page) || 1)),
     documentId: String(raw.documentId || "").slice(0,100),
-    capture: "pdf-reader", capturedAt: Date.now() };
+    capture: "pdf-auto", contextStatus: "complete", capturedAt: Date.now() };
   if (Number.isInteger(raw.start) && Number.isInteger(raw.end)) {
     src.start = raw.start; src.end = raw.end;
   }
+  if (Number.isInteger(raw.paragraph)) src.paragraph = raw.paragraph;
   let fresh = false;
   await vaSau(async () => {
     const nb = (await chrome.storage.local.get("notebook")).notebook || {};

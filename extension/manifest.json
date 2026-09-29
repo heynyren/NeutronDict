@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NeutronDict — Nhật/Anh – Việt",
-  "version": "4.30.0",
+  "version": "4.30.1",
   "description": "Bôi đen từ tiếng Anh trên web hoặc PDF để tra ngay: nghĩa tiếng Việt, phiên âm IPA, phát âm, ví dụ, sổ tay và ôn tập SRS.",
   "permissions": [
     "contextMenus",
@@ -12,14 +12,16 @@
     "clipboardRead",
     "clipboardWrite",
     "audioCapture",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "offscreen"
   ],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",
     "https://script.google.com/*",
     "https://script.googleusercontent.com/*",
     "https://translate.googleapis.com/*",
-    "https://clients5.google.com/*"
+    "https://clients5.google.com/*",
+    "file:///*"
   ],
   "action": {
     "default_popup": "popup.html",

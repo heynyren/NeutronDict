@@ -35,3 +35,17 @@ const atSource=bg.indexOf("function pdfSourceUrl(");
 vm.runInContext(bg.slice(atSource,bg.indexOf("\n}",atSource)+2),g);
 assert.equal(g.pdfSourceUrl({frameUrl:"chrome-extension://internal/viewer.html",pageUrl:"file:///lesson.pdf"},{}),"file:///lesson.pdf");
 assert.equal(g.pdfSourceUrl({frameUrl:"https://example.test/download",pageUrl:"https://example.test/article"},{}),"https://example.test/download");
+
+const example="クリームを塗って肌のケアをする。";
+assert.equal(g.PdfContext.candidates(["□ケア","□ケア (N/Nする)",example],"ケア",14).length,1);
+const bs="- 肌のケアをする\n- 次の項目";
+assert.equal(g.PdfContext.around(bs,bs.indexOf("ケア"),bs.indexOf("ケア")+2).cau,"肌のケアをする");
+const en="Dr. Tanaka recommends skin care. Next sentence.";
+assert.equal(g.PdfContext.around(en,en.indexOf("care"),en.indexOf("care")+4).cau,"Dr. Tanaka recommends skin care.");
+const decimal="Use 3.5 ml for skin care. Done.";
+assert.equal(g.PdfContext.around(decimal,decimal.indexOf("care"),decimal.indexOf("care")+4).cau,"Use 3.5 ml for skin care.");
+const cases=g.PdfContext.candidates(["ケアを続ける。","肌のケアをする。"],"ケア",1);
+assert.equal(new Set(cases.map(c=>c.cau)).size,2,"ambiguous sentences must remain distinguishable");
+assert.equal(g.PdfContext.candidates(["Be careful."],"care",1).length,0);
+assert.ok(!readFileSync("extension/popup.html","utf8").includes("pdfReader"));
+assert.ok(!readFileSync("extension/background.js","utf8").includes("openPdfReader"));
