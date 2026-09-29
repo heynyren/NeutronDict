@@ -6,6 +6,7 @@ importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại m�
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
 importScripts("pdf-auto.js");
 importScripts("pdf-source.js");
+importScripts("web-context.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
 importScripts("tu-lien.js");   // self.TuLien — tập đồng nghĩa / trái nghĩa
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
@@ -49,23 +50,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 // ==== Lưu từ menu chuột phải: dịch sang tiếng Việt + lưu kèm nguồn & ngữ cảnh ====
 // Hàm này được TIÊM vào trang để lấy đoạn bôi đen + vài từ trước/sau (giúp định vị lại).
-function grabSelCtx() {
-  if (document.contentType === "application/pdf") return { pdf: true };
-  const sel = window.getSelection();
-  if (!sel || !sel.rangeCount || sel.isCollapsed) return null;
-  const r = sel.getRangeAt(0);
-  let node = r.commonAncestorContainer;
-  if (node.nodeType !== 1) node = node.parentElement;
-  const block = node.closest("p,li,blockquote,td,article,section,div") || document.body;
-  const clean = range => {
-    const fragment = range.cloneContents();
-    fragment.querySelectorAll("rt,rp,script,style").forEach(n => n.remove());
-    return fragment.textContent || "";
-  };
-  const before = r.cloneRange(); before.selectNodeContents(block); before.setEnd(r.startContainer, r.startOffset);
-  const after = r.cloneRange(); after.selectNodeContents(block); after.setStart(r.endContainer, r.endOffset);
-  return { sel: clean(r).trim(), prefix: clean(before).slice(-500), suffix: clean(after).slice(0,500) };
-}
+const grabSelCtx = self.WebContext.capture;
 
 function pdfSourceUrl(info, tab) {
   // Chrome's PDF viewer may report an internal extension frame. Keep the actual document URL.
@@ -79,10 +64,15 @@ async function contextSource(info, tab) {
   let ctx = null;
   if (tab && tab.id != null && /^(https?|file):/i.test(url) && !/\.pdf(?:[?#]|$)/i.test(url)) {
     try {
-      const result = await chrome.scripting.executeScript({
-        target: { tabId: tab.id, frameIds: [info.frameId || 0] }, func: grabSelCtx
-      });
-      ctx = result[0] && result[0].result;
+      // Existing content scripts already have access to their own DOM. Prefer messaging;
+      // activeTab injection is the fallback for a tab opened before the extension loaded.
+      ctx = await chrome.tabs.sendMessage(tab.id,{type:"CAPTURE_WEB_CONTEXT",word:info.selectionText||""},{frameId:info.frameId||0}).catch(()=>null);
+      if (!ctx) {
+        const result = await chrome.scripting.executeScript({
+          target: { tabId: tab.id, frameIds: [info.frameId || 0] }, func: grabSelCtx, args: [info.selectionText || ""]
+        });
+        ctx = result[0] && result[0].result;
+      }
     } catch (_) {}
   }
   const src = { url, title: ((tab && tab.title) || "").slice(0,200),
@@ -90,10 +80,14 @@ async function contextSource(info, tab) {
   if (/\.pdf(?:[?#]|$)/i.test(url) || (ctx && ctx.pdf)) src.pdf = true;
   if (ctx && ctx.prefix) src.prefix = ctx.prefix;
   if (ctx && ctx.suffix) src.suffix = ctx.suffix;
-  const c = self.CauNghe.tuNguon(src, src.sel);
+  if (ctx && ctx.cau) src.cau = ctx.cau;
+  if (ctx && ctx.cauDich) src.cauDich = ctx.cauDich;
+  if (ctx && ctx.yt) src.yt = ctx.yt;
+  if (ctx) { src.contextStart = ctx.contextStart; src.contextEnd = ctx.contextEnd; src.capture = ctx.capture; }
+  const c = self.CauNghe.nguCanh(src, src.sel);
   if (c) src.cau = c.cau;
   // Native PDF DOM is private. Parse the original file in a hidden extension document.
-  if (!src.cau && /^(https?:|file:|blob:)/i.test(url)) {
+  if (!src.cau && (!ctx || ctx.pdf) && /^(https?:|file:|blob:)/i.test(url)) {
     const result = await extractPdfContext(url, src.sel);
     if (result && result.ok) {
       Object.assign(src, { cau: result.cau, pdf: true, capture: "pdf-auto",
@@ -360,7 +354,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // PHẢI return true + sendResponse: mở cửa sổ là việc bất đồng bộ, mà service
     // worker MV3 có thể bị ngắt ngay khi hàm nghe tin trả về. Không giữ nó sống
     // thì đôi khi ghi xong pendingLookup là worker chết, chưa kịp tạo cửa sổ.
-    openPopupWindow(msg.text || "", sender && sender.tab)
+    openPopupWindow(msg.text || "", sender && sender.tab, msg.src)
       .then(() => sendResponse({ ok: true }))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
@@ -747,11 +741,34 @@ async function dichCauNghe(key) {
  * Không đụng `ts`, y như vaFurigana: đây là máy tự bồi thêm, không phải người
  * dùng sửa mục.
  */
+// Restore only missing context from data already stored; merge inside the shared write lock.
+async function phucHoiNguCanhWeb() {
+  return vaSau(async () => {
+    const nb=(await chrome.storage.local.get("notebook")).notebook||{};
+    let count=0;
+    for(const it of Object.values(nb)){
+      if(!it||it.del||!it.src||!it.word)continue;
+      const context=self.CauNghe.nguCanh(it.src,it.word);
+      if(!context)continue;
+      let changed=false;
+      if(!it.src.cau){it.src=Object.assign({},it.src,{cau:context.cau});changed=true;}
+      if(!it.cauNghe && it.kind!=="sent"){
+        const listening=self.CauNghe.tuNguon(it.src,it.word);
+        if(listening){it.cauNghe={cau:listening.cau,dich:it.src.cauDich||"",ts:Date.now()};changed=true;}
+      }
+      if(changed)count++;
+    }
+    if(count)await chrome.storage.local.set({notebook:nb});
+    return count;
+  });
+}
+
 async function boiThemDuong(toiDa) {
+  const recovered=await phucHoiNguCanhWeb();
   let conMang = Math.max(0, toiDa == null ? 12 : Math.min(toiDa, 12));
   const { notebook } = await chrome.storage.local.get("notebook");
   const nb = notebook || {};
-  let n = 0;
+  let n = recovered;
   const dienBoi = (it) => {
     if (!it || it.del || it.kind === "sent") return false;
     const d = it.dict;
@@ -776,7 +793,11 @@ async function boiThemDuong(toiDa) {
   for (const k of Object.keys(nb)) {
     if (conMang <= 0) break;
     const it = nb[k];
-    if (!dienBoi(it) || it.cauNghe || !it.src) continue;
+    if (!dienBoi(it) || !it.src) continue;
+    if (it.cauNghe) {
+      if (!it.cauNghe.dich) { conMang--; await dichCauNghe(k).catch(()=>{}); }
+      continue;
+    }
     // Hỏi trước xem có moi được câu không: moi hụt mà vẫn trừ hạn mức thì
     // những mục không có nguồn tử tế sẽ ăn hết lượt của các mục moi được.
     let co = null;
@@ -1829,6 +1850,8 @@ async function saveWord(entry, dict) {
     if (e.mEdit && !e.mOrig && old.mOrig) e.mOrig = old.mOrig;
   }
   // Save original context before translation; re-saving a bare word keeps its sentence.
+  const sourceContext = self.CauNghe.nguCanh(e.src, e.word);
+  if (sourceContext) e.src = Object.assign({}, e.src, { cau: sourceContext.cau });
   const context = self.CauNghe.tuNguon(e.src, e.word);
   if (context) {
     e.src = Object.assign({}, e.src, { cau: context.cau });
@@ -1836,7 +1859,7 @@ async function saveWord(entry, dict) {
       ? old.cauNghe : { cau: context.cau, dich: e.src.cauDich || "", ts: Date.now() };
   } else if (old && !old.del && old.cauNghe) {
     e.cauNghe = old.cauNghe;
-    if (old.src) e.src = old.src;
+    if (!sourceContext && old.src) e.src = old.src;
   }
   nb[key] = e;
   await chrome.storage.local.set({ notebook: nb });

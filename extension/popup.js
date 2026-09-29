@@ -146,13 +146,14 @@ async function getInitialWord() {
     const url = (tab && tab.url) || "";
     const isPdf = /\.pdf(\?|#|$)/i.test(url);
     if (!isPdf && tab && tab.id && /^https?:/i.test(url)) {
-      const res = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => (window.getSelection ? window.getSelection().toString() : "")
-      });
-      const t = ((res && res[0] && res[0].result) || "").trim();
+      let captured = await chrome.tabs.sendMessage(tab.id,{type:"CAPTURE_WEB_CONTEXT"}).catch(()=>null);
+      if (!captured) {
+        const res = await chrome.scripting.executeScript({target:{tabId:tab.id},func:self.WebContext.capture});
+        captured = res && res[0] && res[0].result;
+      }
+      const t = ((captured && captured.sel) || "").trim();
       if (t) {
-        initialSrc = { url: url, title: (tab.title || "").slice(0, 200), sel: t };
+        initialSrc = Object.assign({}, captured, { url: url, title: (tab.title || "").slice(0, 200) });
         return t;
       }
     }
@@ -239,7 +240,7 @@ try { speechSynthesis.getVoices(); } catch (e) {}   // hâm nóng danh sách gi�
 function guiLuu(entry, dict, moi, coSua, goc, xong) {
   const e = Object.assign({}, entry, { means: moi.means, note: moi.note || "" });
   if (!e.src && initialSrc && initialSrc.url) {
-    e.src = { url: initialSrc.url, title: initialSrc.title, sel: initialSrc.sel || entry.word };
+    e.src = Object.assign({}, initialSrc, { sel: initialSrc.sel || entry.word });
   }
   if (coSua) { e.mEdit = 1; if (goc && goc.length) e.mOrig = goc; }
   chrome.runtime.sendMessage({ type: "SAVE_WORD", entry: e, dict: dict }, (kq) => {
@@ -702,6 +703,7 @@ function nutGemini(muc, daCo) {
 async function run(word) {
   const w = (word || "").trim();
   const dict = dirEl.value;
+  if (initialSrc && w !== String(initialSrc.sel || "").trim()) initialSrc = null;
   lastTranslated = "";
 
   // Hán tự luôn có mặt ở chế độ Nhật–Việt, kể cả khi đang xem tab Dịch. Cố ý

@@ -654,6 +654,7 @@
       pane.appendChild(row);
 
       const muc = window.HanTu ? window.HanTu.MUC(k) : { word: k.ch, means: (k.m || []) };
+      muc.src = pageSrc(k.ch);
       const goc = (muc.means || []).slice(0, 8);
       const daCo = daLuu[k.ch] || null;
       theSuaDuoc(body, {
@@ -769,7 +770,8 @@
 
   /* ---------- mở popup ---------- */
   function moPopup(x, y, text, src) {
-    nguonNgoai = src || null;
+    nguonNgoai = src || (self.WebContext && self.WebContext.capture()) || null;
+    if (nguonNgoai) { const c=self.CauNghe.nguCanh(nguonNgoai,text); if(c)nguonNgoai.cau=c.cau; }
     const box = ensureHost(x, y);
     const coDich = S.translate !== false && text.length <= (S.maxSent || 400);
     const kh = dungKhung(box, coDich);
@@ -838,28 +840,13 @@
         return s;
       }
       if (!/^https?:/i.test(location.href)) return null;
-      const ctx = selContext();
-      return { url: location.href, title: (document.title || "").slice(0, 200),
-        sel: (sel || "").slice(0, 400), prefix: ctx.prefix, suffix: ctx.suffix };
+      const ctx = self.WebContext.capture();
+      if (!ctx) return {url:location.href,title:document.title,sel:sel||""};
+      const out=Object.assign({},ctx,{sel:sel||ctx.sel});
+      const c=self.CauNghe.nguCanh(out,sel||ctx.sel);
+      if(c)out.cau=c.cau;
+      return out;
     } catch (e) { return null; }
-  }
-  // Lấy vài chục ký tự ngay trước/sau vùng bôi đen (trong cùng khối) để khi quay lại
-  // biết chọn đúng đoạn nếu có nhiều chỗ giống nhau trên trang.
-  function selContext() {
-    const out = { prefix: "", suffix: "" };
-    try {
-      const s = window.getSelection();
-      if (!s || !s.rangeCount) return out;
-      const range = s.getRangeAt(0);
-      let c = range.commonAncestorContainer;
-      if (c.nodeType === 3) c = c.parentNode;
-      const block = (c && c.closest && c.closest("p,li,td,th,blockquote,h1,h2,h3,h4,h5,article,section,main,div")) || document.body;
-      const pre = range.cloneRange(); pre.collapse(true); pre.setStart(block, 0);
-      out.prefix = (pre.toString() || "").replace(/\s+/g, " ").trim().slice(-60);
-      const post = range.cloneRange(); post.collapse(false); post.setEnd(block, block.childNodes.length);
-      out.suffix = (post.toString() || "").replace(/\s+/g, " ").trim().slice(0, 60);
-    } catch (e) { /* trang lạ — bỏ qua ngữ cảnh */ }
-    return out;
   }
 
   // ===== Mở lại nguồn: tô sáng lại từ/câu đã lưu khi quay về trang gốc =====
@@ -1056,6 +1043,7 @@
   // Muốn đóng thì bấm Huỷ (hoặc Esc khi con trỏ đang ở trong ô soạn thảo).
   document.addEventListener("mousedown", (e) => {
     lastCtrl = e.ctrlKey || e.metaKey;
+    if (!e.composedPath().some(n=>n&&n.dataset&&n.dataset.ndictYt)) self.__ND_contextMenuSource=null;
     if (host && !soOSuaDangMo && !e.composedPath().includes(host)) close();   // bấm ra ngoài -> tắt
   }, true);
 
@@ -1100,12 +1088,13 @@
   document.addEventListener("keydown", (e) => {
     if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey) return;
     if ((e.key || "").toLowerCase() !== "z") return;
+    if (e.composedPath().some(n=>n&&n.dataset&&n.dataset.ndictYt)) return;
     const sel = window.getSelection();
     const text = sel ? sel.toString().trim() : "";
     if (!text || text.length > (S.maxSent || 400)) return;
     e.preventDefault();
     e.stopPropagation();
-    self.Song.gui({ type: "OPEN_LOOKUP", text: text });
+    self.Song.gui({ type: "OPEN_LOOKUP", text: text, src: self.WebContext.capture() });
   }, true);
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !soOSuaDangMo) close(); });

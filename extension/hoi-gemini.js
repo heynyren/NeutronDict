@@ -154,7 +154,8 @@
 
     /* --- ngữ cảnh: phần quan trọng nhất sau chính mấy câu hỏi --- */
     const nc = [];
-    const cauNguon = sach((it.src || {}).cau);
+    const recovered = goc.CauNghe && goc.CauNghe.nguCanh(it.src, it.word);
+    const cauNguon = sach((it.src || {}).cau || (recovered && recovered.cau));
     if (cauNguon && cauNguon !== tu && cauNguon.includes(tu)) {
       nc.push(T("Câu gốc tôi đã lưu:"));
       nc.push("「" + cauNguon + "」");

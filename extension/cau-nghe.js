@@ -32,7 +32,7 @@
   "use strict";
 
   /** Dấu kết câu. */
-  const KET = /[。．.!?！？\n\r]/;
+  const KET = /[。．.!?！？…\n\r]/;
   /** Dấu đóng đi kèm sau dấu kết thì vẫn thuộc câu đó. */
   const DONG = /[」』）)\]】”"'、]/;
 
@@ -47,6 +47,7 @@
     if (c !== ".") return true;                       // 。！？ thì luôn là kết
     const truoc = s[i - 1] || "", sau = s[i + 1] || "";
     if (/[0-9]/.test(truoc) && /[0-9]/.test(sau)) return false;   // 3.5
+    if (/\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc)$/i.test(s.slice(0,i))) return false;
     // "Mr." / "U.S." — một chữ cái hoa đứng ngay trước dấu chấm
     if (/[A-Z]/.test(truoc) && (!s[i - 2] || !/[a-z]/.test(s[i - 2]))) return false;
     return true;
@@ -60,7 +61,8 @@
    * @param {string} sau   phần sau chỗ bôi đen (có thể cụt đuôi)
    * @returns {{cau:string, tu:string}|null} null = không dựng được câu trọn vẹn
    */
-  function moiCau(truoc, sau, tu) {
+  function moiNguCanh(truoc, sau, tu, opt) {
+    const o = opt || {};
     const p = String(truoc == null ? "" : truoc);
     const t = String(tu == null ? "" : tu);
     const q = String(sau == null ? "" : sau);
@@ -73,22 +75,22 @@
     for (let i = dau - 1; i >= 0; i--) if (KET.test(ca[i]) && thatSuKet(ca, i)) { d = i; break; }
     // Không thấy dấu kết nào ở phần trước: chỉ chấp nhận khi phần trước NGẮN
     // (tức là nó vốn là đầu đoạn, không phải bị cắt cụt).
-    if (d < 0 && p.length >= 60) return null;
+    if (d < 0 && p.length >= 60 && !o.contextStart) return null;
     let batDau = d + 1;
     while (batDau < ca.length && /[\s　]/.test(ca[batDau])) batDau++;
 
     // Tiến tới dấu kết gần nhất SAU từ.
     let c = -1;
     for (let i = cuoi; i < ca.length; i++) if (KET.test(ca[i]) && thatSuKet(ca, i)) { c = i; break; }
-    if (c < 0) return null;                            // câu bị cụt đuôi: bỏ
-    let ketThuc = c + 1;
+    if (c < 0 && !o.contextEnd) return null;
+    let ketThuc = c < 0 ? ca.length : c + 1;
     while (ketThuc < ca.length && DONG.test(ca[ketThuc])) ketThuc++;
 
     const cau = ca.slice(batDau, ketThuc).replace(/\s+/g, " ").trim();
     if (!cau || cau.indexOf(t) < 0) return null;
     // Câu chỉ đúng bằng cái từ thì chẳng thêm ngữ cảnh nào.
     if (cau.replace(/[。．.!?！？\s]/g, "") === t.replace(/\s/g, "")) return null;
-    if (cau.length > 220) return null;                 // dài quá để nghe một lượt
+    if (cau.length > (o.max || 8000)) return null;
     return { cau: cau, tu: t };
   }
 
@@ -96,17 +98,32 @@
    * Dựng câu nghe từ phần `src` của một mục sổ tay.
    * @returns {{cau:string, tu:string}|null}
    */
-  function tuNguon(src, word) {
-    if (!src) return null;
-    const tu = src.sel || word || "";
-    const cau = cauHopLe(src.cau, word || tu);
-    if (cau) return { cau, tu: word || tu };
-    // Lời thoại YouTube: `sel` vốn ĐÃ là trọn câu thoại, khỏi moi.
-    if (src.yt && src.yt.v && src.sel && src.sel !== word && src.sel.indexOf(word) >= 0) {
-      const c = String(src.sel).replace(/\s+/g, " ").trim();
-      return c.length > (word || "").length ? { cau: c, tu: word } : null;
+  function moiCau(truoc,sau,tu) {
+    return moiNguCanh(truoc,sau,tu,{max:220});
+  }
+  function nguCanh(src,word) {
+    if(!src)return null;
+    const tu=String(src.sel||word||"").trim();
+    const raw=String(src.cau||"").replace(/\s+/g," ").trim();
+    if(raw && raw.length<=8000 && (raw.includes(tu)||raw.includes(word)) &&
+       raw.replace(/[。．.!?！？…\s]/g,"")!==tu.replace(/\s/g,""))
+      return {cau:raw,tu:word||tu};
+    if(src.yt&&src.yt.v&&tu!==word&&tu.includes(word))return {cau:tu,tu:word};
+    return moiNguCanh(src.prefix,src.suffix,tu,{
+      contextStart:src.contextStart===true,contextEnd:src.contextEnd===true,max:8000
+    });
+  }
+  function tuNguon(src,word) {
+    const context=nguCanh(src,word);
+    // Retain the existing transcript behaviour; ordinary source sentences have a listening limit.
+    if(!context)return null;
+    if(context.cau.length<=220)return context;
+    // Legacy transcript entries stored the complete cue in sel instead of cau.
+    // A long new source with sel equal to the selected word must NOT create a new listening exercise.
+    if(src.yt&&src.yt.v&&src.sel&&src.sel!==word&&src.sel.includes(word)){
+      return {cau:String(src.sel).replace(/\s+/g," ").trim(),tu:word};
     }
-    return moiCau(src.prefix, src.suffix, tu);
+    return null;
   }
 
   function cauHopLe(raw, word) {
@@ -116,5 +133,5 @@
         cau.replace(/[。．.!?！？\s]/g, "") === tu.replace(/\s/g, "")) return "";
     return cau;
   }
-  goc.CauNghe = { moiCau, tuNguon, thatSuKet, cauHopLe };
+  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe };
 })(typeof self !== "undefined" ? self : this);

@@ -1030,7 +1030,7 @@
       url: "https://www.youtube.com/watch?v=" + S.v,
       title: S.tieuDe || document.title,
       sel: (chu || c.s).slice(0, 400),
-      cau: c.s.slice(0, 400), // câu gốc cho Luyện ngữ pháp, kể cả khi chỉ chọn một từ
+      cau: c.s, // giữ cả câu gốc; giới hạn bài luyện được áp dụng riêng
       cauDich: S.dich.get(i) || "",
       yt: { v: S.v, t: t, dur: Math.max(1, Math.round(dai == null ? (c.tEnd - c.t) : dai)), kenh: S.kenh }
     };
@@ -1478,6 +1478,23 @@
     // vượt quá nó nghĩa là đang kéo thanh cuộn chứ không bấm vào chữ.
     list.addEventListener("mousedown", (e) => { if (e.offsetX > list.clientWidth) nguoiDungCuon(); });
 
+    // Capture source inside the shadow root before Chrome opens its context menu.
+    const sourceForSelection = e => {
+      const sel=root.getSelection ? root.getSelection() : document.getSelection();
+      const chu=chuVungChon(sel),m=chu && dongDauVungChon(sel,e.target);
+      return m ? nguon(m.i,chu,m.t,m.d) : null;
+    };
+    root.addEventListener("contextmenu",e=>{
+      const src=sourceForSelection(e);
+      self.__ND_contextMenuSource=src ? {src,ts:Date.now()} : null;
+    });
+    root.addEventListener("keydown",e=>{
+      if(!(e.ctrlKey||e.metaKey)||!e.shiftKey||e.altKey||(e.key||"").toLowerCase()!=="z")return;
+      const src=sourceForSelection(e);
+      if(!src)return;
+      e.preventDefault();e.stopPropagation();
+      self.Song.gui({type:"OPEN_LOOKUP",text:src.sel,src});
+    });
     // Bôi đen trong bảng -> đúng popup ba tab quen thuộc, kèm mốc giây.
     root.addEventListener("mouseup", (e) => {
       setTimeout(() => {

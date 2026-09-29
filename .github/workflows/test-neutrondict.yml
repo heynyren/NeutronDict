@@ -51,12 +51,17 @@ jobs:
           "$RUNNER_TEMP/nd-test/node_modules/.bin/playwright" install --with-deps chromium
           sudo mkdir -p /opt/node22/lib/node_modules
           sudo ln -s "$RUNNER_TEMP/nd-test/node_modules/playwright" /opt/node22/lib/node_modules/playwright
+      - name: Run source-context browser regressions
+        run: |
+          node kiem-tra/web-context-giao-dien.mjs "$GITHUB_WORKSPACE/extension"
+          node kiem-tra/yt-source-giao-dien.mjs "$GITHUB_WORKSPACE/extension"
       - name: Run browser tests
         shell: bash
         run: |
           set -u
           failed=0
           for file in kiem-tra/*.mjs; do
+            case "$file" in kiem-tra/web-context-giao-dien.mjs|kiem-tra/yt-source-giao-dien.mjs) continue;; esac
             if ! grep -q '/opt/node22/lib/node_modules/playwright/index.mjs' "$file"; then
               continue
             fi
@@ -69,7 +74,7 @@ jobs:
       - name: Upload tested extension
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-extension-4.30.2
+          name: NeutronDict-extension-4.30.3
           path: extension/
           retention-days: 7
           if-no-files-found: error
