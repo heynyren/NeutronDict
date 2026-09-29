@@ -90,7 +90,7 @@ try {
  assert.equal(it.src.cau,src.cau);assert.equal(it.cauNghe.cau,src.cau);
  assert.equal(it.cauNghe.dich,"Đây là rượu.");assert.equal(it.src.yt.t,1);
  // Original inline subtitle popup still carries full sentence/translation/timestamp.
- await trong(`r.querySelector(".pc").dispatchEvent(new MouseEvent("mouseup",{bubbles:true,composed:true,clientX:25,clientY:25}))`);
+ await trong(`r.querySelector(".ln").dispatchEvent(new MouseEvent("mouseup",{bubbles:true,composed:true,clientX:25,clientY:25}))`);
  const save=page.locator(".en").getByRole("button",{name:"Lưu",exact:true}).first();
  await save.waitFor({timeout:10000});await save.click();await page.waitForTimeout(250);
  it=await sw.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:酒"]);
@@ -114,5 +114,21 @@ try {
  });
  const native=await sw.evaluate(tab=>contextSource({selectionText:"ケア",pageUrl:tab.url},tab),tab);
  assert.equal(native.cau,"今日は肌のケアをします。");assert.equal(native.yt.t,42);
- console.log("YouTube context: subtitle shadow selection, right-click, inline popup, standalone popup, original sentence/translation/video/time, Gemini and native visible captions OK");
+ // Keyboard route from the shadow subtitle panel preserves the same source.
+ const opened=ctx.waitForEvent("page");
+ await trong(`
+   const ln=r.querySelector(".ln"),walker=document.createTreeWalker(ln,NodeFilter.SHOW_TEXT);
+   let n;while(n=walker.nextNode()){const at=n.textContent.indexOf("酒");if(at<0)continue;
+     const rg=document.createRange();rg.setStart(n,at);rg.setEnd(n,at+1);
+     const sel=getSelection();sel.removeAllRanges();sel.addRange(rg);
+     n.parentElement.dispatchEvent(new KeyboardEvent("keydown",{key:"z",ctrlKey:true,shiftKey:true,bubbles:true,composed:true}));
+     return;
+   }throw Error("subtitle selection missing for shortcut");
+ `);
+ const shortcut=await opened;
+ await shortcut.waitForFunction(()=>initialSrc&&initialSrc.yt);
+ const shortcutSrc=await shortcut.evaluate(()=>initialSrc);
+ assert.equal(shortcutSrc.cau,"これは酒です。");assert.equal(shortcutSrc.yt.t,1);
+ await shortcut.close();
+ console.log("YouTube context: keyboard, subtitle shadow selection, right-click, inline popup, standalone popup, original sentence/translation/video/time, Gemini and native visible captions OK");
 }finally{await ctx.close();}
