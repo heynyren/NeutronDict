@@ -1,0 +1,31 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+const g={};g.self=g;vm.createContext(g);
+for(const f of ["cau-nghe.js","hoi-gemini.js","ngu-phap.js"])vm.runInContext(fs.readFileSync("extension/"+f,"utf8"),g);
+const sentence="(b) 上記(a)の原理の電力量計の使用の可否を検討するために，電力量計の計量の誤差率を求める実験を行った。";
+const word="可否",at=sentence.indexOf(word);
+const src={url:"https://denken-ou.com/rironh22-16/",sel:word,prefix:sentence.slice(0,at),suffix:sentence.slice(at+word.length)};
+assert.equal(g.CauNghe.nguCanh(src,word).cau,sentence);
+assert.ok(!g.HoiGemini.loiHoi({word,dict:"javi",src},{}).includes("CHƯA lưu được"));
+const prefix="これは文章の先頭から始まる説明であり".repeat(4);
+assert.equal(g.CauNghe.nguCanh({sel:"ケア",prefix,suffix:"は大切です。"},"ケア"),null,"unknown legacy prefix may be truncated");
+assert.equal(g.CauNghe.nguCanh({sel:"ケア",prefix,suffix:"は大切です。",contextStart:true},"ケア").cau,prefix+"ケアは大切です。");
+const long="私は"+"毎日".repeat(120)+"ケアを続けています。";
+assert.ok(long.length>220);
+assert.equal(g.CauNghe.nguCanh({sel:"ケア",cau:long},"ケア").cau,long);
+assert.equal(g.CauNghe.tuNguon({sel:"ケア",cau:long},"ケア"),null,"long source retained without expanding listening load");
+assert.ok(g.HoiGemini.loiHoi({word:"ケア",src:{sel:"ケア",cau:long}},{}).includes(long));
+assert.equal(g.CauNghe.nguCanh({sel:"ケア",prefix:"肌の",suffix:"を続ける",contextStart:true,contextEnd:true},"ケア").cau,"肌のケアを続ける");
+assert.equal(g.CauNghe.nguCanh({sel:"care",prefix:"Dr. Tanaka recommends ",suffix:" every day.",contextStart:true},"care").cau,"Dr. Tanaka recommends care every day.");
+assert.equal(g.CauNghe.nguCanh({sel:"care",prefix:"Take ",suffix:" of your skin.",contextStart:true},"care").cau,"Take care of your skin.");
+// Popup must retain every source field, including PDF and YouTube coordinates.
+const popup=fs.readFileSync("extension/popup.js","utf8"),start=popup.indexOf("function guiLuu(");
+vm.runInContext(popup.slice(start,popup.indexOf("\n}",start)+2),g);
+const yt={...src,cau:sentence,cauDich:"bản dịch",yt:{v:"video",t:42,dur:8}};
+g.initialSrc=yt;g.chrome={runtime:{sendMessage:(m,cb)=>{g.sent=m;cb({ok:true});}}};
+g.guiLuu({word},"javi",{means:[],note:""},false,[],()=>{});
+assert.equal(JSON.stringify(g.sent.entry.src),JSON.stringify(yt));
+for(const f of ["cau-nghe.js","hoi-gemini.js"])
+ assert.equal(fs.readFileSync("extension/"+f,"utf8"),fs.readFileSync("android/www/"+f,"utf8"));
+console.log("Web source: real 可否 example, old-context Gemini recovery, explicit paragraph boundaries, long source vs listening, spaces, abbreviations, popup and YouTube metadata preservation OK");
