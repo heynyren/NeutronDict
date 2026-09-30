@@ -48,6 +48,10 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 
 NeutronDict là dự án cộng đồng, không liên kết chính thức với Google hay dictionaryapi.dev. Vui lòng tôn trọng điều khoản của các nguồn dữ liệu.
 
+## Hướng dẫn cài đặt và đồng bộ
+
+[Tải hướng dẫn Word chi tiết](docs/Huong-dan-cai-dat-va-dong-bo-NeutronDict.docx?raw=true) — cài extension, cài APK Android, tạo Google Apps Script và kết nối một kho chung. Tài liệu có các hyperlink để mở Apps Script, lấy mã đồng bộ và tải APK.
+
 ## Bắt đầu nhanh
 
 - **Extension:** xem [extension/README.md](extension/README.md) — `chrome://extensions` → Developer mode → Load unpacked thư mục `extension/`.
