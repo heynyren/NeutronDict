@@ -28,6 +28,7 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Theo dõi quá trình học & phần thưởng:** mục tiêu mỗi ngày, chuỗi ngày liên tiếp,
   lịch nhiệt 17 tuần, **24 huy hiệu** — cùng cơ chế với app Denken 3 Shuu, đồng bộ
   giữa máy tính và điện thoại. Xem `tien-do.js`.
+- **Ngữ cảnh ngay dưới nghĩa:** mỗi từ lưu từ trang web/PDF hiện kèm câu đã gặp nó (từ được tô đậm) và **bản dịch của câu**, nằm liền sau nghĩa — trong sổ tay lẫn mặt sau thẻ ôn. Mục cũ được tự bồi bản dịch dần mỗi lần mở sổ.
 - **Sửa bản dịch & ghi chú:** mỗi mục trong sổ tay đều sửa lại được nghĩa cho đúng
   chuyên ngành, kèm một ô ghi chú riêng. Bản máy dịch ban đầu được giữ lại để khôi
   phục, và tra lại cùng một từ **không** làm mất công hiệu đính.
@@ -43,7 +44,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 
 ## Nguồn dữ liệu
 
-- **Nghĩa & dịch câu:** [Google Dịch](https://translate.google.com) (endpoint công khai `gtx`), dự phòng qua Apps Script (`LanguageApp`).
+- **Nghĩa & dịch câu (cả Anh và Nhật):** [Google Dịch](https://translate.google.com) (endpoint công khai `gtx`), dự phòng qua Apps Script (`LanguageApp`). Tiếng Nhật **không còn dùng Mazii**: nghĩa, các nghĩa theo loại từ và phiên âm La-tinh (nguồn dựng furigana) lấy chung trong **một** lượt gọi Google.
+- **Tốc độ tra:** hai cổng Google chạy *đua* (cổng treo thì cổng kia đi song song sau ~1 giây), Apps Script vào cuộc ngay khi Google chặn; tra từ và dịch cùng một từ dùng chung một lượt gọi; kết quả giữ trong RAM nên tra lại gần như tức thì.
 - **IPA, phát âm, định nghĩa, ví dụ, từ đồng nghĩa:** [Free Dictionary API](https://dictionaryapi.dev) (`api.dictionaryapi.dev`) — miễn phí, không cần API key.
 
 NeutronDict là dự án cộng đồng, không liên kết chính thức với Google hay dictionaryapi.dev. Vui lòng tôn trọng điều khoản của các nguồn dữ liệu.

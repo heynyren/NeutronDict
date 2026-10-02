@@ -1310,3 +1310,28 @@ table.sodo tr.thieu td { opacity: .45; }
   font: inherit; font-size: 12px; font-weight: 650;
 }
 .toast-nut:hover { background: rgba(255,255,255,.26); }
+
+/* --------------------------------------------------------------------------
+   Ngữ cảnh ngay dưới nghĩa: câu đã gặp từ ấy + bản dịch của câu
+   -------------------------------------------------------------------------- */
+.nguc {
+  margin-top: 8px;
+  padding: 8px 11px;
+  border-left: 3px solid var(--accent);
+  border-radius: 4px 12px 12px 4px;
+  background: var(--surface-2);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+}
+.nguc-cau { color: var(--ink-2); }
+.nguc-tu {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0 3px;
+}
+.nguc-dich { margin-top: 3px; color: var(--ink-3); font-size: 12.5px; }
+.nguc-dich:empty { display: none; }

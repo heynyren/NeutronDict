@@ -56,7 +56,20 @@
    * @param {(toi:number) => void} doi  đổi sang tab thứ mấy
    */
   function vuotDoiTab(chiSo, tong, doi) {
-    let x0 = 0, y0 = 0, luc = 0, theoDoi = false;
+    let x0 = 0, y0 = 0, luc = 0, theoDoi = false, keoNgang = false, vung = null;
+    const giamChuyen = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /** Trả màn về chỗ cũ, có animation ngắn nếu `muot`. */
+    const traVe = (muot) => {
+      const v = vung;
+      vung = null;
+      if (!v) return;
+      if (!muot) { v.style.transition = ""; v.style.transform = ""; v.style.opacity = ""; v.style.willChange = ""; return; }
+      v.style.transition = "transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s";
+      v.style.transform = "";
+      v.style.opacity = "";
+      setTimeout(() => { v.style.transition = ""; v.style.willChange = ""; }, 220);
+    };
 
     const batDau = (e) => {
       // Hai ngón là đang phóng to thu nhỏ, không phải vuốt.
@@ -68,30 +81,65 @@
       y0 = e.touches[0].clientY;
       luc = Date.now();
       theoDoi = true;
+      keoNgang = false;
+      traVe(false);
+    };
+
+    /*
+     * Màn đi THEO NGÓN TAY khi đã rõ là đang vuốt ngang.
+     *
+     * Trước đây không có gì xảy ra cho tới lúc nhấc tay, rồi nội dung nhảy một
+     * phát — cảm giác "cứng", không ra đang kéo trang. Giờ màn hiện tại trượt
+     * theo ngón (có lực cản), mờ dần; thả ra thì đổi tab, hoặc trượt về chỗ cũ
+     * nếu chưa đủ ngưỡng. Ở tab đầu/cuối, kéo ra ngoài bị cản mạnh hơn nhiều để
+     * người dùng biết đã hết đường.
+     */
+    const diChuyen = (e) => {
+      if (!theoDoi || giamChuyen) return;
+      const t = e.touches[0];
+      if (!t) return;
+      const dx = t.clientX - x0, dy = t.clientY - y0;
+      if (!keoNgang) {
+        // Chưa chốt hướng: đợi tới khi rõ ràng đi ngang, kẻo cuộn dọc cũng bị giật.
+        if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * TI_LE) return;
+        keoNgang = true;
+        vung = document.querySelector(".view.show");
+        if (vung) vung.style.willChange = "transform, opacity";
+      }
+      if (!vung) return;
+      const toi = dx < 0 ? chiSo() + 1 : chiSo() - 1;
+      const coDuong = toi >= 0 && toi < tong();
+      const keo = dx * (coDuong ? 0.45 : 0.15);
+      vung.style.transition = "none";
+      vung.style.transform = "translateX(" + keo.toFixed(1) + "px)";
+      vung.style.opacity = String(Math.max(0.5, 1 - Math.abs(keo) / 320));
     };
 
     const ketThuc = (e) => {
       if (!theoDoi) return;
       theoDoi = false;
       const cham = e.changedTouches[0];
-      if (!cham) return;
+      if (!cham) { traVe(true); return; }
       const dx = cham.clientX - x0;
       const dy = cham.clientY - y0;
-      if (Date.now() - luc > HAN_GIO) return;
-      if (Math.abs(dx) < NGUONG) return;
+      const dt = Date.now() - luc;
+      // Vuốt nhanh thì ngắn hơn một chút cũng tính: người ta hất tay, không kéo hết cỡ.
+      const du = Math.abs(dx) >= NGUONG || (dt < 220 && Math.abs(dx) >= NGUONG * 0.6);
       // Không có điều kiện này thì cuộn dọc hơi chéo tay một chút là đổi tab.
-      if (Math.abs(dx) < Math.abs(dy) * TI_LE) return;
+      if (dt > HAN_GIO || !du || Math.abs(dx) < Math.abs(dy) * TI_LE) { traVe(true); return; }
 
       // Vuốt sang TRÁI nghĩa là kéo màn kế tiếp vào, tức là đi tới.
       const toi = dx < 0 ? chiSo() + 1 : chiSo() - 1;
-      if (toi >= 0 && toi < tong()) doi(toi);
+      if (toi >= 0 && toi < tong()) { traVe(false); doi(toi); }
+      else traVe(true);                 // hết đường: trượt về chỗ cũ
     };
 
     // `passive` để trình duyệt khỏi phải chờ xem ta có chặn cuộn không — ta
     // không chặn bao giờ, mà chờ là cuộn bị khựng.
     window.addEventListener("touchstart", batDau, { passive: true });
+    window.addEventListener("touchmove", diChuyen, { passive: true });
     window.addEventListener("touchend", ketThuc, { passive: true });
-    window.addEventListener("touchcancel", () => { theoDoi = false; }, { passive: true });
+    window.addEventListener("touchcancel", () => { theoDoi = false; traVe(true); }, { passive: true });
   }
 
   /* ==================================================================== */
@@ -149,7 +197,10 @@
     vong.innerHTML = (root.Icon ? root.Icon("arrows-clockwise", { size: 20 }) : "");
     document.body.appendChild(vong);
 
-    const dat = (d) => {
+    const dat = (d, muot) => {
+      // Đang kéo thì KHÔNG được có transition: nó làm vòng tròn lê theo ngón tay
+      // chậm hơn 0,2 giây. Chỉ lúc thả (về chỗ cũ / vào trạng thái quay) mới mượt.
+      vong.style.transition = muot ? "" : "none";
       vong.style.transform = "translate(-50%," + d + "px)";
       vong.style.opacity = String(Math.min(1, d / NGUONG_KEO));
       vong.firstChild && (vong.firstChild.style.transform = "rotate(" + (d * 3) + "deg)");
@@ -173,17 +224,17 @@
       if (!keo) return;
       keo = false;
       const d = parseFloat((vong.style.transform.match(/,\s*([-\d.]+)px/) || [0, 0])[1]) || 0;
-      if (d < NGUONG_KEO) { dat(0); return; }
+      if (d < NGUONG_KEO) { dat(0, true); return; }
       dangChay = true;
       vong.classList.add("spin");
-      dat(NGUONG_KEO);
+      dat(NGUONG_KEO, true);
       try { await lamMoi(); } catch (e) { /* mất mạng thì thôi */ }
       vong.classList.remove("spin");
-      dat(0);
+      dat(0, true);
       dangChay = false;
     };
     vung.addEventListener("touchend", thuong, { passive: true });
-    vung.addEventListener("touchcancel", () => { keo = false; dat(0); }, { passive: true });
+    vung.addEventListener("touchcancel", () => { keo = false; dat(0, true); }, { passive: true });
   }
 
   /* ==================================================================== */

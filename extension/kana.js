@@ -1,7 +1,7 @@
 /**
  * Suy cách đọc (furigana) cho từ tiếng Nhật khi từ điển không cho.
  *
- * Vì sao cần: Mazii trả về cách đọc cho phần lớn từ, nhưng KHÔNG phải tất cả —
+ * Vì sao cần: không còn từ điển nào cho sẵn cách đọc (tra từ đi qua Google Dịch) —
  * và một mục nằm trong sổ tay mà không có furigana thì đến lúc ôn lại chẳng
  * đọc nổi. Nguồn duy nhất còn lại mà mình đã có sẵn đường đi tới là bản phiên
  * âm La-tinh của Google (tham số dt=rm), nên việc ở đây là đổi romaji ngược lại
@@ -110,7 +110,7 @@
   }
 
   const KANA = /^[぀-ゟ゠-ヿーー\s]+$/;
-  /** Cách đọc do Mazii trả về đôi khi là romaji ("Ubawa remasu") chứ không phải kana. */
+  /** Cách đọc đôi khi là romaji (nguồn cũ, hoặc dữ liệu đã lưu) ("Ubawa remasu") chứ không phải kana. */
   const ROMAJI = /^[A-Za-zāīūēōâîûêôĀĪŪĒŌ'’\-\s.]+$/;
   function laRomaji(s) {
     const x = String(s || "").trim();

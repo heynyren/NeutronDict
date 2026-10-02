@@ -1220,10 +1220,10 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
    -------------------------------------------------------------------------- */
 .view { display: none; }
 .view.show { display: block; }
-.view.slide-l { animation: in-from-right 0.22s cubic-bezier(0.2, 0.9, 0.3, 1); }
-.view.slide-r { animation: in-from-left 0.22s cubic-bezier(0.2, 0.9, 0.3, 1); }
-@keyframes in-from-right { from { opacity: 0.4; transform: translateX(26px); } }
-@keyframes in-from-left { from { opacity: 0.4; transform: translateX(-26px); } }
+.view.slide-l { animation: in-from-right 0.26s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.view.slide-r { animation: in-from-left 0.26s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes in-from-right { from { opacity: 0; transform: translateX(44px); } }
+@keyframes in-from-left { from { opacity: 0; transform: translateX(-44px); } }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -1286,3 +1286,42 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
   font: inherit; font-size: 12px; font-weight: 650;
 }
 .toast-nut:hover { background: rgba(255,255,255,.26); }
+
+/* --------------------------------------------------------------------------
+   19. Thẻ học: hàng nút công tắc (Thích / Không thích / Đóng băng / …)
+   --------------------------------------------------------------------------
+   Hàng này là flex một dòng căn giữa: năm nút dài hơn bề ngang điện thoại nên
+   tràn CẢ HAI phía — nút đầu bị cắt mất nửa (căn giữa thì phần thừa ra bên trái
+   không cuộn tới được), nhãn bị bẻ thành 2-3 dòng trong những nút hẹp. Cho phép
+   xuống dòng, nhãn không bẻ, nút nhỏ lại một chút. */
+#stFav { flex-wrap: wrap; gap: 6px; }
+#stFav .btn { flex: 0 0 auto; padding: 7px 12px; font-size: 13px; }
+#stFav .btn .lb { white-space: nowrap; }
+/* Nút ghi âm đứng riêng một mình: không để lại khoảng trống lớn quanh nó. */
+#stGhiAm { margin-top: 4px !important; }
+#stGhiAm:empty { display: none; }
+
+/* --------------------------------------------------------------------------
+   Ngữ cảnh ngay dưới nghĩa: câu đã gặp từ ấy + bản dịch của câu
+   -------------------------------------------------------------------------- */
+.nguc {
+  margin-top: 8px;
+  padding: 8px 11px;
+  border-left: 3px solid var(--accent);
+  border-radius: 4px 12px 12px 4px;
+  background: var(--surface-2);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+}
+.nguc-cau { color: var(--ink-2); }
+.nguc-tu {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0 3px;
+}
+.nguc-dich { margin-top: 3px; color: var(--ink-3); font-size: 12.5px; }
+.nguc-dich:empty { display: none; }

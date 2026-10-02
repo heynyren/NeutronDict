@@ -131,13 +131,15 @@ console.log("\nKhông đi hỏi mạng để tìm từ mới");
   /*
    * Phân biệt cho đúng, không cấm nhầm.
    *
-   * `dt=rm` là lượt hỏi PHIÊN ÂM để dựng furigana — mục nào cũng cần, kể cả
-   * mục dẫn xuất, và nó không đẻ ra từ nào. Thứ phải cấm là `dt=bd` (endpoint
-   * TỪ ĐIỂN của gtx, trả về cả danh sách ứng viên cho một ý — chính là vòng
-   * dịch ngược) và dictionaryapi.dev cho tiếng Anh.
+   * Mọi lượt gtx giờ đều xin chung dt=t+dt=bd+dt=rm (xem gtxData, để một lượt
+   * phục vụ cả bản dịch lẫn furigana), nên `dt=bd` không còn phân biệt được
+   * gì. Lượt hỏi ja→vi là PHIÊN ÂM để dựng furigana — mục nào cũng cần, kể cả
+   * mục dẫn xuất, và nó không đẻ ra từ nào. Thứ phải cấm là CHẶNG DỊCH NGƯỢC
+   * (vi→ja: trả về cả danh sách ứng viên cho một ý — cỗ máy đẻ từ) và
+   * dictionaryapi.dev cho tiếng Anh.
    */
-  const deTu = ds.filter((u) => /dt=bd/.test(u) || /dictionaryapi\.dev/.test(u));
-  const doc = ds.filter((u) => /dt=rm/.test(u));
+  const deTu = ds.filter((u) => /[?&]sl=vi&/.test(u) || /dictionaryapi\.dev/.test(u));
+  const doc = ds.filter((u) => /sl=ja&/.test(u) && /dt=rm/.test(u));
   soat("không gọi tầng dịch-ngược hay từ điển để đẻ từ mới", deTu.length === 0,
        deTu.slice(0, 2).join(" | ") || "0 lượt");
   soat("nhưng lượt hỏi phiên âm để dựng furigana thì vẫn được — nó không đẻ từ nào",
