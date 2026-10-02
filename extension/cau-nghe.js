@@ -133,5 +133,41 @@
         cau.replace(/[。．.!?！？\s]/g, "") === tu.replace(/\s/g, "")) return "";
     return cau;
   }
-  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe };
+
+  /**
+   * Dữ liệu để HIỂN THỊ ngữ cảnh của một mục sổ tay: câu chứa từ, bản dịch của
+   * câu, và vị trí của từ trong câu (để tô đậm).
+   *
+   * Khác `tuNguon`: cái kia chọn câu cho BÀI NGHE nên khắt khe (≤220 chữ, bỏ cả
+   * câu cụt). Ở đây chỉ cần cho người học THẤY từ ấy đã gặp trong câu nào, nên
+   * lấy câu đã moi sẵn (`cauNghe.cau`), không có thì lấy ngữ cảnh gốc `src` —
+   * hiện được là hiện, miễn là không dài tới mức thành cả đoạn văn.
+   *
+   * Bản dịch lấy ở `cauNghe.dich`, hoặc `src.cauDich` với câu không đủ điều kiện
+   * làm bài nghe. Trả null khi không có câu nào đáng hiện (mục là CÂU thì khỏi:
+   * chữ của nó đã là câu rồi).
+   *
+   * @returns {{cau:string, dich:string, tu:?number[]}|null}
+   */
+  function hienThi(it) {
+    if (!it || it.del || it.kind === "sent") return null;
+    const w = String(it.word || "").trim();
+    if (!w) return null;
+    let cau = (it.cauNghe && it.cauNghe.cau) ? String(it.cauNghe.cau) : "";
+    if (!cau && it.src) {
+      let c = null;
+      try { c = nguCanh(it.src, w); } catch (e) { c = null; }
+      cau = (c && c.cau) || String(it.src.cau || "");
+    }
+    cau = cau.replace(/\s+/g, " ").trim();
+    if (!cau || cau.length > 600) return null;
+    if (cau.replace(/[。．.!?！？…\s]/g, "") === w.replace(/\s/g, "")) return null;
+    let dich = "";
+    if (it.cauNghe && it.cauNghe.dich && String(it.cauNghe.cau).replace(/\s+/g, " ").trim() === cau) dich = it.cauNghe.dich;
+    else if (it.src && it.src.cauDich) dich = it.src.cauDich;
+    const thap = cau.toLowerCase();
+    const i = thap.length === cau.length ? thap.indexOf(w.toLowerCase()) : cau.indexOf(w);
+    return { cau, dich: String(dich).trim(), tu: i >= 0 ? [i, i + w.length] : null };
+  }
+  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe, hienThi };
 })(typeof self !== "undefined" ? self : this);

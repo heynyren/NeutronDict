@@ -89,19 +89,91 @@ function donDich(s) {
 // dù câu ngắn. Xoay sang cổng Google khác (clients5) khi cổng chính bị chặn:
 // hai cổng đếm riêng nên thường một cái còn sống. Cùng đường /translate_a/single
 // nên dạng dữ liệu y hệt.
+//
+// Cách cũ thử TUẦN TỰ: cổng treo thì chờ trọn hạn rồi mới sang cổng kia. Giờ là
+// ĐUA — cổng đầu đi ngay, sau GTX_DO_TRE ms chưa có tin thì cổng kế đi song
+// song, ai về trước thắng; lượt trượt thì cổng kế đi LUÔN. Cổng vừa trượt bị
+// xếp xuống cuối hàng một lúc (gtxXau). CapacitorHttp không huỷ được request
+// đang bay, nên lượt thua chỉ bị bỏ qua kết quả.
 const GTX_HOST = [
-  "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=bd",
-  "https://clients5.google.com/translate_a/single?client=gtx&dt=t&dt=bd"
+  "https://translate.googleapis.com/translate_a/single?client=gtx&",
+  "https://clients5.google.com/translate_a/single?client=gtx&"
 ];
-async function gtxData(from, to, text) {
-  const duoi = "&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to)
-    + "&q=" + encodeURIComponent(text);
-  let cuoi = null;
-  for (const h of GTX_HOST) {
-    try { return await httpGetJson(h + duoi, { "User-Agent": GTX_UA }); }
-    catch (e) { cuoi = e; }   // cổng này chặn -> thử cổng sau
+const GTX_DO_TRE = 1000;
+const GTX_HAN = 7000;           // hạn cho cả lượt đua
+const GTX_XAU_MS = 45000;
+const gtxXau = {};
+function gtxLanhCong(h) { return !gtxXau[h] || Date.now() - gtxXau[h] > GTX_XAU_MS; }
+/** Mọi cổng đều vừa trượt: gọi tiếp gần như chắc chắn trượt, nên đi đường khác ngay. */
+function gtxChet() { return GTX_HOST.every((h) => !gtxLanhCong(h)); }
+
+/** Chờ một lời hứa nhưng không quá `ms` — request đang bay thì cứ để nó bay. */
+function conHan(p, ms) {
+  return new Promise((xong, hong) => {
+    const t = setTimeout(() => hong(new Error(T("Quá hạn chờ"))), ms);
+    p.then((v) => { clearTimeout(t); xong(v); }, (e) => { clearTimeout(t); hong(e); });
+  });
+}
+
+function gtxLay(params, enc) {
+  const hosts = GTX_HOST.filter(gtxLanhCong).concat(GTX_HOST.filter((h) => !gtxLanhCong(h)));
+  return new Promise((xong, hong) => {
+    let ke = 0, dang = 0, het = false, loi = null, hen = null;
+    const thoat = (fn, v) => { if (het) return; het = true; clearTimeout(hen); clearTimeout(tong); fn(v); };
+    const tong = setTimeout(() => thoat(hong, loi || new Error("gtx: quá hạn")), GTX_HAN);
+    const tiep = () => {
+      if (het) return;
+      if (ke >= hosts.length) { if (!dang) thoat(hong, loi || new Error("gtx: mọi cổng đều trượt")); return; }
+      const h = hosts[ke++];
+      dang++;
+      httpGetJson(h + params + "&q=" + enc, { "User-Agent": GTX_UA }).then((data) => {
+        if (!Array.isArray(data) || !Array.isArray(data[0])) throw new Error("gtx: dữ liệu lạ");
+        delete gtxXau[h];
+        thoat(xong, data);
+      }).catch((e) => {
+        dang--;
+        if (het) return;
+        loi = e; gtxXau[h] = Date.now();
+        clearTimeout(hen);
+        tiep();
+      });
+      clearTimeout(hen);
+      if (ke < hosts.length) hen = setTimeout(tiep, GTX_DO_TRE);
+    };
+    tiep();
+  });
+}
+
+// Đệm RAM + gộp lượt gọi trùng: bôi đen một từ là bắn cùng lúc tra từ và dịch,
+// mà với một từ thì hai việc hỏi Google đúng một câu như nhau. Luôn xin
+// dt=t + dt=bd + dt=rm trong MỘT lượt (bản dịch, nghĩa theo loại từ, phiên âm).
+const gtxDem = new Map();
+const gtxBay = new Map();
+const GTX_DEM_MAX = 400;
+const GTX_DEM_TTL = 15 * 60000;
+function gtxData(from, to, text) {
+  const q = donDich(text);
+  if (!q) return Promise.reject(new Error("gtx: rỗng"));
+  const khoa = from + ">" + to + ":" + q;
+  const c = gtxDem.get(khoa);
+  if (c && Date.now() - c.ts < GTX_DEM_TTL) return Promise.resolve(c.data);
+  if (gtxBay.has(khoa)) return gtxBay.get(khoa);
+  const params = "dt=t&dt=bd&dt=rm&sl=" + encodeURIComponent(from) + "&tl=" + encodeURIComponent(to);
+  const p = gtxLay(params, encodeURIComponent(q)).then((data) => {
+    if (gtxDem.size >= GTX_DEM_MAX) gtxDem.delete(gtxDem.keys().next().value);
+    gtxDem.set(khoa, { data, ts: Date.now() });
+    return data;
+  }).finally(() => { gtxBay.delete(khoa); });
+  gtxBay.set(khoa, p);
+  return p;
+}
+/** Phiên âm La-tinh trong dữ liệu gtx: [2] của BẢN DỊCH, [3] của CHUỖI GỐC. */
+function gtxRomaji(data, ai) {
+  let rm = "";
+  for (const seg of ((data && data[0]) || [])) {
+    if (seg && seg[0] == null && typeof seg[ai] === "string") rm += seg[ai];
   }
-  throw (cuoi || new Error("gtx: mọi cổng đều trượt"));
+  return rm.replace(/\s+/g, " ").trim();
 }
 function gtxMain(data) { return ((data && data[0]) || []).map((s) => (s && s[0]) || "").join("").trim(); }
 function gtxSenses(data) {
@@ -127,10 +199,47 @@ function meansFromSenses(main, senses) {
   }
   return out.slice(0, 6);
 }
+/**
+ * Nghĩa của một từ/cụm: Google Dịch trực tiếp, Apps Script làm dự phòng.
+ *
+ * Chạy ĐUA chứ không nối đuôi: gtx đi ngay; trượt thì Apps Script đi LUÔN, chỉ
+ * chậm thì sau DO_TRE_AS ms mới bắn song song — người dùng không phải chờ gtx
+ * chết hẳn mới được thử đường dự phòng. Chưa cấu hình Apps Script thì đường ấy
+ * trả rỗng ngay. `data` chỉ có khi đi đường gtx (kèm phiên âm).
+ */
+const DO_TRE_AS = 2500;
+async function dichMayChu(text, f, t) {
+  try {
+    const cfg = await layCfg(NGU);
+    if (!cfg.url) return "";
+    const r = await conHan(httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text, from: f, to: t }, "text/plain;charset=utf-8"), 12000);
+    return (r && r.ok !== false) ? String(r.text || r.translation || r.result || "") : "";
+  } catch (e) { return ""; }
+}
+function dichTu(text, from, to) {
+  const q = donDich(text);
+  return new Promise((xong, hong) => {
+    let het = false, gtxHong = false, asHong = false, asBay = false, loi = null, hen = null;
+    const thang = (v) => { if (!het) { het = true; clearTimeout(hen); xong(v); } };
+    const kiemHet = () => { if (!het && gtxHong && asHong) { het = true; hong(loi); } };
+    const batAs = () => {
+      if (asBay) return;
+      asBay = true; clearTimeout(hen);
+      dichMayChu(q, from, to).then((t) => {
+        if (t && t.trim()) thang({ main: t.trim(), senses: [], data: null });
+        else { asHong = true; kiemHet(); }
+      }, () => { asHong = true; kiemHet(); });
+    };
+    gtxData(from, to, q).then((data) => {
+      thang({ main: gtxMain(data), senses: gtxSenses(data), data });
+    }, (e) => { loi = e; gtxHong = true; batAs(); kiemHet(); });
+    if (gtxChet()) batAs(); else hen = setTimeout(batAs, DO_TRE_AS);
+  });
+}
 async function gtxTranslate(text, f, t) {
-  const out = gtxMain(await gtxData(f || "en", t || "vi", text));
-  if (!out) throw new Error(T("gtx rỗng"));
-  return out;
+  const g = await dichTu(text, f || "en", t || "vi");
+  if (!g.main) throw new Error(T("gtx rỗng"));
+  return g.main;
 }
 async function gtxTranslateDetect(text, to) {
   const data = await gtxData("auto", to || "vi", text);
@@ -138,7 +247,7 @@ async function gtxTranslateDetect(text, to) {
 }
 async function gtxDict(text, from, to) {
   const data = await gtxData(from, to, text);
-  return { main: gtxMain(data), senses: gtxSenses(data) };
+  return { main: gtxMain(data), senses: gtxSenses(data), data };
 }
 
 // Có phải tiếng Việt (có dấu) không — nhận diện nhanh trước khi gọi mạng.
@@ -884,11 +993,26 @@ async function veChuoiNgay() {
 /* ==================================================================== */
 
 let lastLookupError = "";
-async function fetchDictionary(word) {
-  try {
-    const data = await httpGetJson(DICT_API + encodeURIComponent(word.toLowerCase()));
-    return Array.isArray(data) ? data : null;
-  } catch (e) { return null; }
+// Có hạn giờ và có đệm: dictionaryapi.dev chậm/treo thì chỉ IPA và định nghĩa
+// mất, nghĩa tiếng Việt vẫn ra. Lỗi mạng không được nhớ — lần sau còn thử lại.
+const dictDem = new Map();
+const dictBay = new Map();
+function fetchDictionary(word) {
+  const w = String(word || "").toLowerCase().trim();
+  if (!w) return Promise.resolve(null);
+  if (dictDem.has(w)) return Promise.resolve(dictDem.get(w));
+  if (dictBay.has(w)) return dictBay.get(w);
+  const p = (async () => {
+    try {
+      const data = await conHan(httpGetJson(DICT_API + encodeURIComponent(w)), 3500);
+      const ra = Array.isArray(data) ? data : null;
+      if (dictDem.size >= 600) dictDem.delete(dictDem.keys().next().value);
+      dictDem.set(w, ra);
+      return ra;
+    } catch (e) { return null; }   // gồm cả 404: httpGetJson ném "HTTP 404", thử lại lần sau cũng rẻ
+  })().finally(() => { dictBay.delete(w); });
+  dictBay.set(w, p);
+  return p;
 }
 function ipaFrom(dd) {
   for (const d of dd) {
@@ -923,20 +1047,14 @@ function posFrom(dd) {
 }
 function firstDefOf(pos) { for (const g of pos) for (const d of g.defs) if (d.def) return d.def; return ""; }
 
-function normMeans(e) {
-  if (Array.isArray(e.means)) return e.means.map((m) => (typeof m === "string" ? m : (m.mean || m.means || m.text || ""))).filter(Boolean);
-  if (typeof e.mean === "string") return [e.mean];
-  if (typeof e.short_mean === "string") return [e.short_mean];
-  return [];
-}
-
 /* ====================================================================== */
 /* Furigana                                                               */
 /* ====================================================================== */
 /*
- * Mazii cho cách đọc của phần lớn từ, nhưng không phải tất cả — và chỗ nó cho
- * cũng không đồng nhất: 「金融」 ra きんゆう, còn 「奪われます」 lại ra
- * "Ubawa remasu". Mục nằm trong sổ mà không đọc nổi thì đến buổi ôn là bỏ qua.
+ * Cách đọc của từ tiếng Nhật đến từ phiên âm La-tinh Google Dịch trả cùng lượt
+ * với bản dịch (dt=rm), rồi kana.js đổi ngược về hiragana. Chỗ nào còn romaji
+ * hay còn trắng thì vá ở đây: một mục nằm trong sổ mà không đọc nổi thì đến buổi
+ * ôn là bỏ qua.
  * Xem kana.js. Giống hệt bên extension, cố ý — hai bên dùng chung một sổ.
  */
 
@@ -946,17 +1064,12 @@ function hasJapanese(s) { return /[぀-ヿ㐀-鿿ｦ-ﾟ]/.test(s || ""); }
 const kanaDem = new Map();
 let dangVaFurigana = false;   // khoá, kẻo vá xong vẽ lại rồi lại vá tiếp thành vòng lặp
 
-/** Phiên âm La-tinh của một chuỗi tiếng Nhật, lấy từ endpoint gtx (dt=rm). */
+/**
+ * Phiên âm La-tinh của một chuỗi tiếng Nhật (dt=rm). Đi chung đường gtxData với
+ * bản dịch nên lượt tra từ vừa xong đã mang sẵn phiên âm trong đệm.
+ */
 async function romajiCua(text) {
-  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&dt=rm"
-    + "&sl=ja&tl=vi&q=" + encodeURIComponent(text);
-  const data = await httpGetJson(url);
-  // Google để phiên âm nguồn ở phần tử [3] của đoạn cuối (chỗ [0] rỗng).
-  let rm = "";
-  for (const seg of ((data && data[0]) || [])) {
-    if (seg && seg[0] == null && typeof seg[3] === "string") rm += seg[3];
-  }
-  return rm.replace(/\s+/g, " ").trim();
+  return gtxRomaji(await gtxData("ja", "vi", text), 3);
 }
 
 /**
@@ -977,6 +1090,7 @@ async function docKana(word, reading, choPhepMang) {
   if (san) return { doc: san, suy: false };
   if (!K.canDoc(w, reading) || !choPhepMang) return null;
   if (kanaDem.has(w)) { const c = kanaDem.get(w); return c ? { doc: c, suy: true } : null; }
+  if (gtxChet()) return null;      // mọi cổng Google vừa trượt: hỏi nữa chỉ làm nút Lưu đứng chờ
   let k = "";
   try { k = K.tuRomajiCum(await romajiCua(w)); } catch (e) { k = ""; }
   kanaDem.set(w, k);
@@ -1124,34 +1238,58 @@ async function vaFurigana(toiDa) {
   return keys.length + keysRb.length;
 }
 
-/** Tra từ tiếng Nhật qua Mazii (cùng đường với extension). */
-async function fetchMazii(word) {
-  for (const url of ["https://mazii.net/api/search", "https://mazii.net/api/search/"]) {
-    try {
-      const data = await httpPostJson(url, { dict: "javi", type: "word", query: word, limit: 20, page: 1 });
-      let arr = (data && (data.results || data.data)) || [];
-      if (!Array.isArray(arr)) arr = [];
-      const entries = arr.map((e) => ({
-        word: e.word || e.title || e.text || e.query || "",
-        reading: e.phonetic || e.pronounce || e.hiragana || "",
-        means: normMeans(e),
-        dict: "javi"
-      })).filter((x) => x.word || x.means.length);
-      if (entries.length) return entries;
-    } catch (e) { /* thử endpoint sau */ }
+/**
+ * Tra một từ TIẾNG NHẬT → Việt hoàn toàn bằng Google Dịch (giống extension):
+ * MỘT lượt cho bản dịch, nghĩa theo loại từ (dt=bd) và phiên âm La-tinh (dt=rm),
+ * rồi kana.js dựng lại cách đọc hiragana — cách đọc SUY RA nên đánh `docSuy`.
+ * Google Dịch không phải từ điển nên chỉ có MỘT mục, mang đúng chữ đã hỏi.
+ */
+async function lookupJa(word) {
+  let g = null;
+  try { g = await dichTu(word, "ja", "vi"); } catch (e) { g = null; }
+  if (!g) { lastLookupError = T("Chưa tra được (kiểm tra mạng)."); return []; }
+  const means = meansFromSenses(g.main, g.senses).filter((m) => m.trim() !== word);
+  if (!means.length) { lastLookupError = T("Không tìm thấy từ này"); return []; }
+  const K = window.Kana;
+  let reading = K.docSan(word), suy = false;
+  if (!reading && g.data && K.canDoc(word, "")) {
+    const k = K.tuRomajiCum(gtxRomaji(g.data, 3));
+    if (k) { reading = k; suy = true; kanaDem.set(word, k); }
   }
-  lastLookupError = T("Chưa tra được (kiểm tra mạng).");
-  return [];
+  const entry = { word, reading: reading || "", means, dict: "javi" };
+  if (suy) entry.docSuy = 1;
+  return [entry];
+}
+
+/** Việt → Nhật: cách đọc lấy luôn từ phiên âm của chính lượt dịch ([2] của dt=rm). */
+async function lookupViJa(word) {
+  let g = null;
+  try { g = await dichTu(word, "vi", "ja"); } catch (e) { g = null; }
+  const ja = g ? g.main : "";
+  if (!ja) { lastLookupError = T("Chưa dịch được sang tiếng Nhật (kiểm tra mạng)."); return []; }
+  const K = window.Kana;
+  const entry = { word: ja, reading: K.docSan(ja), means: [word], dict: "vija" };
+  if (!entry.reading && g.data && K.canDoc(ja, "")) {
+    const k = K.tuRomajiCum(gtxRomaji(g.data, 2));
+    if (k) { entry.reading = k; entry.docSuy = 1; kanaDem.set(ja, k); }
+  }
+  // Mấy cách nói khác cho cùng một ý — chọn được sắc thái thì câu mới tự nhiên.
+  const thay = [];
+  for (const sn of (g.senses || [])) for (const t of (sn.terms || [])) {
+    const x = String(t || "").trim();
+    if (x && x !== ja && thay.indexOf(x) < 0) thay.push(x);
+  }
+  const khac = thay.slice(0, 5).map((x) => ({ word: x, reading: "", means: [word], dict: "vija" }));
+  return themDoc([entry].concat(khac), 3);
 }
 
 async function lookup(word, dict) {
   const w = (word || "").trim();
   lastLookupError = "";
   if (!w) return [];
-  // Ngăn tiếng Nhật đi đường Mazii; phần dưới là đường tiếng Anh.
-  // Vá furigana ngay ở đây, để cái hiện trên màn và cái được lưu là một. Chỉ 4
-  // kết quả đầu được gọi mạng: đó là những cái người ta thật sự nhìn.
-  if (dict === "javi") return themDoc(await fetchMazii(w), 4);
+  // Tiếng Nhật đi đường Google Dịch; phần dưới là đường tiếng Anh.
+  if (dict === "javi") return lookupJa(w);
+  if (dict === "vija") return lookupViJa(w);
   // Tự động nhận diện
   if (dict === "auto") {
     if (looksVietnamese(w)) dict = "vien";
@@ -1168,7 +1306,7 @@ async function lookup(word, dict) {
     if (dict === "vien") {
       // Việt -> Anh: lấy từ tiếng Anh (nhiều lựa chọn) rồi làm giàu IPA/định nghĩa.
       let gv = null;
-      try { gv = await gtxDict(w, "vi", "en"); } catch (e) { gv = null; }
+      try { gv = await dichTu(w, "vi", "en"); } catch (e) { gv = null; }
       const en = gv ? gv.main : "";
       if (!en) { lastLookupError = T("Chưa dịch được sang tiếng Anh (kiểm tra mạng)."); return []; }
       const dd = await fetchDictionary(en);
@@ -1179,36 +1317,10 @@ async function lookup(word, dict) {
       };
       return [entry];
     }
-    if (dict === "vija") {
-      /*
-       * Việt -> Nhật. Dịch sang tiếng Nhật rồi TRA LẠI chính từ ấy bằng Mazii.
-       *
-       * Vì sao phải tra lại thay vì trả thẳng bản dịch: một từ tiếng Nhật trơ
-       * gần như luôn là chữ Hán, mà chữ Hán không có cách đọc thì người học
-       * không đọc lên được — tức là không dùng được để nói, đúng thứ họ cần.
-       */
-      let gv = null;
-      try { gv = await gtxDict(w, "vi", "ja"); } catch (e) { gv = null; }
-      const ja = gv ? gv.main : "";
-      if (!ja) { lastLookupError = T("Chưa dịch được sang tiếng Nhật (kiểm tra mạng)."); return []; }
-      const ds = await fetchMazii(ja).catch(() => []);
-      const trung = ds.find((x) => x.word === ja);
-      const entry = { word: ja, reading: trung ? trung.reading : "", means: [w], dict: "vija" };
-      if (!entry.reading) {
-        // Không tra được thì vẫn suy cách đọc, còn hơn để một dãy chữ Hán câm.
-        try {
-          const r = await docKana(ja, "", true);
-          if (r) { entry.reading = r.doc; if (r.suy) entry.docSuy = 1; }
-        } catch (e) { /* thôi vậy */ }
-      }
-      // Mấy cách nói khác cho cùng một ý — chọn được sắc thái thì câu mới tự nhiên.
-      const khac = ds.filter((x) => x.word && x.word !== ja).slice(0, 5);
-      return [entry].concat(khac.map((x) => Object.assign({}, x, { dict: "vija" })));
-    }
     // Anh -> Việt: nghĩa tiếng Việt NHIỀU TẦNG (dt=bd) + IPA/định nghĩa Anh ở tab Chi tiết.
     const [dd, gv] = await Promise.all([
       fetchDictionary(w),
-      gtxDict(w, "en", "vi").catch(() => null)
+      dichTu(w, "en", "vi").catch(() => null)
     ]);
     const pos = dd ? posFrom(dd) : [];
     const means = gv ? meansFromSenses(gv.main, gv.senses) : [];
@@ -1742,7 +1854,7 @@ function show(view, huong) {
 
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
-  if (view !== "Study")  if (view === "Notebook") { drawNotebook(); pullAndRefresh(); }
+  if (view !== "Study")  if (view === "Notebook") { drawNotebook().then(boiNguCanhCu); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
   if (view === "Grammar") window.NguPhapUI.lamMoi();
@@ -2421,14 +2533,24 @@ async function translateText(text, dir) {
   let from, to;
   if (dir === "auto") {
     if (looksVietnamese(t)) { from = "vi"; to = "en"; }
+    else if (/^[A-Za-z][A-Za-z'’-]*$/.test(t)) { from = "en"; to = "vi"; }   // một chữ Latin trơ: đi thẳng, chung lượt gọi với đường tra từ
     else {
       const ak = "auto>en:" + t;
       const ah = fresh(ak);
       if (ah) return { text: ah.v, target: ah.target || "en" };
+      // Hỏi MỘT lượt với đích tiếng Việt: nguồn là tiếng Anh (ca thường gặp nhất)
+      // thì đó đã là bản dịch cần dùng, khỏi gọi thêm lượt en→vi.
       let det = null;
-      try { det = await gtxTranslateDetect(t, "en"); } catch (e) {}
-      if (det && det.text && det.src && !det.src.startsWith("en")) { put(ak, det.text, "en"); await Store.set("trCache", cache); return { text: det.text, target: "en" }; }
-      from = "en"; to = "vi";
+      try { det = await gtxTranslateDetect(t, "vi"); } catch (e) {}
+      if (det && det.text && det.src && det.src.startsWith("en")) {
+        put("en>vi:" + t, det.text, "vi"); await Store.set("trCache", cache);
+        return { text: det.text, target: "vi" };
+      }
+      const laViet = !!(det && det.src && det.src.startsWith("vi"));
+      let d2 = null;
+      if (!laViet && det && det.src) { try { d2 = await gtxTranslateDetect(t, "en"); } catch (e) {} }
+      if (d2 && d2.text && d2.src && !d2.src.startsWith("en")) { put(ak, d2.text, "en"); await Store.set("trCache", cache); return { text: d2.text, target: "en" }; }
+      if (laViet) { from = "vi"; to = "en"; } else { from = "en"; to = "vi"; }
     }
   } else {
     // Hướng dịch phải tra theo BẢNG, không phải "vien thì Việt→Anh, còn lại
@@ -2444,16 +2566,14 @@ async function translateText(text, dir) {
   const key = from + ">" + to + ":" + t;
   const hit = fresh(key);
   if (hit) return { text: hit.v, target: to };
-  // 1) gtx của Google (xoay vòng cổng).  2) máy chủ Apps Script của người dùng.
+  // gtx của Google và máy chủ Apps Script chạy đua (xem dichTu); lấy cái ra trước.
   let out = "";
   try { out = await gtxTranslate(t, from, to); } catch (e) { out = ""; }
   if (!out) {
     const cfg = await layCfg(NGU);
-    if (!cfg.url) throw new Error(T("Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng."));
-    let r = null;
-    try { r = await httpPostJson(cfg.url, { token: cfg.token || "", action: "translate", text: t, from, to }, "text/plain;charset=utf-8"); } catch (e) { r = null; }
-    out = (r && r.ok !== false) ? String(r.text || r.translation || r.result || "") : "";
-    if (!out) throw new Error(T("Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút."));
+    throw new Error(cfg.url
+      ? T("Google đang tạm chặn dịch vì quá nhiều lượt, mà máy chủ dự phòng cũng chưa trả về được. Hãy thử lại sau ít phút.")
+      : T("Google đang tạm chặn dịch vì quá nhiều lượt. Thử lại sau ít phút, hoặc cấu hình đồng bộ để dùng máy chủ dự phòng."));
   }
   put(key, out, to); await Store.set("trCache", cache);
   return { text: out, target: to };
@@ -3217,6 +3337,33 @@ async function addLink(it) {
   syncSoon();
 }
 
+/**
+ * Bồi bản dịch ngữ cảnh cho những mục ĐÃ có trong sổ từ trước.
+ *
+ * Mở sổ tay là chạy một lượt, mỗi lượt tối đa 12 câu và 3 lượt dịch một lúc —
+ * mở sổ vài lần là đủ hết mà không biến việc mở sổ thành mấy trăm lượt gọi mạng.
+ * Xong thì vẽ lại sổ để bản dịch hiện ra.
+ */
+let dangBoiNguCanh = false;
+async function boiNguCanhCu() {
+  if (dangBoiNguCanh) return;
+  dangBoiNguCanh = true;
+  try {
+    const nb = await getNB();
+    const ks = Object.keys(nb).filter((k) => {
+      const h = window.CauNghe.hienThi(nb[k]);
+      return h && !h.dich;
+    }).slice(0, 12);
+    let ke = 0, duoc = 0;
+    await Promise.all(new Array(Math.min(3, ks.length)).fill(0).map(async () => {
+      while (ke < ks.length) {
+        try { if (await dichNguCanh(ks[ke++])) duoc++; } catch (e) { /* mục sau */ }
+      }
+    }));
+    if (duoc && manHienTai === "Notebook") drawNotebook();
+  } finally { dangBoiNguCanh = false; }
+}
+
 async function drawNotebook() {
   // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
   // Đi qua hàng đợi vì đây cũng là một lượt ghi, và drawNotebook() hay chạy
@@ -3425,6 +3572,9 @@ async function drawNotebook() {
       if (km) body.appendChild(el("div", "t-tiny faint", km));
     }
     if (it.means && it.means.length) body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
+    // Ngữ cảnh + bản dịch NGAY SAU nghĩa.
+    const ngc = khoiNguCanh(it, false);
+    if (ngc) body.appendChild(ngc);
     const mangNb = khoiLien(it, true);
     if (mangNb) body.appendChild(mangNb);
     if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
@@ -4336,10 +4486,6 @@ async function nghiaDs(ds) {
     if (nghiaDem.has(w)) { ra[w] = nghiaDem.get(w); return; }
     let m = "";
     try {
-      if (NGU === "ja") {
-        const e = (await fetchMazii(w).catch(() => [])).find((x) => x && x.word === w);
-        if (e && e.means && e.means.length) m = meanToStr(e.means[0]);
-      }
       if (!m) m = await gtxTranslate(w, NGU === "ja" ? "ja" : "en", "vi");
     } catch (e) { m = ""; }
     m = String(m || "").trim();
@@ -4373,8 +4519,8 @@ async function luuNhanhTu(word, dict, cum) {
   let en = null;
   try {
     const ds = await lookup(w, d);
-    // Mazii trả cả kết quả gần đúng — phải lấy đúng con chữ đang hỏi, không
-    // thì lưu nhầm một từ khác mang nghĩa của nó.
+    // Phải lấy đúng con chữ đang hỏi — chốt chặn để không bao giờ lưu nhầm một
+    // từ khác mang nghĩa của nó.
     en = (ds || []).find((x) => x && x.word === w) || null;
   } catch (e) { en = null; }
   if (!en) en = { word: w, reading: "", means: [] };
@@ -4737,6 +4883,69 @@ async function xongBaiLien() {
 if ($("stLienTiep")) $("stLienTiep").addEventListener("click", () => { if (tiepBaiLien) tiepBaiLien(); });
 if ($("stLienXong")) $("stLienXong").addEventListener("click", xongBaiLien);
 
+/**
+ * Dịch câu NGỮ CẢNH của một mục để hiện ngay dưới nghĩa (xem khoiNguCanh).
+ * Mục có câu nghe (`cauNghe`) thì lưu bản dịch ở đó, không thì ở `src.cauDich`.
+ * Ghi qua `capNhat` và KHÔNG đụng `ts`: máy tự bồi thêm, không phải người sửa.
+ */
+async function dichNguCanh(key) {
+  const nb = await getNB();
+  const it = nb[key];
+  const h = it && window.CauNghe.hienThi(it);
+  if (!h) return "";
+  if (h.dich) return h.dich;
+  const laJa = String(it.dict || "").indexOf("ja") === 0;
+  let dich = "";
+  try { dich = await gtxTranslate(h.cau, laJa ? "ja" : "en", "vi"); } catch (e) { dich = ""; }
+  if (!dich || dich.trim() === h.cau.trim()) return "";
+  await capNhat((n2) => {
+    const x = n2[key];
+    const hx = x && !x.del && window.CauNghe.hienThi(x);
+    if (!hx || hx.cau !== h.cau || hx.dich) return;
+    if (x.cauNghe && x.cauNghe.cau) n2[key] = Object.assign({}, x, { cauNghe: Object.assign({}, x.cauNghe, { dich }) });
+    else n2[key] = Object.assign({}, x, { src: Object.assign({}, x.src, { cauDich: dich }) });
+  });
+  return dich;
+}
+
+/**
+ * Khối NGỮ CẢNH đặt ngay dưới nghĩa của từ: câu đã gặp từ ấy (từ được tô đậm)
+ * và bản dịch của câu. Nghĩa từ điển là nghĩa chung; câu gốc mới cho thấy từ ấy
+ * đang mang nghĩa nào, nên hai thứ phải nằm sát nhau.
+ *
+ * Chưa có bản dịch: `tuDich` (thẻ học, người đang đứng chờ) thì xin dịch ngay;
+ * còn danh sách thì hiện nút "Dịch câu" — mở sổ hàng trăm mục mà tự bắn hàng
+ * trăm lượt mạng là tệ.
+ */
+function khoiNguCanh(it, tuDich) {
+  const h = window.CauNghe.hienThi(it);
+  if (!h) return null;
+  const box = el("div", "nguc");
+  const c = el("div", "nguc-cau");
+  if (h.tu) {
+    c.appendChild(document.createTextNode(h.cau.slice(0, h.tu[0])));
+    c.appendChild(el("mark", "nguc-tu", h.cau.slice(h.tu[0], h.tu[1])));
+    c.appendChild(document.createTextNode(h.cau.slice(h.tu[1])));
+  } else c.textContent = h.cau;
+  box.appendChild(c);
+  const d = el("div", "nguc-dich", h.dich);
+  box.appendChild(d);
+  if (!h.dich) {
+    const xin = async () => {
+      d.className = "nguc-dich";
+      d.onclick = null;
+      d.textContent = T("Đang dịch câu…");
+      let t = "";
+      try { t = await dichNguCanh(it.key); } catch (e) { t = ""; }
+      if (t) d.textContent = t;
+      else { d.className = "nguc-dich nut-lai"; d.textContent = T("Dịch câu"); d.onclick = xin; }
+    };
+    if (tuDich) xin();
+    else { d.className = "nguc-dich nut-lai"; d.textContent = T("Dịch câu"); d.onclick = xin; }
+  }
+  return box;
+}
+
 function revealCard() {
   const it = theCardHienTai();
   if (!it) return;
@@ -4764,6 +4973,11 @@ function revealCard() {
     const ul = document.createElement("ul");
     it.means.slice(0, 5).forEach((m) => ul.appendChild(el("li", null, m)));
     $("stMean").appendChild(ul);
+  }
+  // Ngữ cảnh + bản dịch ngay sau nghĩa. Thẻ NGHE đã bày cả câu ở trên rồi.
+  if (it._d !== "nghe") {
+    const ngc = khoiNguCanh(it, true);
+    if (ngc) $("stMean").appendChild(ngc);
   }
   /*
    * Mạng nghĩa hiện ở MẶT SAU, cùng chỗ với nghĩa. Mặt trước thì không được:

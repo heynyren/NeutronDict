@@ -2150,6 +2150,9 @@ function draw() {
     if (it.means && it.means.length) {
       body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
     }
+    // Ngữ cảnh + bản dịch NGAY SAU nghĩa.
+    const ngc = khoiNguCanh(it, false);
+    if (ngc) body.appendChild(ngc);
     const mang = khoiLien(it, true);
     if (mang) body.appendChild(mang);
     if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
@@ -2852,6 +2855,54 @@ function moTuLien(chu, coSan, b, cum) {
  * Hỏng thì phải thấy được, và phải bấm lại được: mạng chập một lượt không có
  * nghĩa là lượt sau cũng chập.
  */
+/**
+ * Khối NGỮ CẢNH đặt ngay dưới nghĩa của từ: câu đã gặp từ ấy (từ được tô đậm)
+ * và bản dịch của câu.
+ *
+ * Nghĩa trong từ điển là nghĩa chung; câu gốc mới cho thấy từ ấy đang mang nghĩa
+ * nào, nên hai thứ phải nằm sát nhau. Bản dịch chưa có thì:
+ *   - `tuDich` = true (thẻ học, người đang đứng chờ): xin dịch ngay;
+ *   - ngược lại (danh sách hàng trăm mục): hiện nút "Dịch câu" — không tự bắn
+ *     hàng trăm lượt gọi mạng chỉ vì mở sổ. Lượt bồi nền (boiThemDuong) sẽ dịch
+ *     dần, mở lần sau là có.
+ */
+function khoiNguCanh(it, tuDich) {
+  const h = window.CauNghe.hienThi(it);
+  if (!h) return null;
+  const box = el("div", "nguc");
+  const c = el("div", "nguc-cau");
+  if (h.tu) {
+    c.appendChild(document.createTextNode(h.cau.slice(0, h.tu[0])));
+    c.appendChild(el("mark", "nguc-tu", h.cau.slice(h.tu[0], h.tu[1])));
+    c.appendChild(document.createTextNode(h.cau.slice(h.tu[1])));
+  } else c.textContent = h.cau;
+  box.appendChild(c);
+  const d = el("div", "nguc-dich", h.dich);
+  box.appendChild(d);
+  if (!h.dich) {
+    const xin = () => {
+      d.className = "nguc-dich";
+      d.onclick = null;
+      d.textContent = T("Đang dịch câu…");
+      chrome.runtime.sendMessage({ type: "DICH_NGU_CANH", key: it.key }, (kq) => {
+        const t = (!chrome.runtime.lastError && kq && kq.ok && kq.dich) ? kq.dich : "";
+        if (t) {
+          d.textContent = t;
+          it.cauNghe = it.cauNghe ? Object.assign({}, it.cauNghe, { dich: t }) : it.cauNghe;
+          if (!it.cauNghe) it.src = Object.assign({}, it.src, { cauDich: t });
+        } else {
+          d.className = "nguc-dich nut-lai";
+          d.textContent = T("Dịch câu");
+          d.onclick = xin;
+        }
+      });
+    };
+    if (tuDich) xin();
+    else { d.className = "nguc-dich nut-lai"; d.textContent = T("Dịch câu"); d.onclick = xin; }
+  }
+  return box;
+}
+
 function xinDichCau(it, o) {
   const key = it.key;
   o.textContent = T("Đang dịch câu…");
@@ -2915,6 +2966,11 @@ function revealCard() {
     // KHÔNG xoá trắng ở đây: showCard() đã dọn rồi, mà chữ Hán thì dòng nét/bộ
     // vừa thêm phía trên cũng nằm trong ô này — xoá là mất.
     $("stMean").appendChild(ul);
+  }
+  // Ngữ cảnh + bản dịch ngay sau nghĩa. Thẻ NGHE đã bày cả câu ở trên rồi.
+  if (it._d !== "nghe") {
+    const ngc = khoiNguCanh(it, true);
+    if (ngc) $("stMean").appendChild(ngc);
   }
   /*
    * Mạng nghĩa hiện ở MẶT SAU, cùng chỗ với nghĩa.
@@ -4643,7 +4699,7 @@ function vaFurigana() {
  */
 function boiThemDuong() {
   try {
-    chrome.runtime.sendMessage({ type: "BOI_DUONG", toiDa: 12 }, (kq) => {
+    chrome.runtime.sendMessage({ type: "BOI_DUONG", toiDa: 24 }, (kq) => {
       if (chrome.runtime.lastError) return;
       if (kq && kq.ok && kq.count) load();
     });

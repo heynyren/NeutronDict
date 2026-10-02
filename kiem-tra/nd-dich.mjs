@@ -17,6 +17,10 @@ const ctx = await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(), "p
 let sw = ctx.serviceWorkers()[0];
 if (!sw) sw = await ctx.waitForEvent("serviceworker", { timeout: 20000 });
 const ID = sw.url().split("/")[2];
+for (let i = 0; i < 40; i++) {   // chờ chrome.storage sẵn sàng trong service worker
+  if (await sw.evaluate(() => !!(chrome.storage && chrome.storage.local)).catch(() => false)) break;
+  await new Promise((r) => setTimeout(r, 250));
+}
 const ket = [], loi = [];
 const soat = (t, d, c) => { ket.push(d); console.log("  " + (d ? "✓" : "✗") + " " + t + (c ? "  (" + c + ")" : "")); };
 console.log("Tab Dịch gọi đúng hướng");
