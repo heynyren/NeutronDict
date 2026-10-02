@@ -921,41 +921,78 @@ function choNapXong() {
   return Promise.race([huaNapDau, new Promise((r) => setTimeout(r, HAN_CHO_NAP))]);
 }
 
+/*
+ * Ngôn ngữ đã được đọc từ cài đặt chưa.
+ *
+ * `NGU` khởi đầu là "en" và chỉ được đặt đúng sau vài lượt `await` lúc khởi động.
+ * Nhưng `load()` còn được gọi từ chỗ khác (tin nhắn "vá furigana xong" của nền…),
+ * và nếu nó chạy TRƯỚC khi `NGU` có giá trị thật thì lọc sổ theo "en" — trên sổ
+ * tiếng Nhật là ra 0 mục — rồi vẫn đánh dấu `daNapXong`. Nút Học khi ấy thấy "đã
+ * nạp xong" và báo "không có mục nào đến hạn" trên một quyển sổ đầy từ tới hạn.
+ * Lỗi này có từ trước; bản cũ nạp chậm nên lượt chạy sớm hầu như luôn bị lượt
+ * khởi động đè lên, còn giờ nạp nhanh thì nó lộ ra. Nên mọi lượt nạp đều chờ ở đây.
+ */
+let nguSanSang;
+const huaNgu = new Promise((r) => { nguSanSang = r; });
+
 function load() {
   return (async () => {
+    // Trần chờ: cài đặt hỏng tới mức không đọc nổi thì vẫn phải nạp được sổ.
+    await Promise.race([huaNgu, new Promise((r) => setTimeout(r, 5000))]);
     try { await napSoTay(); }
     finally { daNapXong = true; moNapDau(); }
   })();
 }
 
+/**
+ * Sổ có cần vá dữ liệu cũ không — CHỈ ĐỌC, không sửa gì.
+ *
+ * `load()` chạy sau MỖI thao tác (xoá, đóng băng, thích, chuyển sổ…). Trước đây
+ * lần nào nó cũng mở một lượt đọc–sửa–ghi riêng chỉ để QUÉT sổ tìm mục cũ; sổ vài
+ * nghìn mục thì cái quét ấy cộng với một lượt đọc thứ hai đã ăn mấy trăm mili-giây
+ * mà gần như chẳng bao giờ có gì để vá. Giờ quét thẳng trên bản vừa đọc (vài
+ * mili-giây) và chỉ vào hàng đợi ghi khi THẬT SỰ có mục cần vá.
+ */
+function canVaSoCu(nb) {
+  for (const k in nb) {
+    const e = nb[k];
+    if (!e) continue;
+    if (Array.isArray(e.means) && e.means.some((m) => typeof m !== "string")) return true;
+    if (e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") return true;
+  }
+  return false;
+}
+
 async function napSoTay() {
-  // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
-  // Đi qua hàng đợi vì đây cũng là một lượt ghi, và load() hay chạy ngay sau
-  // một lượt chấm bài.
+  let s = await getStore();
   let daSuaCu = false;
-  await capNhatNeuDoi((nb) => {
-    for (const k in nb) {
-      const e = nb[k];
-      if (e && Array.isArray(e.means)) {
-        const nm = e.means.map(meanToStr);
-        if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+  if (canVaSoCu(s.nb)) {
+    // Khôi phục các mục cũ bị lưu nghĩa dạng object ("[object Object]") -> chuỗi.
+    // Đi qua hàng đợi vì đây cũng là một lượt ghi, và load() hay chạy ngay sau
+    // một lượt chấm bài.
+    await capNhatNeuDoi((nb) => {
+      for (const k in nb) {
+        const e = nb[k];
+        if (e && Array.isArray(e.means)) {
+          const nm = e.means.map(meanToStr);
+          if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+        }
+        // Đóng dấu mốc cho tiến độ ôn của các mục cũ.
+        //
+        // Trước đây `srs` không có mốc riêng, nên lúc gộp hai máy nó phải mượn
+        // mốc của cả mục — mà mốc đó nhảy theo mọi lần sửa ghi chú. Đóng dấu ngay
+        // BÂY GIỜ, bằng mốc hiện có, thì từ lần sửa sau trở đi mốc chấm bài đứng
+        // yên và cấp đã chấm không bị kéo tụt nữa. KHÔNG đụng vào `e.ts` — đây là
+        // vá tại chỗ, không phải một lượt sửa, đừng để nó kéo cả sổ lên cloud.
+        if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
+          e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
+          daSuaCu = true;
+        }
       }
-      // Đóng dấu mốc cho tiến độ ôn của các mục cũ.
-      //
-      // Trước đây `srs` không có mốc riêng, nên lúc gộp hai máy nó phải mượn
-      // mốc của cả mục — mà mốc đó nhảy theo mọi lần sửa ghi chú. Đóng dấu ngay
-      // BÂY GIỜ, bằng mốc hiện có, thì từ lần sửa sau trở đi mốc chấm bài đứng
-      // yên và cấp đã chấm không bị kéo tụt nữa. KHÔNG đụng vào `e.ts` — đây là
-      // vá tại chỗ, không phải một lượt sửa, đừng để nó kéo cả sổ lên cloud.
-      if (e && e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") {
-        e.srs = Object.assign({}, e.srs, { ts: e.ts || 0 });
-        daSuaCu = true;
-      }
-    }
-    return daSuaCu;
-  });
-  if (daSuaCu) syncSoon();
-  const s = await getStore();
+      return daSuaCu;
+    });
+    if (daSuaCu) { syncSoon(); s = await getStore(); }
+  }
   // Thu lại URL của lượt vẽ trước rồi bỏ những blob không mục nào còn trỏ tới.
   // Xoá một mục có ảnh mà không quét thì byte nằm lại trong IndexedDB mãi mãi.
   if (window.Anh) {
@@ -964,13 +1001,16 @@ async function napSoTay() {
   }
   // Sổ cũ chưa có nhãn ngôn ngữ thì suy từ mục đang dùng nó, rồi ghi lại một
   // lần cho xong — lần sau khỏi phải suy nữa.
-  const gan = await suaSoTay(async () => {
-    const fresh = await getStore();
-    const ra = window.Ngu.ganNguChoSo(fresh.decks, fresh.nb);
-    if (ra.doi) await chrome.storage.local.set({ decks: ra.decks });
-    return ra;
-  });
-  if (gan.doi) syncSoon();
+  let gan = window.Ngu.ganNguChoSo(s.decks, s.nb);
+  if (gan.doi) {
+    gan = await suaSoTay(async () => {
+      const fresh = await getStore();
+      const ra = window.Ngu.ganNguChoSo(fresh.decks, fresh.nb);
+      if (ra.doi) await chrome.storage.local.set({ decks: ra.decks });
+      return ra;
+    });
+    if (gan.doi) syncSoon();
+  }
   decks = window.Ngu.locSoCon(gan.decks, s.nb, NGU);
   // Chỉ lấy phần của ngôn ngữ đang bật. Hai thứ tiếng nằm chung một kho nhưng
   // khoá đã mang tiền tố sẵn ("javi:", "kanji:", "envi:"), nên lọc là đủ — dữ
@@ -1143,6 +1183,27 @@ async function deleteDeck() {
   syncSoon();
 }
 
+/**
+ * Sửa xong MỘT mục thì chỉ dựng lại đúng hàng đó + các con số trên đầu trang.
+ *
+ * Trước đây mọi nút trên hàng (thích, đóng băng, tắt mạng nghĩa, chuyển sổ) đều
+ * kết thúc bằng `load()`: đọc lại cả sổ rồi vẽ lại cả danh sách. Hàng không còn
+ * thuộc danh sách đang xem (đổi "thích" khi đang ở tab Thích…) thì biến mất.
+ * @param {object} it mục (chính phần tử của `items`, đã được sửa tại chỗ)
+ */
+function taiCho(it) {
+  const r = document.querySelector('#list .entry[data-key="' + CSS.escape(it.key) + '"]');
+  const rows = veDau();
+  drawDecks();
+  rowsHienTai = rows;
+  if (r) {
+    if (rows.some((x) => x.key === it.key)) r.replaceWith(veHang(it, activeDecks(), Date.now()));
+    else { chon.delete(it.key); r.remove(); }
+  }
+  if (!rows.length) veLoHang(true);
+  veThanhChon();
+}
+
 async function moveWord(key, deckId) {
   await capNhat((nb) => {
     const e = nb[key];
@@ -1152,7 +1213,9 @@ async function moveWord(key, deckId) {
     else ne.deck = deckId;
     nb[key] = ne;
   });
-  await load();
+  const it = items.find((x) => x.key === key);
+  if (it) { if (deckId === NONE) delete it.deck; else it.deck = deckId; taiCho(it); }
+  else await load();
   syncSoon();
 }
 
@@ -1542,7 +1605,7 @@ function favButtons(it, sauDo) {
     b.addEventListener("click", async (e) => {
       e.stopPropagation();
       it.fav = await setFav(it.key, val);
-      if (sauDo) sauDo(); else await load();
+      if (sauDo) sauDo(); else taiCho(it);
     });
     return b;
   };
@@ -1631,7 +1694,7 @@ function nutRutOn(it, sauDo) {
     e.stopPropagation();
     it.dongBang = (await datCo(it.key, "dongBang", !bang)) ? 1 : 0;
     if (!it.dongBang) delete it.dongBang;
-    if (sauDo) sauDo(); else await load();
+    if (sauDo) sauDo(); else taiCho(it);
   });
   wrap.appendChild(b1);
 
@@ -1646,7 +1709,7 @@ function nutRutOn(it, sauDo) {
     e.stopPropagation();
     it.mangTat = (await datCo(it.key, "mangTat", !tat)) ? 1 : 0;
     if (!it.mangTat) delete it.mangTat;
-    if (sauDo) sauDo(); else await load();
+    if (sauDo) sauDo(); else taiCho(it);
   });
   wrap.appendChild(b2);
   wrap.appendChild(window.LichRiengUI.nut(it, datLichRieng, async () => { await load(); }));
@@ -2046,7 +2109,13 @@ function veHangLoat(rows) {
   o.style.display = o.children.length ? "" : "none";
 }
 
-function draw() {
+/**
+ * Số đếm trên đầu trang (đang hiện bao nhiêu, bao nhiêu đến hạn) + khối thao tác
+ * hàng loạt. Tách khỏi `draw()` để xoá/sửa TẠI CHỖ cập nhật được các con số này
+ * mà không phải vẽ lại cả danh sách.
+ * @returns {object[]} các mục đang hiện (sau cả ngăn lẫn ô lọc)
+ */
+function veDau() {
   const kw = $("filter").value.trim().toLowerCase();
   const base = currentActiveSet();
   const rows = base.filter((it) => {
@@ -2072,7 +2141,35 @@ function draw() {
   else chip.style.display = "none";
 
   veHangLoat(rows);
+  return rows;
+}
 
+/*
+ * VẼ THEO LÔ.
+ *
+ * Đây là thủ phạm của cảnh "bấm xoá một từ mà đợi cả giây": `draw()` dựng DOM
+ * cho TẤT CẢ các mục — mỗi mục hàng chục phần tử, cả chục nút kèm icon SVG, một
+ * ô chọn sổ… — mà gần như mọi thao tác (xoá, đóng băng, thích, chuyển sổ) lại gọi
+ * `load()` rồi vẽ lại từ đầu. Đo trên sổ 1.500 từ: vẽ cả sổ mất ~2 giây, xoá một
+ * từ mất 2–3 giây, và trong suốt thời gian ấy luồng chính đứng im nên các nút
+ * khác cũng không ăn.
+ *
+ * Giờ chỉ dựng một trang (TRANG_HANG mục) rồi dựng tiếp khi cuộn tới gần cuối.
+ * Người ta chỉ nhìn thấy vài mục một lúc, nên chi phí mỗi lần vẽ không còn phụ
+ * thuộc vào kích thước sổ.
+ */
+const TRANG_HANG = 40;
+let rowsHienTai = [];
+let quanSatCuoi = null;
+
+function draw() {
+  const rows = veDau();
+  // Chỉ giữ lại những mục đang được chọn mà vẫn còn hiện: đổi ngăn / gõ lọc thì
+  // đừng để một lượt "Xoá" lỡ tay quét cả những từ người ta đã không còn nhìn thấy.
+  if (chon.size) {
+    const con = new Set(rows.map((it) => it.key));
+    for (const k of Array.from(chon)) if (!con.has(k)) chon.delete(k);
+  }
   const listEl = $("list");
   listEl.innerHTML = "";
 
@@ -2086,172 +2183,344 @@ function draw() {
     return;
   }
 
+  rowsHienTai = rows;
+  veLoHang(true);
+  veThanhChon();
+}
+
+/** Dựng thêm một trang hàng vào cuối danh sách (hoặc dựng lại từ đầu nếu `lai`). */
+function veLoHang(lai) {
+  const listEl = $("list");
+  if (quanSatCuoi) { quanSatCuoi.disconnect(); quanSatCuoi = null; }
+  if (lai) listEl.textContent = "";
+  else { const cu = $("listMore"); if (cu) cu.remove(); }
+
+  if (!rowsHienTai.length) {
+    const d = el("div", "empty");
+    d.appendChild(ic("notebook", { size: 40 }));
+    d.appendChild(el("div", null, active(items).length
+      ? T("Không có mục nào ở đây.")
+      : T("Chưa có mục nào. Tra một từ rồi bấm “Lưu”.")));
+    listEl.appendChild(d);
+    return;
+  }
+
   const dks = activeDecks();
   const now = Date.now();
+  const da = listEl.querySelectorAll(".entry").length;
+  const frag = document.createDocumentFragment();
+  for (const it of rowsHienTai.slice(da, da + TRANG_HANG)) frag.appendChild(veHang(it, dks, now));
+  listEl.appendChild(frag);
 
-  for (const it of rows) {
-    const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : ""));
-    const body = el("div", "body");
-
-    /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
-    const head = el("div", "head");
-    // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
-    // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
-    const wSpan = el("span", "w" + (NGU === "ja" ? " ja" : ""));
-    const rb = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
-    if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
-    else wSpan.textContent = it.word;
-    if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
-    head.appendChild(wSpan);
-    if (it.reading) {
-      const r = el("span", "r", it.reading);
-      // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
-      // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
-      if (it.docSuy) { r.classList.add("suy"); r.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"); }
-      head.appendChild(r);
+  if (da + TRANG_HANG < rowsHienTai.length) {
+    const con = rowsHienTai.length - da - TRANG_HANG;
+    const more = el("button", "list-more", T2("Hiện thêm {n} mục", { n: con }));
+    more.id = "listMore";
+    more.type = "button";
+    more.addEventListener("click", () => veLoHang(false));
+    listEl.appendChild(more);
+    // Cuộn tới gần cuối thì tự dựng tiếp; nút bên trên chỉ là đường lùi.
+    if ("IntersectionObserver" in window) {
+      quanSatCuoi = new IntersectionObserver((ds) => {
+        if (ds.some((d) => d.isIntersecting)) veLoHang(false);
+      }, { rootMargin: "900px 0px" });
+      quanSatCuoi.observe(more);
     }
-
-    const spk = nutIcon("speaker-high", T("Phát âm"), "", 17);
-    spk.addEventListener("click", () => speak(it.word, it.audio));
-    head.appendChild(spk);
-
-    // Ghi âm nằm NGAY CẠNH nút phát âm: nghe mẫu rồi đọc lại là một mạch, tách
-    // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
-    head.appendChild(cumGhiAm(it.key));
-
-    head.appendChild(favButtons(it));
-    head.appendChild(nutRutOn(it));
-    head.appendChild(el("span", "tag", dirLabel(it.dict)));
-    if (it.mEdit) {
-      const t = el("span", "tag edited");
-      t.appendChild(ic("pencil-simple", { size: 12 }));
-      t.appendChild(el("span", null, T("đã sửa")));
-      head.appendChild(t);
-    }
-    // Điểm và hạn ôn đi cùng một chỗ: biết "đến hạn" mà không biết mình đang ở
-    // đâu thì không thấy được là đã tiến tới đâu — mà đó mới là thứ giữ người
-    // ta ôn tiếp. Chip giờ BẤM ĐƯỢC: mở bảng bốn đường và ôn ngay bài còn lại.
-    head.appendChild(chipDiem(it, now));
-    if (it.deck && deckName(it.deck) && current === ALL) {
-      const t = el("span", "tag");
-      t.appendChild(ic("folder-simple", { size: 12 }));
-      t.appendChild(el("span", null, deckName(it.deck)));
-      head.appendChild(t);
-    }
-    body.appendChild(head);
-
-    /* --- Hán Việt, nghĩa, ghi chú --- */
-    const hvStr = hanVietOf(it.word);
-    if (hvStr) body.appendChild(el("div", "hv", T2("Hán Việt: {am}", { am: hvStr })));
-    if (it.dict === "kanji") {
-      const meta = window.HanTu.META(it.kanji);
-      if (meta) body.appendChild(el("div", "t-tiny faint", meta));
-    }
-    if (it.means && it.means.length) {
-      body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
-    }
-    // Ngữ cảnh + bản dịch NGAY SAU nghĩa.
-    const ngc = khoiNguCanh(it, false);
-    if (ngc) body.appendChild(ngc);
-    const mang = khoiLien(it, true);
-    if (mang) body.appendChild(mang);
-    if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
-    if (it.anh && it.anh.length) {
-      const hang = el("div", "anh-hang");
-      it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
-      body.appendChild(hang);
-    }
-
-    /* --- dòng chân: nguồn + thời gian --- */
-    const meta = el("div", "meta");
-    if (it.src && it.src.url) {
-      const s = el("span", "srcline");
-      const yt = it.src.yt;
-      if (yt && yt.v) {
-        // Nguồn video thì cái đáng hiện là PHÚT THỨ MẤY, không phải "youtube.com".
-        s.appendChild(ic("subtitles", { size: 13 }));
-        s.appendChild(el("span", null, "YouTube · " + giay(yt.t)));
-        s.title = T2("Nghe lại: {ten}", { ten: (it.src.title || "") + (yt.kenh ? " — " + yt.kenh : "") });
-      } else {
-        let hostn = it.src.url;
-        try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
-        s.appendChild(ic("link-simple", { size: 13 }));
-        s.appendChild(el("span", null, hostn));
-        s.title = T2("Lưu từ: {nguon}", { nguon: it.src.title || it.src.url });
-      }
-      meta.appendChild(s);
-    }
-    meta.appendChild(el("span", null, fmtDate(it.ts)));
-    body.appendChild(meta);
-
-    row.appendChild(body);
-
-    /* --- cột điều khiển bên phải --- */
-    const ctl = el("div", "ctl");
-
-    const hang = el("div", "rowx");
-    hang.style.gap = "2px";
-
-    // Hỏi Gemini đứng ĐẦU hàng: mấy nút còn lại đều là sửa cái đã có, nút này
-    // là đi hỏi thêm — việc khác loại, và là việc hay cần nhất lúc gặp lại một
-    // từ mà không nhớ nó nằm trong câu nào.
-    hang.appendChild(nutGemini(it));
-
-    const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 17);
-    sua.addEventListener("click", () => moSua(it, "trans"));
-    hang.appendChild(sua);
-
-    const gc = nutIcon("note-pencil", it.note ? T("Sửa ghi chú") : T("Thêm ghi chú"), it.note ? "on" : "", 17);
-    gc.addEventListener("click", () => moSua(it, "note"));
-    hang.appendChild(gc);
-
-    // Nút nguồn hiện CẢ KHI mục chưa có link: bấm vào là thêm được. Trước đây nút
-    // này biến mất khi không có nguồn, nên một mục lỡ lưu thiếu link thì trong sổ
-    // tay không còn đường nào chữa lại.
-    {
-      const laYt = !!(it.src && it.src.yt && it.src.yt.v);
-      const coLink = !!(it.src && it.src.url);
-      const open = nutIcon(laYt ? "subtitles" : "link-simple",
-        laYt ? T2("Nghe lại đúng chỗ này trong video ({t})", { t: giay(it.src.yt.t) })
-             : coLink ? T("Mở lại trang nguồn và tô sáng vị trí đã lưu")
-             : T("Thêm link nguồn"), coLink ? "" : "faint", 17);
-      open.addEventListener("click", () => { if (coLink) openSource(it); else moSua(it, "link"); });
-      // Chuột phải vào nút = sửa/bỏ link, khỏi phải mở hộp sửa rồi mò xuống dưới.
-      open.addEventListener("contextmenu", (ev) => { ev.preventDefault(); moSua(it, "link"); });
-      hang.appendChild(open);
-    }
-
-    const del = nutIcon("trash", T("Xoá khỏi sổ tay"), "danger", 17);
-    del.addEventListener("click", async () => {
-      await capNhat((nb) => {
-        if (nb[it.key]) nb[it.key] = window.Muc.biaMo(nb[it.key]);
-      });
-      await load();
-      syncSoon();
-      toast(T2("Đã xoá “{tu}”", { tu: it.word.slice(0, 24) }));
-    });
-    hang.appendChild(del);
-    ctl.appendChild(hang);
-
-    const sel = document.createElement("select");
-    sel.title = T("Chuyển vào sổ");
-    sel.style.cssText = "font-size:12.5px;padding:6px 8px;max-width:150px;border-radius:var(--r-xs)";
-    const optNone = document.createElement("option");
-    optNone.value = NONE; optNone.textContent = T("Chưa phân loại");
-    sel.appendChild(optNone);
-    dks.forEach((d) => {
-      const o = document.createElement("option");
-      o.value = d.id; o.textContent = d.name;
-      sel.appendChild(o);
-    });
-    sel.value = it.deck && deckName(it.deck) ? it.deck : NONE;
-    sel.addEventListener("change", () => moveWord(it.key, sel.value));
-    ctl.appendChild(sel);
-
-    row.appendChild(ctl);
-    listEl.appendChild(row);
   }
 }
+
+/** Dựng DOM cho MỘT mục sổ tay. */
+function veHang(it, dks, now) {
+  const row = el("div", "entry" + (it.kind === "sent" ? " sent" : "") + (it.dict === "kanji" ? " kanji" : "")
+    + (chon.has(it.key) ? " chon" : ""));
+  row.dataset.key = it.key;
+  // Ô chọn thay cho nút xoá từng mục: tích một hoặc nhiều từ rồi xoá một lượt.
+  const oChon = el("label", "chon-o");
+  oChon.title = T("Chọn từ này");
+  const hop = document.createElement("input");
+  hop.type = "checkbox";
+  hop.checked = chon.has(it.key);
+  hop.setAttribute("aria-label", T("Chọn từ này"));
+  hop.addEventListener("change", () => {
+    if (hop.checked) chon.add(it.key); else chon.delete(it.key);
+    row.classList.toggle("chon", hop.checked);
+    veThanhChon();
+  });
+  oChon.appendChild(hop);
+  row.appendChild(oChon);
+  const body = el("div", "body");
+
+  /* --- dòng đầu: từ, cách đọc, loa, nhãn --- */
+  const head = el("div", "head");
+  // Cả câu thì furigana nằm TRÊN từng khúc chữ Hán (ruby), không phải một dòng
+  // kana chạy dài ở bên cạnh — dòng đó đọc còn mệt hơn đọc chữ Hán.
+  const wSpan = el("span", "w" + (NGU === "ja" ? " ja" : ""));
+  const rb = (it.ruby && it.ruby.length) ? window.Kana.htmlRuby(it.word, it.ruby) : "";
+  if (rb) { wSpan.innerHTML = rb; wSpan.classList.add("co-ruby"); }
+  else wSpan.textContent = it.word;
+  if (rb && it.docSuy) wSpan.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn");
+  head.appendChild(wSpan);
+  if (it.reading) {
+    const r = el("span", "r", it.reading);
+    // Cách đọc suy từ phiên âm La-tinh có thể trật (ō là おう hay おお?), nên
+    // nói thẳng ra thay vì để người học tin nhầm là từ điển bảo thế.
+    if (it.docSuy) { r.classList.add("suy"); r.title = T("Cách đọc suy ra từ phiên âm, có thể chưa chuẩn"); }
+    head.appendChild(r);
+  }
+
+  const spk = nutIcon("speaker-high", T("Phát âm"), "", 17);
+  spk.addEventListener("click", () => speak(it.word, it.audio));
+  head.appendChild(spk);
+
+  // Ghi âm nằm NGAY CẠNH nút phát âm: nghe mẫu rồi đọc lại là một mạch, tách
+  // hai nút ra hai chỗ thì mỗi vòng đọc theo lại phải đi tìm.
+  head.appendChild(cumGhiAm(it.key));
+
+  head.appendChild(favButtons(it));
+  head.appendChild(nutRutOn(it));
+  head.appendChild(el("span", "tag", dirLabel(it.dict)));
+  if (it.mEdit) {
+    const t = el("span", "tag edited");
+    t.appendChild(ic("pencil-simple", { size: 12 }));
+    t.appendChild(el("span", null, T("đã sửa")));
+    head.appendChild(t);
+  }
+  // Điểm và hạn ôn đi cùng một chỗ: biết "đến hạn" mà không biết mình đang ở
+  // đâu thì không thấy được là đã tiến tới đâu — mà đó mới là thứ giữ người
+  // ta ôn tiếp. Chip giờ BẤM ĐƯỢC: mở bảng bốn đường và ôn ngay bài còn lại.
+  head.appendChild(chipDiem(it, now));
+  if (it.deck && deckName(it.deck) && current === ALL) {
+    const t = el("span", "tag");
+    t.appendChild(ic("folder-simple", { size: 12 }));
+    t.appendChild(el("span", null, deckName(it.deck)));
+    head.appendChild(t);
+  }
+  body.appendChild(head);
+
+  /* --- Hán Việt, nghĩa, ghi chú --- */
+  const hvStr = hanVietOf(it.word);
+  if (hvStr) body.appendChild(el("div", "hv", T2("Hán Việt: {am}", { am: hvStr })));
+  if (it.dict === "kanji") {
+    const meta = window.HanTu.META(it.kanji);
+    if (meta) body.appendChild(el("div", "t-tiny faint", meta));
+  }
+  if (it.means && it.means.length) {
+    body.appendChild(el("div", "m", it.means.slice(0, 4).join("; ")));
+  }
+  // Ngữ cảnh + bản dịch NGAY SAU nghĩa.
+  const ngc = khoiNguCanh(it, false);
+  if (ngc) body.appendChild(ngc);
+  const mang = khoiLien(it, true);
+  if (mang) body.appendChild(mang);
+  if (coGhiChu(it)) body.appendChild(khoiGhiChu((it.note || "").trim(), it.hoiAi));
+  if (it.anh && it.anh.length) {
+    const hang = el("div", "anh-hang");
+    it.anh.forEach((f) => hang.appendChild(oAnh(f, false)));
+    body.appendChild(hang);
+  }
+
+  /* --- dòng chân: nguồn + thời gian --- */
+  const meta = el("div", "meta");
+  if (it.src && it.src.url) {
+    const s = el("span", "srcline");
+    const yt = it.src.yt;
+    if (yt && yt.v) {
+      // Nguồn video thì cái đáng hiện là PHÚT THỨ MẤY, không phải "youtube.com".
+      s.appendChild(ic("subtitles", { size: 13 }));
+      s.appendChild(el("span", null, "YouTube · " + giay(yt.t)));
+      s.title = T2("Nghe lại: {ten}", { ten: (it.src.title || "") + (yt.kenh ? " — " + yt.kenh : "") });
+    } else {
+      let hostn = it.src.url;
+      try { hostn = new URL(it.src.url).hostname.replace(/^www\./, ""); } catch (e) {}
+      s.appendChild(ic("link-simple", { size: 13 }));
+      s.appendChild(el("span", null, hostn));
+      s.title = T2("Lưu từ: {nguon}", { nguon: it.src.title || it.src.url });
+    }
+    meta.appendChild(s);
+  }
+  meta.appendChild(el("span", null, fmtDate(it.ts)));
+  body.appendChild(meta);
+
+  row.appendChild(body);
+
+  /* --- cột điều khiển bên phải --- */
+  const ctl = el("div", "ctl");
+
+  const hang = el("div", "rowx");
+  hang.style.gap = "2px";
+
+  // Hỏi Gemini đứng ĐẦU hàng: mấy nút còn lại đều là sửa cái đã có, nút này
+  // là đi hỏi thêm — việc khác loại, và là việc hay cần nhất lúc gặp lại một
+  // từ mà không nhớ nó nằm trong câu nào.
+  hang.appendChild(nutGemini(it));
+
+  const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 17);
+  sua.addEventListener("click", () => moSua(it, "trans"));
+  hang.appendChild(sua);
+
+  const gc = nutIcon("note-pencil", it.note ? T("Sửa ghi chú") : T("Thêm ghi chú"), it.note ? "on" : "", 17);
+  gc.addEventListener("click", () => moSua(it, "note"));
+  hang.appendChild(gc);
+
+  // Nút nguồn hiện CẢ KHI mục chưa có link: bấm vào là thêm được. Trước đây nút
+  // này biến mất khi không có nguồn, nên một mục lỡ lưu thiếu link thì trong sổ
+  // tay không còn đường nào chữa lại.
+  {
+    const laYt = !!(it.src && it.src.yt && it.src.yt.v);
+    const coLink = !!(it.src && it.src.url);
+    const open = nutIcon(laYt ? "subtitles" : "link-simple",
+      laYt ? T2("Nghe lại đúng chỗ này trong video ({t})", { t: giay(it.src.yt.t) })
+           : coLink ? T("Mở lại trang nguồn và tô sáng vị trí đã lưu")
+           : T("Thêm link nguồn"), coLink ? "" : "faint", 17);
+    open.addEventListener("click", () => { if (coLink) openSource(it); else moSua(it, "link"); });
+    // Chuột phải vào nút = sửa/bỏ link, khỏi phải mở hộp sửa rồi mò xuống dưới.
+    open.addEventListener("contextmenu", (ev) => { ev.preventDefault(); moSua(it, "link"); });
+    hang.appendChild(open);
+  }
+
+  ctl.appendChild(hang);
+
+  const sel = document.createElement("select");
+  sel.title = T("Chuyển vào sổ");
+  sel.style.cssText = "font-size:12.5px;padding:6px 8px;max-width:150px;border-radius:var(--r-xs)";
+  const optNone = document.createElement("option");
+  optNone.value = NONE; optNone.textContent = T("Chưa phân loại");
+  sel.appendChild(optNone);
+  dks.forEach((d) => {
+    const o = document.createElement("option");
+    o.value = d.id; o.textContent = d.name;
+    sel.appendChild(o);
+  });
+  sel.value = it.deck && deckName(it.deck) ? it.deck : NONE;
+  sel.addEventListener("change", () => moveWord(it.key, sel.value));
+  ctl.appendChild(sel);
+
+  row.appendChild(ctl);
+  return row;
+}
+
+/* ==================================================================== */
+/* Chọn nhiều + xoá hàng loạt                                           */
+/* ==================================================================== */
+/*
+ * Thay cho nút thùng rác trên từng hàng. Nút ấy vừa dễ bấm nhầm (nằm sát mấy nút
+ * sửa), vừa buộc người dùng xoá từng từ một — dọn sổ mấy chục từ là mấy chục lần
+ * bấm. Giờ: tích ô ở đầu hàng (một hoặc nhiều từ), thanh hành động hiện ra, bấm
+ * "Xoá" thì một hộp xác nhận liệt kê các từ sắp xoá; đồng ý mới xoá, và xoá cả
+ * loạt trong MỘT lượt ghi. Chế độ HỌC có nút xoá riêng ("Đã thuộc hẳn") và giữ
+ * nguyên.
+ */
+const chon = new Set();
+
+function veThanhChon() {
+  const o = $("thanhChon");
+  if (!o) return;
+  const n = chon.size;
+  // Chỉ hiện ở màn Sổ tay: sang Tiến độ / Luyện nói thì thanh này vô nghĩa.
+  o.style.display = (n && $("viewList").classList.contains("show")) ? "" : "none";
+  if (!n) return;
+  $("chonSo").textContent = T2("Đã chọn {n}", { n });
+  const tatCa = rowsHienTai.length && rowsHienTai.every((it) => chon.has(it.key));
+  $("chonTatCa").textContent = tatCa ? T("Bỏ chọn tất cả") : T2("Chọn tất cả ({n})", { n: rowsHienTai.length });
+}
+
+/** Tích/bỏ tích mọi hàng đang hiện — kể cả những hàng chưa dựng vì ở xa phía dưới. */
+function chonTatCa(bat) {
+  if (bat) rowsHienTai.forEach((it) => chon.add(it.key)); else chon.clear();
+  document.querySelectorAll("#list .entry").forEach((r) => {
+    const co = chon.has(r.dataset.key);
+    r.classList.toggle("chon", co);
+    const h = r.querySelector(".chon-o input");
+    if (h) h.checked = co;
+  });
+  veThanhChon();
+}
+
+function moHopXoa() {
+  const ds = Array.from(chon).map((k) => items.find((it) => it.key === k)).filter(Boolean);
+  if (!ds.length) return;
+  $("xoaTieuDe").textContent = ds.length === 1
+    ? T("Xoá 1 từ khỏi sổ tay?")
+    : T2("Xoá {n} từ khỏi sổ tay?", { n: ds.length });
+  $("xoaPhu").textContent = T("Tiến độ ôn của các từ này sẽ mất. Nghĩa bạn đã sửa và ghi chú vẫn được giữ — tra lại từ đó vẫn ra bản bạn từng chốt.");
+  const ul = $("xoaDs");
+  ul.textContent = "";
+  ds.slice(0, 12).forEach((it) => ul.appendChild(el("li", null, it.word.slice(0, 60))));
+  if (ds.length > 12) ul.appendChild(el("li", "xoa-them", T2("… và {n} từ nữa", { n: ds.length - 12 })));
+  $("xoaOk").textContent = ds.length === 1 ? T("Xoá từ này") : T2("Xoá {n} từ", { n: ds.length });
+  $("xoaSheet").classList.add("show");
+  $("xoaHuy").focus();
+}
+function dongHopXoa() { $("xoaSheet").classList.remove("show"); }
+
+/**
+ * Xoá một loạt mục — TẠI CHỖ rồi mới ghi.
+ *
+ * Màn hình đổi NGAY (hàng biến mất, con số cập nhật) và việc ghi cả sổ xuống đĩa
+ * chạy sau lưng. Trước đây phải ghi xong, nạp lại cả sổ rồi vẽ lại toàn bộ danh
+ * sách mới thấy hàng biến mất. Ghi hỏng thì nạp lại để màn hình nói đúng sự thật.
+ */
+async function xoaCacMuc(keys) {
+  const bo = new Set(keys);
+  if (!bo.size) return;
+  const tenDau = (items.find((it) => bo.has(it.key)) || {}).word || "";
+
+  // 1) Màn hình
+  for (const it of items) if (bo.has(it.key)) it.del = true;
+  bo.forEach((k) => chon.delete(k));
+  const listEl = $("list");
+  listEl.querySelectorAll(".entry").forEach((r) => { if (bo.has(r.dataset.key)) r.remove(); });
+  rowsHienTai = veDau();
+  drawDecks();
+  if (!rowsHienTai.length) veLoHang(true);
+  else if (listEl.querySelectorAll(".entry").length < Math.min(TRANG_HANG, rowsHienTai.length)) veLoHang(false);
+  veThanhChon();
+  dongHopXoa();
+
+  // 2) Ổ đĩa
+  const cu = {};
+  try {
+    await capNhat((nb) => {
+      bo.forEach((k) => {
+        if (nb[k] && !nb[k].del) { cu[k] = nb[k]; nb[k] = window.Muc.biaMo(nb[k]); }
+      });
+    });
+  } catch (e) {
+    toast(T("Không xoá được — đã nạp lại sổ tay."), "bad");
+    await load();
+    return;
+  }
+  syncSoon();
+  getStore().then((s) => { if (window.Anh) window.Anh.quet(s.nb).catch(() => {}); }).catch(() => {});
+  const n = Object.keys(cu).length;
+  toast(n === 1 ? T2("Đã xoá “{tu}”", { tu: tenDau.slice(0, 24) }) : T2("Đã xoá {n} từ", { n }),
+    null, n ? { chu: T("Hoàn tác"), lam: () => hoanTacXoa(cu) } : null);
+}
+
+/** Đặt lại các mục vừa xoá, nguyên vẹn như trước khi xoá (kể cả tiến độ ôn). */
+async function hoanTacXoa(cu) {
+  await capNhat((nb) => {
+    for (const k in cu) nb[k] = Object.assign({}, cu[k], { ts: Date.now() });
+  });
+  await load();
+  syncSoon();
+  toast(T("Đã khôi phục"));
+}
+
+$("chonTatCa").addEventListener("click", () =>
+  chonTatCa(!(rowsHienTai.length && rowsHienTai.every((it) => chon.has(it.key)))));
+$("chonBo").addEventListener("click", () => chonTatCa(false));
+$("chonXoa").addEventListener("click", moHopXoa);
+$("xoaHuy").addEventListener("click", dongHopXoa);
+$("xoaOk").addEventListener("click", () => xoaCacMuc(Array.from(chon)));
+$("xoaSheet").addEventListener("click", (e) => { if (e.target === $("xoaSheet")) dongHopXoa(); });
+document.addEventListener("keydown", (e) => {
+  // Esc đóng hộp xoá; Delete mở nó khi đang có mục được chọn (và không đang gõ chữ).
+  if (e.key === "Escape" && $("xoaSheet").classList.contains("show")) { dongHopXoa(); return; }
+  const dangGo = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
+  if (e.key === "Delete" && chon.size && !dangGo && !document.querySelector(".sheet.show")) moHopXoa();
+});
+
 
 /* ==================================================================== */
 /* Buổi học                                                             */
@@ -4475,6 +4744,7 @@ function moMan(ten) {
   if (ten === "progress") { veTienDo(); veSoDo(); }
   if (ten === "speak") veLuyenNoi();
   if (ten === "grammar") window.NguPhapUI.lamMoi();
+  veThanhChon();
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
@@ -4814,6 +5084,7 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   await napChu();      // sau gaiIcon: nhãn do nó dựng ra mới có mặt để dịch
   const { settings } = await chrome.storage.local.get("settings");
   NGU = window.Ngu.hopLe((settings || {}).ngu);
+  nguSanSang();
   veNgu();
   await theoDoi.nap();
   await load();

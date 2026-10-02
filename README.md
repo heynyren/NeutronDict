@@ -29,6 +29,7 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
   lịch nhiệt 17 tuần, **24 huy hiệu** — cùng cơ chế với app Denken 3 Shuu, đồng bộ
   giữa máy tính và điện thoại. Xem `tien-do.js`.
 - **Ngữ cảnh ngay dưới nghĩa:** mỗi từ lưu từ trang web/PDF hiện kèm câu đã gặp nó (từ được tô đậm) và **bản dịch của câu**, nằm liền sau nghĩa — trong sổ tay lẫn mặt sau thẻ ôn. Mục cũ được tự bồi bản dịch dần mỗi lần mở sổ.
+- **Sổ tay nhanh và xoá hàng loạt:** danh sách vẽ theo lô (sổ vài nghìn từ vẫn mở trong nửa giây), mỗi nút trên hàng chỉ cập nhật đúng hàng đó. Nút xoá từng từ được thay bằng **ô tích chọn**: tích một hoặc nhiều từ → thanh hành động hiện ra → "Xoá…" mở hộp xác nhận liệt kê các từ sắp xoá, có **Hoàn tác**. Chế độ học vẫn có nút xoá riêng ("Đã thuộc hẳn").
 - **Sửa bản dịch & ghi chú:** mỗi mục trong sổ tay đều sửa lại được nghĩa cho đúng
   chuyên ngành, kèm một ô ghi chú riêng. Bản máy dịch ban đầu được giữ lại để khôi
   phục, và tra lại cùng một từ **không** làm mất công hiệu đính.

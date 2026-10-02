@@ -506,6 +506,27 @@
   </div>
 </div>
 
+<!-- Thanh hành động khi đang chọn nhiều mục trong sổ tay -->
+<div id="thanhChon" class="thanh-chon" style="display:none" role="toolbar">
+  <span id="chonSo" class="chon-so"></span>
+  <button id="chonTatCa" class="btn sm" type="button"></button>
+  <button id="chonBo" class="btn sm ghost" type="button" data-chu>Bỏ chọn</button>
+  <button id="chonXoa" class="btn sm danger" type="button"><span data-chu>Xoá…</span></button>
+</div>
+
+<!-- Hộp xác nhận xoá một hoặc nhiều từ đã chọn -->
+<div id="xoaSheet" class="sheet">
+  <div class="panel" style="max-width:420px">
+    <h3 id="xoaTieuDe"></h3>
+    <div class="sub" id="xoaPhu"></div>
+    <ul id="xoaDs" class="xoa-ds"></ul>
+    <div class="actions">
+      <button class="btn" id="xoaHuy" type="button" data-chu>Huỷ</button>
+      <button class="btn danger" id="xoaOk" type="button"></button>
+    </div>
+  </div>
+</div>
+
 <!-- ====================== Về tác giả ====================== -->
 <div id="aboutSheet" class="sheet">
   <div class="panel" style="max-width:430px">
