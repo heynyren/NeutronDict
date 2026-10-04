@@ -1358,9 +1358,5 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
 }
 .thanh-chon .chon-so { font-weight: 700; margin-right: 2px; white-space: nowrap; font-size: 13.5px; }
 .thanh-chon .btn { white-space: nowrap; padding: 8px 11px; font-size: 13px; }
-.xoa-ds { margin: 0 0 4px; padding: 10px 12px 10px 28px; max-height: 40vh; overflow: auto;
-  background: var(--surface-2); border-radius: 12px; font-size: 14.5px; }
-.xoa-ds li { margin: 3px 0; word-break: break-word; }
-.xoa-ds .xoa-them { list-style: none; margin-left: -16px; color: var(--ink-3); }
 .list-more { display: block; width: 100%; padding: 14px; border: 0; background: none;
   color: var(--accent); font-weight: 650; }

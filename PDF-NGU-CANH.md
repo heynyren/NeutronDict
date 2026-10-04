@@ -26,17 +26,26 @@ nghĩa hiệu đính và trạng thái đóng băng. Huy hiệu ✓句 xác nh�
 ? và thông báo popup cho biết lý do thiếu câu.
 
 ## Quay lại nguồn PDF
-- Lưu riêng URL nguồn (giữ fragment trang/zoom nếu có) và mã tab trong phiên Chrome.
-  `src.page` là trang của câu trích, KHÔNG phải tọa độ vùng bôi đen.
-- Khi tab nguồn vẫn còn: chuyển về chính tab đó, không tải lại, không chạy tìm
-  từ từ đầu file và không tạo cửa sổ/tab trùng. Giữ vị trí HIỆN TẠI của tab.
-- Khi tab đã đóng, chuyển sang tài liệu khác, bị discard, hoặc sau khi Chrome/extension
-  khởi động lại: mở URL kèm mốc đã lưu. Nếu không có mốc, dùng trang câu ngữ cảnh;
-  mục cũ thiếu cả hai vẫn dùng liên kết tìm chữ cũ.
+Đã đo trên trình xem PDF thật của Chrome: **cuộn không đổi URL**, và **đổi riêng `#page=N` của
+một tab đang mở thì trình xem không nhảy** (URL đổi mà trang vẫn đứng yên). Chỉ nạp lại
+tab với `#page=N` mới đáp đúng trang. Các open-parameter `zoom=…,left,top` / `view=FitH,top`
+bị trình xem bỏ qua, nên chỉ định vị được tới **trang**, không tới dòng.
+
+- **Chọn trang lúc lưu.** Từ xuất hiện nhiều lần thì "câu đầu tiên theo thứ tự tài liệu" thường
+  không phải câu bạn vừa bôi. Extension không biết trang đang xem (Chrome không cho), nên dùng hai
+  dấu vết: trang của lần lưu **gần nhất** từ cùng tài liệu (trong 6 giờ — người ta đọc tuần tự)
+  và mốc `#page=` trong URL lúc mở. Có gợi ý thì quét từ trang đó ra hai phía (trang sau trước
+  trang trước) và lấy câu đầu tiên tìm được; không có thì giữ nguyên cách cũ (câu đầu tiên).
+- **Tab nguồn còn sống:** chuyển về đúng tab đó, đổi `#page=N` (giữ `zoom`) rồi **nạp lại tab** để
+  trình xem về đúng trang đã lưu. Cái giá: mất vị trí cuộn hiện tại của tab đó. Trước đây chỉ
+  chuyển tab, nên người dùng rơi vào chỗ vừa cuộn tới chứ không phải chỗ đã bôi.
+- **Tab đã đóng / khởi động lại:** mở URL với `#page=N`. Trang của **câu đã trích** đè lên mốc
+  `#page=` cũ trong URL (mốc ấy chỉ là nơi mở tài liệu lúc đầu). Mục không có câu trích mới dùng
+  mốc URL, rồi tới liên kết tìm chữ cũ.
 - Mã tab thật chỉ nằm trong storage.session; mã đồng bộ sang máy khác không mở nhầm tab.
-- Giới hạn: API contextMenus chỉ có selectionText và URL, không có trang/tọa độ vùng
-  chọn của PDF tích hợp. Nếu bạn đã cuộn khỏi vị trí cũ và URL không chứa mốc chính xác,
-  extension chưa khôi phục được vùng bôi đen ban đầu. Không gọi câu đầu tiên là vị trí gốc.
+- Giới hạn còn lại: nếu từ lặp lại nhiều lần và không có gợi ý nào (lần lưu đầu tiên của một
+  tài liệu mở từ trang 1), câu/trang vẫn là lần xuất hiện đầu tiên. Lần lưu sau trong cùng phiên
+  sẽ bám theo trang đó.
 
 ## Cài/cập nhật
 Tải **Code → Download ZIP** trên main, giải nén, chép nội dung extension vào đúng

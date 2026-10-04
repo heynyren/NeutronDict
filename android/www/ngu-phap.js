@@ -119,12 +119,30 @@
   }
 
   function danhSach(items, random) {
-    const seen = new Set(), ra = [];
+    /*
+     * MỘT bài cho mọi từ chung ngữ cảnh. Trước đây chỉ gộp câu GIỐNG HỆT; hai lần bôi
+     * cùng một đoạn văn thường cắt câu hơi lệch nhau (một bên dài hơn vài chữ), nên vẫn
+     * ra hai bài xếp mảnh gần như y nhau. Giờ: cùng nguồn và câu này nằm trong câu kia
+     * thì chỉ giữ MỘT câu — câu DÀI hơn (đủ chữ nhất), hoà thì giữ câu đã gặp trước.
+     * Khác nguồn thì không gộp.
+     */
+    const ra = [], theoNguon = new Map();
     for (const it of (items || [])) {
       const bai = taoBai(it, random);
-      if (!bai || seen.has(bai.cau)) continue;
-      seen.add(bai.cau);
-      ra.push(bai);
+      if (!bai) continue;
+      const id = (goc.CauNghe && goc.CauNghe.nguonId(it)) || "";
+      const trung = id ? (theoNguon.get(id) || []) : ra.filter((x) => x.cau === bai.cau);
+      const i = trung.findIndex((x) => x.cau === bai.cau || x.cau.includes(bai.cau) || bai.cau.includes(x.cau));
+      if (i < 0) {
+        ra.push(bai);
+        if (id) { if (!theoNguon.has(id)) theoNguon.set(id, []); theoNguon.get(id).push(bai); }
+        continue;
+      }
+      const cu = trung[i];
+      if (bai.cau.length > cu.cau.length) {            // câu mới đủ chữ hơn: thay chỗ câu cũ
+        ra[ra.indexOf(cu)] = bai;
+        trung[i] = bai;
+      }
     }
     const ngauNhien = typeof random === "function" ? random : Math.random;
     for (let i = ra.length - 1; i > 0; i--) {

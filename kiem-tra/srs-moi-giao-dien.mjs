@@ -11,6 +11,7 @@ const errors=[];
 try {
   const sw=ctx.serviceWorkers()[0]||await ctx.waitForEvent("serviceworker");
   const id=sw.url().split("/")[2];
+  for(let i=0;i<40;i++){if(await sw.evaluate(()=>!!(chrome.storage&&chrome.storage.local)).catch(()=>false))break;await new Promise(r=>setTimeout(r,250));}
   await sw.evaluate(async(cau)=>{
     const now=Date.now(), d={lv:3,ngay:14,net:2.1,ts:now-15*86400000,due:now-86400000,sai:0};
     await chrome.storage.local.set({notebook:{"javi:勉強":{word:"勉強",dict:"javi",reading:"べんきょう",means:["học tập"],
@@ -42,7 +43,10 @@ try {
   stored=await page.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:勉強"]);
   assert(stored.lichRieng.nghe.hen>Date.now()+16.99*86400000);
   assert.deepEqual(stored.duong,initial);
-  await page.locator("#lichRiengDialog > button").click();
+  // Hộp không còn nút Đóng: bấm ra ngoài (vào nền mờ) là đóng.
+  assert.equal(await page.locator("#lichRiengDialog > button").filter({hasText:/^(Đóng|Close)$/}).count(),0,"no Close button");
+  await page.mouse.click(4,4);
+  await page.locator("#lichRiengDialog").waitFor({state:"detached"});
   await page.evaluate(()=>{document.getElementById("studyOverlay").classList.remove("show");moMan("grammar");});
   await page.locator("#npDue").waitFor({state:"visible"});
   await page.locator("#npDue").click();

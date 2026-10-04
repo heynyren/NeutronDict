@@ -1,6 +1,6 @@
 // Hidden PDF text extraction only. No viewer, form, upload, or document navigation.
 let pdfjsPromise;
-async function extract(url,word){
+async function extract(url,word,hint){
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
   let task;
   try{
@@ -23,8 +23,16 @@ async function extract(url,word){
       standardFontDataUrl:chrome.runtime.getURL("vendor/pdfjs/standard_fonts/"),
       wasmUrl:chrome.runtime.getURL("vendor/pdfjs/wasm/")});
     const pdf=await task.promise;let scanned=0;
-    // User preference: use the first valid source sentence in document order.
-    for(let page=1;page<=pdf.numPages;page++){
+    // Không có gợi ý: câu hợp lệ đầu tiên theo thứ tự tài liệu (lựa chọn của người dùng).
+    // Có gợi ý (trang đang đọc): quét từ trang đó ra hai phía, trang sau trước trang
+    // trước, và lấy câu đầu tiên tìm được — tức là câu GẦN chỗ đang đọc nhất. Từ
+    // hiếm thì kết quả y như cũ; từ lặp lại nhiều lần thì không còn nhảy về trang đầu.
+    const n=pdf.numPages,pages=[];
+    if(hint>=1&&hint<=n){
+      pages.push(hint);
+      for(let d=1;d<n;d++){if(hint+d<=n)pages.push(hint+d);if(hint-d>=1)pages.push(hint-d);}
+    }else for(let i=1;i<=n;i++)pages.push(i);
+    for(const page of pages){
       const p=await pdf.getPage(page),text=await p.getTextContent();
       const candidates=PdfContext.candidates(PdfContext.paragraphs(text.items),word,page);
       scanned++;
@@ -39,6 +47,6 @@ async function extract(url,word){
 chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
   if(msg.target!=="pdf-offscreen"||msg.type!=="PDF_EXTRACT")return;
   if(sender.id!==chrome.runtime.id||! /^(https?:|file:|blob:)/i.test(msg.url||""))return;
-  extract(msg.url,String(msg.word||"").trim()).then(respond,e=>respond({ok:false,reason:"unreadable",error:String(e)}));
+  extract(msg.url,String(msg.word||"").trim(),Number(msg.hint)||0).then(respond,e=>respond({ok:false,reason:"unreadable",error:String(e)}));
   return true;
 });

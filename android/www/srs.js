@@ -772,7 +772,9 @@
    */
   function duongCo(muc) {
     const ds = ["nhin"];
-    if (muc && muc.cauNghe && muc.cauNghe.cau) ds.push("nghe");
+    // `nheChung`: mục này cùng ngữ cảnh với một từ khác đã giữ đường nghe của cả nhóm
+    // (xem CauNghe.nhomChung) — nghe cùng một câu hai lần thì chẳng kiểm thêm được gì.
+    if (muc && muc.cauNghe && muc.cauNghe.cau && !muc.nheChung) ds.push("nghe");
     /*
      * `mangTat` — người học TỰ TAY tắt bài mạng nghĩa cho từ này.
      *

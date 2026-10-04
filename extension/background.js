@@ -88,8 +88,9 @@ async function contextSource(info, tab) {
   if (c) src.cau = c.cau;
   // Native PDF DOM is private. Parse the original file in a hidden extension document.
   if (!src.cau && (!ctx || ctx.pdf) && /^(https?:|file:|blob:)/i.test(url)) {
-    const result = await extractPdfContext(url, src.sel);
+    const result = await extractPdfContext(url, src.sel, await pdfGoiY(url));
     if (result && result.ok) {
+      pdfGhiNho(url, result.page);
       Object.assign(src, { cau: result.cau, pdf: true, capture: "pdf-auto",
         page: result.page, paragraph: result.paragraph, start: result.start, end: result.end,
         documentId: result.documentId, contextStatus: "complete" });
@@ -809,6 +810,7 @@ async function boiThemDuong(toiDa) {
    * bồi tập trái nghĩa — thứ vốn nằm sẵn trong máy và lẽ ra xong tức thì. Đo
    * được: mở sổ, chờ 12 giây, chỉ MỘT trong ba từ được bồi.
    */
+  try { n += await nheChungVaSau(); } catch (e) { /* không gom được thì thôi, bài nghe vẫn chạy */ }
   for (const k of Object.keys(nb)) {
     const it = nb[k];
     if (!dienBoi(it) || it.lien) continue;
@@ -1577,6 +1579,7 @@ async function cauNgheVaSau(key, e, dict, nhanh) {
     return true;
   });
   if (saved) {
+    nheChungVaSau().catch(() => {});
     await dichCauNghe(key).catch(() => "");
     scheduleSync(self.Ngu.nguCuaKhoa(key));
   }
@@ -1606,6 +1609,25 @@ async function nghiaVaSau(key, word, dict) {
     return true;
   });
   if (ghi) scheduleSync(self.Ngu.nguCuaKhoa(key));
+}
+
+/**
+ * Gom các từ CÙNG NGỮ CẢNH về một đường nghe chung — xem CauNghe.nhomChung.
+ *
+ * Chạy sau mỗi lần dựng câu nghe và mỗi lượt mở sổ (BOI_DUONG). Không gọi mạng và
+ * không đụng `ts`/`srs`; chỉ ghi khi có mục thật sự đổi nên không thêm một lượt ghi
+ * cả sổ nào vào đường người dùng đang chờ.
+ * @returns {Promise<number>} số mục đổi
+ */
+async function nheChungVaSau() {
+  const nb0 = (await chrome.storage.local.get("notebook")).notebook || {};
+  if (!self.CauNghe.capNhatNheChung(nb0, true)) return 0;       // quét thử trên bản đọc, khỏi vào hàng đợi ghi
+  return vaSau(async () => {
+    const nb = (await chrome.storage.local.get("notebook")).notebook || {};
+    const n = self.CauNghe.capNhatNheChung(nb);
+    if (n) await chrome.storage.local.set({ notebook: nb });
+    return n;
+  });
 }
 
 /** Ghép furigana cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ. Không đụng `ts`. */
@@ -2680,6 +2702,7 @@ async function savePdfSelection(msg) {
     await chrome.storage.local.set({ notebook: nb });
   });
   scheduleSync(ngu);
+  nheChungVaSau().catch(() => {});
   if (fresh) ghiNhanLuu(ngu).catch(() => {});
   dichCauNghe(key).then(() => scheduleSync(ngu)).catch(() => {});
   boiTuPdf(key, word, dict).catch(() => {});

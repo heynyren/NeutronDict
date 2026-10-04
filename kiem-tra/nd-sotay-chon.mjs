@@ -9,8 +9,10 @@
  *   1. Vẽ theo lô: sổ 600 từ chỉ dựng một trang hàng đầu; "Hiện thêm" dựng tiếp.
  *   2. Hàng không còn nút xoá riêng; có ô chọn. Tích → thanh hành động hiện ra.
  *   3. "Chọn tất cả" chọn CẢ những hàng chưa dựng, không chỉ phần đang thấy.
- *   4. Xoá qua hộp xác nhận: Huỷ thì không mất gì; đồng ý thì xoá cả loạt trong
- *      một lượt ghi, hàng biến mất NGAY, nghĩa đã sửa tay vẫn giữ trong bia mộ.
+ *   4. Bấm Xoá là XOÁ NGAY, không hộp xác nhận: cả loạt trong một lượt ghi, hàng biến
+ *      mất tức thì, nghĩa đã sửa tay vẫn giữ trong bia mộ.
+ *   8. Sửa nghĩa một từ KHÔNG ném danh sách về đầu trang, và chỉ dựng lại đúng hàng đó.
+ *   9. Hộp "Lịch từng đường" không có nút Đóng; bấm ra ngoài thì đóng.
  *   5. Hoàn tác khôi phục nguyên vẹn (kể cả tiến độ ôn).
  *   6. Thích / đóng băng cập nhật đúng một hàng, không vẽ lại cả danh sách.
  *   7. Thao tác không còn tỉ lệ với kích thước sổ: xoá trong sổ lớn vẫn nhanh.
@@ -84,25 +86,16 @@ soat("'Chọn tất cả' chọn CẢ hàng chưa dựng (600)", await sw0(() =>
 await sw0(() => document.querySelector("#chonBo").click());
 soat("'Bỏ chọn' xoá hết lựa chọn, thanh ẩn", await sw0(() => getComputedStyle(document.querySelector("#thanhChon")).display === "none" && !document.querySelector("#list .entry.chon")));
 
-console.log("\nXoá qua hộp xác nhận");
-const khoaDau = await sw0(() => [...document.querySelectorAll("#list .entry")].slice(0, 5).map((r) => r.dataset.key));
+console.log("\nXoá ngay, không hỏi lại");
 // chọn word3 (có bản sửa tay), word4 (có tiến độ) và word0
 await sw0(() => { for (const k of ["envi:word0", "envi:word3", "envi:word4"]) document.querySelector('#list .entry[data-key="' + k + '"] .chon-o input').click(); });
-await sw0(() => document.querySelector("#chonXoa").click());
-soat("hộp xác nhận mở, liệt kê đúng 3 từ", await sw0(() => document.querySelector("#xoaSheet").classList.contains("show") && document.querySelectorAll("#xoaDs li").length === 3),
-  await sw0(() => document.querySelector("#xoaTieuDe").textContent));
-await sw0(() => document.querySelector("#xoaHuy").click());
-const nb1 = await sw0(async () => (await chrome.storage.local.get("notebook")).notebook);
-soat("Huỷ thì KHÔNG xoá gì (cả trên màn lẫn trong kho)", Object.values(nb1).every((e) => !e.del) && (await dem()) > 0 && (await sw0(() => document.querySelectorAll("#list .entry.chon").length === 3)));
-
-await sw0(() => document.querySelector("#chonXoa").click());
+soat("không còn hộp xác nhận nào trong trang", await sw0(() => !document.querySelector("#xoaSheet")));
 const t0 = Date.now();
-await sw0(() => document.querySelector("#xoaOk").click());
+await sw0(() => document.querySelector("#chonXoa").click());
 await pg.waitForFunction(() => !document.querySelector('#list .entry[data-key="envi:word0"]'), null, { timeout: 5000 });
 const dt = Date.now() - t0;
-soat("hàng biến mất NGAY (không chờ ghi đĩa + vẽ lại cả sổ)", dt < 600, dt + " ms");
-soat("hộp đóng, thanh ẩn, số đếm cập nhật", await sw0(() => !document.querySelector("#xoaSheet").classList.contains("show")
-  && getComputedStyle(document.querySelector("#thanhChon")).display === "none" && /597/.test(document.querySelector("#count").textContent)),
+soat("bấm Xoá là hàng biến mất NGAY (không hỏi, không chờ ghi đĩa)", dt < 600, dt + " ms");
+soat("thanh ẩn, số đếm cập nhật", await sw0(() => getComputedStyle(document.querySelector("#thanhChon")).display === "none" && /597/.test(document.querySelector("#count").textContent)),
   await sw0(() => document.querySelector("#count").textContent));
 await pg.waitForTimeout(600);
 const nb2 = await sw0(async () => (await chrome.storage.local.get("notebook")).notebook);
@@ -114,8 +107,8 @@ console.log("\nHoàn tác");
 // chọn lại 1 từ, xoá, bấm Hoàn tác trên toast
 await sw0(() => document.querySelector('#list .entry[data-key="envi:word1"] .chon-o input').click());
 await sw0(() => document.querySelector("#chonXoa").click());
-soat("xoá MỘT từ: tiêu đề nói 1 từ", await sw0(() => /1 từ/.test(document.querySelector("#xoaTieuDe").textContent)), await sw0(() => document.querySelector("#xoaTieuDe").textContent));
-await sw0(() => document.querySelector("#xoaOk").click());
+await pg.waitForFunction(() => !document.querySelector('#list .entry[data-key="envi:word1"]'), null, { timeout: 5000 });
+soat("xoá MỘT từ: hàng biến mất ngay", true);
 await pg.waitForTimeout(500);
 await sw0(() => document.querySelector("#toast .toast-nut").click());
 await pg.waitForFunction(() => document.querySelector('#list .entry[data-key="envi:word1"]'), null, { timeout: 5000 });
@@ -134,6 +127,43 @@ const t2 = Date.now();
 await sw0(() => document.querySelectorAll("#list .entry")[3].querySelector(".iconbtn.bang").click());
 await pg.waitForFunction(() => document.querySelectorAll("#list .entry")[3].querySelector(".iconbtn.bang.on"), null, { timeout: 5000 });
 soat("Đóng băng cũng vậy", await sw0(() => document.querySelectorAll("#list .entry")[5] === window.__hang5), (Date.now() - t2) + " ms");
+
+console.log("\nSửa nghĩa không nhảy về đầu trang");
+await sw0(() => { document.querySelector("#more, #listMore") && document.querySelector("#listMore").click(); });
+await pg.waitForTimeout(200);
+const vung = () => sw0(() => { const m = document.querySelector(".main"); return (m && m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement).scrollTop; });
+await sw0(() => { const m = document.querySelector(".main"); const v = (m && m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement); v.scrollTop = 900; });
+await pg.waitForTimeout(250);
+const top0 = await vung();
+await sw0(() => { window.__hangSua = document.querySelectorAll("#list .entry")[12]; window.__hangKhac = document.querySelectorAll("#list .entry")[14]; });
+const keySua = await sw0(() => window.__hangSua.dataset.key);
+await sw0((k) => { moSua(items.find((x) => x.key === k), "trans"); }, keySua);
+await sw0(() => { document.querySelector("#edTrans").value = "nghĩa mới sửa tay"; });
+const tS = Date.now();
+await sw0(() => document.querySelector("#edSave").click());
+await pg.waitForFunction((k) => (document.querySelector('#list .entry[data-key="' + k + '"] .m') || {}).textContent === "nghĩa mới sửa tay", keySua, { timeout: 5000 });
+soat("hàng vừa sửa hiện nghĩa mới", true, (Date.now() - tS) + " ms");
+const top1 = await vung();
+soat("thanh cuộn KHÔNG nhảy về đầu trang", top0 > 300 && Math.abs(top1 - top0) < 60, top0 + " → " + top1);
+soat("các hàng khác không bị dựng lại", await sw0(() => document.querySelectorAll("#list .entry")[14] === window.__hangKhac));
+
+console.log("\nHộp 'Lịch từng đường'");
+await sw0(() => { window.__hangSua.querySelector(".lich-rieng").click(); });
+await pg.waitForSelector("#lichRiengDialog[open]", { timeout: 3000 });
+soat("hộp mở", true);
+soat("KHÔNG còn nút Đóng", await sw0(() => ![...document.querySelectorAll("#lichRiengDialog button")].some((b) => /^Đóng$|^Close$/.test(b.textContent.trim()))));
+await pg.mouse.click(5, 5);
+await pg.waitForTimeout(250);
+soat("bấm ra ngoài thì đóng", await sw0(() => !document.querySelector("#lichRiengDialog")));
+await sw0(() => { window.__hangSua.querySelector(".lich-rieng").click(); });
+await pg.waitForSelector("#lichRiengDialog[open]", { timeout: 3000 });
+const hop = await sw0(() => { const r = document.querySelector("#lichRiengDialog").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 20 }; });
+await pg.mouse.click(hop.x, hop.y);
+await pg.waitForTimeout(250);
+soat("bấm VÀO TRONG hộp thì vẫn mở", await sw0(() => !!document.querySelector("#lichRiengDialog[open]")));
+await pg.keyboard.press("Escape");
+await pg.waitForTimeout(250);
+soat("Esc cũng đóng", await sw0(() => !document.querySelector("#lichRiengDialog")));
 
 console.log("\nNhanh khi sổ lớn");
 const T = await sw0(() => { const t = performance.now(); draw(); return Math.round(performance.now() - t); });

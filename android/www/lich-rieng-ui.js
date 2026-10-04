@@ -9,7 +9,7 @@
     return b;
   }
   function mo(it, ghi, sau) {
-    const cu = document.getElementById("lichRiengDialog"); if (cu) cu.remove();
+    const cu = document.getElementById("lichRiengDialog"); if (cu) { try { cu.close(); } catch (e) { /* đã đóng */ } cu.remove(); }
     const o = document.createElement("dialog");
     o.id = "lichRiengDialog"; o.className = "lich-rieng-dialog";
     const h = document.createElement("h3"); h.textContent = T("Lịch từng đường");
@@ -19,9 +19,22 @@
     o.appendChild(note);
     const status = document.createElement("p"); status.setAttribute("role", "status");
     const ds = document.createElement("div"); o.appendChild(ds); o.appendChild(status);
-    const dong = document.createElement("button"); dong.type = "button"; dong.className = "btn";
-    dong.textContent = T("Đóng"); dong.onclick = () => o.close(); o.appendChild(dong);
-    o.addEventListener("close", () => o.remove());
+    // Không có nút Đóng: bấm ra ngoài hộp (vào phần nền mờ) là đóng, Esc cũng đóng.
+    // Chỉ tính cú bấm nằm NGOÀI khung hộp — bấm vào phần đệm bên trong hộp cũng có
+    // `target` là chính <dialog>, nên phải so toạ độ chứ không so `target`.
+    o.addEventListener("click", (e) => {
+      if (e.target !== o) return;
+      const r = o.getBoundingClientRect();
+      const ngoai = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (ngoai) o.close();
+    });
+    // Esc đóng luôn, và tự xử lý chứ không trông vào mặc định của trình duyệt: có bản
+    // không đóng <dialog> bằng Esc nếu chưa có thao tác người dùng nào bên trong nó.
+    // Nghe ở `document` (giai đoạn capture) vì với hộp modal, phím không nhất thiết
+    // đi qua chính <dialog>. Gỡ ra khi hộp đóng để không rò hàm nghe.
+    const esc = (e) => { if (e.key === "Escape" && o.open) { e.preventDefault(); o.close(); } };
+    document.addEventListener("keydown", esc, true);
+    o.addEventListener("close", () => { document.removeEventListener("keydown", esc, true); o.remove(); });
     function ve() {
       ds.textContent = "";
       for (const d of goc.Srs.DUONG) {
@@ -51,7 +64,7 @@
               it = moi; status.textContent = T("Đã lưu lịch riêng."); ve();
               if (sau) await sau(it);
             } catch (e) { status.textContent = e.message || T("Chưa lưu được. Hãy thử lại."); }
-            finally { dong.disabled = false; if (o.isConnected) ve(); }
+            finally { if (o.isConnected) ve(); }
           };
           hang.appendChild(btn);
         }

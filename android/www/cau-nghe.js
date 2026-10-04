@@ -169,5 +169,94 @@
     const i = thap.length === cau.length ? thap.indexOf(w.toLowerCase()) : cau.indexOf(w);
     return { cau, dich: String(dich).trim(), tu: i >= 0 ? [i, i + w.length] : null };
   }
-  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe, hienThi };
+
+  /*
+   * CÁC TỪ CÙNG NGỮ CẢNH CHỈ CẦN MỘT BÀI NGHE.
+   *
+   * Bôi hai ba từ sát nhau trong cùng một câu thì mỗi từ đều có `cauNghe` giống hệt
+   * nhau, tức là một buổi học có ba thẻ nghe CÙNG MỘT CÂU — nghe đi nghe lại, mà bài
+   * chẳng kiểm thêm được gì. Gom chúng thành một nhóm: một từ ĐẠI DIỆN giữ đường
+   * nghe, các từ còn lại mang `nheChung = khoá của đại diện` và `Srs.duongCo` bỏ
+   * đường nghe của chúng (như một mục không có câu nghe).
+   *
+   * Cùng ngữ cảnh = cùng nguồn (cùng URL/video) VÀ câu này nằm trong câu kia (hoặc
+   * giống hệt): hai lần bôi cùng một đoạn văn thường cắt câu hơi lệch nhau. Không
+   * rõ nguồn thì không gộp — thà thừa một bài còn hơn nuốt nhầm bài của câu khác.
+   *
+   * Đại diện chọn theo thứ tự: từ ĐÃ có tiến độ nghe cao nhất (không mất công đã học),
+   * rồi khoá nhỏ nhất. Cả hai đều không đổi khi sửa nghĩa/ghi chú, nên đại diện không
+   * nhảy qua nhảy lại giữa các lần tính — và máy nào tính cũng ra cùng kết quả.
+   */
+  function chuanCau(s) { return String(s || "").replace(/\s+/g, " ").trim(); }
+  function nguonId(it) {
+    const s = (it && it.src) || {};
+    if (s.yt && s.yt.v) return "yt:" + s.yt.v;
+    if (s.url) return "u:" + String(s.url).split("#")[0];
+    return "";
+  }
+  /**
+   * @param {Array<object>} ds các mục, MỖI MỤC CÓ `key`
+   * @returns {Map<string,string>} khoá của từ phụ -> khoá của từ đại diện
+   */
+  function nhomChung(ds) {
+    const theoNguon = new Map();
+    for (const it of (ds || [])) {
+      if (!it || !it.key || it.del || it.kind === "sent") continue;
+      const cau = chuanCau(it.cauNghe && it.cauNghe.cau);
+      const id = nguonId(it);
+      if (!cau || !id) continue;
+      if (!theoNguon.has(id)) theoNguon.set(id, []);
+      theoNguon.get(id).push({ it, cau });
+    }
+    const phu = new Map();
+    for (const mang of theoNguon.values()) {
+      if (mang.length < 2) continue;
+      mang.sort((a, b) => b.cau.length - a.cau.length || (a.it.key < b.it.key ? -1 : 1));
+      const cum = [], theoCau = new Map();
+      for (const m of mang) {
+        // Giống hệt thì tra thẳng (O(1)); chỉ khi chưa có mới đi tìm câu CHỨA nó. Một
+        // tài liệu có hàng trăm từ cùng nguồn thì đa số rơi vào nhánh nhanh.
+        let c = theoCau.get(m.cau) || cum.find((x) => x.cau.includes(m.cau));
+        if (c) c.mem.push(m.it);
+        else { c = { cau: m.cau, mem: [m.it] }; cum.push(c); theoCau.set(m.cau, c); }
+      }
+      for (const c of cum) {
+        if (c.mem.length < 2) continue;
+        const tien = (it) => (((it.duong || {}).nghe || {}).lv) || 0;
+        c.mem.sort((a, b) => tien(b) - tien(a) || (a.key < b.key ? -1 : 1));
+        const dd = c.mem[0].key;
+        for (let i = 1; i < c.mem.length; i++) phu.set(c.mem[i].key, dd);
+      }
+    }
+    return phu;
+  }
+  /**
+   * Đặt/gỡ `nheChung` trên cả sổ cho khớp với `nhomChung`. Không đụng `ts`/`srs`:
+   * đây là dữ liệu SUY RA, máy nào cũng tính lại được.
+   * @param {object} nb sổ tay { khoá: mục }
+   * @param {boolean} [chiDem] true = chỉ đếm số mục sẽ đổi, không sửa gì
+   * @returns {number} số mục đổi
+   */
+  function capNhatNheChung(nb, chiDem) {
+    const ds = [];
+    for (const k in nb) if (nb[k]) ds.push(Object.assign({ key: k }, nb[k]));
+    const phu = nhomChung(ds);
+    let doi = 0;
+    for (const k in nb) {
+      const e = nb[k];
+      if (!e) continue;
+      const can = phu.get(k) || "";
+      if ((e.nheChung || "") === can) continue;
+      doi++;
+      if (chiDem) continue;
+      if (can) e.nheChung = can; else delete e.nheChung;
+    }
+    return doi;
+  }
+  /** Hai câu ngữ pháp có cùng ngữ cảnh không: giống hệt, hoặc câu này nằm trong câu kia. */
+  function cungNguCanh(a, b) {
+    const x = chuanCau(a), y = chuanCau(b);
+    return !!x && !!y && (x === y || x.includes(y) || y.includes(x));
+  }
+  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe, hienThi, nhomChung, capNhatNheChung, cungNguCanh, nguonId };
 })(typeof self !== "undefined" ? self : this);

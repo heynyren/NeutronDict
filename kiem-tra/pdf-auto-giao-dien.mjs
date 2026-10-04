@@ -71,8 +71,11 @@ try{
   const read=()=>sw.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:ケア"]);
   let it=await read();
   assert.equal(it.src.cau,sentence);assert.equal(it.cauNghe.cau,sentence);
-  assert.equal(it.src.capture,"pdf-auto");assert.equal(it.src.page,1);
-  assert.equal(it.src.pdfOrigin.url,url,"source page 2 is independent of extracted context page 1");
+  assert.equal(it.src.capture,"pdf-auto");
+  // The sentence occurs on pages 1 AND 2 and the tab was opened at #page=2: the occurrence
+  // NEAREST the page being read is chosen (it used to be page 1, the first in document order).
+  assert.equal(it.src.page,2,"repeated word: pick the occurrence nearest the reading page");
+  assert.equal(it.src.pdfOrigin.url,url);
   assert.ok(it.src.pdfOrigin.token);
   assert.ok(it.src.documentId);assert.equal(it.cauNghe.dich,"");
   assert.equal((await sw.evaluate(()=>chrome.tabs.query({}))).length,count,"saving must not open any tab");
@@ -94,7 +97,7 @@ try{
   await verify.evaluate(it=>openSource(it,true),it);
   assert.equal((await sw.evaluate(()=>chrome.tabs.query({}))).length,tabsBeforeReturn,"returning to a live PDF must not open a duplicate or split window");
   const returned=await sw.evaluate(id=>chrome.tabs.get(id),tab.id);
-  assert.equal(returned.active,true);assert.equal(returned.url,url,"return must not search the first occurrence or change the URL");
+  assert.equal(returned.active,true);assert.equal(returned.url,url,"return goes to the saved page-2 URL without a text search");
   await verify.close();
 
   await sw.evaluate(async()=>{

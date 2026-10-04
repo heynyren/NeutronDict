@@ -1020,7 +1020,7 @@ async function napSoTay() {
   // Sổ đang chọn đã bị xoá -> quay về Tất cả.
   if (current !== ALL && current !== NONE && current !== LIKE && current !== DISLIKE && current !== HANTU && !deckName(current)) current = ALL;
   drawDecks();
-  draw();
+  draw(true);
 }
 
 /* ==================================================================== */
@@ -1545,14 +1545,23 @@ async function luuSua() {
   });
   if (doiNghia === null) { dongSua(); return; }
   dongSua();
-  await load();
+  /*
+   * Cập nhật TẠI CHỖ đúng hàng vừa sửa, không `load()`: nạp lại cả sổ rồi vẽ lại
+   * danh sách làm hàng đang xem nhảy về đầu trang và chiếm cả giây trên sổ lớn.
+   */
+  const s1 = await getStore();
+  const moi = s1.nb[key];
+  const idx = items.findIndex((x) => x.key === key);
+  if (moi && idx >= 0) {
+    items[idx] = { key, ...moi };
+    taiCho(items[idx]);
+  } else await load();
   // Sửa ngay giữa buổi học thì thẻ đang mở phải đổi theo luôn: `session.queue`
   // giữ một bản chụp của mục, `load()` không đụng tới nó, nên không cập nhật ở
   // đây thì thẻ vẫn nằm đó với nghĩa cũ — đúng cái nghĩa vừa sửa vì nó sai.
   const dangHoc = theCardHienTai();
   if (dangHoc && dangHoc.key === key) {
-    const s2 = await getStore();
-    if (s2.nb[key]) { Object.assign(dangHoc, s2.nb[key]); showCard(true); }
+    if (s1.nb[key]) { Object.assign(dangHoc, s1.nb[key]); showCard(true); }
   }
   syncSoon();
   mung(await theoDoi.xetHuyHieu());
@@ -1712,7 +1721,11 @@ function nutRutOn(it, sauDo) {
     if (sauDo) sauDo(); else taiCho(it);
   });
   wrap.appendChild(b2);
-  wrap.appendChild(window.LichRiengUI.nut(it, datLichRieng, async () => { await load(); }));
+  wrap.appendChild(window.LichRiengUI.nut(it, datLichRieng, async (moi) => {
+    // Lịch riêng đổi → dựng lại ĐÚNG hàng này (và các con số), không nạp lại cả sổ.
+    const i = items.findIndex((x) => x.key === it.key);
+    if (moi && i >= 0) { items[i] = { key: it.key, ...moi }; taiCho(items[i]); } else await load();
+  }));
   return wrap;
 }
 
@@ -2162,7 +2175,26 @@ const TRANG_HANG = 40;
 let rowsHienTai = [];
 let quanSatCuoi = null;
 
-function draw() {
+/** Vùng đang cuộn của trang: `.main` ở màn rộng, cả trang ở màn hẹp. */
+function vungCuon() {
+  const m = document.querySelector(".main");
+  if (m && m.scrollHeight > m.clientHeight + 1 && getComputedStyle(m).overflowY !== "visible") return m;
+  return document.scrollingElement || document.documentElement;
+}
+
+/**
+ * @param {boolean} [giu] true = vẽ lại sau một thao tác (sửa nghĩa, nạp lại…):
+ *   dựng lại ĐỦ số hàng đã hiện và trả thanh cuộn về đúng chỗ cũ. Không có nó thì
+ *   danh sách bị dựng lại từ đầu và nhảy về hàng đầu tiên — đúng cái cảnh "sửa
+ *   nghĩa một từ ở giữa sổ xong thì bị ném lên đầu trang". Đổi ngăn / gõ lọc thì
+ *   KHÔNG giữ: danh sách đã khác, nhảy về đầu mới đúng.
+ *   (Chỉ nhận đúng `true` — draw còn được gắn thẳng làm hàm xử lý sự kiện nhập.)
+ */
+function draw(giu) {
+  const vung = vungCuon();
+  const giuViTri = giu === true;
+  const top = giuViTri ? vung.scrollTop : 0;
+  const daVe = giuViTri ? document.querySelectorAll("#list .entry").length : 0;
   const rows = veDau();
   // Chỉ giữ lại những mục đang được chọn mà vẫn còn hiện: đổi ngăn / gõ lọc thì
   // đừng để một lượt "Xoá" lỡ tay quét cả những từ người ta đã không còn nhìn thấy.
@@ -2185,6 +2217,11 @@ function draw() {
 
   rowsHienTai = rows;
   veLoHang(true);
+  if (giuViTri) {
+    // Dựng bù cho tới khi có lại ít nhất số hàng đang hiện trước đó, rồi trả cuộn.
+    while (rowsHienTai.length && document.querySelectorAll("#list .entry").length < Math.min(daVe, 400, rowsHienTai.length)) veLoHang(false);
+    vung.scrollTop = top;
+  }
   veThanhChon();
 }
 
@@ -2406,8 +2443,7 @@ function veHang(it, dks, now) {
  * Thay cho nút thùng rác trên từng hàng. Nút ấy vừa dễ bấm nhầm (nằm sát mấy nút
  * sửa), vừa buộc người dùng xoá từng từ một — dọn sổ mấy chục từ là mấy chục lần
  * bấm. Giờ: tích ô ở đầu hàng (một hoặc nhiều từ), thanh hành động hiện ra, bấm
- * "Xoá" thì một hộp xác nhận liệt kê các từ sắp xoá; đồng ý mới xoá, và xoá cả
- * loạt trong MỘT lượt ghi. Chế độ HỌC có nút xoá riêng ("Đã thuộc hẳn") và giữ
+ * "Xoá" là xoá luôn (không hỏi lại), cả loạt trong MỘT lượt ghi, kèm "Hoàn tác". Chế độ HỌC có nút xoá riêng ("Đã thuộc hẳn") và giữ
  * nguyên.
  */
 const chon = new Set();
@@ -2436,23 +2472,6 @@ function chonTatCa(bat) {
   veThanhChon();
 }
 
-function moHopXoa() {
-  const ds = Array.from(chon).map((k) => items.find((it) => it.key === k)).filter(Boolean);
-  if (!ds.length) return;
-  $("xoaTieuDe").textContent = ds.length === 1
-    ? T("Xoá 1 từ khỏi sổ tay?")
-    : T2("Xoá {n} từ khỏi sổ tay?", { n: ds.length });
-  $("xoaPhu").textContent = T("Tiến độ ôn của các từ này sẽ mất. Nghĩa bạn đã sửa và ghi chú vẫn được giữ — tra lại từ đó vẫn ra bản bạn từng chốt.");
-  const ul = $("xoaDs");
-  ul.textContent = "";
-  ds.slice(0, 12).forEach((it) => ul.appendChild(el("li", null, it.word.slice(0, 60))));
-  if (ds.length > 12) ul.appendChild(el("li", "xoa-them", T2("… và {n} từ nữa", { n: ds.length - 12 })));
-  $("xoaOk").textContent = ds.length === 1 ? T("Xoá từ này") : T2("Xoá {n} từ", { n: ds.length });
-  $("xoaSheet").classList.add("show");
-  $("xoaHuy").focus();
-}
-function dongHopXoa() { $("xoaSheet").classList.remove("show"); }
-
 /**
  * Xoá một loạt mục — TẠI CHỖ rồi mới ghi.
  *
@@ -2475,7 +2494,6 @@ async function xoaCacMuc(keys) {
   if (!rowsHienTai.length) veLoHang(true);
   else if (listEl.querySelectorAll(".entry").length < Math.min(TRANG_HANG, rowsHienTai.length)) veLoHang(false);
   veThanhChon();
-  dongHopXoa();
 
   // 2) Ổ đĩa
   const cu = {};
@@ -2510,17 +2528,14 @@ async function hoanTacXoa(cu) {
 $("chonTatCa").addEventListener("click", () =>
   chonTatCa(!(rowsHienTai.length && rowsHienTai.every((it) => chon.has(it.key)))));
 $("chonBo").addEventListener("click", () => chonTatCa(false));
-$("chonXoa").addEventListener("click", moHopXoa);
-$("xoaHuy").addEventListener("click", dongHopXoa);
-$("xoaOk").addEventListener("click", () => xoaCacMuc(Array.from(chon)));
-$("xoaSheet").addEventListener("click", (e) => { if (e.target === $("xoaSheet")) dongHopXoa(); });
+// Bấm Xoá là XOÁ NGAY, không hỏi lại: người dùng đã chủ động tích chọn rồi mới bấm.
+// Lỡ tay thì có "Hoàn tác" trên thông báo (6,5 giây), khôi phục nguyên vẹn.
+$("chonXoa").addEventListener("click", () => xoaCacMuc(Array.from(chon)));
 document.addEventListener("keydown", (e) => {
-  // Esc đóng hộp xoá; Delete mở nó khi đang có mục được chọn (và không đang gõ chữ).
-  if (e.key === "Escape" && $("xoaSheet").classList.contains("show")) { dongHopXoa(); return; }
+  // Delete xoá các mục đang chọn (khi không đang gõ chữ và không có hộp nào mở).
   const dangGo = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
-  if (e.key === "Delete" && chon.size && !dangGo && !document.querySelector(".sheet.show")) moHopXoa();
+  if (e.key === "Delete" && chon.size && !dangGo && !document.querySelector(".sheet.show, dialog[open]")) xoaCacMuc(Array.from(chon));
 });
-
 
 /* ==================================================================== */
 /* Buổi học                                                             */
@@ -5071,6 +5086,7 @@ async function doiNgu(ngu) {
   // ngôn ngữ CŨ — và màn Tiến độ hiện chuỗi ngày, huy hiệu của bên kia.
   await theoDoi.nap(true);
   await load();
+  vungCuon().scrollTop = 0;       // danh sách của ngôn ngữ kia: về đầu mới đúng
   await loadConfig();
   if (NGU === "ja") vaFurigana();
   if ($("viewProgress").classList.contains("show")) veTienDo();

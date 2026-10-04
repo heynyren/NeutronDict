@@ -5,7 +5,7 @@ const store={},calls=[];
 let tab={id:23,url:"file:///lesson.pdf#page=14",windowId:7};
 const g={crypto:{randomUUID:()=>"01234567-0123-4567-8901-0123456789ab"},chrome:{
   storage:{session:{set:async x=>Object.assign(store,x),get:async k=>({[k]:store[k]})}},
-  tabs:{get:async()=>tab,update:async(id,opts)=>calls.push({id,opts})},
+  tabs:{get:async()=>tab,update:async(id,opts)=>calls.push({id,opts}),reload:async(id)=>calls.push({id,reload:true})},
   windows:{update:async()=>{}}
 }};
 g.self=g;vm.createContext(g);vm.runInContext(readFileSync("extension/pdf-source.js","utf8"),g);
@@ -14,8 +14,20 @@ await g.PdfSource.remember(src,tab);
 assert.ok(src.pdfOrigin.token);
 assert.equal(src.pdfOrigin.url,tab.url);
 assert.equal(await g.PdfSource.activate(src),true);
-assert.deepEqual(JSON.parse(JSON.stringify(calls[0].opts)),{active:true},"focusing must not navigate or re-run a text search");
-assert.equal(g.PdfSource.reopenUrl(src,"ignored"),"file:///lesson.pdf#page=14","original URL page takes precedence over context page 1");
+// No extracted sentence (src.capture unset): the URL landmark stays the only trustworthy page (14, not context page 1).
+assert.deepEqual(JSON.parse(JSON.stringify(calls[0].opts)),{active:true},"URL already on the saved page: just focus");
+assert.deepEqual(JSON.parse(JSON.stringify(calls[1])),{id:23,reload:true},"…then reload so the viewer lands on that page (Chrome's viewer ignores a hash-only change)");
+assert.equal(g.PdfSource.reopenUrl(src,"ignored"),"file:///lesson.pdf#page=14","without an extracted sentence the original URL page wins");
+// With an extracted sentence the page it came from beats a stale URL landmark.
+const auto={url:tab.url,page:40,capture:"pdf-auto",pdfOrigin:src.pdfOrigin};
+assert.equal(g.PdfSource.reopenUrl(auto,"ignored"),"file:///lesson.pdf#page=40","extracted sentence page overrides the stale opening landmark");
+calls.length=0;
+assert.equal(await g.PdfSource.activate(auto),true);
+assert.deepEqual(JSON.parse(JSON.stringify(calls[0])),{id:23,opts:{active:true,url:"file:///lesson.pdf#page=40"}},"live tab is sent to the saved page");
+assert.deepEqual(JSON.parse(JSON.stringify(calls[1])),{id:23,reload:true},"and reloaded, because a hash-only change does not move the viewer");
+assert.equal(g.PdfSource.withPage("file:///a.pdf#page=3&zoom=150",9),"file:///a.pdf#page=9&zoom=150","zoom is kept");
+assert.equal(g.PdfSource.hashPage("file:///a.pdf#zoom=100&page=7"),7);
+assert.equal(g.PdfSource.hashPage("file:///a.pdf"),0);
 tab={...tab,url:"file:///other.pdf"};
 assert.equal(await g.PdfSource.activate(src),false,"a reused tab ID must never open another document");
 tab={...tab,url:src.url,discarded:true};
