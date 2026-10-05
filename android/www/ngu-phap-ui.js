@@ -188,18 +188,18 @@
   /**
    * Ghi kết quả một câu.
    *
-   * LÀM ĐÚNG NGAY LẦN ĐẦU (kq = "dung") thì câu bị ĐÓNG BĂNG ngay, ở cả hai chế
-   * độ: người học không muốn luyện đi luyện lại câu đã làm được. Chế độ theo lịch
-   * vẫn chấm cấp/lịch như cũ rồi mới đóng băng; chế độ tự do chỉ đóng băng.
-   * Sửa lại mới đúng ("sua") hoặc xem đáp án ("xem") thì KHÔNG đóng băng — câu ấy
-   * chưa làm được, vẫn phải gặp lại. Câu củng cố (làm lại ngay sau khi sai) không
-   * ghi gì cả, như trước.
+   * LÀM ĐÚNG là câu bị ĐÓNG BĂNG ngay ("dung", và cả "sua" — sai rồi ghép lại
+   * đúng), ở cả hai chế độ: người học không muốn luyện đi luyện lại câu đã làm
+   * được. Chế độ theo lịch vẫn chấm cấp/lịch như cũ rồi mới đóng băng; chế độ tự
+   * do chỉ đóng băng. Chỉ xem đáp án ("xem") thì KHÔNG đóng băng — câu ấy chưa
+   * làm được; ở chế độ lịch nó được hỏi lại ngay trong buổi (câu "củng cố"), và
+   * ghép đúng lần đó thì đóng băng, không chấm cấp thêm lần nữa.
    */
   async function ketThuc(kq) {
     const b = buoi, q = b.ds[b.i];
-    if (!ghiKetQua || q.cungCo) return;
-    const chiBang = !b.theoLich;
-    if (chiBang && kq !== "dung") return;
+    if (!ghiKetQua) return;
+    const chiBang = !b.theoLich || !!q.cungCo;
+    if (chiBang && kq === "xem") return;
     dangGhi = true; ve();
     try {
       const r = await ghiKetQua(q, kq, chiBang);
@@ -209,7 +209,7 @@
         ? T("Lịch đã thay đổi hoặc câu không còn trong sổ. Lượt này không tăng cấp.")
         : (r.dongBang ? T("Đã đóng băng câu này — sẽ không hiện lại. Mở lại ở danh sách câu đóng băng.")
                       : T2("Cấp ngữ pháp {lv} · ôn lại sau {n} ngày", { lv: r.lv, n: r.ngay }));
-      if (kq !== "dung" && r && b.theoLich) b.ds.push(Object.assign({}, q, { cungCo: true, xao: goc.NguPhap.xaoTron(q.manh) || q.xao }));
+      if (kq === "xem" && r && b.theoLich && !q.cungCo) b.ds.push(Object.assign({}, q, { cungCo: true, xao: goc.NguPhap.xaoTron(q.manh) || q.xao }));
     } catch(e) {
       if (buoi === b) { b.chuaGhi = kq; thongBao(T("Chưa lưu được lịch. Bấm Câu tiếp để thử lưu lại."), "sai"); }
     } finally { dangGhi = false; if (buoi === b) ve(); }

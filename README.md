@@ -35,7 +35,7 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 - **Đạt mức tối đa thì tự đóng băng:** khi mọi đường của một từ đã nới tới trần 365 ngày và bạn trả lời nhớ, từ đó được đóng băng luôn (có lời báo). Nút “Đang đóng băng” mở lại được; bấm Hoàn tác (←) ngay lượt đó cũng gỡ băng.
 - **Học bằng bàn phím, có hiệu ứng kiểu Quizlet:** `Space` lật thẻ, rồi `F` = Quên (dấu X đỏ nhạt), `J` = Nhớ (dấu V xanh); `A` phát âm từ. Thẻ nghe: `Space` liên tục để nghe lại, `Enter` để lật. Bài đồng nghĩa/trái nghĩa: phím `1`–`9` chọn ô và chấm ngay (hiện V/X), `J` hoặc `Space` để sang thẻ tiếp.
 - **Ôn từng đường:** nút “Ôn từng đường” cho luyện liền một loại bài — chỉ bài nghe, chỉ bài đoán nghĩa, hoặc chỉ bài đúng–sai (đồng/trái nghĩa). Điểm và lịch ôn vẫn tính chung; chỉ lấy bài đã tới hạn và vẫn giữ luật 12 tiếng giữa các đường của một từ.
-- **Ngữ pháp: làm đúng là đóng băng:** câu ghép đúng ngay lần đầu được đóng băng và không hiện lại (cả luyện tự do lẫn theo lịch); sửa lại hoặc xem đáp án thì chưa đóng băng. Danh sách “Câu đã đóng băng” có nút Mở lại.
+- **Ngữ pháp: làm đúng là đóng băng:** câu ghép đúng (kể cả sai rồi sửa lại) được đóng băng và không hiện lại, cả luyện tự do lẫn theo lịch; chỉ xem đáp án thì chưa đóng băng. Danh sách “Câu đã đóng băng” có nút Mở lại.
 - **Sửa bản dịch & ghi chú:** mỗi mục trong sổ tay đều sửa lại được nghĩa cho đúng
   chuyên ngành, kèm một ô ghi chú riêng. Bản máy dịch ban đầu được giữ lại để khôi
   phục, và tra lại cùng một từ **không** làm mất công hiệu đính.

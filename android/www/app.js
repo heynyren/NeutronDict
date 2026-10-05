@@ -1836,8 +1836,8 @@ async function ghiNguPhap(q, ketQua, chiBang) {
       // `chiBang`: chế độ luyện tự do — không chấm cấp/lịch, chỉ đóng băng câu làm đúng.
       moi = chiBang ? kho[key] : window.NguPhapSrs.cham(kho[key], q.cau, ketQua, bayGio, q.onId, q.tsDau);
       if (!moi && !chiBang) return null;
-      // Làm đúng ngay lần đầu thì đóng băng luôn, để khỏi phải luyện lại câu ấy.
-      if (ketQua === "dung") moi = window.NguPhapSrs.dongBang(moi, q.cau, true, bayGio);
+      // Làm đúng (kể cả sai rồi sửa) thì đóng băng luôn, để khỏi phải luyện lại câu ấy.
+      if (ketQua === "dung" || ketQua === "sua") moi = window.NguPhapSrs.dongBang(moi, q.cau, true, bayGio);
     }
     if (!moi) return null;
     kho[key] = moi;

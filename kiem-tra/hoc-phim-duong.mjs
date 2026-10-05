@@ -306,27 +306,26 @@ await cho(200);
   soat("kho ghi cờ đóng băng cho đúng câu đó", !!(kho[k] && kho[k].dongBang), Object.keys(kho).join("|"));
   await page.click("#npNext"); await cho(150);
   const b = await giai(false);
-  soat("câu thứ hai: sai rồi sửa lại — KHÔNG đóng băng", b.cau !== a.cau);
+  soat("câu thứ hai: sai rồi sửa lại cũng được tính là làm đúng", b.cau !== a.cau);
   const kho2 = await sw.evaluate(async () => (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {});
-  soat("kho không có cờ cho câu đã sửa", !(kho2["ja:" + b.cau] && kho2["ja:" + b.cau].dongBang));
+  soat("kho ghi cờ đóng băng cho cả câu sai-rồi-sửa", !!(kho2["ja:" + b.cau] && kho2["ja:" + b.cau].dongBang));
   await page.click("#npNext"); await cho(300);
   const r = await page.evaluate(() => ({
     bang: !document.getElementById("npBang").hidden,
     hang: document.querySelectorAll("#npBangDs .np-bang-hang").length,
     tk: document.getElementById("npStats").textContent,
     ten: document.getElementById("npBangTen").textContent }));
-  soat("danh sách câu đóng băng hiện, 1 câu", r.bang && r.hang === 1, r.ten);
-  soat("thống kê ghi số câu đã đóng băng", /1 câu đã đóng băng/.test(r.tk), r.tk);
-  // Luyện lại tự do: câu đã đóng băng không xuất hiện.
-  await page.click("#npStart"); await cho(200);
-  const so = await page.evaluate(() => document.getElementById("npProgress").textContent);
-  soat("luyện lại chỉ còn 1 câu (câu đóng băng bị bỏ)", /1\/1/.test(so), so);
+  soat("danh sách câu đóng băng hiện, 2 câu", r.bang && r.hang === 2, r.ten);
+  soat("thống kê ghi số câu đã đóng băng", /2 câu đã đóng băng/.test(r.tk), r.tk);
+  // Hai câu đều đóng băng: không còn gì để luyện tự do.
+  const tat = await page.evaluate(() => document.getElementById("npStart").disabled);
+  soat("mọi câu đã đóng băng: nút luyện tắt", tat);
   // Mở lại
   await page.evaluate(() => { document.getElementById("npBang").open = true; });
-  await page.click("#npBangDs .np-bang-hang button");
+  await page.evaluate((c) => { [...document.querySelectorAll("#npBangDs .np-bang-hang")].find((h) => h.textContent.includes(c)).querySelector("button").click(); }, a.cau);
   await cho(400);
   const r2 = await page.evaluate(() => ({ hang: document.querySelectorAll("#npBangDs .np-bang-hang").length, hidden: document.getElementById("npBang").hidden }));
-  soat("Mở lại: câu rời khỏi danh sách đóng băng", r2.hang === 0 && r2.hidden);
+  soat("Mở lại: câu ấy rời danh sách, câu kia còn lại", r2.hang === 1 && !r2.hidden);
   const kho3 = await sw.evaluate(async () => (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs || {});
   soat("kho gỡ cờ và câu đến hạn ngay", !kho3[k].dongBang && kho3[k].due <= Date.now() + 1000, JSON.stringify(kho3[k]));
 }

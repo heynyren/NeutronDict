@@ -2078,8 +2078,8 @@
   ja["Mọi câu đã đóng băng. Mở lại ở danh sách bên dưới nếu muốn luyện lại."] = "すべての文が凍結されています。もう一度練習するには下のリストで解除してください。";
   en["Đã đóng băng câu này — sẽ không hiện lại. Mở lại ở danh sách câu đóng băng."] = "This sentence is now frozen and won't appear again. Unfreeze it from the frozen list.";
   ja["Đã đóng băng câu này — sẽ không hiện lại. Mở lại ở danh sách câu đóng băng."] = "この文を凍結しました。再表示されません。凍結リストから解除できます。";
-  en["Làm đúng ngay lần đầu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "Get a sentence right on the first try and it is frozen and won't come back; you can unfreeze it from the list below.";
-  ja["Làm đúng ngay lần đầu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "一度で正解した文は凍結され、再表示されません。下のリストから解除できます。";
+  en["Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "Put a sentence together correctly and it is frozen and won't come back; you can unfreeze it from the list below.";
+  ja["Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "正しく並べた文は凍結され、再表示されません。下のリストから解除できます。";
 
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;

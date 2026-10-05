@@ -53,13 +53,14 @@ try {
   const order=await page.evaluate(c=>NguPhap.catCau(c).map(p=>p.text.trim()),cau);
   for(const text of order) await page.locator("#npOptions button").filter({hasText:text}).click();
   await page.locator("#npCheck").click();
-  await page.waitForFunction(()=>/Cấp ngữ pháp 1/.test(document.getElementById("npSchedule").textContent));
+  await page.waitForFunction(()=>/đóng băng/.test(document.getElementById("npSchedule").textContent));
   let grammar=await page.evaluate(async()=> (await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs);
-  const g=Object.values(grammar)[0];assert.equal(g.lv,1);assert.equal(g.due-g.ts,3*86400000);
+  const g=Object.values(grammar)[0];assert.equal(g.lv,1);assert.equal(g.dongBang,true,"làm đúng thì đóng băng");assert.ok(Math.abs(g.due-g.ts-3*86400000)<=5);
   assert.deepEqual(await page.evaluate(async()=>(await chrome.storage.local.get("notebook")).notebook["javi:勉強"].duong),initial);
   await page.locator("#npNext").click();
   assert.equal(await page.locator("#npDue").isDisabled(),true);
-  await page.locator("#npStart").click();await page.locator("#npSkip").click();await page.locator("#npNext").click();
+  // Câu duy nhất đã đóng băng: luyện tự do không còn câu nào để ra.
+  assert.equal(await page.locator("#npStart").isDisabled(),true,"frozen sentence is not practised again");
   assert.deepEqual(await page.evaluate(async()=>(await chrome.storage.local.get("nguPhapSrs")).nguPhapSrs),grammar,"Free practice does not grade");
   await page.reload();
   await page.waitForFunction(()=>window.NguPhapUI&&typeof moMan==="function");
