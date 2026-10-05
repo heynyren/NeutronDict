@@ -725,6 +725,22 @@ function chuDiem(it) {
 }
 
 /**
+ * Đường này ĐÃ tới hạn theo lịch riêng của nó chưa (chưa tính luật 12 tiếng giữa
+ * các đường — xem Srs.GIAN_DUONG). Đường chưa học bao giờ coi là đã tới hạn.
+ */
+function daDenHan(it, duong, now) {
+  const due = window.Srs.hanDuong(it, duong);
+  return !due || due <= (now || Date.now());
+}
+
+/** "20:15", hoặc "mai 08:15" nếu sang ngày khác — để nói đường kế tiếp hiện lúc nào. */
+function gioHien(ms, now) {
+  const d = new Date(ms), h = new Date(now || Date.now());
+  const gio = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return d.toDateString() === h.toDateString() ? gio : T("mai") + " " + gio;
+}
+
+/**
  * Bốn dòng chi tiết — dùng chung cho tooltip của chip và cho khung bấm vào.
  * @returns {Array<{duong,ten,diem,trangThai,co,han}>}
  */
@@ -733,6 +749,9 @@ function dongDiem(it, now) {
   const d = window.Srs.diemTu(it);
   const han = window.Srs.denHan(it, nay);
   const mo = window.Srs.duongMo(it);
+  // Đường kế tiếp sẽ hiện (theo thứ tự DUONG) trong số những đường đang ngủ vì luật 12 tiếng.
+  const daiDuong = window.Srs.DUONG.find((t) => d.phan[t] !== null && mo.indexOf(t) >= 0
+    && !window.Srs.biDongBang(it, t) && daDenHan(it, t, nay) && window.Srs.choDen(it, t, nay));
   return window.Srs.DUONG.map((t) => {
     const x = (it.duong || {})[t];
     const co = d.phan[t] !== null;
@@ -741,6 +760,13 @@ function dongDiem(it, now) {
     else if (window.Srs.biDongBang(it, t)) trangThai = T("đang đóng băng");
     else if (mo.indexOf(t) < 0) trangThai = T("chưa mở");
     else if (han.indexOf(t) >= 0) trangThai = T("đến hạn");
+    else if (daDenHan(it, t, nay) && window.Srs.choDen(it, t, nay))
+      // Các đường chờ nhau theo chuỗi: chỉ đường ĐẦU HÀNG có giờ hiện cụ thể, những
+      // đường sau phải đợi tới khi đường ấy được chấm (rồi 12 tiếng nữa).
+      trangThai = t === daiDuong
+        ? T2("hiện lúc {gio}", { gio: gioHien(window.Srs.choDen(it, t, nay), nay) })
+        : T("đến hạn — đợi tới lượt");
+    else if (daDenHan(it, t, nay)) trangThai = T("đến hạn — đợi tới lượt");
     else trangThai = khiNaoOn(window.Srs.hanDuong(it, t), nay);
     return { duong: t, ten: T(window.Srs.TEN_DUONG[t]), diem: d.phan[t],
              trangThai: trangThai, co: co, han: co && han.indexOf(t) >= 0 };
@@ -830,6 +856,9 @@ function duongOnDuoc(it, now) {
    */
   if (it && it.dongBang) return [];
   const nay = now || Date.now();
+  // Vừa chấm một đường của từ này: các đường còn lại ngủ 12 tiếng (Srs.GIAN_DUONG),
+  // và nút "Ôn bài còn lại" không được là lối tắt vòng qua luật ấy.
+  if (window.Srs.DUONG.some((t) => window.Srs.choDen(it, t, nay))) return [];
   const mo = window.Srs.duongMo(it);
   const han = window.Srs.denHan(it, nay);
   return window.Srs.duongCo(it).filter((t) =>

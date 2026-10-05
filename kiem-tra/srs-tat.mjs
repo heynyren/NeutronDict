@@ -152,8 +152,12 @@ console.log("\ndongBang — rút một từ ra khỏi vòng ôn\n");
   const xa = MOC + 400 * NGAY;
   la(Srs.denHan(b, xa).length === 0, "đang đóng băng thì rỗng");
   delete b.dongBang;
-  la(Srs.denHan(b, xa).length === 4, "gỡ băng ra là tới hạn lại ngay, cả bốn đường",
-     JSON.stringify(Srs.denHan(b, xa)));
+  // Cả bốn đường tới hạn theo lịch riêng, nhưng mỗi từ chỉ hiện MỘT đường mỗi lần
+  // (Srs.GIAN_DUONG) — đường kia chờ tới lượt chứ không mất.
+  la(["nhin", "nghe", "dong", "trai"].every((t) => Srs.hanDuong(b, t) <= xa),
+     "gỡ băng ra là cả bốn đường tới hạn lại ngay", JSON.stringify(Srs.denHan(b, xa)));
+  la(Srs.denHan(b, xa).length === 1 && Srs.denHan(b, xa)[0] === "nhin",
+     "và đường đầu tiên (nhin) hiện ngay", JSON.stringify(Srs.denHan(b, xa)));
 }
 {
   // Hai cờ chồng nhau không được nổ, và đóng băng phải thắng ở hàng đợi.

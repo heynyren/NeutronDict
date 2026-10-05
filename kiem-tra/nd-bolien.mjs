@@ -40,7 +40,7 @@ await sw.evaluate(() => { self.fetch = () => Promise.reject(new Error("chặn"))
 
 const gieo = () => sw.evaluate(async (now) => {
   const ngay = 86400000;
-  const duong = { nhin: { lv: 3, ngay: 14, net: 2.2, sai: 0, due: now + 9 * ngay, ts: now },
+  const duong = { nhin: { lv: 3, ngay: 14, net: 2.2, sai: 0, due: now + 9 * ngay, ts: now - 2 * ngay },
                   dong: { lv: 2, ngay: 7, net: 2, sai: 0, due: now - ngay, ts: now - 8 * ngay },
                   trai: { lv: 1, ngay: 3, net: 1.8, sai: 0, due: now - ngay, ts: now - 4 * ngay } };
   await chrome.storage.local.set({
@@ -51,11 +51,11 @@ const gieo = () => sw.evaluate(async (now) => {
       // 改良 kể tên ngược lại 改善 — để soi việc gỡ có HAI CHIỀU không.
       "javi:改良": { word: "改良", dict: "javi", reading: "かいりょう", means: ["cải tiến"], ts: now,
         lien: { dong: ["改善", "向上"], trai: [] },
-        duong: { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 5 * ngay, ts: now } },
+        duong: { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 5 * ngay, ts: now - 2 * ngay } },
         srs: { lv: 2, due: now + 5 * ngay, ts: now } },
       "javi:向上": { word: "向上", dict: "javi", means: ["nâng lên"], ts: now,
         lien: { dong: [], trai: [] },
-        duong: { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 5 * ngay, ts: now } },
+        duong: { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 5 * ngay, ts: now - 2 * ngay } },
         srs: { lv: 2, due: now + 5 * ngay, ts: now } }
     },
     decks: {}, hoc: {}, nhipMs: {},
@@ -241,11 +241,11 @@ console.log("\nCòn nút ở MẶT SAU THẺ HỌC nữa");
     const nb = (await chrome.storage.local.get("notebook")).notebook;
     nb["javi:改善"].duong = {
       nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now - ngay, ts: now - 8 * ngay },
-      dong: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 9 * ngay, ts: now },
-      trai: { lv: 1, ngay: 3, net: 1.8, sai: 0, due: now + 9 * ngay, ts: now }
+      dong: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 9 * ngay, ts: now - 2 * ngay },
+      trai: { lv: 1, ngay: 3, net: 1.8, sai: 0, due: now + 9 * ngay, ts: now - 2 * ngay }
     };
     for (const k of ["javi:改良", "javi:向上"]) {
-      nb[k].duong = { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 9 * ngay, ts: now } };
+      nb[k].duong = { nhin: { lv: 2, ngay: 7, net: 2, sai: 0, due: now + 9 * ngay, ts: now - 2 * ngay } };
     }
     await chrome.storage.local.set({ notebook: nb });
   }, Date.now());

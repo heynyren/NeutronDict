@@ -110,7 +110,7 @@ await sw.evaluate(async ([cauA, now]) => {
   const e = (w, extra) => Object.assign({ word: w, dict: "javi", reading: w, means: ["nghĩa"], ts: now,
     src: { url: "https://a.test/x", title: "t", sel: w, cau: cauA },
     cauNghe: { cau: cauA, dich: "dịch", ts: now },
-    duong: { nhin: { lv: 3, ngay: 7, due: now - 86400000, ts: now - 8 * 86400000 }, nghe: { lv: 2, ngay: 3, due: now - 86400000, ts: now - 4 * 86400000 } },
+    duong: { nhin: { lv: 3, ngay: 7, due: now + 5 * 86400000, ts: now - 2 * 86400000 }, nghe: { lv: 2, ngay: 3, due: now - 86400000, ts: now - 4 * 86400000 } },
     srs: { lv: 2, due: now - 86400000, ts: now } }, extra || {});
   await chrome.storage.local.set({ settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false },
     notebook: { "javi:言葉": e("言葉"), "javi:覚える": e("覚える"), "javi:大切": e("大切") }, decks: {}, hoc: {} });
@@ -130,7 +130,7 @@ const q = await pg.evaluate(() => {
 });
 const nghe = q.filter((x) => x.startsWith("nghe:"));
 soat("hàng đợi có đúng MỘT thẻ nghe cho cả 3 từ", nghe.length === 1, nghe.join(","));
-soat("vẫn đủ 3 thẻ nhìn (mỗi từ một)", q.filter((x) => x.startsWith("nhin:")).length === 3, q.join(" "));
+soat("và không có thẻ nào khác (nhìn chưa đến hạn; mỗi từ chỉ hiện một đường)", q.length === 1, q.join(" "));
 console.log(loi.length ? "LỖI JS:\n" + loi.join("\n") : "  không có lỗi JS");
 await ctx.close();
 const sai = ket.filter((x) => !x).length;
