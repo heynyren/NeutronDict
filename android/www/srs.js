@@ -322,6 +322,20 @@
       return MOC[Math.min(MOC.length - 1, Math.round(cu.lv))];
     return 0;
   }
+  /**
+   * Từ đã ĐẠT MỨC TỐI ĐA: mọi đường đang có đều đã nới tới trần TRAN_NGAY.
+   *
+   * Không dùng `diemTu().tong >= 100`: điểm được làm tròn nên 99,5 cũng thành
+   * 100, trong khi từ ấy còn một đường chưa chạm trần. Ở đây phải đúng từng
+   * đường, vì kết quả là ĐÓNG BĂNG — sai về phía "đã thuộc" thì từ biến mất
+   * khỏi lịch ôn mà chưa hề thuộc.
+   */
+  function toiDa(muc) {
+    const co = duongCo(muc);
+    if (!co.length) return false;
+    const d = (muc && muc.duong) || {};
+    return co.every((t) => ngayCua(d[t]) >= TRAN_NGAY);
+  }
   /** Nết đã học được của một đường; mục cũ thì coi như nết trung bình. */
   function netCua(cu) {
     const n = cu && typeof cu.net === "number" && isFinite(cu.net) ? cu.net : NET_DAU;
@@ -1015,6 +1029,25 @@
   }
 
   /**
+   * Đường `ten` của mục này đã tới hạn để ôn chưa — hỏi RIÊNG từng đường.
+   *
+   * `denHan` chỉ trả đường tới hạn ĐẦU TIÊN của mỗi từ (luật một-đường-một-lần).
+   * Chế độ "Ôn từng đường" cần hỏi thẳng "đường nghe của từ này có tới hạn
+   * không", nên có hàm riêng — nhưng vẫn theo đúng các luật còn lại: đóng băng
+   * (cả từ lẫn riêng đường), lịch hẹn riêng, đường chưa mở, và 12 tiếng nghỉ sau
+   * lần chấm một đường khác. Không đường nào được ôn sớm hơn lịch của nó: ôn
+   * sớm vẫn được nới ngày y như ôn đúng hạn, nên đó sẽ là lối cày điểm.
+   */
+  function denHanDuong(muc, ten, now) {
+    if (!muc || muc.del || muc.dongBang || biDongBang(muc, ten)) return false;
+    if (duongMo(muc).indexOf(ten) < 0) return false;
+    const bayGio = now || Date.now();
+    const due = hanDuong(muc, ten);
+    if (due && due > bayGio) return false;
+    return !choDen(muc, ten, bayGio);
+  }
+
+  /**
    * Hồ sơ trí nhớ để hiện ra cho người học: mỗi đường một tỉ lệ 0–100.
    *
    * Cố ý KHÔNG gọi là "đã thuộc bao nhiêu phần trăm" — nó là vị trí trên thang
@@ -1211,10 +1244,10 @@
     ghiSoDo, docSoDo, tronSoDo, gopDo, nhanhHoa, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
     heChatLuong, CHAT_SAN, CHAT_DAY,
     T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY, TUT_DUONG, tutCua,
-    ngayCua, netCua, capTu,
+    ngayCua, netCua, capTu, toiDa,
     diemDuong, diemTu, TRONG, NGUONG_BAC, TEN_BAC, CHIEU,
     lichHen, raiTai, RAI_TOI_THIEU, RAI_RONG,
-    duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay, GIAN_DUONG, choDen,
+    duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay, GIAN_DUONG, choDen, denHanDuong,
     tocDoNghe, biDongBang, hanDuong, biChan, datLich, phoiHop
   };
 })(typeof self !== "undefined" ? self : this);

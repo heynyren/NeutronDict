@@ -1371,3 +1371,49 @@ table.sodo tr.thieu td { opacity: .45; }
 .thanh-chon .btn { white-space: nowrap; }
 .list-more { display: block; width: 100%; padding: 14px; border: 0; background: none;
   color: var(--accent); font-weight: 650; cursor: pointer; }
+
+/* ---- Hiệu ứng chấm thẻ (kiểu Quizlet) ------------------------------------
+   Quên: dấu X đỏ nhạt hiện nhẹ rồi tan. Nhớ: dấu V xanh bật lên ngay. Chỉ dùng transform/opacity nên không đẩy
+   bố cục, và `pointer-events: none` để không cản cú bấm kế tiếp. Ai tắt hiệu
+   ứng chuyển động trong hệ điều hành thì chỉ còn hiện/ẩn, không phóng to. */
+.st-hieuung {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  pointer-events: none; z-index: 262;
+}
+.st-hieuung .hu {
+  width: 118px; height: 118px; border-radius: 50%;
+  display: grid; place-items: center; opacity: 0;
+  background: var(--surface); border: 3px solid currentColor;
+  box-shadow: 0 10px 34px rgba(0,0,0,.16);
+}
+.st-hieuung .hu svg { width: 62px; height: 62px; fill: none; stroke: currentColor;
+  stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.st-hieuung .hu.quen { color: var(--bad); }
+.st-hieuung .hu.nho { color: var(--good); }
+.st-hieuung .hu.chay { animation: hu-vao .7s ease-out both; }
+@keyframes hu-vao {
+  0%   { opacity: 0; transform: scale(.55); }
+  22%  { opacity: 1; transform: scale(1.08); }
+  38%  { transform: scale(1); }
+  72%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-hieuung .hu.chay { animation: hu-mo .7s linear both; }
+  @keyframes hu-mo { 0%, 100% { opacity: 0; } 20%, 70% { opacity: 1; } }
+}
+/* Gợi ý phím trên nút chấm — chỉ có ý nghĩa khi có bàn phím. */
+@media (min-width: 901px) {
+  .grade .btn[data-phim]::after {
+    content: attr(data-phim); margin-left: 8px; padding: 0 6px; border-radius: 5px;
+    border: 1px solid currentColor; font-size: 11px; font-weight: 700; opacity: .6;
+  }
+}
+/* Số phím trên mỗi ô của bài liên kết — vẽ bằng ::before để không lẫn vào chữ của ô. */
+@media (min-width: 901px) {
+  .lien-omot[data-phim]::before {
+    content: attr(data-phim); margin-bottom: 3px; min-width: 18px; text-align: center; padding: 0 5px;
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px;
+    font-size: 11px; font-weight: 700; color: var(--ink-3); background: var(--surface-2);
+  }
+}

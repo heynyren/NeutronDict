@@ -15,12 +15,65 @@
     o.className = "np-feedback" + (loai ? " " + loai : "");
   }
 
+  const biBang = (q) => goc.NguPhapSrs.biDongBang(kho[goc.NguPhapSrs.khoa(q.cau)]);
+  const conLai = () => tatCa.filter((q) => !biBang(q));
+
+  function veThongKe() {
+    const t = goc.NguPhapSrs.thongKe(tatCa, kho);
+    let chu = T2("{m} câu mới · {d} câu đến hạn · {t} câu tổng cộng", { m:t.moi, d:t.den, t:t.tong });
+    if (t.bang) chu += " · " + T2("{b} câu đã đóng băng", { b: t.bang });
+    $("npStats").textContent = chu;
+  }
+
+  /**
+   * Danh sách câu đã đóng băng, mỗi câu một nút "Mở lại".
+   *
+   * Câu làm đúng bị đóng băng ngay nên danh sách này sẽ lớn dần; để trong một
+   * khối thu gọn (<details>) cho nó không chiếm màn luyện. Chỉ vẽ lại khi mở ra
+   * hoặc khi số câu đổi — vẽ cả trăm hàng mỗi lần bấm một mảnh là phí.
+   */
+  let bangDaVe = "";
+  function veBang() {
+    const hop = $("npBang");
+    if (!hop) return;
+    const ds = ghiKetQua ? tatCa.filter(biBang) : [];
+    hop.hidden = !ds.length;
+    if (!ds.length) { bangDaVe = ""; $("npBangDs").textContent = ""; return; }
+    $("npBangTen").textContent = T2("Câu đã đóng băng ({n})", { n: ds.length });
+    const dau = ds.map((q) => q.cau).join("\n") + "|" + dangGhi;
+    if (dau === bangDaVe) return;
+    bangDaVe = dau;
+    const khung = $("npBangDs");
+    khung.textContent = "";
+    for (const q of ds) {
+      const hang = document.createElement("div");
+      hang.className = "np-bang-hang";
+      const chu = document.createElement("span");
+      chu.className = "np-bang-cau"; chu.textContent = q.cau;
+      const nut = document.createElement("button");
+      nut.type = "button"; nut.className = "btn sm"; nut.textContent = T("Mở lại");
+      nut.disabled = dangGhi;
+      nut.addEventListener("click", () => moLai(q, nut));
+      hang.appendChild(chu); hang.appendChild(nut);
+      khung.appendChild(hang);
+    }
+  }
+
+  async function moLai(q, nut) {
+    if (dangGhi) return;
+    dangGhi = true; nut.disabled = true;
+    try {
+      const r = await ghiKetQua(q, "mo", true);
+      if (r) kho[goc.NguPhapSrs.khoa(q.cau)] = r;
+      else thongBao(T("Chưa mở lại được câu này. Hãy thử lại."), "sai");
+    } catch (e) { thongBao(T("Chưa mở lại được câu này. Hãy thử lại."), "sai"); }
+    finally { dangGhi = false; ve(); }
+  }
+
   function ve() {
     const nutBat = $("npStart"), bai = $("npExercise"), dem = $("npCount");
-    if (ghiKetQua && $("npStats")) {
-      const t = goc.NguPhapSrs.thongKe(tatCa, kho);
-      $("npStats").textContent = T2("{m} câu mới · {d} câu đến hạn · {t} câu tổng cộng", { m:t.moi, d:t.den, t:t.tong });
-    }
+    if (ghiKetQua && $("npStats")) veThongKe();
+    veBang();
     const due = $("npDue");
     if (due) { due.hidden = !ghiKetQua || !tatCa.length || !!(buoi && buoi.i < buoi.ds.length);
       due.disabled = dangGhi || !tatCa.some(q => goc.NguPhapSrs.denHan(kho[goc.NguPhapSrs.khoa(q.cau)])); }
@@ -28,6 +81,7 @@
     if (!buoi || buoi.i >= buoi.ds.length) {
       bai.hidden = true;
       nutBat.hidden = !tatCa.length;
+      nutBat.disabled = !conLai().length;
       nutBat.textContent = ghiKetQua ? T("Luyện tất cả") : (buoi ? T("Luyện lại") : T("Bắt đầu luyện"));
       if (buoi) dem.textContent = T2("Đã ghép đúng {dung}/{tong} câu.", {
         dung: buoi.dung, tong: buoi.ds.length
@@ -107,8 +161,13 @@
     if (!tatCa.length || dangGhi) return;
     theoLich = theoLich === true && !!ghiKetQua;
     if (docLich) { try { kho = await docLich(); } catch(e) { thongBao(T("Không đọc được lịch. Hãy thử lại."), "sai"); return; } }
-    const nguon = theoLich ? tatCa.filter(q => goc.NguPhapSrs.denHan(kho[goc.NguPhapSrs.khoa(q.cau)])) : tatCa;
-    if (!nguon.length) { thongBao(T("Đã hết câu đến hạn. Bạn vẫn có thể luyện tất cả.")); ve(); return; }
+    // Câu đã đóng băng không vào buổi nào, kể cả luyện tự do: làm đúng một lần là xong.
+    const nguon = theoLich ? tatCa.filter(q => goc.NguPhapSrs.denHan(kho[goc.NguPhapSrs.khoa(q.cau)])) : conLai();
+    if (!nguon.length) {
+      thongBao(theoLich ? T("Đã hết câu đến hạn. Bạn vẫn có thể luyện tất cả.")
+                        : T("Mọi câu đã đóng băng. Mở lại ở danh sách bên dưới nếu muốn luyện lại."));
+      ve(); return;
+    }
     // Mỗi buổi đi hết danh sách; luyện lại xáo câu và mảnh, không kẹt ở 10 câu đầu.
     const ds = nguon.map((q) => Object.assign({}, q, {
       xao: goc.NguPhap.xaoTron(q.manh) || q.xao
@@ -126,18 +185,31 @@
     ve();
   }
 
+  /**
+   * Ghi kết quả một câu.
+   *
+   * LÀM ĐÚNG NGAY LẦN ĐẦU (kq = "dung") thì câu bị ĐÓNG BĂNG ngay, ở cả hai chế
+   * độ: người học không muốn luyện đi luyện lại câu đã làm được. Chế độ theo lịch
+   * vẫn chấm cấp/lịch như cũ rồi mới đóng băng; chế độ tự do chỉ đóng băng.
+   * Sửa lại mới đúng ("sua") hoặc xem đáp án ("xem") thì KHÔNG đóng băng — câu ấy
+   * chưa làm được, vẫn phải gặp lại. Câu củng cố (làm lại ngay sau khi sai) không
+   * ghi gì cả, như trước.
+   */
   async function ketThuc(kq) {
     const b = buoi, q = b.ds[b.i];
-    if (!b.theoLich || q.cungCo || !ghiKetQua) return;
+    if (!ghiKetQua || q.cungCo) return;
+    const chiBang = !b.theoLich;
+    if (chiBang && kq !== "dung") return;
     dangGhi = true; ve();
     try {
-      const r = await ghiKetQua(q, kq);
+      const r = await ghiKetQua(q, kq, chiBang);
       if (r) kho[goc.NguPhapSrs.khoa(q.cau)] = r;
       if (buoi !== b) return;
-      if ($("npSchedule")) $("npSchedule").textContent = r
-        ? T2("Cấp ngữ pháp {lv} · ôn lại sau {n} ngày", { lv: r.lv, n: r.ngay })
-        : T("Lịch đã thay đổi hoặc câu không còn trong sổ. Lượt này không tăng cấp.");
-      if (kq !== "dung" && r) b.ds.push(Object.assign({}, q, { cungCo: true, xao: goc.NguPhap.xaoTron(q.manh) || q.xao }));
+      if ($("npSchedule")) $("npSchedule").textContent = !r
+        ? T("Lịch đã thay đổi hoặc câu không còn trong sổ. Lượt này không tăng cấp.")
+        : (r.dongBang ? T("Đã đóng băng câu này — sẽ không hiện lại. Mở lại ở danh sách câu đóng băng.")
+                      : T2("Cấp ngữ pháp {lv} · ôn lại sau {n} ngày", { lv: r.lv, n: r.ngay }));
+      if (kq !== "dung" && r && b.theoLich) b.ds.push(Object.assign({}, q, { cungCo: true, xao: goc.NguPhap.xaoTron(q.manh) || q.xao }));
     } catch(e) {
       if (buoi === b) { b.chuaGhi = kq; thongBao(T("Chưa lưu được lịch. Bấm Câu tiếp để thử lưu lại."), "sai"); }
     } finally { dangGhi = false; if (buoi === b) ve(); }
@@ -193,8 +265,7 @@
     try {
       tatCa = goc.NguPhap.danhSach(await layMuc());
       if (docLich) kho = await docLich();
-      if (ghiKetQua && $("npStats")) { const t = goc.NguPhapSrs.thongKe(tatCa, kho);
-        $("npStats").textContent = T2("{m} câu mới · {d} câu đến hạn · {t} câu tổng cộng", { m:t.moi, d:t.den, t:t.tong }); }
+      if (ghiKetQua && $("npStats")) veThongKe();
       if (!buoi) $("npCount").textContent = tatCa.length
         ? T2("Có {n} câu từ sổ tay để luyện.", { n: tatCa.length })
         : T("Chưa có câu tiếng Nhật đủ ngữ cảnh. Hãy lưu từ trong một câu trọn vẹn hoặc lưu câu từ video.");

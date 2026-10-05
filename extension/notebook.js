@@ -828,6 +828,16 @@ async function gradeWord(key, remembered, ms, duong, chat) {
       duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }),
       ts: Date.now()
     });
+    /*
+     * ĐẠT MỨC TỐI ĐA THÌ ĐÓNG BĂNG.
+     *
+     * Chỉ xét ở lượt NHỚ: quên thì nới ngày đã tụt xuống, `toiDa` tự sai. Đóng
+     * băng là cờ như mọi lần bấm tay — nút "Đang đóng băng" mở lại được, và từ
+     * mở lại sẽ chỉ tới hạn khi hết cả năm, nên không có chuyện bị đóng băng
+     * lại ngay vòng sau. Cờ `_toiDa` chỉ để chỗ gọi báo cho người học biết.
+     */
+    let vuaToiDa = false;
+    if (remembered && !moi.dongBang && window.Srs.toiDa(moi)) { moi.dongBang = 1; vuaToiDa = true; }
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[key] = moi;
     tkAll[d] = kq.tk;
@@ -839,7 +849,7 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     // Một lượt ghi giữ lịch và thống kê tương ứng với cùng một lần chấm.
     await chrome.storage.local.set(ghi);
     nhipMs = tkAll;
-    return Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc });
+    return Object.assign({}, kq, { truoc: truoc, tkTruoc: tkTruoc, vuaToiDa: vuaToiDa });
   });
 }
 
@@ -2736,6 +2746,41 @@ async function startStudy() {
 }
 
 /**
+ * Hàng đợi của "Ôn từng đường": mỗi từ tới hạn ở một trong các đường `ds` thì
+ * thành MỘT thẻ (từ có cả đường dong lẫn trai tới hạn cũng chỉ lấy một — luật
+ * một-đường-một-lần vẫn đúng ở đây). Chỉ lấy thẻ ĐÃ tới hạn: ôn sớm vẫn được
+ * nới ngày y như ôn đúng hạn, nên cho ôn cả thẻ chưa tới hạn là mở lối cày điểm.
+ */
+function hangDoiDuong(scopeList, ds) {
+  const now = Date.now();
+  const ra = [];
+  for (const it of scopeList) {
+    if (it.del) continue;
+    const d = ds.find((t) => window.Srs.denHanDuong(it, t, now));
+    if (d) ra.push(Object.assign({}, it, { _d: d }));
+  }
+  return ra;
+}
+
+async function startStudyDuong() {
+  if (!daNapXong) await choNapXong();
+  window.DuongRiengUI.mo(
+    (ds) => hangDoiDuong(currentActiveSet(), ds).length,
+    (ds) => {
+      const hang = hangDoiDuong(currentActiveSet(), ds).sort(() => Math.random() - 0.5);
+      if (!hang.length) { toast(T("Chưa có bài nào đến hạn ở loại này."), "bad"); return; }
+      session = { queue: hang, done: 0, again: 0, deleted: 0 };
+      lastDeleted = null;
+      $("stUndo").style.display = "none";
+      $("stBody").style.display = "";
+      $("stDone").style.display = "none";
+      ovl.classList.add("show");
+      batNhacTau();
+      showCard();
+    });
+}
+
+/**
  * Buổi ôn của MỘT từ, mở thẳng từ chip điểm.
  *
  * Dùng lại nguyên bộ máy của buổi học thường chứ không dựng cái thứ hai:
@@ -2781,6 +2826,27 @@ function batNhacTau() {
   window.NhacTau.bat({
     duoc: () => ovl.classList.contains("show") && !document.hidden
   });
+}
+
+const HU_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
+const HU_V = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.8l5 5L19.5 7"/></svg>';
+
+/**
+ * Dấu X đỏ nhạt (quên) hoặc dấu V xanh (nhớ) nổi lên giữa màn rồi tan.
+ *
+ * Phần tử dùng lại chứ không dựng mới mỗi lượt: bấm F/J dồn dập thì chỉ khởi
+ * động lại hoạt ảnh, không đẻ thêm nút DOM. Không `await` gì cả — hiệu ứng phải
+ * ra cùng lúc với cú bấm, trước cả lượt ghi sổ.
+ */
+function hieuUng(nho) {
+  const ban = $("stHieuUng");
+  if (!ban) return;
+  let hu = ban.firstChild;
+  if (!hu) { hu = document.createElement("div"); ban.appendChild(hu); }
+  hu.className = "hu " + (nho ? "nho" : "quen");
+  hu.innerHTML = nho ? HU_V : HU_X;
+  void hu.offsetWidth;                    // buộc tính lại kiểu để hoạt ảnh chạy lại từ đầu
+  hu.classList.add("chay");
 }
 
 /**
@@ -3315,6 +3381,7 @@ async function grade(remembered) {
   if (!it) return;
   const vt = session.queue.indexOf(it);
   if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
+  hieuUng(remembered);
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
   const ms = msDaDung !== null ? msDaDung
@@ -3355,7 +3422,8 @@ async function grade(remembered) {
   if (kqCham) {
     session.lichSu = (session.lichSu || []).concat([{
       the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
-      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, sau: kqCham.duong, tkSau: kqCham.tk, banSao: banSao
+      truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, sau: kqCham.duong, tkSau: kqCham.tk, banSao: banSao,
+      vuaToiDa: !!kqCham.vuaToiDa
     }]).slice(-20);
   }
 
@@ -3380,7 +3448,12 @@ async function grade(remembered) {
   const mucSau = nbSau[it.key];
   const oCu = items.find((x) => x.key === it.key);
   if (oCu && mucSau) Object.assign(oCu, mucSau);
-  toast(chuBaoCham(remembered, truocDiem, mucSau, it._d || "nhin"));
+  if (kqCham.vuaToiDa) {
+    toast(T("Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."), "good");
+    if (oCu) oCu.dongBang = 1;
+  } else {
+    toast(chuBaoCham(remembered, truocDiem, mucSau, it._d || "nhin"));
+  }
 
   const tiep = () => showCard();
   if (moi.length) {
@@ -3460,6 +3533,8 @@ function veBaiLien(it) {
   for (const chu of o) {
     const b = el("button", "lien-omot");
     b.type = "button";
+    // Số phím tắt (1–9) của ô này, vẽ bằng CSS (::before) để KHÔNG lẫn vào chữ của ô.
+    if (khung.children.length < 9) b.dataset.phim = String(khung.children.length + 1);
     b.appendChild(el("span", "lien-omot-tu" + (NGU === "ja" ? " ja" : ""), chu));
     b.addEventListener("click", () => {
       if (b.disabled) return;
@@ -3491,6 +3566,7 @@ async function xongBaiLien() {
 
   veKetQuaLien(b, dung, ms);
 
+  hieuUng(kq.nho);
   coVu(kq.nho);
   // BỎ thẻ này ra khỏi hàng đợi. Thiếu dòng này thì hai giây sau showCard() vẽ
   // lại đúng cái đề vừa làm, và buổi học kẹt ở đó vĩnh viễn.
@@ -3499,6 +3575,11 @@ async function xongBaiLien() {
   // cách lại, KHÔNG bị quy thành thời gian rồi thả vào bộ đo nhịp bấm nữa.
   const daCham = await gradeWord(b.it.key, kq.nho, kq.ms, b.duong, kq.diem);
   if (!daCham) { showCard(); return; }
+  if (daCham.vuaToiDa) {
+    toast(T("Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."), "good");
+    const oCu = items.find((x) => x.key === b.it.key);
+    if (oCu) oCu.dongBang = 1;
+  }
   const moi = await theoDoi.ghiLuotOn(kq.nho);
   syncSoon();
   // Quên thì học lại cuối hàng, y như thẻ thường.
@@ -3755,6 +3836,8 @@ async function quayLaiThe() {
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
+    // Lượt chấm vừa đẩy từ lên mức tối đa và đóng băng nó: hoàn tác thì gỡ luôn.
+    if (b.vuaToiDa) delete moi.dongBang;
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[b.key] = moi;
     const ghi = { notebook: nb };
@@ -3936,6 +4019,7 @@ function closeStudy() {
 
 $("stLienTiep").addEventListener("click", () => { if (tiepBaiLien) tiepBaiLien(); });
 $("study").addEventListener("click", startStudy);
+if ($("studyPath")) $("studyPath").addEventListener("click", startStudyDuong);
 $("stReveal").addEventListener("click", revealCard);
 /**
  * Phát câu nghe. Tốc độ theo cấp của chính đường nghe — xem Srs.tocDoNghe.
@@ -3984,26 +4068,71 @@ document.addEventListener("keydown", (e) => {
    * chúc mừng vừa gọi `closeStudy` — đang học tự dưng thoát ra.
    */
   if (document.querySelector("#tdCelebrate.show, .anhxem.show")) return;
-  if (e.key === "Escape") closeStudy();
-  else if (e.key === " " || e.key === "Enter") {
-    /*
-     * Space làm ba việc, theo đúng thứ tự người ta cần chúng:
-     *   thẻ đang úp -> lật ra
-     *   đã lật rồi  -> mở nguồn
-     * Một phím cho cả mạch thao tác, tay không phải rời bàn phím.
-     */
+  if (e.key === "Escape") { closeStudy(); return; }
+  // Đang gõ chữ vào ô nào đó (ghi chú, sửa nghĩa…) thì phím là của ô ấy; và
+  // Ctrl/⌘/Alt + phím là của trình duyệt (Ctrl+F tìm chữ chẳng lẽ lại là "Quên").
+  const t = e.target;
+  if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+  phimHoc(e);
+});
+
+/**
+ * Phím tắt trong buổi học.
+ *
+ *   Space   lật thẻ · bài nghe: nghe lại · bài liên kết: Xong · màn kết quả: Tiếp
+ *   Enter   như Space, trừ bài nghe: Enter mới là lật (Space dành để nghe lại)
+ *   F / J   Quên / Nhớ (sau khi lật)        1 / 2  như cũ, giữ cho ai đã quen
+ *   A       phát âm từ (bài nghe chưa lật: nghe lại câu — từ còn phải giấu)
+ *   1–9     bài liên kết: chọn ô đó và chấm ngay. Mỗi đề chỉ có MỘT đáp án đúng
+ *           nên chọn xong là chấm luôn, chọn hai ô thì chắc chắn sai.
+ *   J       màn kết quả bài liên kết: Tiếp
+ */
+function phimHoc(e) {
+  const it = theCardHienTai();
+  const laNghe = !!it && it._d === "nghe";
+  const daLat = $("stGrade").style.display !== "none";
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  const ma = e.code || "";
+  const laPhim = (ch) => k === ch || ma === "Key" + ch.toUpperCase();
+
+  if (k === " " || k === "Enter") {
     e.preventDefault();
     // Màn kết quả bài liên kết đang chờ: phím cách là "Tiếp".
     if (tiepBaiLien) { tiepBaiLien(); return; }
+    if (baiLien) { xongBaiLien(); return; }
+    if (laNghe && k === " ") { phatCauNghe(); return; }
     if ($("stReveal").style.display !== "none") { revealCard(); return; }
-    const it = theCardHienTai();
     if (it && it.src && it.src.url) openSource(it, true);
-  } else if (e.key === "ArrowLeft") { e.preventDefault(); quayLaiThe(); }
-  else if (e.key === "ArrowRight") { e.preventDefault(); boQuaThe(); }
-  else if (e.key === "1" && $("stGrade").style.display !== "none") grade(false);
-  else if (e.key === "2" && $("stGrade").style.display !== "none") grade(true);
-  else if (e.key === "0" || e.key === "Delete") { e.preventDefault(); deleteCurrentCard(); }
-});
+  } else if (laPhim("j")) {
+    e.preventDefault();
+    if (tiepBaiLien) tiepBaiLien();
+    else if (daLat) grade(true);
+  } else if (laPhim("f")) {
+    e.preventDefault();
+    if (daLat) grade(false);
+  } else if (laPhim("a")) {
+    e.preventDefault();
+    if (!it) return;
+    if (laNghe && !daLat) phatCauNghe();
+    else if (it._d === "dong" || it._d === "trai") { if (tiepBaiLien) speak(it.word, it.audio); }
+    else speak(it.word, it.audio);
+  } else if (k === "ArrowLeft") { e.preventDefault(); quayLaiThe(); }
+  else if (k === "ArrowRight") { e.preventDefault(); boQuaThe(); }
+  else if (baiLien && /^[1-9]$/.test(k)) {
+    const o = $("stLienO").querySelectorAll(".lien-omot")[Number(k) - 1];
+    if (o && !o.disabled) {
+      e.preventDefault();
+      // Một đáp án: bỏ lựa chọn cũ rồi chọn đúng ô này và chấm.
+      baiLien.chon.clear();
+      baiLien.chon.add(o.querySelector(".lien-omot-tu").textContent);
+      xongBaiLien();
+    }
+  }
+  else if (k === "1" && daLat) grade(false);
+  else if (k === "2" && daLat) grade(true);
+  else if (k === "0" || k === "Delete") { e.preventDefault(); deleteCurrentCard(); }
+}
 
 /* ==================================================================== */
 /* Xuất file (theo mục đang chọn)                                       */
@@ -4793,14 +4922,23 @@ function moMan(ten) {
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
 
-async function ghiNguPhap(q, ketQua) {
+async function ghiNguPhap(q, ketQua, chiBang) {
   const ra = await suaSoTay(async () => {
     const data = await chrome.storage.local.get(["notebook", "ytKho", "nguPhapSrs"]);
     const nb = data.notebook || {}, ytKho = data.ytKho, kho = data.nguPhapSrs || {};
     const ds = window.NguPhap.boSungTuKho(Object.entries(window.Ngu.locSo(nb, "ja")).map(([key,v]) => Object.assign({ key },v)), ytKho);
     if (!window.NguPhap.danhSach(ds).some(b => b.cau === q.cau)) return null;
     const key = window.NguPhapSrs.khoa(q.cau);
-    const moi = window.NguPhapSrs.cham(kho[key], q.cau, ketQua, Date.now(), q.onId, q.tsDau);
+    const bayGio = Date.now();
+    let moi;
+    if (ketQua === "mo") moi = window.NguPhapSrs.dongBang(kho[key], q.cau, false, bayGio);
+    else {
+      // `chiBang`: chế độ luyện tự do — không chấm cấp/lịch, chỉ đóng băng câu làm đúng.
+      moi = chiBang ? kho[key] : window.NguPhapSrs.cham(kho[key], q.cau, ketQua, bayGio, q.onId, q.tsDau);
+      if (!moi && !chiBang) return null;
+      // Làm đúng ngay lần đầu thì đóng băng luôn, để khỏi phải luyện lại câu ấy.
+      if (ketQua === "dung") moi = window.NguPhapSrs.dongBang(moi, q.cau, true, bayGio);
+    }
     if (!moi) return null;
     kho[key] = moi;
     await chrome.storage.local.set({ nguPhapSrs: kho });

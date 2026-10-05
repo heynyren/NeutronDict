@@ -48,3 +48,10 @@
 .lich-rieng-hang { border-top:1px solid var(--line-soft,#ddd); padding:14px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .lich-rieng-hang strong,.lich-rieng-hang p { flex-basis:100%; margin:0; }
 .lich-rieng-hang input { width:80px; padding:8px; }
+.duong-rieng-lua { display:flex; flex-direction:column; align-items:flex-start; gap:2px; margin-top:10px; text-align:left; padding:12px 14px; }
+.duong-rieng-lua[disabled] { opacity:.55; }
+.np-bang { margin-top:16px; }
+.np-bang summary { cursor:pointer; font-size:14px; color:var(--ink-2,#555); }
+.np-bang-hang { display:flex; gap:10px; align-items:center; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line-soft,#ddd); }
+.np-bang-hang:first-child { margin-top:8px; }
+.np-bang-cau { flex:1; min-width:0; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }

@@ -160,7 +160,29 @@
   "use strict";
   const NGAY = 86400000, MOC = [3, 7, 14, 30, 60, 120, 240, 365];
   function khoa(cau) { return "ja:" + String(cau || "").replace(/\s+/g, " ").trim(); }
-  function denHan(cu, now) { return !cu || !cu.due || cu.due <= (now || Date.now()); }
+  /** Câu đã làm đúng thì bị đóng băng: không còn đến hạn, không còn nằm trong buổi luyện. */
+  function biDongBang(cu) { return !!(cu && cu.dongBang); }
+  function denHan(cu, now) {
+    if (biDongBang(cu)) return false;
+    return !cu || !cu.due || cu.due <= (now || Date.now());
+  }
+  /**
+   * Đóng băng (bat = true) hoặc mở lại (bat = false) một câu.
+   *
+   * Giữ nguyên cấp và lịch đã có; câu chưa từng vào lịch thì tạo một mục trống
+   * chỉ để mang cờ. `ts` luôn nhích lên để bên đồng bộ nhận ra đây là thay đổi
+   * mới nhất (Muc.tron chọn theo ts). Mở lại thì cho đến hạn ngay: người ta mở
+   * lại là vì muốn luyện lại câu ấy.
+   */
+  function dongBang(cu, cau, bat, now) {
+    const t = now || Date.now();
+    const goc = cu || { lv: 0, ngay: 0, due: 0 };
+    const moi = Object.assign({}, goc, { cau: khoa(cau).slice(3),
+      ts: Math.max(t, (goc.ts || 0) + 1) });
+    if (bat) moi.dongBang = true;
+    else { delete moi.dongBang; moi.due = t; }
+    return moi;
+  }
   function cham(cu, cau, kq, now, id, tsDau) {
     const t = now || Date.now();
     if (!["dung", "sua", "xem"].includes(kq)) throw new Error("Kết quả ngữ pháp không hợp lệ.");
@@ -179,12 +201,14 @@
       ts: Math.max(t, (cu && cu.ts || 0) + 1), phucHoi: phucHoi, onId: id, ketQua: kq };
   }
   function thongKe(ds, kho, now) {
-    let moi = 0, den = 0;
+    let moi = 0, den = 0, bang = 0;
     for (const q of ds || []) {
       const cu = (kho || {})[khoa(q.cau)];
-      if (!cu) moi++; else if (denHan(cu, now)) den++;
+      if (biDongBang(cu)) bang++;
+      else if (!cu) moi++;
+      else if (denHan(cu, now)) den++;
     }
-    return { moi: moi, den: den, tong: (ds || []).length };
+    return { moi: moi, den: den, bang: bang, tong: (ds || []).length };
   }
-  goc.NguPhapSrs = { MOC, NGAY, khoa, cham, denHan, thongKe };
+  goc.NguPhapSrs = { MOC, NGAY, khoa, cham, denHan, thongKe, biDongBang, dongBang };
 })(typeof self !== "undefined" ? self : this);

@@ -34,7 +34,7 @@ try {
       let session = { queue: [], done: 0, again: 0 };
       window.grades = [];
       const gradeWord = async (...args) => window.grades.push(args);
-      const coVu = () => {}, syncSoon = () => {}, veChuoiNgay = () => {};
+      const coVu = () => {}, hieuUng = () => {}, syncSoon = () => {}, veChuoiNgay = () => {};
       const theoDoi = { ghiLuotOn: async () => [] };
       const showCard = () => { window.nextCalls = (window.nextCalls || 0) + 1; };
       const mung = (_, cb) => cb();

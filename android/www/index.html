@@ -337,8 +337,8 @@
         <div id="stMyNote"></div>
         <button class="btn primary block lg" id="stReveal" type="button" style="margin-top:18px" data-chu>Hiện nghĩa</button>
         <div class="grade" id="stGrade" style="display:none">
-          <button class="btn no" id="gForgot" type="button" data-chu>Quên</button>
-          <button class="btn yes" id="gKnow" type="button" data-chu>Nhớ</button>
+          <button class="btn no" id="gForgot" type="button" data-phim="F" data-chu>Quên</button>
+          <button class="btn yes" id="gKnow" type="button" data-phim="J" data-chu>Nhớ</button>
         </div>
       </div>
 
@@ -360,6 +360,7 @@
     <button id="stStart" class="btn primary block lg" style="margin-top:14px" type="button" data-chu>
       Bắt đầu học <span class="tag" id="dueCount" style="background:rgba(255,255,255,.22);color:#fff">0</span>
     </button>
+    <button id="stStartDuong" class="btn block" style="margin-top:8px" type="button" data-chu>Ôn từng đường</button>
   </section>
 
   <!-- ======================= TIẾN ĐỘ ======================= -->
@@ -367,11 +368,16 @@
       <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
       <div class="card">
         <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Lịch ôn ngữ pháp riêng, cấp 1 bắt đầu từ 3 ngày; không cộng vào chế độ Học.</div>
+        <div class="t-small muted" style="margin-top:8px" data-chu>Làm đúng ngay lần đầu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới.</div>
         <div id="npCount" class="t-small muted" style="margin:14px 0"></div>
         <p id="npStats" class="t-small muted"></p>
         <button id="npDue" class="btn primary lg" type="button" hidden data-chu>Ôn ngữ pháp đến hạn và câu mới</button>
         <p id="npSchedule" class="t-small muted" hidden aria-live="polite"></p>
         <button id="npStart" class="btn primary lg" type="button" hidden data-chu>Bắt đầu luyện</button>
+        <details id="npBang" class="np-bang" hidden>
+          <summary id="npBangTen"></summary>
+          <div id="npBangDs"></div>
+        </details>
         <div id="npExercise" hidden>
           <div id="npProgress" class="t-small muted"></div>
           <div id="npHint" class="t-small" style="margin-top:8px"></div>
@@ -545,6 +551,7 @@
   <script src="han-tu.js"></script>
   <script src="srs.js"></script>
   <script src="lich-rieng-ui.js"></script>
+  <script src="duong-rieng-ui.js"></script>
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>
@@ -560,5 +567,6 @@
 <script src="tien-do.js"></script>
 <script src="cham-vuot.js"></script>
 <script src="app.js"></script>
+  <div id="stHieuUng" class="st-hieuung" aria-hidden="true"></div>
 </body>
 </html>
