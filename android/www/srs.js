@@ -940,9 +940,51 @@
     return Object.assign({}, kq, { duong: moi });
   }
 
+  /*
+   * MỖI TỪ CHỈ HIỆN MỘT ĐƯỜNG MỖI LẦN, ĐƯỜNG KẾ TIẾP PHẢI CHỜ 12 TIẾNG.
+   *
+   * Trước đây một từ có bốn đường đến hạn là cả bốn thẻ cùng vào hàng đợi MỘT
+   * buổi. Đo: 30 từ đã mở đủ bốn đường cho ra 120 thẻ trong một buổi, trong khi
+   * mỗi từ chỉ cần được nhắc một lần. Hàng đợi dài gấp bốn so với số từ nên "học
+   * hết bài để nghỉ" luôn ở rất xa. Bốn thẻ của cùng một từ ôn dồn trong một buổi
+   * cũng là ôn chồng lên nhau — chúng kiểm cùng một vốn từ, nên thẻ sau nhớ được
+   * một phần là nhờ thẻ trước vừa nhắc.
+   *
+   * Luật: sau khi chấm MỘT đường của từ, mọi đường KHÁC của từ ấy ngủ GIAN_DUONG
+   * (12 tiếng) tính từ lúc chấm; hết hạn ngủ thì chỉ MỘT đường (theo thứ tự DUONG)
+   * được hiện, chấm xong lại 12 tiếng nữa mới tới đường kế. Đường vừa chấm thì có
+   * lịch riêng của nó nên không bị luật này đụng tới.
+   *
+   * Đặt ở `denHan` — nguồn DUY NHẤT trả lời "cái gì đến hạn" — nên hàng đợi, số
+   * đếm "N mục đến hạn" và ôn kèm cụm cùng nói một điều. `biChan` (cổng chấm) CỐ Ý
+   * không biết tới luật này: thẻ đang hiện trên màn thì luôn chấm được.
+   */
+  const GIAN_DUONG = 12 * 60 * 60 * 1000;
+
+  /**
+   * Bao giờ đường `duong` của mục này mới được hiện, tính theo lượt chấm của các
+   * đường KHÁC.
+   * @returns {number} mốc (ms); 0 = không phải chờ
+   */
+  function choDen(muc, duong, now) {
+    const bayGio = now || Date.now();
+    const d = (muc && muc.duong) || {};
+    let moc = 0;
+    for (const t of DUONG) {
+      if (t === duong) continue;
+      const ts = d[t] && d[t].ts;
+      // Mốc nằm ở TƯƠNG LAI (đồng hồ máy kia chạy trước, bản đồng bộ lệch) thì bỏ
+      // qua: nếu không một cái ts sai giờ có thể chặn một từ cả ngày.
+      if (typeof ts === "number" && isFinite(ts) && ts <= bayGio + 5 * 60000)
+        moc = Math.max(moc, ts + GIAN_DUONG);
+    }
+    return moc > bayGio ? moc : 0;
+  }
+
   /**
    * Những đường đang tới hạn của một mục.
-   * @returns {string[]} rỗng nghĩa là chưa tới lượt mục này
+   * @returns {string[]} rỗng nghĩa là chưa tới lượt mục này; có phần tử thì CHỈ
+   *   MỘT (xem GIAN_DUONG)
    */
   function denHan(muc, now) {
     /*
@@ -964,7 +1006,10 @@
     for (const t of duongMo(muc)) {
       if (biDongBang(muc, t)) continue;
       const due = hanDuong(muc, t);
-      if (!due || due <= bayGio) ra.push(t);
+      if (due && due > bayGio) continue;
+      if (choDen(muc, t, bayGio)) continue;          // vừa chấm một đường khác: ngủ đã
+      ra.push(t);
+      break;                                          // mỗi lần chỉ MỘT đường
     }
     return ra;
   }
@@ -1169,7 +1214,7 @@
     ngayCua, netCua, capTu,
     diemDuong, diemTu, TRONG, NGUONG_BAC, TEN_BAC, CHIEU,
     lichHen, raiTai, RAI_TOI_THIEU, RAI_RONG,
-    duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay,
+    duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay, GIAN_DUONG, choDen,
     tocDoNghe, biDongBang, hanDuong, biChan, datLich, phoiHop
   };
 })(typeof self !== "undefined" ? self : this);
