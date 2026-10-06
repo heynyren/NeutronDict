@@ -1,5 +1,5 @@
 /**
- * ĐÓNG BĂNG TỪ và TẮT BÀI MẠNG NGHĨA — bấm thật trên DOM thật.
+ * ĐÓNG BĂNG TỪ — bấm thật trên DOM thật.
  *
  *   node kiem-tra/nd-dongbang.mjs /home/user/NeutronDict/extension
  *
@@ -34,26 +34,25 @@ for (let i = 0; i < 40; i++) {
   if (ok) break;
   await new Promise((r) => setTimeout(r, 250));
 }
-// Nền bồi tập liên kết ngầm và sẽ đè mất mẫu thử — chặn mạng cho tất định.
+// Nền bồi dữ liệu ngầm có thể đè mất mẫu thử — chặn mạng cho tất định.
 await sw.evaluate(() => { self.fetch = () => Promise.reject(new Error("chặn")); });
 
 const gieo = () => sw.evaluate(async (now) => {
   const ngay = 86400000;
   // Tất cả đều TỚI HẠN sẵn, để "biến khỏi buổi học" là một khác biệt đo được.
   const d = (n) => ({ lv: 2, ngay: n, net: 2, sai: 0, due: now - ngay, ts: now - n * ngay });
-  const mk = (w, nghia, lien, them) => Object.assign({
-    word: w, dict: "javi", means: [nghia], ts: now, lien: lien,
-    cauNghe: { cau: w + "を使う。" },
-    duong: { nhin: d(14), nghe: d(10), dong: d(7), trai: d(5) },
+  const mk = (w, nghia, them) => Object.assign({
+    word: w, dict: "javi", means: [nghia], ts: now,
+    cauNghe: { cau: w + "を使う。", dich: "dịch " + nghia },
+    duong: { nhin: d(14), nghe: d(10), dien: d(7) },
     srs: { lv: 2, due: now - ngay, ts: now }
   }, them || {});
   await chrome.storage.local.set({
     notebook: {
-      "javi:改善": mk("改善", "cải thiện", { dong: ["改良", "向上"], trai: ["改悪"] }),
-      "javi:改良": mk("改良", "cải tiến", { dong: ["改善", "向上"], trai: [] }),
-      "javi:向上": mk("向上", "nâng lên", { dong: ["改善"], trai: [] }),
-      // Mục này ĐÃ tắt mạng nghĩa sẵn — để soi Hoàn tác có gỡ nhầm nó không.
-      "javi:低下": mk("低下", "giảm sút", { dong: ["悪化"], trai: ["向上"] }, { mangTat: 1 })
+      "javi:改善": mk("改善", "cải thiện"),
+      "javi:改良": mk("改良", "cải tiến"),
+      "javi:向上": mk("向上", "nâng lên"),
+      "javi:低下": mk("低下", "giảm sút")
     },
     decks: {}, hoc: {}, nhipMs: {},
     settings: { ngu: "ja", nhip: false, coVu: false, nhacTau: false, tach: false }
@@ -85,63 +84,19 @@ await page.goto(`chrome-extension://${id}/notebook.html`);
 await page.waitForFunction(() => document.querySelectorAll(".entry").length >= 4, null, { timeout: 20000 });
 
 /* ------------------------------------------------------------------ */
-console.log("Hai nút có mặt trên thẻ sổ tay");
+console.log("Nút đóng băng có mặt trên thẻ sổ tay");
 {
   const r = await page.evaluate(() => {
     const e = [...document.querySelectorAll(".entry")]
       .find((x) => (x.querySelector(".w") || {}).textContent.includes("改善"));
-    const b = e && e.querySelector(".iconbtn.bang"), m = e && e.querySelector(".iconbtn.mang");
-    return { coBang: !!b, coMang: !!m, tBang: b && b.title, tMang: m && m.title,
-             svg: !!(b && b.querySelector("svg")) };
+    const b = e && e.querySelector(".iconbtn.bang");
+    return { coBang: !!b, tBang: b && b.title, svg: !!(b && b.querySelector("svg")),
+             coMang: !!(e && e.querySelector(".iconbtn.mang")) };
   });
   soat("có nút Đóng băng", r.coBang);
-  soat("có nút Tắt mạng nghĩa", r.coMang);
-  soat("và hai nút vẽ ra icon thật", r.svg);
+  soat("vẽ ra icon thật", r.svg);
   soat("lời mách nói rõ điểm giữ nguyên", /điểm giữ nguyên/.test(r.tBang || ""), r.tBang);
-  soat("lời mách nói rõ liên kết KHÔNG bị đụng",
-       /liên kết vẫn giữ nguyên/.test(r.tMang || ""), r.tMang);
-}
-
-/* ------------------------------------------------------------------ */
-console.log("\nTắt mạng nghĩa: đóng bài, mà KHÔNG đụng danh sách");
-{
-  const truoc = await page.evaluate(() =>
-    window.Srs.diemTu(currentActiveSet().find((x) => x.word === "改善")).tong);
-  await bamNut("改善", "mang");
-  const a = await docMuc("改善");
-  soat("cờ đã ghi xuống", a.mangTat === 1, JSON.stringify(a.mangTat));
-  soat("danh sách liên kết KHÔNG suy suyển",
-       (a.lien.dong || []).length === 2 && (a.lien.trai || []).length === 1,
-       JSON.stringify(a.lien.dong) + " / " + JSON.stringify(a.lien.trai));
-  const b = await docMuc("改良");
-  soat("và từ hàng xóm vẫn kể tên nó như cũ", (b.lien.dong || []).indexOf("改善") >= 0,
-       (b.lien.dong || []).join(","));
-  const r = await page.evaluate(() => {
-    const it = currentActiveSet().find((x) => x.word === "改善");
-    const d = window.Srs.diemTu(it);
-    return { duong: window.Srs.duongCo(it), han: window.Srs.denHan(it, Date.now()),
-             diem: d.tong, mangTat: d.mangTat, on: duongOnDuoc(it, Date.now()) };
-  });
-  soat("hai đường liên kết đã đóng", r.duong.join(",") === "nhin,nghe", r.duong.join(","));
-  soat("và thôi ra trong bài kiểm tra",
-       r.han.indexOf("dong") < 0 && r.han.indexOf("trai") < 0, JSON.stringify(r.han));
-  soat("điểm chấm lại trên những đường còn mở", r.diem !== truoc, truoc + " → " + r.diem);
-  soat("diemTu báo rõ là người dùng tự tắt", r.mangTat === true);
-}
-{
-  // Khối mạng nghĩa vẫn VẼ ĐỦ, chỉ mờ đi và kèm một dòng nói rõ.
-  const r = await page.evaluate(() => {
-    const e = [...document.querySelectorAll(".entry")]
-      .find((x) => (x.querySelector(".w") || {}).textContent.includes("改善"));
-    const k = e && e.querySelector(".lienmang");
-    return { mo: !!(k && k.classList.contains("tat")),
-             ghi: !!(k && k.querySelector(".lienmang-tat")),
-             soTu: k ? k.querySelectorAll(".lienmang-o").length : -1,
-             coNutBo: !!(k && k.querySelector(".lienmang-bo")) };
-  });
-  soat("khối mạng nghĩa vẫn hiện đủ ba từ", r.soTu === 3, r.soTu + " từ");
-  soat("được làm mờ và ghi rõ đang tắt", r.mo && r.ghi);
-  soat("nút × vẫn dùng được — mấy từ ấy còn việc với từ khác", r.coNutBo);
+  soat("không còn nút Tắt mạng nghĩa", !r.coMang);
 }
 
 /* ------------------------------------------------------------------ */
@@ -238,17 +193,17 @@ console.log("\nHàng thao tác hàng loạt CHỈ ĐƯỢC MỜI GỠ");
    */
   soat("đang ở ngăn Tất cả vẫn thấy nút Gỡ băng",
        co.some((x) => /^Gỡ băng tất cả \(\d+\)/.test(x)), co.join(" | "));
-  soat("và thấy nút Bật lại mạng nghĩa",
-       co.some((x) => /^Bật lại mạng nghĩa \(\d+\)/.test(x)), co.join(" | "));
+  soat("không còn nút Bật lại mạng nghĩa",
+       !co.some((x) => /mạng nghĩa/.test(x)), co.join(" | "));
 }
 {
   const truoc = await page.evaluate(() =>
-    currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
-  soat("đang có từ bị tắt để mà gỡ", truoc.length >= 2, truoc.join(","));
+    currentActiveSet().filter((x) => x.dongBang).map((x) => x.word).sort());
+  soat("đang có từ đóng băng để mà gỡ", truoc.length >= 1, truoc.join(","));
 
   const nut = await page.evaluate(async () => {
     const b = [...document.querySelectorAll("#hangLoat .btn")]
-      .find((x) => /Bật lại mạng nghĩa/.test(x.textContent));
+      .find((x) => /Gỡ băng tất cả/.test(x.textContent));
     if (!b) return null;
     const chu = b.textContent;
     b.click();
@@ -257,7 +212,7 @@ console.log("\nHàng thao tác hàng loạt CHỈ ĐƯỢC MỜI GỠ");
   });
   soat("nút gỡ ghi rõ số từ", !!nut && /\(\d+\)/.test(nut), nut);
   const sau = await page.evaluate(() =>
-    currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
+    currentActiveSet().filter((x) => x.dongBang).map((x) => x.word).sort());
   soat("bấm một cái là gỡ sạch cả danh sách đang hiện", sau.length === 0,
        "[" + truoc.join(",") + "] → [" + sau.join(",") + "]");
   /*
@@ -270,7 +225,7 @@ console.log("\nHàng thao tác hàng loạt CHỈ ĐƯỢC MỜI GỠ");
   const conNut = await page.evaluate(() =>
     [...document.querySelectorAll("#hangLoat .btn")].map((b) => b.textContent.trim()));
   soat("gỡ xong thì nút tự biến mất",
-       !conNut.some((x) => /Bật lại mạng nghĩa/.test(x)), conNut.join(" | ") || "(hàng rỗng)");
+       !conNut.some((x) => /Gỡ băng tất cả/.test(x)), conNut.join(" | ") || "(hàng rỗng)");
 
   const daBam = await page.evaluate(async () => {
     const b = document.querySelector(".toast-nut");
@@ -281,54 +236,33 @@ console.log("\nHàng thao tác hàng loạt CHỈ ĐƯỢC MỜI GỠ");
   });
   soat("lời nhắc có nút Hoàn tác", daBam);
   const lui = await page.evaluate(() =>
-    currentActiveSet().filter((x) => x.mangTat).map((x) => x.word).sort());
+    currentActiveSet().filter((x) => x.dongBang).map((x) => x.word).sort());
   soat("Hoàn tác trả lại ĐÚNG trạng thái trước đó",
        lui.join(",") === truoc.join(","), "trước [" + truoc.join(",") + "] → sau [" + lui.join(",") + "]");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nHai nút trên mặt sau thẻ học");
+console.log("Nút đóng băng trên mặt sau thẻ học");
 {
   const r = await page.evaluate(async () => {
     current = ALL; drawDecks(); draw();
     await startStudy();
     await new Promise((x) => setTimeout(x, 700));
     const nut = [...document.querySelectorAll("#stFav .btn")].map((b) => b.textContent.trim());
-    return { nut: nut, tu: ($("stProg") || {}).textContent || "" };
+    return { nut: nut };
   });
   soat("mặt thẻ học có nút Đóng băng", r.nut.some((x) => /Đóng băng/.test(x)), r.nut.join(" | "));
-  soat("và nút Tắt mạng nghĩa", r.nut.some((x) => /mạng nghĩa/i.test(x)), r.nut.join(" | "));
-  /*
-   * Bấm Tắt mạng nghĩa NGAY TRÊN THẺ, rồi so dòng tiến trình với điểm THẬT
-   * của thẻ đang hiện.
-   *
-   * Cố tình KHÔNG chốt "con số phải nhúc nhích": thẻ rơi vào đầu hàng đợi là
-   * thứ không đoán trước được, và với một từ chỉ có một từ cùng nghĩa thì
-   * đường `dong` vốn đã đóng sẵn (ngưỡng là 2), nên tắt thêm không đổi gì — và
-   * đó là đúng. Điều phải luôn đúng là: cái hiện trên màn khớp với cái đang có.
-   */
-  const d = await page.evaluate(async () => {
-    const b = [...document.querySelectorAll("#stFav .btn")].find((x) => /mạng nghĩa/i.test(x.textContent));
-    if (!b) return null;
-    // Thẻ rơi vào đầu hàng đợi có thể đang BẬT hoặc đang TẮT sẵn, tùy mẫu thử
-    // và tùy những gì các khối trên vừa làm. Chốt theo CHIỀU LẬT, không chốt
-    // theo một trạng thái cụ thể — không thì bài kiểm đỏ theo thứ tự hàng đợi.
-    const truoc = !!theCardHienTai().mangTat;
+  soat("không còn nút Tắt mạng nghĩa", !r.nut.some((x) => /mạng nghĩa/i.test(x)), r.nut.join(" | "));
+  const w = await page.evaluate(async () => {
+    const tu = theCardHienTai().word;
+    const b = [...document.querySelectorAll("#stFav .btn")].find((x) => /Đóng băng/.test(x.textContent));
     b.click();
-    await new Promise((x) => setTimeout(x, 700));
-    const it = theCardHienTai();
-    const m = ($("stProg").textContent || "").match(/(\d+)\/100/);
-    return { hien: m ? Number(m[1]) : null, that: window.Srs.diemTu(it).tong,
-             truoc: truoc, sau: !!it.mangTat, tu: it.word,
-             nhan: [...document.querySelectorAll("#stFav .btn")].map((x) => x.textContent.trim()) };
+    await new Promise((x) => setTimeout(x, 800));
+    return { tu: tu, hien: theCardHienTai() ? theCardHienTai().word : null };
   });
-  soat("bấm một cái là cờ LẬT, ngay giữa buổi học",
-       !!d && d.sau === !d.truoc, d && (d.tu + ": " + d.truoc + " → " + d.sau));
-  soat("dòng tiến trình khớp với điểm thật sau khi bấm",
-       d && d.hien !== null && d.hien === d.that, d && (d.tu + ": hiện " + d.hien + ", thật " + d.that));
-  soat("nhãn nút đổi theo trạng thái",
-       d && d.nhan.some((x) => (d.sau ? /đã tắt/i : /^Tắt mạng nghĩa$/i).test(x)),
-       d && d.nhan.join(" | "));
+  const m = await docMuc(w.tu);
+  soat("bấm một cái là cờ ghi xuống, ngay giữa buổi học", m && m.dongBang === 1, w.tu + ": " + (m && m.dongBang));
+  soat("và từ vừa đóng băng rời khỏi buổi học ngay (thẻ đang hiện đã đổi)", w.hien !== w.tu, w.tu + " → " + w.hien);
 }
 
 /* ------------------------------------------------------------------ */
@@ -349,20 +283,16 @@ console.log("\nSống sót qua một lượt nạp lại");
   const truocNap = await sw.evaluate(async () => {
     const nb = (await chrome.storage.local.get("notebook")).notebook || {};
     const ds = Object.values(nb).filter((x) => x && !x.del);
-    return { bang: ds.filter((x) => x.dongBang).map((x) => x.word).sort(),
-             tat: ds.filter((x) => x.mangTat).map((x) => x.word).sort() };
+    return { bang: ds.filter((x) => x.dongBang).map((x) => x.word).sort() };
   });
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll(".entry").length >= 4, null, { timeout: 20000 });
   const r = await page.evaluate(() => {
     const a = currentActiveSet();
-    return { bang: a.filter((x) => x.dongBang).map((x) => x.word).sort(),
-             tat: a.filter((x) => x.mangTat).map((x) => x.word).sort() };
+    return { bang: a.filter((x) => x.dongBang).map((x) => x.word).sort() };
   });
   soat("cờ đóng băng còn nguyên", r.bang.join(",") === truocNap.bang.join(","),
        "[" + truocNap.bang.join(",") + "] → [" + r.bang.join(",") + "]");
-  soat("cờ tắt mạng nghĩa còn nguyên", r.tat.join(",") === truocNap.tat.join(","),
-       "[" + truocNap.tat.join(",") + "] → [" + r.tat.join(",") + "]");
 }
 
 soat("không có lỗi trang", loi.length === 0, loi.join(" | ").slice(0, 200));

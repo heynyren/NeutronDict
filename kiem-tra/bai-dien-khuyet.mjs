@@ -72,7 +72,7 @@ console.log("\nB. SRS ba đường");
   const cu = { word: "食べる", cauNghe: { cau: "毎日食べる。", dich: "Mỗi ngày tôi ăn." }, lien: { dong: ["x", "y"] },
     duong: { nhin: { lv: 3, ngay: 14, net: 2, sai: 0, due: now + 5 * NGAY, ts: now - 14 * NGAY },
              dong: { lv: 2, ngay: 7, net: 2, sai: 0, due: now - NGAY, ts: now - 7 * NGAY } } };
-  soat("đường dong cũ nằm yên trong dữ liệu nhưng không bao giờ tới hạn", !S.denHan(cu, now).includes("dong") && S.denHan(cu, now).join(",") === "dien", S.denHan(cu, now).join(","));
+  soat("đường dong cũ nằm yên trong dữ liệu nhưng không bao giờ tới hạn", !S.denHan(cu, now).includes("dong") && !S.duongMo(cu).includes("dong"), S.denHan(cu, now).join(","));
   soat("điểm chỉ tính trên đường đang có", S.diemTu(cu).phan.dong === undefined || S.diemTu(cu).phan.dong === null || !("dong" in S.diemTu(cu).phan), JSON.stringify(S.diemTu(cu).phan));
   soat("nhãn cao nhất là 'Dùng được trong câu'", S.TEN_BAC[4] === "Dùng được trong câu");
   soat("denHanDuong('dien') đúng khi đường tới hạn và qua 12 tiếng nghỉ", S.denHanDuong(cu, "dien", now) === true);
@@ -169,6 +169,18 @@ let w1;
   const nTruoc = await page.evaluate(() => window.__noi.length);
   await page.keyboard.press("a"); await cho(80);
   soat("A trước khi trả lời KHÔNG đọc từ (sẽ lộ đáp án)", (await page.evaluate(() => window.__noi.length)) === nTruoc);
+  // CHỐT CHẶN: Space/Enter và phím lặp không bao giờ chấm bài điền khuyết.
+  const truocPhim = await page.evaluate(() => ({ a: session.again, d: session.done, ls: (session.lichSu || []).length }));
+  await page.keyboard.press("Space"); await page.keyboard.press("Enter"); await cho(120);
+  const sauPhim = await page.evaluate(() => ({ a: session.again, d: session.done, ls: (session.lichSu || []).length, tiep: document.getElementById("stDienTiep").style.display !== "none" }));
+  soat("Space/Enter lúc đang làm bài KHÔNG chấm (trước đây Space = Xong → dấu X ngay)",
+       sauPhim.a === truocPhim.a && sauPhim.d === truocPhim.d && sauPhim.ls === truocPhim.ls && !sauPhim.tiep, JSON.stringify(sauPhim));
+  // Cú chọn rơi vào 350ms đầu của đề (nhấp đúp vào "Học ngay") bị bỏ qua.
+  await page.evaluate(() => { baiDien.moc = performance.now(); });
+  await page.evaluate(() => document.querySelector("#stDienO .dien-omot").click());
+  soat("cú bấm rơi ngay lúc đề vừa hiện KHÔNG thành câu trả lời",
+       await page.evaluate(() => !!baiDien && document.getElementById("stDienTiep").style.display === "none"));
+  await cho(400);
   // chọn SAI bằng phím số
   const sai = m.o.findIndex((x) => x.chu !== w1);
   await page.keyboard.press(String(sai + 1)); await cho(60);
@@ -198,6 +210,7 @@ let w1;
   const o = await page.evaluate(() => [...document.querySelectorAll("#stDienO .dien-omot")].map((b) => b.querySelector(".dien-omot-tu").textContent));
   const dung = o.indexOf(w2);
   soat("thẻ kế là bài điền khuyết của từ kia", dung >= 0, w2);
+  await cho(400);
   await page.keyboard.press(String(dung + 1)); await cho(60);
   const cls = await hu();
   soat("chọn đúng: dấu V xanh", /nho/.test(cls) && /chay/.test(cls), cls);

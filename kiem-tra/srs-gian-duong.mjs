@@ -8,7 +8,7 @@
  * đường cho ra 120 thẻ — gấp bốn số từ — nên đích "hết bài" luôn ở rất xa.
  *
  * Chốt:
- *   1. Từ có nhiều đường đến hạn: chỉ MỘT đường (theo thứ tự nhin → nghe → dong → trai).
+ *   1. Từ có nhiều đường đến hạn: chỉ MỘT đường (theo thứ tự nhin → nghe → dien).
  *   2. Chấm một đường: các đường KHÁC của từ ấy ngủ đúng 12 tiếng tính từ lúc chấm.
  *   3. Hết 12 tiếng thì lại chỉ một đường hiện; chấm xong lại 12 tiếng nữa (chuỗi).
  *   4. Đường vừa chấm KHÔNG bị luật này đụng: nó có lịch riêng.
@@ -26,11 +26,11 @@ let hong = 0, xong = 0;
 const la = (d, t, c) => { xong++; if (d) { console.log("  ✓ " + t + (c ? "  (" + c + ")" : "")); return; } hong++; console.error("  ✗ " + t + (c ? "  (" + c + ")" : "")); };
 const GIO = 3600000, MOC = Date.UTC(2026, 0, 10, 8, 0, 0);
 
-/** Từ đã học đủ để mở cả bốn đường; mọi đường đã quá hạn từ lâu. */
+/** Từ đã học đủ để mở cả ba đường; mọi đường đã quá hạn từ lâu. */
 const tu = (extra) => {
   const d = (ngay) => ({ lv: 3, ngay, net: 2.1, sai: 0, due: MOC - 86400000, ts: MOC - 30 * 86400000 });
-  return Object.assign({ key: "w", word: "w", dict: "javi", cauNghe: { cau: "x" }, lien: { dong: ["a", "b"], trai: ["z"] },
-    duong: { nhin: d(14), nghe: d(14), dong: d(14), trai: d(14) } }, extra || {});
+  return Object.assign({ key: "w", word: "w", dict: "javi", cauNghe: { cau: "x w", dich: "y" },
+    duong: { nhin: d(14), nghe: d(14), dien: d(14) } }, extra || {});
 };
 const cham = (m, t, now) => {
   const kq = Srs.cham(m.duong[t] || null, true, 2000, null, now, t, 0.5);
@@ -53,15 +53,12 @@ console.log("\nChuỗi 12 tiếng giữa các đường");
   la(Srs.denHan(m, MOC + 6 * GIO).length === 0, "sau 6 tiếng vẫn chưa");
   la(Srs.denHan(m, MOC + 12 * GIO - 1000).length === 0, "sau 11 tiếng 59 phút 59 giây vẫn chưa");
   la(Srs.choDen(m, "nghe", MOC) === MOC + 12 * GIO, "choDen báo đúng mốc: lúc chấm + 12 tiếng");
-  la(Srs.denHan(m, MOC + 12 * GIO).join() === "nghe", "đủ 12 tiếng: chỉ nghe hiện (không phải cả ba)", JSON.stringify(Srs.denHan(m, MOC + 12 * GIO)));
+  la(Srs.denHan(m, MOC + 12 * GIO).join() === "nghe", "đủ 12 tiếng: chỉ nghe hiện (không phải cả hai)", JSON.stringify(Srs.denHan(m, MOC + 12 * GIO)));
   const t2 = MOC + 12 * GIO;
   m = cham(m, "nghe", t2);
-  la(Srs.denHan(m, t2).length === 0, "chấm nghe xong: dong chưa hiện");
+  la(Srs.denHan(m, t2).length === 0, "chấm nghe xong: dien chưa hiện");
   la(Srs.denHan(m, t2 + 12 * GIO - 1000).length === 0, "…và vẫn chưa sau 11 tiếng 59");
-  la(Srs.denHan(m, t2 + 12 * GIO).join() === "dong", "12 tiếng sau nghe thì tới dong", JSON.stringify(Srs.denHan(m, t2 + 12 * GIO)));
-  const t3 = t2 + 12 * GIO;
-  m = cham(m, "dong", t3);
-  la(Srs.denHan(m, t3 + 12 * GIO).join() === "trai", "rồi tới trai");
+  la(Srs.denHan(m, t2 + 12 * GIO).join() === "dien", "12 tiếng sau nghe thì tới dien", JSON.stringify(Srs.denHan(m, t2 + 12 * GIO)));
 }
 
 console.log("\nĐường vừa chấm không bị đụng");
@@ -76,12 +73,12 @@ console.log("\nĐường vừa chấm không bị đụng");
 
 console.log("\nĐường vừa MỞ phải ngủ");
 {
-  // nhin đã ≥ 2 ngày nên mở cả bốn đường; ba đường kia CHƯA học bao giờ (không có duong[t]).
-  const m = { key: "n", word: "n", cauNghe: { cau: "x" }, lien: { dong: ["a", "b"], trai: ["z"] },
+  // nhin đã ≥ 2 ngày nên mở cả ba đường; hai đường kia CHƯA học bao giờ (không có duong[t]).
+  const m = { key: "n", word: "n", cauNghe: { cau: "x n", dich: "y" },
               duong: { nhin: { lv: 1, ngay: 3, net: 2.1, sai: 0, due: MOC - 1000, ts: MOC - 3 * 86400000 } } };
   la(Srs.denHan(m, MOC).join() === "nhin", "từ mới mở: chỉ nhin hiện");
   const sau = cham(m, "nhin", MOC);
-  la(Srs.denHan(sau, MOC).length === 0, "chấm nhin xong, ba đường vừa mở KHÔNG ùa vào", JSON.stringify(Srs.denHan(sau, MOC)));
+  la(Srs.denHan(sau, MOC).length === 0, "chấm nhin xong, hai đường vừa mở KHÔNG ùa vào", JSON.stringify(Srs.denHan(sau, MOC)));
   la(Srs.denHan(sau, MOC + 12 * GIO).join() === "nghe", "12 tiếng sau chỉ nghe hiện", JSON.stringify(Srs.denHan(sau, MOC + 12 * GIO)));
 }
 

@@ -8,7 +8,7 @@
  *      từ chạm trần tự đóng băng, từ chưa tới thì không
  *   C. ôn từng đường (bài nghe): chỉ toàn bài nghe, A nghe lại (không lật),
  *      Space lật để hiện nghĩa, và 12 tiếng nghỉ giữa các đường vẫn được giữ
- *   D. bài liên kết: phím số chọn + chấm ngay, hiệu ứng đúng/sai, J = Tiếp
+ *   (bài điền khuyết có test riêng: bai-dien-khuyet.mjs)
  *   E. ngữ pháp: làm đúng ngay lần đầu là đóng băng, sửa lại thì không,
  *      danh sách câu đóng băng và nút Mở lại
  */
@@ -167,7 +167,8 @@ await cho(150);
 
 /* ------------------------------------------------------------------ */
 console.log("\nC. Ôn từng đường — bài nghe");
-const bn = (w) => ({ word: w, cauNghe: { cau: w + "を使います。", dich: "dịch" },
+// Không có bản dịch (cauNghe.dich) nên chưa mở đường điền khuyết: chỉ nghe tới hạn.
+const bn = (w) => ({ word: w, cauNghe: { cau: w + "を使います。" },
   duong: { nhin: [14, false], nghe: [10, true] } });
 await mo({ "javi:朝食": bn("朝食"), "javi:夕食": bn("夕食") });
 await page.click("#studyPath");
@@ -178,8 +179,8 @@ await page.waitForSelector("#duongRiengDialog[open]");
   soat("hộp có ba loại bài", r.length === 3, r.map((x) => x.ma).join(","));
   const nghe = r.find((x) => x.ma === "nghe");
   soat("bài nghe bật và nói rõ số bài (2)", nghe && !nghe.off && /2/.test(nghe.chu), nghe && nghe.chu);
-  soat("bài đoán nghĩa & đúng–sai tắt vì chưa có bài nào tới hạn",
-       r.find((x) => x.ma === "nhin").off && r.find((x) => x.ma === "lien").off);
+  soat("bài đoán nghĩa & điền khuyết tắt vì chưa có bài nào tới hạn",
+       r.find((x) => x.ma === "nhin").off && r.find((x) => x.ma === "dien").off);
 }
 await page.click('#duongRiengDialog [data-ma="nghe"]');
 await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
@@ -212,55 +213,6 @@ await cho(450);
   soat("J chấm nhớ: đường nghe có lượt chấm mới", m.duong.nghe.ts > Date.now() - 20000);
   const q2 = await page.evaluate(() => session.queue.map((x) => x._d + ":" + x.word));
   soat("thẻ kế vẫn là bài nghe (không bị xen đường khác)", q2.length === 1 && q2[0].startsWith("nghe:"), q2.join(","));
-  await page.keyboard.press("Escape");
-  await cho(300);
-}
-
-/* ------------------------------------------------------------------ */
-console.log("\nD. Bài đồng nghĩa / trái nghĩa — phím 1..9");
-const bl = (w, lien) => ({ word: w, lien: lien, duong: { nhin: [14, false], dong: [7, true] } });
-await mo({
-  "javi:改善": bl("改善", { dong: ["改良", "向上"], trai: [] }),
-  "javi:改良": bl("改良", { dong: ["改善", "向上"], trai: [] }),
-  "javi:向上": { word: "向上", lien: { dong: ["改善"], trai: [] }, duong: { nhin: [14, false] } },
-  "javi:低下": { word: "低下", lien: { dong: [], trai: [] }, duong: { nhin: [14, false] } },
-  "javi:悪化": { word: "悪化", lien: { dong: [], trai: [] }, duong: { nhin: [14, false] } }
-});
-await page.click("#studyPath");
-await page.waitForSelector("#duongRiengDialog[open]");
-{
-  const lien = await page.evaluate(() => { const b = document.querySelector('#duongRiengDialog [data-ma="lien"]'); return { off: b.disabled, chu: b.textContent }; });
-  soat("loại đúng–sai bật", !lien.off, lien.chu);
-}
-await page.click('#duongRiengDialog [data-ma="lien"]');
-await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
-await cho(300);
-{
-  const o = await page.evaluate(() => [...document.querySelectorAll("#stLienO .lien-omot")].map((b) => ({ phim: b.dataset.phim, chu: b.querySelector(".lien-omot-tu").textContent })));
-  soat("mỗi ô có số phím 1..n", o.length >= 2 && o.every((x, i) => x.phim === String(i + 1)), JSON.stringify(o));
-  soat("số phím KHÔNG lẫn vào chữ của ô", o.every((x) => !/^\d/.test(x.chu)));
-  const dung = await page.evaluate(() => baiLien.it.word);
-  const vi = o.findIndex((x) => x.chu === dung);
-  soat("đáp án đúng nằm trong các ô", vi >= 0, dung);
-  await page.keyboard.press(String(vi + 1));
-  await cho(60);
-  soat("bấm đúng số: chấm ngay, hiện nút Tiếp", await page.evaluate(() => document.getElementById("stLienTiep").style.display !== "none"));
-  const cls = await hienHieuUng();
-  soat("hiệu ứng dấu V xanh (đúng)", /nho/.test(cls) && /chay/.test(cls), cls);
-  await page.keyboard.press("j");
-  await cho(400);
-  await detMung();
-  await cho(200);
-  soat("J = Tiếp sang thẻ kế", await page.evaluate(() => document.getElementById("stLienTiep").style.display === "none"));
-  const o2 = await page.evaluate(() => [...document.querySelectorAll("#stLienO .lien-omot")].map((b) => b.querySelector(".lien-omot-tu").textContent));
-  if (o2.length) {
-    const dung2 = await page.evaluate(() => baiLien.it.word);
-    const sai = o2.findIndex((x) => x !== dung2);
-    await page.keyboard.press(String(sai + 1));
-    await cho(60);
-    const c2 = await hienHieuUng();
-    soat("bấm số của đáp án SAI: dấu X đỏ", /quen/.test(c2) && /chay/.test(c2), c2);
-  }
   await page.keyboard.press("Escape");
   await cho(300);
 }

@@ -130,7 +130,10 @@ const q = await pg.evaluate(() => {
 });
 const nghe = q.filter((x) => x.startsWith("nghe:"));
 soat("hàng đợi có đúng MỘT thẻ nghe cho cả 3 từ", nghe.length === 1, nghe.join(","));
-soat("và không có thẻ nào khác (nhìn chưa đến hạn; mỗi từ chỉ hiện một đường)", q.length === 1, q.join(" "));
+// Hai từ phụ không có đường nghe nhưng VẪN có điền khuyết (mỗi từ đục lỗ một chỗ khác nhau);
+// từ đại diện đã có thẻ nghe nên chỉ hiện đường ấy. Mỗi từ đúng một thẻ.
+soat("mỗi từ chỉ hiện MỘT đường: 1 thẻ nghe + 2 thẻ điền khuyết của hai từ phụ",
+     q.length === 3 && q.filter((x) => x.startsWith("dien:")).length === 2 && new Set(q.map((x) => x.split(":")[1])).size === 3, q.join(" "));
 console.log(loi.length ? "LỖI JS:\n" + loi.join("\n") : "  không có lỗi JS");
 await ctx.close();
 const sai = ket.filter((x) => !x).length;

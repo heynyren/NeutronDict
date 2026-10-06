@@ -95,8 +95,6 @@ console.log("\nTrích xuất ĐỦ những gì đã lưu");
   co("工場では毎日", "câu bôi đen lúc lưu");
   co("品質の改善に取り組んでいます。", "câu ví dụ của bài nghe");
   co("Chúng tôi đang nỗ lực", "bản dịch của câu ví dụ");
-  co("改良, 向上", "tập đồng nghĩa");
-  co("改悪", "tập trái nghĩa");
   co("hay gặp trong báo cáo", "ghi chú tự viết");
   co("https://example.com/bai-viet", "đường link nguồn");
   co("Kaizen tại Toyota", "tên trang nguồn");

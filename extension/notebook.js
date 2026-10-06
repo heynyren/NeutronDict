@@ -2768,6 +2768,10 @@ function showCard(giuLat, xem) {
   const it = xem || session.queue[0];
   theTrenMan = it;
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
+  // Không để một nút giữ focus từ thẻ trước sang thẻ này: Space/Enter trên nút đang focus
+  // là BẤM nút ấy, và khi nút hiện ra trên thẻ mới thì cú bấm rơi trúng nó — chấm luôn
+  // một thẻ người học chưa kịp nhìn.
+  { const a = document.activeElement; if (a && a !== document.body && ovl.contains(a)) a.blur(); }
   if (!it) { finishStudy(); return; }
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
   // thì bỏ thẻ này khỏi buổi chứ không kẹt ở một màn trống.
@@ -3172,6 +3176,9 @@ function veBaiDien(it, de) {
 
 async function chonDien(chon) {
   if (!baiDien) return;
+  // Chốt chặn: một cú bấm/phím rơi đúng lúc đề vừa hiện (nhấp đúp vào "Học ngay", ngón tay
+  // lỡ chạm, phím giữ lâu) không được thành một câu trả lời — nó sẽ bị chấm SAI ngay.
+  if (performance.now() - baiDien.moc < 350) return;
   const b = baiDien;
   baiDien = null;                                  // chặn bấm hai ô một lượt
   const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
@@ -3216,7 +3223,6 @@ async function chonDien(chon) {
     if (moi.length) window.TienDo.anMung(moi, showCard); else showCard();
   };
   $("stDienTiep").style.display = "";
-  $("stDienTiep").focus();
 }
 
 /** Đang chờ bấm Tiếp ở màn kết quả bài điền khuyết. null = không chờ ai cả. */
@@ -3599,6 +3605,17 @@ document.addEventListener("keydown", (e) => {
   phimHoc(e);
 });
 
+/*
+ * Nhả phím cách không được "bấm" nút nào: Chrome kích hoạt nút đang focus lúc NHẢ Space,
+ * kể cả khi keydown đã bị chặn. Phím cách trong buổi học thuộc về phimHoc, không phải nút.
+ */
+document.addEventListener("keyup", (e) => {
+  if (e.key !== " " || !ovl.classList.contains("show")) return;
+  const t = e.target;
+  if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+  e.preventDefault();
+}, true);
+
 /**
  * Phím tắt trong buổi học.
  *
@@ -3612,6 +3629,9 @@ document.addEventListener("keydown", (e) => {
  *   ← →     xem lại / chấm lại các thẻ đã chấm (xemTruoc / xemSau)
  */
 function phimHoc(e) {
+  // Phím giữ lâu sinh ra chuỗi keydown lặp: chỉ mũi tên được lặp (lùi nhiều thẻ), còn lại
+  // mỗi lần nhấn là MỘT thao tác — không thì giữ Space/Enter là chấm hàng loạt.
+  if (e.repeat && e.key !== "ArrowLeft" && e.key !== "ArrowRight") { e.preventDefault(); return; }
   const it = theCardHienTai();
   const laNghe = !!it && it._d === "nghe";
   const daLat = $("stGrade").style.display !== "none";

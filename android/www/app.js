@@ -2099,6 +2099,13 @@ $("paste").addEventListener("click", async () => {
 });
 
 /** Nút Lưu dùng chung cho tab Từ vựng và tab Dịch. */
+/*
+ * Bản chụp cả sổ (ngôn ngữ đang học) ở cấp module: bài điền khuyết lấy từ nhiễu ở đây.
+ * Cập nhật mỗi lần vẽ danh sách sổ tay, và làm tươi trước mỗi buổi học (napMucDaLuu) —
+ * vào thẳng màn Học thì chưa ai vẽ sổ tay.
+ */
+let mucDaLuu = [];
+
 function nutLuu(daLuu, khiLuu) {
   const b = el("button", "btn xs");
   b.type = "button";
@@ -2831,7 +2838,7 @@ async function datCo(key, ten, bat) {
 /**
  * Hai nút trên thẻ sổ tay: Đóng băng, và Tắt bài mạng nghĩa.
  *
- * ĐẶT Ở ĐÂY, không nhét vào khối mạng nghĩa. `khoiLien` trả `null` khi hai
+ * ĐẶT Ở ĐÂY, không nhét vào khối nào khác: một khối trống thì cờ vẫn bật mà không
  * danh sách đều rỗng, nên nhét vào đó thì có trường hợp cờ đang bật mà không
  * còn nút nào để tắt.
  *
@@ -3262,7 +3269,6 @@ async function drawNotebook() {
   const items = Object.entries(nb).map(([key, v]) => ({ key, ...v })).sort((a, b) => (b.ts || 0) - (a.ts || 0));
   const activeItems = items.filter((it) => !it.del);
   // Nhớ lại danh sách từ đã có, cho mạng nghĩa ở cả sổ tay lẫn mặt sau thẻ học.
-  tuDaLuu = new Set(activeItems.map((x) => x.word).filter(Boolean));
   mucDaLuu = activeItems;
   if (curDeck !== ALL && curDeck !== NONE && curDeck !== LIKE && curDeck !== DISLIKE
       && curDeck !== HANTU && curDeck !== DONGBANG && !deckName(decks, curDeck)) curDeck = ALL;
@@ -3647,7 +3653,6 @@ async function xoaCacMucNb(keys) {
   for (const it of nbCtx.items) if (bo.has(it.key)) it.del = true;
   nbCtx.activeItems = nbCtx.items.filter((x) => !x.del);
   mucDaLuu = nbCtx.activeItems;
-  tuDaLuu = new Set(nbCtx.activeItems.map((x) => x.word).filter(Boolean));
   bo.forEach((k) => chonNb.delete(k));
   const list = $("nbList");
   list.querySelectorAll(".entry").forEach((r) => { if (bo.has(r.dataset.key)) r.remove(); });
@@ -3863,6 +3868,12 @@ function hangDoiKhoi(scopeList) {
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
   return khoi;
+}
+
+async function currentDueKhoi() {
+  const nb = await getNBNgu();
+  const ds = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
+  return hangDoiKhoi(setIn(ds, curDeck));
 }
 
 /** Bản phẳng, cho nút đếm. Không kéo cụm — nút phải đếm đúng số tới hạn thật. */
@@ -4453,6 +4464,9 @@ function veBaiDien(it, de) {
 
 async function chonDien(chon) {
   if (!baiDien) return;
+  // Chốt chặn: một cú bấm/phím rơi đúng lúc đề vừa hiện (nhấp đúp vào "Học ngay", ngón tay
+  // lỡ chạm, phím giữ lâu) không được thành một câu trả lời — nó sẽ bị chấm SAI ngay.
+  if (performance.now() - baiDien.moc < 350) return;
   const b = baiDien;
   baiDien = null;                                  // chặn bấm hai ô một lượt
   const ms = msDaDung !== null ? msDaDung : Math.round(performance.now() - b.moc);
