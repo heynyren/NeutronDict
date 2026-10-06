@@ -2396,6 +2396,24 @@ async function hoanTacXoa(cu) {
   toast(T("Đã khôi phục"));
 }
 
+/*
+ * Cử chỉ trên hàng sổ tay (hang-vuot.js): nhấp đúp = sửa nghĩa, kéo phải = xoá nhanh (vẫn có
+ * Hoàn tác), kéo trái = mở link nguồn. Đi qua đúng các hàm mà nút trên hàng đang dùng.
+ */
+const muc1 = (hang) => items.find((x) => x.key === hang.dataset.key && !x.del);
+window.HangVuot.gan($("list"), {
+  nhanPhai: T("Xoá"), nhanTrai: T("Mở link"),
+  duocTrai: (hang) => { const it = muc1(hang); return !!(it && it.src && it.src.url); },
+  phai: (hang) => { const it = muc1(hang); if (it) xoaCacMuc([it.key]); },
+  trai: (hang) => {
+    const it = muc1(hang);
+    if (!it) return;
+    if (it.src && it.src.url) openSource(it);
+    else toast(T("Từ này chưa có link nguồn"), "bad");
+  },
+  nhanDoi: (hang) => { const it = muc1(hang); if (it) moSua(it, "trans"); }
+});
+
 $("chonTatCa").addEventListener("click", () =>
   chonTatCa(!(rowsHienTai.length && rowsHienTai.every((it) => chon.has(it.key)))));
 $("chonBo").addEventListener("click", () => chonTatCa(false));
@@ -3563,11 +3581,35 @@ $("stTruoc").innerHTML = window.Icon("arrow-left", { size: 20 });
 $("stSau").innerHTML = window.Icon("arrow-right", { size: 20 });
 $("stTruoc").addEventListener("click", xemTruoc);
 $("stSau").addEventListener("click", xemSau);
-// Vuốt thẻ: phải = Nhớ, trái = Quên. Chỉ khi đã lật thẻ — chấm mà chưa thấy nghĩa thì vô nghĩa.
+/*
+ * Cử chỉ trên thẻ học. Chấm được NGAY, không cần lật thẻ trước: người học tự biết mình nhớ
+ * hay không, bắt họ bấm Space một lần nữa là thừa. Hai ngoại lệ là bài điền khuyết (chấm bằng
+ * đáp án chọn) và thẻ xem lại của một bài như thế (chỉ để xem).
+ *
+ *   phải / trái   Nhớ / Quên                    lên    mở nguồn của từ
+ *   (chuột, bút)  xuống = hỏi Gemini            nhấp đúp vào chỗ trống = sửa nghĩa
+ *
+ * Lên/xuống/nhấp đúp không dùng khi đang làm bài điền khuyết: nguồn, Gemini và phiếu sửa nghĩa
+ * đều bày ra chính từ đang bị đục lỗ.
+ */
+function choPhepChamNgay() {
+  if (baiDien || !theCardHienTai()) return false;
+  const b = session.xem ? (session.lichSu || [])[session.xem.i] : null;
+  return !(b && laBaiChon(b.duong));
+}
 window.TheVuot.gan($("stCard"), {
-  duocKeo: () => $("stGrade").style.display !== "none",
+  duocKeo: choPhepChamNgay,
   chamXong: (nho) => grade(nho, true),
-  chuaDuoc: () => toast(T("Hãy hiện nghĩa trước rồi mới vuốt để chấm (Space)"))
+  duocDoc: () => !baiDien && !!theCardHienTai(),
+  nhanLen: T("Mở nguồn"), nhanXuong: T("Hỏi Gemini"),
+  len: () => {
+    const it = theCardHienTai();
+    if (!it) return;
+    if (it.src && it.src.url) openSource(it);
+    else toast(T("Từ này chưa có nguồn để mở"), "bad");
+  },
+  xuong: () => { const it = theCardHienTai(); if (it) moGemini(it); },
+  nhanDoi: () => { const it = theCardHienTai(); if (it && !baiDien) moSua(it, "trans"); }
 });
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
@@ -3622,7 +3664,7 @@ document.addEventListener("keyup", (e) => {
  *   Space   lật thẻ (kể cả bài nghe) · đã lật rồi: mở nguồn
  *           · màn kết quả bài điền khuyết: Tiếp
  *   Enter   như Space
- *   F / J   Quên / Nhớ (sau khi lật)        1 / 2  như cũ, giữ cho ai đã quen
+ *   F / J   Quên / Nhớ — chấm được ngay, chưa lật cũng được      1 / 2  như cũ
  *   A       phát âm từ · bài nghe: nghe lại câu (lúc nào cũng được; từ còn phải giấu)
  *   1–9     bài điền khuyết: chọn ô đó và chấm ngay (mỗi đề chỉ có MỘT đáp án đúng)
  *   J       màn kết quả bài điền khuyết: Tiếp
@@ -3649,10 +3691,10 @@ function phimHoc(e) {
   } else if (laPhim("j")) {
     e.preventDefault();
     if (tiepBaiDien) tiepBaiDien();
-    else if (daLat) grade(true);
+    else if (choPhepChamNgay()) grade(true);      // chấm được ngay, không cần Space
   } else if (laPhim("f")) {
     e.preventDefault();
-    if (daLat) grade(false);
+    if (choPhepChamNgay()) grade(false);
   } else if (laPhim("a")) {
     e.preventDefault();
     if (!it) return;
@@ -3665,8 +3707,8 @@ function phimHoc(e) {
     const o = $("stDienO").querySelectorAll(".dien-omot")[Number(k) - 1];
     if (o && !o.disabled) { e.preventDefault(); chonDien(o.querySelector(".dien-omot-tu").textContent); }
   }
-  else if (k === "1" && daLat) grade(false);
-  else if (k === "2" && daLat) grade(true);
+  else if (k === "1" && choPhepChamNgay()) grade(false);
+  else if (k === "2" && choPhepChamNgay()) grade(true);
   else if (k === "0" || k === "Delete") { e.preventDefault(); deleteCurrentCard(); }
 }
 
