@@ -57,7 +57,7 @@
   /*
    * Đọc một trường ĐÁNG RA là mảng.
    *
-   * Không phải phòng xa vu vơ: `means` và `lien.dong` đi qua đường nạp CSV,
+   * Không phải phòng xa vu vơ: `means` đi qua đường nạp CSV,
    * đường đồng bộ Drive và cả sổ của máy khác — chỉ cần một bên ghi ra chuỗi
    * thay vì mảng là chỗ này nổ. Mà nổ ở đây thì cả nút hỏi im re, trong khi
    * mục ấy nhìn vẫn bình thường trên màn hình.
@@ -191,10 +191,6 @@
       }
     }
     if (it.note && sach(it.note)) daLuu.push(T2("Ghi chú tôi tự viết: {gc}", { gc: sach(it.note) }));
-    const dong = dsChu((it.lien || {}).dong);
-    const trai = dsChu((it.lien || {}).trai);
-    if (dong.length) daLuu.push(T2("Đồng nghĩa tôi đã lưu: {ds}", { ds: dong.join(", ") }));
-    if (trai.length) daLuu.push(T2("Trái nghĩa tôi đã lưu: {ds}", { ds: trai.join(", ") }));
     if (p.chuHan) daLuu.push(T2("Chữ Hán: {meta}", { meta: sach(p.chuHan) }));
     const anh = dongAnh(it.pos);
     if (anh.length) daLuu.push(T2("Định nghĩa tiếng Anh app đã lưu: {ds}", { ds: anh.join(" | ") }));
@@ -243,11 +239,7 @@
       hoi.push(T("2. Nghĩa tôi đang lưu có sát không? Lệch chỗ nào thì nói thẳng."));
     }
     hoi.push(T("3. Sắc thái và mức trang trọng: lúc nào dùng được, lúc nào KHÔNG nên dùng."));
-    if (dong.length || trai.length) {
-      hoi.push(T("4. Phân biệt với những từ tôi đã lưu ở trên — mỗi từ một câu ngắn, chỉ ra chỗ khác nhau thật sự."));
-    } else {
-      hoi.push(T2("4. Những {loai} nào gần nghĩa mà hay bị dùng nhầm chỗ? Phân biệt giúp tôi.", { loai: ten }));
-    }
+    hoi.push(T2("4. Những {loai} nào gần nghĩa mà hay bị dùng nhầm chỗ? Phân biệt giúp tôi.", { loai: ten }));
     hoi.push(T("5. Hai ví dụ khác cùng sắc thái, có dịch."));
     hoi.push(T("6. Một mẹo ngắn để tôi nhớ được lâu."));
     hoi.push("");

@@ -83,7 +83,7 @@
   // Nút/chip KHÔNG nằm trong danh sách: trên điện thoại thẻ gần như kín nút, loại hết thì
   // chẳng còn chỗ nào để đặt ngón tay mà vuốt. Bấm vẫn là bấm (không xê dịch thì không phải
   // vuốt), còn cú nhả sau khi vuốt thì `click` bị nuốt — xem cuối `gan`.
-  const KHONG_KEO = "input, textarea, select, audio, [contenteditable='true'], .lien-o, .np-piece, .the-khong-keo";
+  const KHONG_KEO = "input, textarea, select, audio, [contenteditable='true'], .dien-o, .np-piece, .the-khong-keo";
 
   /**
    * @param {HTMLElement} khung  mặt thẻ

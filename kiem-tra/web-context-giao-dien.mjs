@@ -83,12 +83,12 @@ try{
  // Restore old stored context atomically, preserving latest study/manual fields.
  await sw.evaluate(async({src,sentence})=>{
    const legacy={word:"可否",dict:"javi",src:{url:src.url,sel:"可否",prefix:src.prefix,suffix:src.suffix},
-     duong:{nhin:{lv:5,due:123}},lichRieng:{nghe:{dongBang:true}},mangTat:1,mEdit:1,means:["tự sửa"],note:"ghi chú",ts:99};
+     duong:{nhin:{lv:5,due:123}},lichRieng:{nghe:{dongBang:true}},mEdit:1,means:["tự sửa"],note:"ghi chú",ts:99};
    await chrome.storage.local.set({notebook:{"javi:可否":legacy}});
    await phucHoiNguCanhWeb();await phucHoiNguCanhWeb();
  },{src,sentence});
  item=await read("可否");assert.equal(item.src.cau,sentence);assert.equal(item.cauNghe.cau,sentence);
  assert.equal(item.ts,99);assert.equal(item.duong.nhin.lv,5);assert.equal(item.lichRieng.nghe.dongBang,true);
- assert.equal(item.means[0],"tự sửa");assert.equal(item.mangTat,1);assert.equal(item.note,"ghi chú");
+ assert.equal(item.means[0],"tự sửa");assert.equal(item.note,"ghi chú");
  console.log("Web browser: real DOM context capture, context-menu save, popup, toolbar, inline selection race, ruby, bullets, long source and old-context/SRS preservation OK");
 }finally{await ctx.close();rmSync(profile,{recursive:true,force:true});}

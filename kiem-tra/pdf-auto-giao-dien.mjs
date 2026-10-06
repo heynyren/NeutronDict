@@ -104,7 +104,7 @@ try{
     await vaSau(async()=>{
       const nb=(await chrome.storage.local.get("notebook")).notebook,it=nb["javi:ケア"];
       it.duong={nhin:{ngay:30,lv:4,due:123456,ts:999}};
-      it.lichRieng={nhin:{dongBang:true,ts:1000}};it.mangTat=1;it.dongBang=1;
+      it.lichRieng={nhin:{dongBang:true,ts:1000}};it.dongBang=1;
       it.means=["nghĩa tự sửa"];it.mEdit=1;it.note="ghi chú";it.cauNghe.dich="bản dịch tự sửa";
       await chrome.storage.local.set({notebook:nb});
     });
@@ -116,7 +116,7 @@ try{
     handleContextSave({selectionText:"ケア",pageUrl:url},tab)
   ]),{url,tab});
   it=await read();assert.deepEqual(it.duong,before.duong);assert.deepEqual(it.lichRieng,before.lichRieng);
-  assert.deepEqual(it.means,before.means);assert.equal(it.note,before.note);assert.equal(it.mangTat,1);
+  assert.deepEqual(it.means,before.means);assert.equal(it.note,before.note);
   assert.equal(it.cauNghe.dich,"bản dịch tự sửa");
   const status=await sw.evaluate(async()=>(await chrome.storage.local.get("lastContextSave")).lastContextSave);
   assert.equal(status.ok,true,"multiple source sentences use the first sentence without warning");

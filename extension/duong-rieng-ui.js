@@ -1,6 +1,6 @@
 /**
  * Hộp chọn "Ôn từng đường": chỉ toàn bài nghe, toàn bài đoán nghĩa, hoặc toàn
- * bài đúng–sai (đồng nghĩa / trái nghĩa), để luyện liền một loại không bị xen.
+ * bài điền khuyết, để luyện liền một loại không bị xen.
  *
  * Dùng chung hai nền tảng; việc dựng hàng đợi và chấm điểm vẫn do màn học của
  * từng nền tảng làm — hộp này chỉ hỏi người học muốn loại nào và nói cho họ
@@ -11,7 +11,7 @@
   const LUA = [
     { ma: "nghe", ds: ["nghe"], ten: "Chỉ bài nghe", mota: "Nghe một câu rồi nhận ra từ" },
     { ma: "nhin", ds: ["nhin"], ten: "Chỉ bài đoán nghĩa", mota: "Nhìn từ rồi nhớ nghĩa của nó" },
-    { ma: "lien", ds: ["dong", "trai"], ten: "Chỉ bài đúng – sai", mota: "Chọn đúng từ đồng nghĩa / trái nghĩa" }
+    { ma: "dien", ds: ["dien"], ten: "Chỉ bài điền khuyết", mota: "Chọn từ đúng cho chỗ trống trong câu" }
   ];
 
   /**

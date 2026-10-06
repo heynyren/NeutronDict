@@ -2075,6 +2075,23 @@
   en["Thẻ sau"] = "Next card";
   ja["Thẻ sau"] = "次のカード";
 
+  en["Đúng rồi · {t} giây"] = "Correct · {t}s";
+  ja["Đúng rồi · {t} giây"] = "正解 · {t}秒";
+  en["Chưa đúng · {t} giây"] = "Not quite · {t}s";
+  ja["Chưa đúng · {t} giây"] = "不正解 · {t}秒";
+  en["Chỉ bài điền khuyết"] = "Fill-in-the-blank only";
+  ja["Chỉ bài điền khuyết"] = "穴埋めのみ";
+  en["Chọn từ đúng cho chỗ trống trong câu"] = "Pick the right word for the blank in the sentence";
+  ja["Chọn từ đúng cho chỗ trống trong câu"] = "文の空欄に入る正しい語を選ぶ";
+  en["Điền khuyết trong câu"] = "Fill in the blank";
+  ja["Điền khuyết trong câu"] = "文の穴埋め";
+  en["dùng trong câu"] = "use in a sentence";
+  ja["dùng trong câu"] = "文中での運用";
+  en["Dùng được trong câu"] = "Can use it in a sentence";
+  ja["Dùng được trong câu"] = "文中で使える";
+  en["chưa có câu nguồn đã dịch"] = "no translated source sentence yet";
+  ja["chưa có câu nguồn đã dịch"] = "翻訳済みの出典文がまだありません";
+
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

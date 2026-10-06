@@ -226,10 +226,6 @@
         <span data-chu>Cho trợ lý AI khác (ChatGPT, Gemini…) đọc được lời thoại: đặt thêm một bản chữ khuất mắt vào trang YouTube</span>
       </label>
       <label class="check">
-        <input type="checkbox" id="setOnCum">
-        <span data-chu>Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau</span>
-      </label>
-      <label class="check">
         <input type="checkbox" id="setNhip">
         <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
       </label>
@@ -420,19 +416,14 @@
           </div>
           <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
           <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px" id="stGhiAm"></div>
-          <!-- Bài liên kết: một mớ lộn xộn, nhặt cho hết tập cùng ý (hoặc ngược ý). -->
-          <div id="stLienMat" style="display:none">
-            <div class="t-small muted" id="stLienDe" style="text-align:center;margin-bottom:12px"></div>
-            <div id="stLienO" class="lien-o"></div>
-            <button class="btn primary block lg" id="stLienXong" type="button" style="margin-top:16px" data-chu>Xong</button>
-            <!-- Điểm và nút Tiếp DÍNH ĐÁY khung cuộn.
-                 Để chúng nằm cuối danh sách như trước thì với 16 hàng, nút Tiếp
-                 rơi xuống y = 809px trên màn cao 800px — dưới mép màn hình. Làm
-                 xong bài phải cuộn qua cả danh sách mới thấy đường đi tiếp, mà
-                 lúc ấy điểm vừa chấm cũng đã trôi khỏi tầm mắt. -->
-            <div class="lien-day" id="stLienDay">
-              <div class="t-small" id="stLienKq"></div>
-              <button class="btn primary lg" id="stLienTiep" type="button"
+          <!-- Bài điền khuyết: lời hỏi là bản dịch, câu có chỗ trống, bốn ô chọn từ gốc. -->
+          <div id="stDienMat" style="display:none">
+            <div id="stDienDich" class="dien-dich"></div>
+            <div id="stDienCau" class="dien-cau"></div>
+            <div id="stDienO" class="dien-o"></div>
+            <div class="dien-day" id="stDienDay">
+              <div class="t-small" id="stDienKq"></div>
+              <button class="btn primary lg" id="stDienTiep" type="button"
                       style="display:none" data-chu>Tiếp</button>
             </div>
           </div>
@@ -559,8 +550,6 @@
     <h3><span id="dsTu"></span></h3>
     <div class="sub" id="dsTong"></div>
     <div id="dsBang" class="diem-ds"></div>
-    <!-- Những từ cùng cụm đã lưu trong sổ. Bấm được để nhảy sang xem. -->
-    <div class="diem-cum" id="dsCum"></div>
     <div class="t-tiny faint" id="dsChuaDo"></div>
     <div class="actions">
       <button class="btn primary" id="dsOn" type="button" data-chu>Ôn bài còn lại</button>
@@ -602,7 +591,7 @@
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>
-  <script src="tu-lien.js"></script>
+  <script src="cau-dien.js"></script>
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>

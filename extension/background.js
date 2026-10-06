@@ -8,7 +8,6 @@ importScripts("pdf-auto.js");
 importScripts("pdf-source.js");
 importScripts("web-context.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
-importScripts("tu-lien.js");   // self.TuLien — tập đồng nghĩa / trái nghĩa
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
@@ -307,21 +306,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
              .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
-  if (msg.type === "NGHIA_DS") {
-    nghiaDs(msg.ds, msg.ngu)
-      .then((m) => sendResponse({ ok: true, nghia: m }))
-      .catch(() => sendResponse({ ok: false, nghia: {} }));
-    return true;
-  }
   if (msg.type === "MO_GEMINI") {
     moGeminiVaCanh(msg.key)
       .then((id) => sendResponse({ ok: true, tabId: id }))
-      .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
-    return true;
-  }
-  if (msg.type === "LUU_NHANH") {
-    luuNhanh(msg.word, msg.dict, msg.cum)
-      .then((r) => sendResponse({ ok: true, key: r }))
       .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
     return true;
   }
@@ -404,7 +391,7 @@ async function ghiVaDoc(doi, doiRuby) {
   /*
    * ĐI QUA CHUNG MỘT HÀNG ĐỢI với mấy lượt vá kia.
    *
-   * Hàm này đọc CẢ SỔ, sửa một trường, rồi ghi CẢ SỔ về — y hệt lienVaSau và
+   * Hàm này đọc CẢ SỔ, sửa một trường, rồi ghi CẢ SỔ về — y hệt cauNgheVaSau và
    * cauNgheVaSau. Chạy song song với chúng thì đứa ghi sau đè lên đứa ghi
    * trước: mục vừa được bồi `lien` xong thì lượt vá furigana ghi đè bản đọc từ
    * trước đó và `lien` biến mất. Đo được: bồi cho ba từ thì chỉ một từ giữ
@@ -631,56 +618,6 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   }).catch(() => {});
 });
 
-const nghiaDem = new Map();
-async function nghiaDs(ds, ngu) {
-  const ra = {};
-  const list = Array.from(new Set((ds || []).filter(Boolean))).slice(0, 20);
-  await Promise.all(list.map(async (w) => {
-    if (nghiaDem.has(w)) { ra[w] = nghiaDem.get(w); return; }
-    let m = "";
-    try {
-      // Người học đang ĐỨNG CHỜ ở màn kết quả, nhưng cũng đang chờ 16 từ một
-      // lúc — nên đường nhanh (một cổng, một cách, 4 giây) là đúng liều: hụt
-      // một từ thì mất một dòng, chứ không giữ cả bảng lại.
-      if (!m) m = await dichChuoi(w, ngu === "ja" ? "ja" : "en", "vi", true);
-    } catch (e) { m = ""; }
-    m = String(m || "").trim();
-    if (m) nghiaDem.set(w, m);
-    ra[w] = m;
-  }));
-  return ra;
-}
-
-/**
- * Lưu một từ vào sổ chỉ với con chữ — tra rồi lưu, gộp trong một lượt.
- *
- * Dùng cho mấy nút Lưu trên bài liên kết: ở đó ta chỉ có mỗi con chữ, mà lưu
- * trơ con chữ thì mục vào sổ không có cách đọc lẫn nghĩa, tức là một thẻ không
- * học được.
- */
-/**
- * @param {{goc:string, ben:"dong"|"trai"}} [cum] từ này lưu ra từ tập
- *   đồng/trái nghĩa của từ nào. Có nó thì mục thành từ DẪN XUẤT: tập liên kết
- *   của nó bị thu về đúng tập ban đầu, xem `lienVaSau`.
- */
-async function luuNhanh(word, dict, cum) {
-  const w = String(word || "").trim();
-  if (!w) throw new Error("Thiếu từ");
-  const d = dict || "javi";
-  let e = null;
-  try {
-    // `.e` — xem chú thích ở nghiaDs. Thiếu nó thì saveWord nhận nguyên đối
-    // tượng bao ngoài {e, khop}: mục vào sổ không có nghĩa lẫn cách đọc, tức
-    // là một thẻ không học được.
-    const k = ketQuaKhop(await lookupEntry(w, d), w);
-    e = k && k.e;
-  } catch (err) { e = null; }
-  if (!e) e = { word: w, reading: "", means: [] };
-  const them = { word: w };
-  if (cum && cum.goc) them.tuCum = { goc: String(cum.goc), ben: cum.ben === "trai" ? "trai" : "dong" };
-  return saveWord(Object.assign({}, e, them), d);
-}
-
 /**
  * Dịch câu NGỮ CẢNH của một mục để hiện ngay dưới nghĩa trong sổ tay.
  *
@@ -747,23 +684,18 @@ async function dichCauNghe(key) {
 /**
  * BỒI THÊM ĐƯỜNG cho những từ đã nằm sẵn trong sổ.
  *
- * Chế độ học có bốn đường, nhưng ba đường sau chỉ mở khi mục CÓ DỮ LIỆU cho
+ * Chế độ học có ba đường, nhưng hai đường sau chỉ mở khi mục CÓ DỮ LIỆU cho
  * chúng (xem Srs.duongCo):
- *     nghe -> cần cauNghe.cau        (câu ngữ cảnh chứa từ)
- *     dong -> cần lien.dong >= 2     (tập đồng nghĩa)
- *     trai -> cần lien.trai >= 1     (tập trái nghĩa)
+ *     nghe -> cần cauNghe.cau              (câu ngữ cảnh chứa từ)
+ *     dien -> cần cauNghe.cau + cauNghe.dich (câu và BẢN DỊCH của nó: lời hỏi)
  *
- * Mà hai trường ấy trước giờ CHỈ được sinh ra ở một chỗ duy nhất: lúc bấm Lưu
- * một từ mới. Nên mọi từ đã có trong sổ từ trước khi tính năng ra đời thì vĩnh
- * viễn chỉ có mỗi đường "nhìn" — học bao nhiêu ngày cũng chỉ ra flashcard, ba
- * bài kiểm tra kia không bao giờ xuất hiện. Chúng không hỏng; chúng không có
- * dữ liệu để chạy.
+ * Hai trường ấy trước giờ chỉ được sinh ra lúc bấm Lưu một từ mới. Nên mọi từ đã
+ * có trong sổ từ trước đó thì vĩnh viễn chỉ có mỗi đường "nhìn". Chúng không hỏng;
+ * chúng không có dữ liệu để chạy.
  *
- * Hàm này bồi cho những mục ấy, mỗi lần mở sổ một ít:
- *   - Tập đồng/trái nghĩa: bảng hạt giống và bộ 日本語WordNet đều nằm TRONG
- *     máy, nên phần này không tốn lượt mạng nào — làm cho hết trong một lượt.
- *   - Câu ngữ cảnh: moi ra từ nguồn đã lưu thì miễn phí, nhưng còn phải dịch
- *     câu ấy, mỗi mục một lượt gọi mạng — nên có hạn mức, mở vài lần là xong.
+ * Hàm này bồi cho những mục ấy, mỗi lần mở sổ một ít: moi câu ngữ cảnh từ nguồn đã
+ * lưu (miễn phí) rồi dịch câu ấy — mỗi mục một lượt gọi mạng, nên có hạn mức, mở vài
+ * lần là xong. Mục có câu mà lượt dịch trước hụt thì được dịch lại.
  *
  * Không đụng `ts`, y như vaFurigana: đây là máy tự bồi thêm, không phải người
  * dùng sửa mục.
@@ -803,19 +735,9 @@ async function boiThemDuong(toiDa) {
   };
 
   /*
-   * LƯỢT 1 — không đụng mạng, làm cho hết.
-   *
-   * Trộn hai lượt vào một vòng là hỏng: mỗi lượt dịch câu có thể treo tới 8
-   * giây chờ hết hạn, nên mục thứ ba phải đợi mười mấy giây mới tới lượt được
-   * bồi tập trái nghĩa — thứ vốn nằm sẵn trong máy và lẽ ra xong tức thì. Đo
-   * được: mở sổ, chờ 12 giây, chỉ MỘT trong ba từ được bồi.
+   * LƯỢT 1 — không đụng mạng, làm cho hết: gom các mục chung ngữ cảnh.
    */
   try { n += await nheChungVaSau(); } catch (e) { /* không gom được thì thôi, bài nghe vẫn chạy */ }
-  for (const k of Object.keys(nb)) {
-    const it = nb[k];
-    if (!dienBoi(it) || it.lien) continue;
-    try { if (await lienVaSau(k, it, it.dict, false)) n++; } catch (e) { /* mục sau */ }
-  }
 
   // LƯỢT 2 — cần mạng để dịch câu ngữ cảnh, nên có hạn mức. Gom việc trước rồi
   // chạy SONG SONG (bốn lượt một lúc): mỗi lượt dịch là một vòng đi-về tới
@@ -1438,124 +1360,6 @@ async function rubyCua(text) {
 }
 
 /**
- * Tìm tập đồng nghĩa tiếng Nhật bằng VÒNG DỊCH NGƯỢC.
- *
- * Không có API 類語 nào miễn phí mà cho gọi từ trình duyệt. Nhưng dịch một từ
- * sang tiếng Việt rồi dịch NGƯỢC lại thì Google trả về cả một danh sách ứng
- * viên cho cùng một ý — đó đúng là tập đồng nghĩa. App đã dùng chính cơ chế
- * này ở chế độ Việt→Nhật (xem lookupEntry "vija").
- *
- * Cách này KHÔNG ra được trái nghĩa; trái nghĩa tiếng Nhật chỉ có bảng hạt
- * giống trong tu-lien.js và bộ dữ liệu người dùng tự nạp.
- */
-async function dongNghiaJa(word) {
-  try {
-    const g1 = await gtxDict(word, "ja", "vi");
-    const nghia = g1 && g1.main;
-    if (!nghia) return [];
-    const g2 = await gtxDict(nghia, "vi", "ja");
-    let ds = [];
-    for (const s of (g2 && g2.senses) || []) ds = ds.concat(s.terms || []);
-    if (g2 && g2.main) ds.unshift(g2.main);
-    return self.TuLien.gonDs(ds, word);
-  } catch (e) { return []; }
-}
-
-/**
- * Dựng tập đồng nghĩa / trái nghĩa cho một mục ĐÃ nằm trong sổ, vá tại chỗ.
- * Không đụng `ts`, không đụng `srs` — máy tự bồi thêm, không phải người sửa.
- */
-/**
- * @param {boolean} [choMang] có được đi hỏi mạng khi bảng trong máy không có
- *   gì không. Lúc lưu MỘT từ thì có; lúc bồi cho cả sổ thì không, kẻo mở sổ
- *   thành mấy trăm lượt gọi mạng.
- * @returns {Promise<boolean>} có ghi được gì vào sổ không.
- */
-async function lienVaSau(key, e, dict, choMang) {
-  const mang = choMang !== false;
-  /*
-   * Phần CHẬM chạy ở ngoài hàng đợi; chỉ lượt đọc-sửa-ghi mới xếp hàng.
-   *
-   * Hàng đợi vaSau sinh ra để hai lượt ghi không đè lên nhau. Nhưng trước đây
-   * cả lượt gọi mạng cũng nằm trong đó, nên một lượt dịch chậm là chặn mọi việc
-   * phía sau — kể cả việc của từ người dùng vừa bấm Lưu. Đo được: lượt bồi nền
-   * đang chạy với mạng chậm 3 giây thì việc của người dùng phải đợi 3.706ms mới
-   * tới lượt. Sau khi tách: dưới 20ms.
-   */
-  /*
-   * Mục DẪN XUẤT: thu tập liên kết về đúng tập ban đầu, và KHÔNG gọi mạng.
-   *
-   * Không gọi mạng ở đây không phải để tiết kiệm. Tầng dịch-ngược
-   * (`dongNghiaJa`) và lượt `fetchDictionary` chính là cỗ máy đẻ từ mới: chúng
-   * trả về một danh sách ứng viên cho cùng một ý. Mà ở đây ta chỉ cần biết mấy
-   * từ SẴN CÓ trong tập của gốc có được xác nhận hay không — bảng hạt giống và
-   * 日本語WordNet nằm ngay trong máy đã trả lời được. Gọi mạng vừa chậm vừa đi
-   * ngược điều đang muốn.
-   */
-  const laDanXuat = !!(e.tuCum && e.tuCum.goc);
-  const tinh = (async () => {
-    const laJa = (dict === "javi" || dict === "vija");
-    // Nạp đúng mảnh 日本語WordNet chứa từ này. Chỉ mảnh đó, và chỉ một lần.
-    /*
-     * Nạp mảnh mà trượt thì BỎ QUA, đừng kéo đổ cả lượt.
-     *
-     * Trước đây một lượt nạp hỏng là ném thẳng ra ngoài, và mục ấy mất luôn cả
-     * phần từ BẢNG HẠT GIỐNG — thứ nằm sẵn trong mã, không cần tải gì. Đo được:
-     * 改善 có sẵn 改良/向上/進歩 và 改悪 trong bảng, mà vẫn ra rỗng chỉ vì lượt
-     * nạp mảnh trượt.
-     */
-    if (laJa) {
-      try {
-        await self.TuLien.napBo(e.word, (i) => chrome.runtime.getURL("tu-lien/" + i + ".txt"));
-      } catch (err) { /* vẫn còn bảng hạt giống */ }
-    }
-    let ra = self.TuLien.tuBang(e.word);
-    if (laJa) {
-      if (!ra.dong.length && mang && !laDanXuat) {
-        ra = self.TuLien.gop(ra, { dong: await dongNghiaJa(e.word), trai: [] });
-      }
-    } else {
-      // Tiếng Anh: từ điển đã có sẵn cả hai chiều trong `pos`.
-      let pos = e.pos;
-      if ((!pos || !pos.length) && mang && !laDanXuat) {
-        const dd = await fetchDictionary(e.word);
-        pos = dd ? posFrom(dd) : [];
-      }
-      ra = self.TuLien.gop(self.TuLien.tuPos(pos || [], e.word), ra);
-    }
-    if (laDanXuat) {
-      const { notebook } = await chrome.storage.local.get("notebook");
-      const nbG = notebook || {};
-      // Tìm mục gốc theo CON CHỮ, không theo khoá: khoá mang tiền tố hướng tra,
-      // mà từ dẫn xuất có thể lưu ở hướng khác với gốc.
-      let goc = null;
-      for (const k in nbG) {
-        const x = nbG[k];
-        if (x && !x.del && x.word === e.tuCum.goc) { goc = x; break; }
-      }
-      // Gốc đã bị xoá thì vốn chỉ còn chính nó — vẫn đúng tinh thần: không
-      // rước thêm từ nào mới vào.
-      ra = self.TuLien.locTheoCum(ra, e.word, goc || { word: e.tuCum.goc }, e.tuCum.ben);
-    }
-    // Những từ người học đã tự tay bỏ thì đừng dựng lại. Lọc ở ĐÂY, chỗ dựng,
-    // chứ không ở chỗ đọc: lọc lúc đọc thì mỗi màn phải tự nhớ lọc, mà quên
-    // một chỗ là từ đã bỏ lại hiện ra.
-    return self.TuLien.locBo(ra, e.lienBo);
-  })();
-  const ra = await tinh;
-  if (!ra.dong.length && !ra.trai.length) return false;
-  return vaSau(async () => {
-    const { notebook } = await chrome.storage.local.get("notebook");
-    const nb = notebook || {};
-    const cu = nb[key];
-    if (!cu || cu.del || cu.lien) return false;
-    nb[key] = Object.assign({}, cu, { lien: { dong: ra.dong, trai: ra.trai, ts: Date.now() } });
-    await chrome.storage.local.set({ notebook: nb });
-    return true;
-  });
-}
-
-/**
  * Dựng câu ngữ cảnh + bản dịch cho một mục ĐÃ nằm trong sổ, rồi vá tại chỗ.
  *
  * Không đụng `ts` và không đụng `srs`: đây là máy tự bồi thêm dữ liệu, không
@@ -1650,7 +1454,7 @@ function vaSau(lam) {
 }
 
 async function rubyVaSau(key, word) {
-  // Lượt hỏi Google để ghép furigana làm NGOÀI hàng đợi — xem lienVaSau.
+  // Lượt hỏi Google để ghép furigana làm NGOÀI hàng đợi — xem cauNgheVaSau.
   const rb = await rubyCua(word);
   if (!rb.length) return;
   return vaSau(async () => {
@@ -2029,16 +1833,6 @@ async function saveWord(entry, dict) {
   if (entry.audio) e.audio = entry.audio;                     // link phát âm
   if (entry.kanji) e.kanji = entry.kanji;                     // on/kun/số nét/JLPT/bộ thủ
   if (entry.kind) e.kind = entry.kind;                        // "sent" = câu đã dịch
-  /*
-   * `tuCum` = mục này sinh ra từ tập đồng/trái nghĩa của một từ khác.
-   *
-   * Chỉ `luuNhanh` đặt nó, và chỉ khi bấm Lưu ngay trong màn kết quả hoặc
-   * khối mạng nghĩa. Lưu qua đường thường — tra rồi bấm Lưu — thì KHÔNG đặt,
-   * và chỗ dưới còn gỡ nó đi nếu mục cũ đang mang: tra xong mới lưu là một
-   * quyết định có chủ ý, mục ấy thôi làm từ dẫn xuất và được dựng lại tập
-   * liên kết đầy đủ. Không có lối gỡ ấy thì mục kẹt vĩnh viễn ở tập rút gọn.
-   */
-  if (entry.tuCum && entry.tuCum.goc) e.tuCum = entry.tuCum;
   if (entry.src && entry.src.url) e.src = entry.src;          // nguồn: {url, title, sel}
   // Lần lưu này có mang theo bản sửa tay (sửa ngay trong popup) hay không.
   if (entry.note != null) e.note = String(entry.note);
@@ -2061,18 +1855,6 @@ async function saveWord(entry, dict) {
     if (e.mEdit && !e.mOrig && old.mOrig) e.mOrig = old.mOrig;
   }
   if (old && !old.del) {                                      // lưu lại từ đã có -> GIỮ mọi thứ bạn đã tự làm
-    /*
-     * `tuCum` CỐ Ý không nằm trong danh sách giữ lại dưới đây.
-     *
-     * Mục cũ là từ dẫn xuất, mà lượt lưu này không phải lưu nhanh — tức là bạn
-     * đã tra rồi tự tay bấm Lưu. Đó là một quyết định có chủ ý, nên mục thôi
-     * làm từ dẫn xuất. Bỏ `tuCum` đi thì `lienVaSau` ngay dưới dựng lại tập
-     * liên kết ĐẦY ĐỦ, vì `lien` cũng không được chép từ `old` sang: `e` dựng
-     * mới ở mỗi lượt lưu.
-     *
-     * Không có lối thăng này thì mục kẹt vĩnh viễn ở tập rút gọn, mà chẳng có
-     * đường nào gỡ ngoài xoá đi lưu lại.
-     */
     if (old.deck) e.deck = old.deck;
     if (old.srs) e.srs = old.srs;
     if (old.duong) e.duong = old.duong;
@@ -2080,22 +1862,8 @@ async function saveWord(entry, dict) {
     if (old.kind && !e.kind) e.kind = old.kind;
     if (old.src && !e.src) e.src = old.src;
     if (old.hoiAi && !e.hoiAi) e.hoiAi = old.hoiAi;   // link đoạn chat Gemini
-    // Những từ liên kết người học đã tự tay bỏ. Là ĐÁNH GIÁ của họ, cùng hạng
-    // với ghi chú và bản dịch tự sửa — tra lại một từ không được xoá nó đi rồi
-    // bắt họ xét lại từ đầu.
-    if (old.lienBo && !e.lienBo) e.lienBo = old.lienBo;
-    /*
-     * Hai công tắc rút bớt việc, giữ NGUYÊN qua lượt lưu đè.
-     *
-     * Tra lại một từ rồi bấm Lưu là chuyện xảy ra hàng ngày, và nó KHÔNG có
-     * nghĩa "cho từ này học lại từ đầu". Không giữ thì mỗi lần tra lại là một
-     * từ đã đóng băng lặng lẽ quay về hàng đợi, và người ta chẳng nối được
-     * chuyện ấy với thao tác mình vừa làm.
-     *
-     * Khác với `tuCum` ngay trên: `tuCum` bị BỎ đi vì lưu tử tế là thăng hạng
-     * cho mục. Hai cờ này thì không liên quan gì tới chuyện ấy.
-     */
-    if (old.mangTat) e.mangTat = 1;
+    // Công tắc đóng băng giữ NGUYÊN qua lượt lưu đè: tra lại một từ rồi bấm Lưu không có
+    // nghĩa "cho từ này học lại từ đầu" — không giữ thì từ đã đóng băng lặng lẽ quay về hàng đợi.
     if (old.dongBang) e.dongBang = 1;
     if (old.kanji && !e.kanji) e.kanji = old.kanji;
     if (old.ruby && !e.ruby) { e.ruby = old.ruby; if (old.docSuy) e.docSuy = 1; }
@@ -2144,8 +1912,6 @@ async function saveWord(entry, dict) {
   // Chưa có nghĩa (Google bị chặn lúc lưu, mạng chập chờn…) — thử lại một lần
   // sau ít giây thay vì để mục nằm trong sổ trống trơn.
   if (!e.means.length && (d === "javi" || d === "envi") && e.kind !== "sent") nghiaVaSau(key, e.word, d).catch(() => {});
-  // Tập đồng nghĩa / trái nghĩa — cũng vá SAU và KHÔNG chờ.
-  if (!e.lien) lienVaSau(key, e, d).catch(() => {});
   // Mục MỚI hoàn toàn mới tính vào "hôm nay lưu bao nhiêu"; lưu đè một mục đã có
   // (tra lại cùng một từ) thì không, nếu không con số đó chỉ đếm số lần bấm nút.
   if (!old || old.del) await ghiNhanLuu(self.Ngu.nguCuaKhoa(key));

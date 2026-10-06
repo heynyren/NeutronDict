@@ -296,7 +296,6 @@ a { color: var(--accent); }
  * tắt thì đeo thêm một gạch chéo vẽ bằng CSS, giống lối `bell-slash` đã có sẵn.
  */
 .iconbtn.bang.on { color: #2f8fd8; }
-.iconbtn.mang.on { color: var(--ink-3); }
 .iconbtn.tat { position: relative; }
 .iconbtn.tat::after {
   content: ""; position: absolute; left: 50%; top: 50%;
@@ -304,11 +303,6 @@ a { color: var(--accent); }
   transform: translate(-50%, -50%) rotate(-45deg);
   box-shadow: 0 -1.6px 0 var(--surface);
 }
-
-/* Bài mạng nghĩa đang tắt: làm mờ, KHÔNG ẨN. Còn phải nhìn lại xem mình đã
-   tắt cái gì, và nút × vẫn còn việc — mấy từ ấy vẫn đang dùng cho từ khác. */
-.lienmang.tat .lienmang-ds { opacity: .55; }
-.lienmang-tat { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
 
 /* Hàng thao tác hàng loạt trên đầu danh sách sổ tay. */
 .rowx.hangloat { gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
@@ -535,10 +529,6 @@ select { cursor: pointer; }
 .diem-dong.den .diem-khi { color: var(--warn); font-weight: 600; }
 
 /* Những từ cùng cụm trong phiếu điểm. */
-.diem-cum { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
-.diem-cum:empty { display: none; }
-.diem-cum-nhan { font-size: 12px; color: var(--ink-3); }
-.diem-cum .chip.nho { font-size: 12px; padding: 4px 9px; cursor: pointer; }
 @media (max-width: 480px) {
   .diem-dong { grid-template-columns: 1fr 44px 28px; }
   .diem-khi { grid-column: 1 / -1; margin-top: -4px; }
@@ -772,160 +762,49 @@ select { cursor: pointer; }
 .studycard .cw.co-ruby { line-height: 1.9; }
 .studycard.kanji .cw { font-size: 88px; line-height: 1.05; font-weight: 600; }
 
-/* Bài liên kết từ: một mớ ô bấm được. Ô đủ to để bấm bằng ngón cái, và xếp
-   theo lưới co giãn — mớ có 8 ô hay 16 ô đều phải nhìn ra là một mớ. */
-.lien-o { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.lien-o button {
-  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
-  border-radius: 12px; padding: 9px 14px; font: inherit; font-size: 15px; cursor: pointer;
-  transition: transform .1s ease, border-color .12s ease, background .12s ease;
+/* Bài điền khuyết: lời hỏi là bản dịch, câu tiếng Nhật có chỗ trống, bốn ô chọn. Ô đủ
+   to để bấm bằng ngón cái; một cột cho dễ nhìn và không ô nào bị cắt chữ. */
+.dien-dich { font-size: 17px; font-weight: 650; line-height: 1.5; margin: 4px 0 8px; }
+.dien-cau { font-size: 18px; line-height: 1.9; margin-bottom: 14px; color: var(--ink-2); }
+.dien-cau.ja { font-size: 21px; }
+.dien-lo {
+  display: inline-block; min-width: 3.4em; text-align: center; margin: 0 2px;
+  border-bottom: 3px solid var(--accent); color: var(--accent); font-weight: 800; letter-spacing: 1px;
 }
-.lien-o button:hover { border-color: var(--accent); }
-.lien-o button.chon { border-color: var(--accent); background: var(--accent-soft); font-weight: 650; }
-/* Sau khi chấm: xanh = đúng, đỏ = nhặt nhầm, viền đứt = bỏ sót. Ba trạng thái
-   phải phân biệt được, vì "bỏ sót" mới là thứ đáng nhìn lại nhất. */
-.lien-o button.dung { border-color: var(--good); background: var(--good-soft); color: var(--good); }
-.lien-o button.sai { border-color: var(--bad, #c0392b); color: var(--bad, #c0392b); text-decoration: line-through; }
-.lien-o button.sot { border-style: dashed; border-color: var(--good); color: var(--good); }
-.lien-o button[disabled] { cursor: default; }
-
-/*
- * Ô đề của bài mạng nghĩa — MỘT CỘT, Ô LỚN, chạm đâu cũng ăn.
- *
- * Bản cũ rải nút nhỏ theo hàng ngang. Gọn màn thật, nhưng mắt phải nhảy ngang
- * dọc để quét cho hết, và trên điện thoại vùng chạm chỉ bằng con chữ. 56px là
- * ngưỡng vùng chạm thoải mái cho ngón tay cái.
- */
-/*
- * Danh sách cụm trên ĐỀ BÀI của bài đảo — bày ra để đọc, KHÔNG phải để bấm.
- *
- * Nó với mấy ô đáp án cùng là một hàng chữ Nhật trần, nên phải nhìn khác hẳn:
- * không viền, nền chìm, chữ nhỏ hơn ô đáp án một bậc. Để giống nhau thì người
- * học chạm vào đề rồi tưởng nút hỏng.
- */
-.lien-cum {
-  margin-top: 8px; padding: 10px 14px;
-  border-radius: 12px; background: var(--surface-2);
-  font-size: 17px; font-weight: 600; line-height: 1.5; color: var(--ink);
-  user-select: none;
+.dien-lap {
+  display: inline-block; padding: 0 6px; border-radius: 8px;
+  background: var(--good-soft); color: var(--good); font-weight: 800;
 }
-.lien-cum.ja { font-size: 19px; }
-
-.lien-o.to { flex-direction: column; align-items: stretch; gap: 8px; }
-.lien-omot {
-  /* Một dòng duy nhất (con chữ), căn GIỮA theo chiều dọc — nghĩa đã bị gỡ
-     khỏi màn làm bài vì nó in sẵn đáp án lên thẻ. Để `flex-start` thì chữ dính
-     mép trên mà dưới hụt một khoảng trống. */
-  display: flex; flex-direction: column; align-items: flex-start;
-  justify-content: center;
+.dien-lap.sai { background: var(--accent-soft); color: var(--accent); }
+.dien-o { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.dien-omot {
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   width: 100%; min-height: 56px; padding: 10px 16px;
   border: 1.5px solid var(--line); border-radius: 14px;
   background: var(--surface); color: var(--ink);
   font: inherit; text-align: left; cursor: pointer;
   transition: border-color .12s ease, background .12s ease;
 }
-.lien-omot-tu { font-size: 19px; font-weight: 650; line-height: 1.25; }
-.lien-omot-tu.ja { font-size: 21px; }
-.lien-omot:hover { border-color: var(--accent); }
-/* Đang chọn: viền DÀY hơn chứ không chỉ đổi màu — đọc được cả khi không
-   phân biệt được màu, cùng một lẽ với hai công tắc rút bớt việc. */
-.lien-omot.chon {
-  border-width: 2.5px; border-color: var(--accent);
-  background: var(--accent-soft); padding: 9px 15px;
-}
-.lien-omot.chon .lien-omot-tu { font-weight: 800; }
-.lien-omot[disabled] { cursor: default; }
+.dien-omot-tu { font-size: 19px; font-weight: 650; line-height: 1.25; }
+.dien-omot-tu.ja { font-size: 21px; }
+.dien-omot:hover { border-color: var(--accent); }
+.dien-omot.dung { border-width: 2.5px; border-color: var(--good); background: var(--good-soft); padding: 9px 15px; }
+.dien-omot.sai { border-width: 2.5px; border-color: var(--bad); background: var(--bad-soft); padding: 9px 15px; }
+.dien-omot.sai .dien-omot-tu { text-decoration: line-through; }
+.dien-omot[disabled] { cursor: default; }
 @media (max-width: 480px) {
-  .lien-omot { min-height: 60px; padding: 11px 14px; }
-  .lien-omot-tu { font-size: 20px; }
-  .lien-omot-tu.ja { font-size: 22px; }
+  .dien-omot { min-height: 60px; padding: 11px 14px; }
+  .dien-omot-tu { font-size: 20px; }
+  .dien-omot-tu.ja { font-size: 22px; }
 }
-
-
-/* Màn KẾT QUẢ: mỗi từ một hàng — con chữ, nghĩa của nó, và nút lưu. Xếp hàng
-   dọc chứ không rải như lúc làm bài: lúc này người ta ĐỌC chứ không nhặt nữa,
-   mà đọc theo hàng thì mắt không phải nhảy. */
-.lien-o.kq { flex-direction: column; align-items: stretch; gap: 6px; }
-.lien-hang {
-  display: flex; align-items: center; gap: 10px;
-  padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px;
-  background: var(--surface);
-}
-/* `nowrap` + min-width rộng hơn một chút: 共振状態 hay 完結する là bốn năm chữ
-   Hán, để 84px thì cột chữ bị bóp và có khi ngắt giữa từ. */
-/* `text-align: left` phải ghi rõ: .studycard căn giữa, và con chữ thừa hưởng
-   cái đó thì mỗi hàng một lề khác nhau, cột trái không thành cột. */
-.lien-tu { font-size: 16px; font-weight: 650; flex: 0 0 auto; min-width: 92px;
-           white-space: nowrap; text-align: left; }
-.lien-tu.dung { color: var(--good); }
-.lien-tu.sai { color: var(--bad, #c0392b); text-decoration: line-through; }
-.lien-tu.sot { color: var(--good); border-bottom: 2px dashed var(--good); }
-.lien-nghia { flex: 1 1 auto; font-size: 13px; line-height: 1.4; text-align: left; }
-.lien-hang .chip.nho { flex: 0 0 auto; font-size: 12px; padding: 5px 10px; }
-
-/*
- * Nút BỎ trên màn kết quả bài liên kết — cùng họ với `.lienmang-bo` bên sổ tay:
- * mờ lúc nghỉ, đỏ lúc chạm. Nó sửa dữ liệu nên phải thấy được, nhưng một màn
- * mười sáu hàng mà hàng nào cũng đỏ thì mắt chẳng còn bắt được gì.
- */
-.lien-bo {
-  flex: 0 0 auto; min-width: 26px; padding: 4px 7px; margin-left: 2px;
-  border: 1px dashed var(--line); border-radius: var(--r-sm);
-  background: none; color: var(--ink-3); cursor: pointer;
-  font: inherit; font-size: 14px; line-height: 1;
-}
-.lien-bo:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
-.lien-bo:disabled { opacity: .5; cursor: default; }
-/* Đã bỏ: LÀM MỜ chứ không gỡ hàng đi. Màn này là bản ghi của bài vừa làm;
-   hàng biến mất giữa lúc đang đọc là mất cả chỗ đang nhìn. */
-.lien-hang.bo { opacity: .45; }
-.lien-hang.bo .lien-tu { text-decoration: line-through; }
-.lien-hang.bo .lien-bo { opacity: 1; border-style: solid; color: var(--good); border-color: var(--good); }
-
-/* Tiêu đề nhóm. Màn kết quả bày HẾT tối đa 16 ô — đáp án lẫn từ nhiễu — và bày
-   hết là có chủ ý: nhiễu lấy từ chính sổ tay người học, gặp từ hay thì lưu luôn.
-   Nhưng mười sáu hàng giống hệt nhau thì cái đáng nhìn nhất (mình làm đúng
-   không) chìm nghỉm. Chia nhóm là giữ nguyên mọi thứ, chỉ cho mắt biết nhìn đâu
-   trước. */
-.lien-nhom {
-  display: flex; align-items: baseline; gap: 6px;
-  margin: 16px 2px 6px; font-size: 11px; font-weight: 800;
-  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3);
-}
-.lien-nhom:first-child { margin-top: 0; }
-.lien-nhom.dap { color: var(--good); }
-.lien-nhom.nham { color: var(--bad, #c0392b); }
-.lien-nhom .dem { font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-3); }
-
-/* Điểm + nút Tiếp, dính đáy khung cuộn.
-   Âm margin để tràn hết bề ngang thẻ và bo khớp hai góc dưới của .studycard —
-   `.studycard` đệm `26px 20px 18px` ở cả hai bản nên hai số âm này dùng chung. */
-.lien-day { display: none; }
-/*
- * CHỖ NÀY LỆCH so với bản extension, và lệch có lý do — đừng chép số của bên
- * kia sang.
- *
- * Bên extension, buổi học cuộn trong `.stwrap` đệm đều 20px và KHÔNG có gì che
- * đáy, nên nó dính ở `bottom: -20px` để phủ nốt dải đệm ấy.
- *
- * Bên này khung cuộn là `main`, đệm đáy `env(safe-area-inset-bottom) + 84px`
- * để chừa chỗ cho thanh `nav` CỐ ĐỊNH ở đáy màn. Mà mốc dính lại tính theo
- * khung nhìn chứ không trừ đệm — nên `bottom: 0` là nút Tiếp nằm ngay dưới
- * thanh nav, bấm không tới. Phải dính đúng ở mép trên của thanh nav, cùng con
- * số mà `.toast` đang dùng.
- */
-#stLienO.kq ~ .lien-day {
-  display: flex; align-items: center; gap: 12px;
-  position: sticky; bottom: calc(env(safe-area-inset-bottom) + 84px); z-index: 1;
-  margin: 14px -20px -18px; padding: 12px 20px 14px;
-  background: var(--surface); border-top: 1px solid var(--line);
-  border-radius: 0 0 var(--r-lg) var(--r-lg);
-}
-#stLienO.kq ~ .lien-day #stLienKq { flex: 1 1 auto; text-align: left; }
-#stLienO.kq ~ .lien-day #stLienTiep { flex: 0 0 auto; min-width: 128px; }
+/* Dòng kết quả + nút Tiếp, nằm ngay dưới bốn ô. */
+.dien-day { display: none; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+#stDienO.kq ~ .dien-day { display: flex; }
+#stDienO.kq ~ .dien-day #stDienKq { flex: 1 1 auto; text-align: left; }
+#stDienO.kq ~ .dien-day #stDienTiep { flex: 0 0 auto; min-width: 128px; }
 @media (max-width: 480px) {
-  #stLienO.kq ~ .lien-day { flex-direction: column; align-items: stretch; gap: 8px; }
-  #stLienO.kq ~ .lien-day #stLienKq { text-align: center; }
+  #stDienO.kq ~ .dien-day { flex-direction: column; align-items: stretch; gap: 8px; }
+  #stDienO.kq ~ .dien-day #stDienKq { text-align: center; }
 }
 
 /* Nhịp đọc: mỗi lúc một cụm nổi lên, mắt khỏi phải tự tìm điểm neo.
@@ -1229,55 +1108,6 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-/* ------------------------------------------------------------------ */
-/* Mạng nghĩa: từ này cùng nghĩa / trái nghĩa với những từ nào          */
-/* ------------------------------------------------------------------ */
-/*
- * Hiện ở ba chỗ: danh sách sổ tay (.gon — một dòng, chữ nhỏ), mặt sau thẻ học,
- * và màn kết quả bài liên kết. Cùng một thứ thì phải trông giống nhau ở mọi
- * chỗ, nên chỉ một bộ luật, khác nhau đúng cỡ chữ.
- */
-.lienmang { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 2px; }
-.lienmang-hang { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.lienmang-nhan {
-  font-size: 11px; font-weight: 600; letter-spacing: .02em;
-  padding: 1px 7px; border-radius: 999px; white-space: nowrap;
-}
-.lienmang-nhan.dong { background: var(--ok-bg, #e7f5ec); color: var(--ok-fg, #1d6b3a); }
-.lienmang-nhan.trai { background: var(--warn-bg, #fdeee6); color: var(--warn-fg, #9c4a1a); }
-.lienmang-ds { display: flex; flex-wrap: wrap; gap: 4px; }
-.lienmang-tu {
-  font: inherit; font-size: 13px; line-height: 1.5;
-  padding: 1px 8px; border-radius: 7px; cursor: pointer;
-  border: 1px dashed var(--line, #cfd4da);
-  background: transparent; color: var(--fg, #222);
-}
-/* Nét liền = đã có trong sổ (bấm để xem). Nét đứt = chưa có (bấm để lưu). */
-.lienmang-tu.cosan { border-style: solid; background: var(--chip-bg, #f1f3f5); }
-.lienmang-tu:hover { border-color: var(--acc, #2f6fed); color: var(--acc, #2f6fed); }
-.lienmang-tu.ja { font-size: 15px; }
-.lienmang.gon { margin: 4px 0 0; }
-.lienmang.gon .lienmang-tu { font-size: 12px; padding: 0 6px; }
-.lienmang.gon .lienmang-tu.ja { font-size: 13px; }
-.lienmang.gon .lienmang-nhan { font-size: 10px; padding: 0 6px; }
-/* Mỗi từ liên kết = con chữ + nút BỎ dính liền. Bọc lại thành một ô để hai nút
-   không bị `flex-wrap` của .lienmang-ds tách ra hai dòng khác nhau. */
-.lienmang-o { display: inline-flex; align-items: stretch; }
-.lienmang-o .lienmang-tu { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-/* Nút BỎ: mờ lúc nghỉ, đỏ lúc chạm. Nó xoá dữ liệu nên phải thấy được, nhưng
-   cả một sổ dài mà nút nào cũng đỏ thì mắt chẳng còn bắt được gì. */
-.lienmang-bo {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 20px; padding: 0 5px; margin-left: -1px;
-  border: 1px dashed var(--line); border-left-style: solid;
-  border-top-right-radius: var(--r-sm); border-bottom-right-radius: var(--r-sm);
-  background: none; color: var(--ink-3); cursor: pointer;
-  font: inherit; font-size: 13px; line-height: 1;
-}
-.lienmang-tu.cosan + .lienmang-bo { border-style: solid; background: var(--surface-2); }
-.lienmang-bo:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
-.lienmang.gon .lienmang-bo { min-width: 17px; padding: 0 4px; font-size: 12px; }
-
 /* Nút ngay trong lời nhắc — dùng cho "Hoàn tác". */
 .toast-nut {
   margin-left: 10px; padding: 3px 10px; flex: none;
@@ -1398,13 +1228,8 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
     border: 1px solid currentColor; font-size: 11px; font-weight: 700; opacity: .6;
   }
 }
-/* Số phím trên mỗi ô của bài liên kết — vẽ bằng ::before để không lẫn vào chữ của ô. */
+/* Số phím trên mỗi ô của bài điền khuyết — vẽ bằng ::before để không lẫn vào chữ của ô. */
 @media (min-width: 901px) {
-  .lien-omot[data-phim]::before {
-    content: attr(data-phim); margin-bottom: 3px; min-width: 18px; text-align: center; padding: 0 5px;
-    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px;
-    font-size: 11px; font-weight: 700; color: var(--ink-3); background: var(--surface-2);
-  }
 }
 
 /* ---- Vuốt thẻ kiểu Quizlet ----------------------------------------------

@@ -9,12 +9,12 @@
  * "nhận ra" và "tự bật ra được" là hai bài toán khác nhau — người ta có thể
  * nhìn 改善 mà hiểu ngay, rồi lúc cần nói thì đầu óc trống rỗng.
  *
- * Nên một mục giờ có bốn đường, mỗi đường một cấp và một lịch riêng:
+ * Nên một mục giờ có ba đường, mỗi đường một cấp và một lịch riêng:
  *
  *   nhin — nhìn chữ, đoán nghĩa            (đường cũ, ai cũng có)
  *   nghe — nghe câu chứa từ, đoán nghĩa    (chỉ mục có câu nguồn)
- *   dong — nhặt cho hết tập từ đồng nghĩa
- *   trai — nhặt cho hết tập từ trái nghĩa
+ *   dien — điền khuyết: câu chứa từ bị đục lỗ, gợi ý bằng bản dịch, chọn từ gốc
+ *          giữa vài từ nhiễu                (chỉ mục có câu nguồn đã dịch)
  *
  * Đường nào KHÔNG có dữ liệu thì không tồn tại, chứ không phải bị tính là 0 —
  * mục lưu từ ảnh chụp thì lấy đâu ra câu để nghe.
@@ -54,14 +54,13 @@
 (function (goc) {
   "use strict";
 
-  /** Bốn đường truy xuất. Thứ tự này cũng là thứ tự hiện ra trong giao diện. */
-  const DUONG = ["nhin", "nghe", "dong", "trai"];
+  /** Ba đường truy xuất. Thứ tự này cũng là thứ tự hiện ra trong giao diện. */
+  const DUONG = ["nhin", "nghe", "dien"];
 
   const TEN_DUONG = {
     nhin: "Nhìn chữ → nghĩa",
     nghe: "Nghe câu → nghĩa",
-    dong: "Nhặt từ đồng nghĩa",
-    trai: "Nhặt từ trái nghĩa"
+    dien: "Điền khuyết trong câu"
   };
 
   /** Thang giãn cách, tính bằng NGÀY. Giữ nguyên thang cũ để mục cũ không lệch. */
@@ -105,7 +104,7 @@
    * ĐÚNG bị chấm "rất chậm", cấp bị đóng băng, giãn cách ×0,35. Hai bài liên
    * kết gần như không thể lên cấp.
    */
-  const TRAN_TK = { nhin: 15000, nghe: 25000, dong: 45000, trai: 45000 };
+  const TRAN_TK = { nhin: 15000, nghe: 25000, dien: 30000 };
   function tranCua(duong) { return TRAN_TK[duong] || MS_THONG_KE; }
   /** Đủ ngần này mẫu thì bỏ mốc cứng, so với chính mình. */
   const DU_MAU = 5;
@@ -306,7 +305,7 @@
    * Đường nhìn giữ nguyên 0,23: nó là đường duy nhất có đủ số đo trong bảng
    * `soDoSrs`, đổi nó đi là mất luôn cái mốc để so.
    */
-  const TUT_DUONG = { nhin: 0.23, nghe: 0.34, dong: 0.45, trai: 0.45 };
+  const TUT_DUONG = { nhin: 0.23, nghe: 0.34, dien: 0.34 };
   /** Người gọi không truyền `duong` thì chạy y như bản cũ. */
   function tutCua(duong) { return TUT_DUONG[duong] || TUT_NGAY; }
 
@@ -398,20 +397,20 @@
   }
 
   /** Mỗi đường đáng bao nhiêu điểm trong tổng 100. */
-  const TRONG = { nhin: 30, nghe: 30, dong: 20, trai: 20 };
+  const TRONG = { nhin: 35, nghe: 30, dien: 35 };
   /** Một đường phải giữ được ngần này ngày thì chiều của nó mới coi là ĐẠT. */
   const NGUONG_BAC = 7;                                // ≈ 35 điểm
 
   /**
-   * Ba CHIỀU tư duy. Nhãn đi theo chiều, không theo đường, vì hai bài liên kết
-   * cùng đo một thứ: gọi được từ ra giữa đám từ gần nghĩa với nó.
+   * Ba CHIỀU tư duy. Nhãn đi theo chiều: nhìn mặt chữ, nghe ra, và dùng được
+   * trong câu (bài điền khuyết: chọn đúng từ cho chỗ trống giữa các từ gần giống).
    */
   const CHIEU = [
     { ma: "mat", ten: "mắt", duong: ["nhin"] },
     { ma: "tai", ten: "tai", duong: ["nghe"] },
-    { ma: "mang", ten: "mạng nghĩa", duong: ["dong", "trai"] }
+    { ma: "cau", ten: "dùng trong câu", duong: ["dien"] }
   ];
-  const TEN_BAC = ["Chưa học", "Mới gặp", "Thuộc mặt chữ", "Nghe ra", "Gọi ra được lúc cần"];
+  const TEN_BAC = ["Chưa học", "Mới gặp", "Thuộc mặt chữ", "Nghe ra", "Dùng được trong câu"];
 
   /**
    * Điểm của cả một từ, trên thang 100 chung cho mọi từ.
@@ -467,34 +466,18 @@
      * được tính là đã đạt.
      */
     const chuaDo = [];
-    const tuTat = !!(muc && muc.mangTat);
     let bac = tong > 0 ? 1 : 0;
     for (let i = 0; i < CHIEU.length; i++) {
       const c = CHIEU[i];
       const cuaChieu = c.duong.filter((t) => co.indexOf(t) >= 0);
       if (!cuaChieu.length) {
-        /*
-         * VẮNG VÌ TỰ TẮT khác hẳn VẮNG VÌ KHÔNG CÓ DỮ LIỆU.
-         *
-         * Không tra được từ đồng nghĩa là chuyện của từ điển, người học không
-         * có nút nào bấm để sửa — nên chiều ấy bị BƯỚC QUA, và bậc dừng lại ở
-         * chiều đạt sâu nhất trước đó. Còn tự tay tắt là một QUYẾT ĐỊNH ("từ
-         * này không cần mạng nghĩa"), nên chiều ấy tính là xong.
-         *
-         * Nói thẳng cái giá: nhãn "Gọi ra được lúc cần" của một từ đã tắt thôi
-         * còn bảo đảm là gọi được từ ra giữa đám từ gần nghĩa — nó thành "nhìn
-         * và nghe đều chắc". Vì vậy `mangTat` được trả kèm ra ngoài, để chỗ
-         * nào hiện bậc cũng nói được là từ này đã tắt.
-         */
-        if (tuTat && c.ma === "mang") { bac = i + 2; continue; }
         chuaDo.push(c.ten);                                     // không có gì để đo
         continue;
       }
       if (!cuaChieu.every((t) => ngayCua(d[t]) >= NGUONG_BAC)) break;
       bac = i + 2;                                              // 0,1 dành cho chưa học / mới gặp
     }
-    return { tong: tong, phan: phan, bac: bac, ten: TEN_BAC[bac],
-             chuaDo: chuaDo, mangTat: tuTat };
+    return { tong: tong, phan: phan, bac: bac, ten: TEN_BAC[bac], chuaDo: chuaDo };
   }
 
   /* ------------------------------------------------------------------ */
@@ -784,28 +767,48 @@
    * nghe; không tra được từ đồng nghĩa thì không có đường đồng nghĩa. Tính một
    * đường không tồn tại là "chưa học" thì mục nào cũng mãi mãi ở cấp 0.
    */
+  /**
+   * Chỗ đục lỗ của bài điền khuyết, hoặc null nếu mục này không dựng được đề.
+   *
+   * Cần ba thứ: câu nguồn (`cauNghe.cau`), BẢN DỊCH của nó (`cauNghe.dich` — đó là
+   * lời hỏi), và từ nằm thật trong câu. Từ chia đuôi (食べた so với 食べる) thì
+   * dùng đúng đoạn người học đã bôi (`src.sel`) trước, rồi mới tới `word`; không
+   * khớp cái nào thì bỏ — hơn là bịa một chỗ trống sai.
+   *
+   * Chữ Latin khớp theo RANH GIỚI TỪ và không phân biệt hoa thường: "art" không
+   * được đục lỗ vào giữa "party".
+   *
+   * @returns {{cau:string, dich:string, mat:string}|null} `mat` là đoạn chữ đúng
+   *   như trong câu (giữ hoa thường) sẽ bị che.
+   */
+  function timTrongCau(cau, t) {
+    if (/^[A-Za-z][A-Za-z' -]*$/.test(t)) {
+      const r = new RegExp("(^|[^A-Za-z])(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")(?![A-Za-z])", "i").exec(cau);
+      return r ? cau.substr(r.index + r[1].length, t.length) : "";
+    }
+    return cau.indexOf(t) >= 0 ? t : "";
+  }
+  function mauKhuyet(muc) {
+    const cn = muc && muc.cauNghe;
+    if (!cn || typeof cn.cau !== "string" || !cn.cau || typeof cn.dich !== "string" || !cn.dich.trim()) return null;
+    const ung = [muc.src && muc.src.sel, muc.word];
+    for (const u of ung) {
+      if (typeof u !== "string" || !u.trim()) continue;
+      const mat = timTrongCau(cn.cau, u.trim());
+      if (mat) return { cau: cn.cau, dich: cn.dich.trim(), mat: mat };
+    }
+    return null;
+  }
+
   function duongCo(muc) {
     const ds = ["nhin"];
     // `nheChung`: mục này cùng ngữ cảnh với một từ khác đã giữ đường nghe của cả nhóm
     // (xem CauNghe.nhomChung) — nghe cùng một câu hai lần thì chẳng kiểm thêm được gì.
     if (muc && muc.cauNghe && muc.cauNghe.cau && !muc.nheChung) ds.push("nghe");
-    /*
-     * `mangTat` — người học TỰ TAY tắt bài mạng nghĩa cho từ này.
-     *
-     * Chặn ở đây chứ không đi xoá `lien`, và đó là toàn bộ điểm khác nhau giữa
-     * công tắc này với nút × bỏ từng từ. Nút × bỏ CẢ HAI CHIỀU theo thiết kế,
-     * nên dùng nó để tắt bài cho một từ là đi phá tập liên kết của mọi từ hàng
-     * xóm. Còn cờ này chỉ nói về ĐÚNG mục đang mang nó: từ bên kia vẫn kể tên
-     * nó, bài của từ bên kia vẫn chạy, cụm ôn kèm vẫn xếp hai từ cạnh nhau.
-     *
-     * Một chỗ chặn là xong cả chuỗi: `duongMo` → `denHan` thôi hỏi hai bài ấy,
-     * `diemTu` chia lại trọng số trên đúng những đường còn mở.
-     */
-    if (!(muc && muc.mangTat)) {
-      const l = (muc && muc.lien) || {};
-      if ((l.dong || []).length >= 2) ds.push("dong");
-      if ((l.trai || []).length >= 1) ds.push("trai");
-    }
+    // Điền khuyết: cần câu nguồn ĐÃ DỊCH và từ nằm thật trong câu (xem mauKhuyet).
+    // Có đủ SỐ TỪ NHIỄU trong sổ hay không là chuyện của cả cuốn sổ, không phải của
+    // một mục — chỗ dựng đề (cau-dien.js) tự bỏ qua mục không đủ nhiễu.
+    if (mauKhuyet(muc)) ds.push("dien");
     return ds;
   }
 
@@ -895,7 +898,6 @@
     const c = ((muc || {}).lichRieng || {})[ten] || {};
     const d = ((muc || {}).duong || {})[ten] || {};
     return !muc || muc.del || biDongBang(muc, ten) ||
-      (!!muc.mangTat && (ten === "dong" || ten === "trai")) ||
       (c.hen > (now || Date.now()) && c.ts >= (d.ts || 0));
   }
   function datLich(muc, ten, lenh, soNgay, now) {
@@ -1244,7 +1246,7 @@
     ghiSoDo, docSoDo, tronSoDo, gopDo, nhanhHoa, DU_SO_DO, TRAN_TK, SAI_VE_DAY, NGAY_TOI_THIEU_DO,
     heChatLuong, CHAT_SAN, CHAT_DAY,
     T_NET, NET_DAU, NET_MIN, NET_MAX, KEO_NET, TRAN_NGAY, TUT_NGAY, TUT_DUONG, tutCua,
-    ngayCua, netCua, capTu, toiDa,
+    ngayCua, netCua, capTu, toiDa, mauKhuyet,
     diemDuong, diemTu, TRONG, NGUONG_BAC, TEN_BAC, CHIEU,
     lichHen, raiTai, RAI_TOI_THIEU, RAI_RONG,
     duongCo, duongMo, capChung, gomSrs, denHan, hoSo, hanSauNgay, GIAN_DUONG, choDen, denHanDuong,
