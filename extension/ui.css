@@ -780,7 +780,10 @@ select { cursor: pointer; }
   color: var(--ink-3); font-size: 15px; line-height: 1; padding: 2px 3px;
 }
 .stphim-an:hover { color: var(--ink); }
-@media (max-width: 900px) { .stphim { display: none; } }
+/* Bảng phím tắt dài thêm (cử chỉ, nhấp đúp) nên dễ đè lên nút ‹ › dưới thẻ: chỉ hiện khi màn
+   đủ rộng để nằm ngoài cột thẻ, và giới hạn bề ngang. */
+.stphim { max-width: 270px; }
+@media (max-width: 1180px) { .stphim { display: none; } }
 
 /* Bài điền khuyết: lời hỏi là bản dịch, câu tiếng Nhật có chỗ trống, bốn ô chọn. Ô đủ
    to để bấm bằng ngón cái; một cột cho dễ nhìn và không ô nào bị cắt chữ. */

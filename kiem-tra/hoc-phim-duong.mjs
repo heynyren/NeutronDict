@@ -4,7 +4,7 @@
  *   node kiem-tra/hoc-phim-duong.mjs /home/user/NeutronDict/extension
  *
  *   A. lõi: Srs.toiDa / Srs.denHanDuong, NguPhapSrs.dongBang / thongKe / denHan
- *   B. buổi học: F = Quên + dấu X đỏ, J = Nhớ + dấu V xanh; J lúc chưa lật không chấm;
+ *   B. buổi học: F = Quên + dấu X đỏ, J = Nhớ + dấu V xanh (chấm được cả khi chưa lật: cu-chi-hai.mjs);
  *      từ chạm trần tự đóng băng, từ chưa tới thì không
  *   C. ôn từng đường (bài nghe): chỉ toàn bài nghe, A nghe lại (không lật),
  *      Space lật để hiện nghĩa, và 12 tiếng nghỉ giữa các đường vẫn được giữ
@@ -131,11 +131,6 @@ await page.click("#study");
 await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
 await cho(150);
 {
-  const a = await tu();
-  await page.keyboard.press("j");
-  await cho(200);
-  soat("J khi thẻ còn úp: KHÔNG chấm (vẫn là thẻ cũ)", (await tu()) === a);
-  soat("và không có hiệu ứng nào", (await hienHieuUng()) === "");
   const thuTu = [];
   for (let i = 0; i < 2; i++) {
     const w = await tu(); thuTu.push(w);

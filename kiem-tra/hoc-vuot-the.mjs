@@ -3,7 +3,7 @@
  *
  *   node kiem-tra/hoc-vuot-the.mjs /home/user/NeutronDict/extension
  *
- *   1. Chưa lật mà vuốt: thẻ nhích rồi trượt về, KHÔNG chấm, có lời nhắc
+ *   1. (đã chuyển) vuốt khi chưa lật nay chấm NGAY — xem cu-chi-hai.mjs
  *   2. Vuốt ngắn: không chấm
  *   3. Vuốt phải: bản sao thẻ bay đi mang dấu V, chấm Nhớ, thẻ kế hiện lên (không bị ẩn)
  *   4. Vuốt trái: dấu X, chấm Quên, thẻ xếp lại cuối hàng
@@ -79,17 +79,7 @@ await page.click("#study");
 await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
 await cho(200);
 
-console.log("Chưa lật mà vuốt");
-{
-  const a = await tu(), t0 = await trang();
-  await keo(220); await nha(); await cho(350);
-  const t1 = await trang();
-  soat("không chấm (hàng đợi và số đã xong y nguyên)", t1.q === t0.q && t1.done === t0.done && t1.ls === 0, JSON.stringify(t1));
-  soat("vẫn là thẻ cũ, nằm đúng chỗ", (await tu()) === a && await page.evaluate(() => document.getElementById("stCard").style.transform === ""));
-  soat("có lời nhắc hiện nghĩa trước", /hiện nghĩa/i.test(await page.evaluate(() => document.getElementById("toast").textContent)));
-}
-
-console.log("\nVuốt ngắn sau khi lật");
+console.log("Vuốt ngắn");
 {
   await page.keyboard.press("Space"); await cho(150);
   const t0 = await trang();

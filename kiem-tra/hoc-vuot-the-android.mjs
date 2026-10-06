@@ -5,7 +5,7 @@
  *
  *   - vuốt phải = Nhớ, trái = Quên, và KHÔNG bị cướp thành vuốt đổi tab
  *   - bắt đầu vuốt từ một nút/chip trên thẻ vẫn vuốt được, cú nhả không bấm trúng nút
- *   - chưa lật thì vuốt không chấm
+ *   - (vuốt khi chưa lật nay chấm NGAY — xem cu-chi-hai-android.mjs)
  *   - nút ‹ xem lại; Quên→Nhớ trên thẻ xem lại là chấm lại (không tính kép)
  */
 import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
@@ -43,11 +43,6 @@ try {
   const tt = () => p.evaluate(() => ({ q: session.queue.length, done: session.done, again: session.again, ls: (session.lichSu || []).length, man: manHienTai, xem: !!session.xem }));
   await p.evaluate(() => document.querySelector("#navStudy").click()); await cho(400);
   await p.evaluate(() => document.querySelector("#stStart").click()); await cho(400);
-
-  const r0 = await p.locator("#stCard").boundingBox();
-  await vuot(r0.x + r0.width / 2, r0.y + 80, r0.x + r0.width / 2 + 200, r0.y + 90); await cho(500);
-  const a = await tt();
-  soat("chưa lật mà vuốt: không chấm, không đổi tab", a.done === 0 && a.ls === 0 && a.man === "Study", JSON.stringify(a));
 
   await p.evaluate(() => document.querySelector("#stReveal").click()); await cho(300);
   const r1 = await p.locator("#stCard").boundingBox();
