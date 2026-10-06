@@ -12,7 +12,8 @@ import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
-const www = path.resolve(process.argv[2] || "android/www");
+// Bộ chạy chung truyền "extension" cho mọi bài; bài này chỉ nhận đường dẫn android.
+const www = path.resolve(/android/.test(process.argv[2] || "") ? process.argv[2] : "android/www");
 const srv = spawn("python3", ["-m", "http.server", "8769", "-d", www], { stdio: "ignore" });
 await new Promise((r) => setTimeout(r, 800));
 const ket = [];
