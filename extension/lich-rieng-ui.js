@@ -45,9 +45,8 @@
         const tt = document.createElement("p");
         const due = goc.Srs.hanDuong(it, d);
         tt.textContent = it.dongBang ? T("Toàn bộ từ đang đóng băng") :
-          ((d === "dong" || d === "trai") && it.mangTat ? T("Mạng nghĩa đã tắt") :
           (!co ? T("Chưa có dữ liệu cho bài này") : (pref.dongBang ? T("Đang đóng băng") :
-          (due > Date.now() ? T("Hẹn ôn: ") + new Date(due).toLocaleDateString() : T("Đến hạn")))));
+          (due > Date.now() ? T("Hẹn ôn: ") + new Date(due).toLocaleDateString() : T("Đến hạn"))));
         hang.appendChild(tt);
         const days = document.createElement("input"); days.type = "number"; days.min = "1"; days.max = "3650";
         days.step = "1"; days.value = "7"; days.setAttribute("aria-label", T(goc.Srs.TEN_DUONG[d]) + ": " + T("Số ngày"));

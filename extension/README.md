@@ -17,8 +17,7 @@ Bôi đen một từ **tiếng Anh** trên trang web hoặc PDF để tra ngay: 
 - **Phát âm:** ưu tiên **file audio thật** của từ điển; nếu không có thì dùng giọng máy (`en-US`).
 - **Dịch câu:** bôi đen đoạn dài → popup tự chuyển sang **Dịch** (Google Dịch); bấm ＋ Lưu để cất bản dịch.
 - **Sổ tay + sổ con:** ＋ Lưu để cất từ; mở 📒 Sổ tay để lọc, phân loại theo bài, **xuất Anki (TSV)/CSV**, sao lưu JSON.
-- **Ôn tập SRS bốn đường:** nút 🎓 Học ôn những BÀI đến hạn — nhìn chữ, nghe câu, nhặt từ đồng nghĩa,
-  nhặt từ trái nghĩa. Mỗi đường một lịch riêng nên quên bài nào chỉ phải làm lại bài đó.
+- **Ôn tập SRS ba đường:** nút 🎓 Học ôn những BÀI đến hạn — nhìn chữ, nghe câu, điền khuyết trong câu. Mỗi đường một lịch riêng nên quên bài nào chỉ phải làm lại bài đó.
   Chip trên thẻ hiện **điểm trên thang 100** kèm mức tư duy đã đạt ("Thuộc mặt chữ" → "Nghe ra" →
   "Gọi ra được lúc cần"); bấm vào chip để xem từng đường và ôn thẳng những bài còn lại.
   Phím Space (hiện nghĩa), 1 (Quên), 2 (Nhớ), 0 (xoá đã thuộc).

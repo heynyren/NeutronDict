@@ -46,17 +46,18 @@ const Srs = nap(sExt);
 /* ------------------------------------------------------------------ */
 /* Bộ mẫu                                                              */
 /* ------------------------------------------------------------------ */
-const CO_NGHE = { cauNghe: { cau: "これは例文です" } };
-const CO_LIEN = { lien: { dong: ["a", "b", "c"], trai: ["z"] } };
-const du = (o) => Object.assign({}, CO_NGHE, CO_LIEN, o);
+// Có câu nguồn đã dịch và từ nằm trong câu: mở được cả đường nghe lẫn điền khuyết.
+const CO_NGHE = { word: "例文", cauNghe: { cau: "これは例文です", dich: "Đây là câu ví dụ." } };
+const du = (o) => Object.assign({}, CO_NGHE, o);
 
 const MAU = {
   "chưa học":            du({ duong: {} }),
-  "đủ 4 đường":          du({ duong: { nhin: { ngay: 120 }, nghe: { ngay: 60 },
-                                       dong: { ngay: 30 }, trai: { ngay: 30 } } }),
+  "đủ 3 đường":          du({ duong: { nhin: { ngay: 120 }, nghe: { ngay: 60 },
+                                       dien: { ngay: 30 } } }),
   "chỉ nhìn, chạm trần": { duong: { nhin: { ngay: 365 } } },
-  "không có nghe":       Object.assign({}, CO_LIEN,
-                           { duong: { nhin: { ngay: 120 }, dong: { ngay: 60 }, trai: { ngay: 60 } } }),
+  // nheChung: từ phụ của nhóm chung ngữ cảnh — không có đường nghe, vẫn có điền khuyết.
+  "không có nghe":       Object.assign({}, CO_NGHE, { nheChung: 1 },
+                           { duong: { nhin: { ngay: 120 }, dien: { ngay: 60 } } }),
   "chỉ có lv đời cũ":    { duong: { nhin: { lv: 4 } } },
   "ngay hỏng (NaN)":     { duong: { nhin: { ngay: NaN, lv: 3 } } },
   "lv ngoài thang":      { duong: { nhin: { lv: 99 } } },
@@ -101,7 +102,7 @@ nhom("Từ thiếu đường vẫn lên được 100");
 {
   const d = Srs.diemTu(MAU["chỉ nhìn, chạm trần"]);
   la(d.tong === 100, "từ chỉ có đường nhìn, giãn cách chạm trần → 100/100", "được " + d.tong);
-  la(d.phan.nghe === null && d.phan.dong === null,
+  la(d.phan.nghe === null && d.phan.dien === null,
      "đường không có thì là null, không phải 0");
 }
 
@@ -109,7 +110,7 @@ nhom("Từ thiếu đường vẫn lên được 100");
 nhom("NHÃN KHÔNG NÓI QUÁ — bất biến quan trọng nhất");
 {
   const d = Srs.diemTu(MAU["chỉ nhìn, chạm trần"]);
-  la(d.ten !== "Nghe ra" && d.ten !== "Gọi ra được lúc cần",
+  la(d.ten !== "Nghe ra" && d.ten !== "Dùng được trong câu",
      "từ chỉ có đường nhìn, dù 100/100, không được mang nhãn nghe/gọi-ra",
      "nhãn đang là \"" + d.ten + "\"");
   la(d.ten === "Thuộc mặt chữ", "nó phải dừng ở \"Thuộc mặt chữ\"", d.ten);
@@ -120,31 +121,31 @@ nhom("NHÃN KHÔNG NÓI QUÁ — bất biến quan trọng nhất");
     const d = Srs.diemTu(m);
     if (d.chuaDo.indexOf("tai") >= 0)
       la(d.ten !== "Nghe ra", "\"" + ten + "\": chưa đo tai thì không được là \"Nghe ra\"");
-    if (d.chuaDo.indexOf("mạng nghĩa") >= 0)
-      la(d.ten !== "Gọi ra được lúc cần",
-         "\"" + ten + "\": chưa đo mạng nghĩa thì không được là \"Gọi ra được lúc cần\"");
+    if (d.chuaDo.indexOf("dùng trong câu") >= 0)
+      la(d.ten !== "Dùng được trong câu",
+         "\"" + ten + "\": chưa đo điền khuyết thì không được là \"Dùng được trong câu\"");
   }
 }
 {
-  // Chiều ngược lại: không có câu nghe nhưng mạng nghĩa mạnh thì KHÔNG được kẹt.
+  // Chiều ngược lại: không có đường nghe nhưng điền khuyết mạnh thì KHÔNG được kẹt.
   const d = Srs.diemTu(MAU["không có nghe"]);
-  la(d.bac === 4, "không có câu nghe nhưng đồng/trái mạnh → vẫn lên được bậc cuối",
+  la(d.bac === 4, "không có đường nghe nhưng điền khuyết mạnh → vẫn lên được bậc cuối",
      "bậc " + d.bac + " (" + d.ten + ")");
   la(d.chuaDo.indexOf("tai") >= 0, "và phải ghi rõ là chưa đo được tai");
 }
 {
   // Đường có nhưng YẾU thì phải chặn, không được bước qua như đường vắng mặt.
   const m = du({ duong: { nhin: { ngay: 120 }, nghe: { ngay: 1 },
-                          dong: { ngay: 120 }, trai: { ngay: 120 } } });
+                          dien: { ngay: 120 } } });
   const d = Srs.diemTu(m);
   la(d.ten === "Thuộc mặt chữ",
-     "đường nghe CÓ mà yếu thì chặn ở \"Thuộc mặt chữ\", dù đồng/trái đã mạnh", d.ten);
+     "đường nghe CÓ mà yếu thì chặn ở \"Thuộc mặt chữ\", dù điền khuyết đã mạnh", d.ten);
 }
 
 /* ------------------------------------------------------------------ */
 nhom("Điểm không đi lùi khi MO_NGAY mở thêm đường");
 {
-  // Từ mới: chỉ đường nhìn được mở, nhưng ba đường kia ĐÃ TỒN TẠI.
+  // Từ mới: chỉ đường nhìn được mở, nhưng hai đường kia ĐÃ TỒN TẠI.
   const truoc = du({ duong: { nhin: { ngay: 1.9 } } });
   const sau   = du({ duong: { nhin: { ngay: 2.1 } } });
   la(Srs.diemTu(sau).tong >= Srs.diemTu(truoc).tong,
@@ -165,7 +166,7 @@ nhom("Lượt ĐÚNG không bao giờ làm giãn cách ngắn lại");
   // Đây là nguyên tắc srs.js tự đặt ra, và là lỗi mà bản này đi sửa.
   const now = Date.now();
   let te = 0;
-  for (const duong of ["dong", "trai"]) {
+  for (const duong of ["dien"]) {
     for (const chat of [0.5, 0.6, 0.75, 0.9, 1]) {
       const cu = { ngay: 30, net: 2.1, lv: 4, ts: now - 30 * 86400000 };
       // net thấp nhất + xáo thấp nhất = trường hợp xấu nhất có thể
@@ -174,7 +175,7 @@ nhom("Lượt ĐÚNG không bao giờ làm giãn cách ngắn lại");
       if (kq.ngay < 30 * 0.88) te++;      // 0,9 là đáy của xáo ±10%
     }
   }
-  la(te === 0, "mọi lượt ĐÚNG ở hai bài liên kết đều không co giãn cách lại",
+  la(te === 0, "mọi lượt ĐÚNG ở bài điền khuyết đều không co giãn cách lại",
      te + " trường hợp bị co");
 }
 
@@ -183,8 +184,8 @@ nhom("Mức tụt lúc quên theo từng đường");
 {
   const now = Date.now();
   const tut = (d) => Srs.cham({ ngay: 100, net: 2.5, lv: 6, ts: now }, false, 0, null, now, d).ngay;
-  const g = Srs.cham({ ngay: 100, net: 2.5, lv: 6, ts: now }, false, 0, null, now, "dong").duong.ngay;
-  la(g > 100 * 0.4 && g < 100 * 0.5, "bài liên kết quên → còn ~45 ngày", "được " + g);
+  const g = Srs.cham({ ngay: 100, net: 2.5, lv: 6, ts: now }, false, 0, null, now, "dien").duong.ngay;
+  la(g > 100 * 0.3 && g < 100 * 0.38, "bài điền khuyết quên → còn ~34 ngày", "được " + g);
   const n = Srs.cham({ ngay: 100, net: 2.5, lv: 6, ts: now }, false, 0, null, now, "nhin").duong.ngay;
   la(n > 100 * 0.2 && n < 100 * 0.26, "đường nhìn giữ nguyên mức tụt cũ (~23 ngày)", "được " + n);
   const k = Srs.cham({ ngay: 100, net: 2.5, lv: 6, ts: now }, false, 0, null, now).duong.ngay;

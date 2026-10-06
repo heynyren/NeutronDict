@@ -228,10 +228,6 @@
       <summary data-chu><span id="icNhip"></span> Nhịp đọc &amp; nhắc tập trung <span class="caret" id="cr4"></span></summary>
       <div class="boxbody">
         <label class="check" style="margin-bottom:6px">
-          <input type="checkbox" id="setOnCum">
-          <span data-chu>Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau</span>
-        </label>
-        <label class="check" style="margin-bottom:6px">
           <input type="checkbox" id="setNhip">
           <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
         </label>
@@ -296,26 +292,21 @@
     <div id="stProg" class="t-small muted" style="text-align:center;margin-bottom:10px"></div>
 
     <div id="stBody" style="display:none">
-      <div class="studycard" id="stCard">
+      <div class="studycard" id="stCard" data-khong-vuot-tab>
         <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
              là mắt đọc mất, tai không phải làm gì — hỏng đúng thứ đang kiểm. -->
         <div id="stNgheMat" style="display:none;text-align:center;padding:16px 0">
           <button class="btn primary lg" id="stNghePhat" type="button" style="min-width:180px" data-chu>Nghe câu</button>
           <div class="t-tiny faint" id="stNgheToc" style="margin-top:10px"></div>
         </div>
-        <!-- Bài liên kết: một mớ lộn xộn, nhặt cho hết tập cùng ý (hoặc ngược ý). -->
-        <div id="stLienMat" style="display:none">
-          <div class="t-small muted" id="stLienDe" style="text-align:center;margin-bottom:12px"></div>
-          <div id="stLienO" class="lien-o"></div>
-          <button class="btn primary block lg" id="stLienXong" type="button" style="margin-top:16px" data-chu>Xong</button>
-          <!-- Điểm và nút Tiếp DÍNH ĐÁY khung cuộn.
-               Để chúng nằm cuối danh sách như trước thì với 16 hàng, nút Tiếp
-               rơi xuống dưới mép màn hình. Làm xong bài phải cuộn qua cả danh
-               sách mới thấy đường đi tiếp, mà lúc ấy điểm vừa chấm cũng đã
-               trôi khỏi tầm mắt. -->
-          <div class="lien-day" id="stLienDay">
-            <div class="t-small" id="stLienKq"></div>
-            <button class="btn primary lg" id="stLienTiep" type="button"
+        <!-- Bài điền khuyết: lời hỏi là bản dịch, câu có chỗ trống, bốn ô chọn từ gốc. -->
+        <div id="stDienMat" style="display:none">
+          <div id="stDienDich" class="dien-dich"></div>
+          <div id="stDienCau" class="dien-cau"></div>
+          <div id="stDienO" class="dien-o"></div>
+          <div class="dien-day" id="stDienDay">
+            <div class="t-small" id="stDienKq"></div>
+            <button class="btn primary lg" id="stDienTiep" type="button"
                     style="display:none" data-chu>Tiếp</button>
           </div>
         </div>
@@ -340,6 +331,13 @@
           <button class="btn no" id="gForgot" type="button" data-phim="F" data-chu>Quên</button>
           <button class="btn yes" id="gKnow" type="button" data-phim="J" data-chu>Nhớ</button>
         </div>
+      </div>
+
+      <!-- Hai mũi tên dưới thẻ: lùi / tới các thẻ đã chấm để xem lại hoặc chấm lại. -->
+      <div class="st-nav">
+        <button id="stTruoc" class="btn iconbtn-lg" type="button" title="Thẻ trước" aria-label="Thẻ trước" data-chu-title></button>
+        <span id="stXemTag" class="st-xemtag" hidden></span>
+        <button id="stSau" class="btn iconbtn-lg" type="button" title="Thẻ sau" aria-label="Thẻ sau" data-chu-title></button>
       </div>
 
       <button class="btn danger block" id="stDel" type="button" style="margin-top:14px" data-chu>Đã thuộc hẳn — xoá mục này</button>
@@ -513,8 +511,6 @@
     <h3><span id="dsTu"></span></h3>
     <div class="sub" id="dsTong"></div>
     <div id="dsBang" class="diem-ds"></div>
-    <!-- Những từ cùng cụm đã lưu trong sổ. Bấm được để nhảy sang xem. -->
-    <div class="diem-cum" id="dsCum"></div>
     <div class="t-tiny faint" id="dsChuaDo"></div>
     <div class="actions">
       <button class="btn primary" id="dsOn" type="button" data-chu>Ôn bài còn lại</button>
@@ -555,7 +551,7 @@
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>
-  <script src="tu-lien.js"></script>
+  <script src="cau-dien.js"></script>
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
@@ -566,6 +562,7 @@
   <script src="ghi-am.js"></script>
 <script src="tien-do.js"></script>
 <script src="cham-vuot.js"></script>
+<script src="the-vuot.js"></script>
 <script src="app.js"></script>
   <div id="stHieuUng" class="st-hieuung" aria-hidden="true"></div>
 </body>

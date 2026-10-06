@@ -37,24 +37,20 @@ for (let i = 0; i < 40; i++) {
 await sw.evaluate(async (now) => {
   const ngay = 86400000;
   const nb = {
-    // Đủ bốn đường, đều khá.
+    // Đủ ba đường, đều khá.
     "javi:改善": { word: "改善", dict: "javi", reading: "かいぜん", means: ["cải thiện"], ts: now,
       cauNghe: { cau: "品質を改善する", dich: "cải thiện chất lượng" },
-      lien: { dong: ["改良", "向上", "進歩"], trai: ["悪化"] },
       duong: { nhin: { lv: 4, ngay: 30, due: now + 10 * ngay, ts: now - 2 * ngay },
                nghe: { lv: 3, ngay: 14, due: now + 5 * ngay, ts: now - 2 * ngay },
-               dong: { lv: 2, ngay: 7,  due: now - ngay, ts: now - 8 * ngay },
-               trai: { lv: 2, ngay: 7,  due: now - ngay, ts: now - 8 * ngay } },
+               dien: { lv: 2, ngay: 7,  due: now - ngay, ts: now - 8 * ngay } },
       srs: { lv: 2, due: now - ngay, ts: now } },
     // Chỉ có đường nhìn, và đã chạm trần — phép thử "không được nói quá".
     "javi:写真": { word: "写真", dict: "javi", reading: "しゃしん", means: ["ảnh chụp"], ts: now,
-      lien: { dong: [], trai: [] },
       duong: { nhin: { lv: 6, ngay: 365, due: now + 300 * ngay, ts: now - 2 * ngay } },
       srs: { lv: 6, due: now + 300 * ngay, ts: now } },
-    // Có đủ dữ liệu nhưng ba đường kia CHƯA THỬ bao giờ.
+    // Có đủ dữ liệu nhưng hai đường kia CHƯA THỬ bao giờ.
     "javi:新語": { word: "新語", dict: "javi", reading: "しんご", means: ["từ mới"], ts: now,
       cauNghe: { cau: "新語を覚える", dich: "học từ mới" },
-      lien: { dong: ["新造語", "造語"], trai: ["古語"] },
       duong: { nhin: { lv: 3, ngay: 14, due: now + 5 * ngay, ts: now - 2 * ngay } },
       srs: { lv: 0, due: now, ts: now } },
     // Chưa học gì cả.
@@ -94,7 +90,7 @@ console.log("Chip điểm trên thẻ");
        r.every((x) => /^\d+%$/.test(x.nen)), r.map((x) => x.nen).join(" "));
   soat("chip hiện dạng \"<điểm> · <mức tư duy>\"",
        r.every((x) => /^\d+\s·\s\S/.test(x.chu)), r.map((x) => x.chu).join(" | "));
-  soat("title của chip có đủ bốn dòng đường",
+  soat("title của chip có đủ ba dòng đường",
        r.every((x) => (x.title.match(/·/g) || []).length >= 4));
 }
 
@@ -140,7 +136,7 @@ console.log("\nNhãn không nói quá");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\nBảng bốn đường");
+console.log("\nBảng ba đường");
 {
   const r = await page.evaluate(async () => {
     for (const b of document.querySelectorAll(".entry"))
@@ -158,7 +154,7 @@ console.log("\nBảng bốn đường");
              tatNut: document.getElementById("dsOn").disabled };
   });
   soat("bấm chip thì bảng điểm mở ra", r.hien);
-  soat("bảng có đủ bốn dòng", r.dong.length === 4, r.dong.length + " dòng");
+  soat("bảng có đủ ba dòng", r.dong.length === 3, r.dong.length + " dòng");
   soat("đường không có dữ liệu hiện \"—\" chứ không phải 0",
        r.dong.filter((d) => d.thieu).every((d) => d.so === "—"),
        r.dong.map((d) => d.so).join(" "));
@@ -181,8 +177,8 @@ console.log("\nBấm vào điểm để ôn bài còn lại");
     return { nut: document.getElementById("dsOn").textContent,
              tat: document.getElementById("dsOn").disabled };
   });
-  soat("từ có ba đường chưa thử thì nút mời ôn đúng 3 bài",
-       !r.tat && /3/.test(r.nut), r.nut);
+  soat("từ có hai đường chưa thử thì nút mời ôn đúng 2 bài",
+       !r.tat && /2/.test(r.nut), r.nut);
 
   const r2 = await page.evaluate(async () => {
     const nb0 = (await chrome.storage.local.get("notebook")).notebook;
@@ -225,29 +221,19 @@ console.log("\nBấm vào điểm để ôn bài còn lại");
       const o = document.getElementById("studyOverlay");
       if (!o || !o.classList.contains("show")) break;
       if (document.getElementById("stDone").style.display !== "none") break;
-      const lien = document.getElementById("stLienMat");
-      if (lien && lien.style.display !== "none") {
+      const dien = document.getElementById("stDienMat");
+      if (dien && dien.style.display !== "none") {
         /*
-         * Nhặt ĐÚNG ô đáng nhặt, không nhặt bừa.
-         *
-         * Nhặt bừa là cách THUA: chamBai trừ mỗi ô nhặt nhầm đúng bằng một ô bỏ
-         * sót, nên điểm về 0 và lượt ấy tính là QUÊN. Thẻ quay lại cuối hàng và
-         * buổi ôn không bao giờ kết thúc.
-         *
-         * Đọc đáp án thẳng từ `baiLien.dung` chứ không dò tên từ trong đề bài.
-         * Từ bản 4.29.0 đề đảo chiều: đề chỉ còn "Mấy từ này CÙNG NGHĨA với từ
-         * nào?" kèm cụm, KHÔNG còn chứa tên từ gốc, và đáp án là chính từ gốc
-         * chứ không phải cụm. Dò theo chữ trong đề là hỏng cả hai đầu.
+         * Chọn ĐÚNG ô, không chọn bừa: chọn sai là quên, thẻ quay lại cuối hàng và
+         * buổi ôn không bao giờ kết thúc. Đáp án đọc thẳng từ đề đang hiện (`baiDien`).
          */
-        const dung = baiLien ? baiLien.dung : new Set();
-        // Ô đề là MỘT Ô LỚN, con chữ nằm trong span riêng.
-        for (const b of document.querySelectorAll("#stLienO button")) {
-          const t = b.querySelector(".lien-omot-tu");
-          if (dung.has(((t || b).textContent || "").trim())) b.click();
+        const dung = baiDien ? baiDien.de.dung : "";
+        for (const b of document.querySelectorAll("#stDienO .dien-omot")) {
+          const t = b.querySelector(".dien-omot-tu");
+          if (((t || b).textContent || "").trim() === dung) { b.click(); break; }
         }
-        document.getElementById("stLienXong").click();
         await new Promise((x) => setTimeout(x, 500));
-        const tiep = document.getElementById("stLienTiep");
+        const tiep = document.getElementById("stDienTiep");
         if (tiep && tiep.style.display !== "none") tiep.click();
       } else {
         const hien = document.getElementById("stReveal");

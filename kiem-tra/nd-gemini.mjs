@@ -142,7 +142,6 @@ console.log("Nút trong sổ tay");
   soat("kèm câu ví dụ của bài nghe", c.indexOf("品質の改善に取り組む。") >= 0);
   soat("kèm nghĩa đang lưu", c.indexOf("cải thiện; cải tiến") >= 0);
   soat("kèm ghi chú tự viết", c.indexOf("hay gặp trong báo cáo") >= 0);
-  soat("kèm đồng nghĩa và trái nghĩa", c.indexOf("改良") >= 0 && c.indexOf("改悪") >= 0);
   soat("kèm nguồn", c.indexOf("https://vidu.test/kaizen") >= 0);
   soat("kèm điểm thật do Srs tính", /\d+\/100/.test(c), (c.match(/\d+\/100[^\n]*/) || [""])[0]);
   soat("có phần hỏi ở cuối", c.indexOf("HÃY TRẢ LỜI") >= 0);

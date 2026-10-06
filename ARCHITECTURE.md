@@ -35,18 +35,16 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 - `phu-de.js` nay lưu thêm `src.cau` và bản dịch câu (nếu đã có) khi lưu từ lời thoại. Với mục video cũ, chế độ có thể khôi phục câu từ `ytKho` cục bộ nếu cache còn và khớp video, thời gian, từ. Mục cũ không có câu và cache đã hết thì chưa có đủ dữ liệu để tạo bài.
 - `kiem-tra/ngu-phap.mjs` kiểm tra chọn câu, cắt/xáo mảnh, cache và cú pháp hai bề mặt; `kiem-tra/ngu-phap-giao-dien.mjs` dùng Chromium xác nhận màn extension/Android hiện đáp án và bản dịch sau khi ghép đúng hoặc xem đáp án.
 
-## Đề đồng nghĩa và trái nghĩa
+## Bài điền khuyết
 
-- Cả hai giao diện dùng `TuLien.dungDeDao` để dựng đề đảo. Bộ lọc loại từ cùng/gần nghĩa với từ gốc, nghĩa dịch trùng, quan hệ cùng cụm và lựa chọn có quan hệ phù hợp với gợi ý theo cả hai chiều. Bài trái nghĩa không lấy đồng nghĩa của từ gốc làm nhiễu.
-- Bằng chứng ngữ nghĩa chỉ dùng để loại lựa chọn mơ hồ, không tự coi mọi từ nối qua mạng là đáp án đúng. Bộ lọc đọc dữ liệu sổ tay và từ điển đã nạp, không ghi sửa dữ liệu hay mở rộng mạng bắc cầu.
-- Không ép đủ 5 ô. Nếu thiếu nhiễu hoặc thiếu gợi ý, cho tự nhớ và xem đáp án; lượt đó không ghi điểm/lịch SRS và vẫn bấm Tiếp được.
-- Các nguồn từ điển gộp nhiều nghĩa, nên bộ lọc không bảo đảm mọi quan hệ đúng với mọi ngữ cảnh. Vẫn giữ nút bỏ liên kết sai trên màn kết quả.
+- Cả hai giao diện dùng `CauDien.dungDe` (cau-dien.js) để dựng đề: câu ngữ cảnh `cauNghe.cau` bị đục lỗ ở chỗ từ (`Srs.mauKhuyet` tìm chỗ), lời hỏi là bản dịch `cauNghe.dich`, đáp án là `word` (dạng từ điển) lẫn ba từ nhiễu giống hình thức lấy từ chính sổ tay; sổ ít từ thì bù bằng bảng từ thông dụng.
+- Đường SRS `dien` chỉ mở khi mục có câu nguồn đã dịch và từ nằm thật trong câu.
 
 ## Dữ liệu cần bảo toàn
 
 - `notebook` là tập mục theo khóa có tiền tố: `javi:` và `kanji:` cho tiếng Nhật, `envi:` cho tiếng Anh. `ngu.js` quyết định cách lọc ngôn ngữ. Mục đã xóa dùng bia mộ `del` để lần đồng bộ sau không hồi sinh.
 - Một mục có `ts` cho thay đổi nội dung. SRS có mốc riêng `srs.ts`; mỗi đường trong `duong` cũng có mốc chấm riêng. `Muc.tron` gộp nội dung và tiến độ theo các mốc khác nhau. Không thay phép gộp bằng cách lấy toàn bộ mục mới nhất.
-- Các đường SRS là `nhin`, `nghe`, `dong`, `trai`. `srs.js` tính lịch, điểm và hồ sơ học. Một số trường cũ vẫn tồn tại để tương thích dữ liệu và phiên bản cũ.
+- Các đường SRS là `nhin`, `nghe`, `dien`. `srs.js` tính lịch, điểm và hồ sơ học. Một số trường cũ vẫn tồn tại để tương thích dữ liệu và phiên bản cũ.
 - Gói đồng bộ có thể chứa `notebook`, `decks`, `hoc`, `luyenNoi`, `soDoSrs`, `phuDeSua`. Apps Script lưu nguyên gói `data` được gửi lên. Vì vậy mọi lối ghi phải giữ những trường nó không sửa.
 - Ảnh đính kèm nằm cục bộ trong IndexedDB; khi đồng bộ, app bỏ mô tả ảnh trước khi gửi và giữ ảnh cục bộ khi gộp dữ liệu tải về.
 - Cấu hình cũ có cloud riêng cho từng ngôn ngữ. Cấu hình kho chung đưa cả hai ngôn ngữ vào một Apps Script; các lối cũ vẫn cần hoạt động.
@@ -58,7 +56,7 @@ Tài liệu này ghi lại cấu trúc hiện tại để các thay đổi sau c
 - `srs.js`: lịch ôn bốn đường, điểm, thống kê và gộp số đo.
 - `tien-do.js`: tiến độ học và huy hiệu.
 - `extension/phu-de.js`, `extension/phu-de-trang.js`, `extension/cat-cau.js`: lấy phụ đề YouTube, ghép cue thành câu, đồng bộ lời thoại với video và lưu câu có nguồn.
-- `tu-lien.js`, `cau-nghe.js`, `kana.js`, `han-tu.js`: dữ liệu và bài học ngôn ngữ.
+- `cau-nghe.js`, `cau-dien.js`, `kana.js`, `han-tu.js`: dữ liệu và bài học ngôn ngữ.
 - `extension/kho-ghi.js`: khóa ghi dùng chung giữa các trang extension và service worker, bảo vệ toàn bộ lượt đọc–sửa–ghi notebook.
 - `extension/background.js` và `android/www/app.js`: hai bộ điều phối tra cứu, lưu và đồng bộ.
 

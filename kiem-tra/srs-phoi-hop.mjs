@@ -12,14 +12,13 @@ for (const dir of ["extension", "android/www"]) {
   const { Srs:S, Muc:M, NguPhapSrs:G } = engine(dir);
   const state = (days, due = now - D) => ({ ngay:days, net:2.1, lv:S.capTu(days), ts:now-10*D, due, sai:0 });
   const item = () => ({ word:"勉強", dict:"javi", ts:now-10*D,
-    cauNghe:{cau:"私は毎朝日本語を勉強します。"},
-    lien:{dong:[{word:"学習"},{word:"学ぶ"}],trai:[{word:"遊ぶ"}]},
-    duong:{ nhin:state(14), nghe:{...state(14, now+10*D), dungHanLien:2, dungHanDau:now-20*D}, dong:state(7), trai:state(7) } });
+    cauNghe:{cau:"私は毎朝日本語を勉強します。",dich:"Tôi học tiếng Nhật mỗi sáng."},
+    duong:{ nhin:state(14), nghe:{...state(14, now+10*D), dungHanLien:2, dungHanDau:now-20*D}, dien:state(7) } });
   const it = item();
   const before = plain(it.duong), point = plain(S.diemTu(it));
   const frozen = S.datLich(it,"nhin","bang",0,now);
   assert(!S.denHan(frozen,now).includes("nhin"));
-  assert(S.denHan(frozen,now).includes("dong"));
+  assert(S.denHan(frozen,now).includes("dien"));
   assert.deepEqual(plain(frozen.duong),before);
   assert.deepEqual(plain(S.diemTu(frozen)),point);
   assert(S.denHan(S.datLich(frozen,"nhin","mo",0,now+1),now+2).includes("nhin"));
@@ -69,9 +68,10 @@ for (const dir of ["extension", "android/www"]) {
   }
   assert.equal(S.phoiHop(recovered,"nhin",raw,true,now).duong.phoiHop,1.5);
   assert.doesNotThrow(()=>S.gomSrs(null)); assert.doesNotThrow(()=>S.duongMo(null));
-  const off = {...it,mangTat:1};
-  assert(!S.denHan(off,now).some(d=>d==="dong"||d==="trai"));
-  assert(S.biChan(off,"dong",now));
+  // Đường đồng/trái nghĩa đã gỡ: dữ liệu cũ nằm yên nhưng không bao giờ tới hạn.
+  const cu = {...it,lien:{dong:["a","b"],trai:["c"]},duong:{...it.duong,dong:state(7),trai:state(7)}};
+  assert(!S.denHan(cu,now).some(d=>d==="dong"||d==="trai"));
+  assert(!S.duongCo(cu).includes("dong"));
   const sentence="私は毎朝日本語を勉強します。";
   let g=G.cham(null,sentence,"dung",now,"a",0);
   assert.equal(g.lv,1); assert.equal(g.due,now+3*D);
