@@ -3685,6 +3685,24 @@ async function xoaCacMucNb(keys) {
     } } : null);
 }
 
+/*
+ * Cử chỉ trên hàng sổ tay (hang-vuot.js): chạm đúp = sửa nghĩa, vuốt phải = xoá nhanh (vẫn có
+ * Hoàn tác), vuốt trái = mở link nguồn. Đi qua đúng các hàm mà nút trên hàng đang dùng.
+ */
+const muc1Nb = (hang) => nbCtx.items.find((x) => x.key === hang.dataset.key && !x.del);
+window.HangVuot.gan($("nbList"), {
+  nhanPhai: T("Xoá"), nhanTrai: T("Mở link"),
+  duocTrai: (hang) => { const it = muc1Nb(hang); return !!(it && it.src && it.src.url); },
+  phai: (hang) => { const it = muc1Nb(hang); if (it) xoaCacMucNb([it.key]); },
+  trai: (hang) => {
+    const it = muc1Nb(hang);
+    if (!it) return;
+    if (it.src && it.src.url) openSourceExt(it);
+    else toast(T("Từ này chưa có link nguồn"), "bad");
+  },
+  nhanDoi: (hang) => { const it = muc1Nb(hang); if (it) moSua(it, "trans"); }
+});
+
 $("chonTatCa").addEventListener("click", () =>
   chonTatCaNb(!(nbRows.length && nbRows.every((it) => chonNb.has(it.key)))));
 $("chonBo").addEventListener("click", () => chonTatCaNb(false));
@@ -4806,11 +4824,21 @@ $("stTruoc").innerHTML = window.Icon("arrow-left", { size: 20 });
 $("stSau").innerHTML = window.Icon("arrow-right", { size: 20 });
 $("stTruoc").addEventListener("click", xemTruoc);
 $("stSau").addEventListener("click", xemSau);
-// Vuốt thẻ: phải = Nhớ, trái = Quên. Chỉ khi đã lật thẻ — chấm mà chưa thấy nghĩa thì vô nghĩa.
+/*
+ * Cử chỉ trên thẻ học. Chấm được NGAY, không cần lật thẻ trước: vuốt phải = Nhớ, trái = Quên.
+ * Bài điền khuyết chấm bằng đáp án chọn nên không vuốt chấm được; thẻ xem lại của bài ấy chỉ để xem.
+ * Chạm đúp vào chỗ trống của thẻ = sửa nghĩa. Vuốt dọc để cuộn trang nên bản chạm không có lệnh
+ * lên/xuống — hai lệnh đó dành cho chuột (extension).
+ */
+function choPhepChamNgay() {
+  if (baiDien || !theCardHienTai()) return false;
+  const b = session.xem ? (session.lichSu || [])[session.xem.i] : null;
+  return !(b && laBaiChon(b.duong));
+}
 window.TheVuot.gan($("stCard"), {
-  duocKeo: () => $("stGrade").style.display !== "none",
+  duocKeo: choPhepChamNgay,
   chamXong: (nho) => grade(nho, true),
-  chuaDuoc: () => toast(T("Hãy hiện nghĩa trước rồi mới vuốt để chấm"))
+  nhanDoi: () => { const it = theCardHienTai(); if (it && !baiDien) moSua(it, "trans"); }
 });
 
 async function deleteCurrentCard() {

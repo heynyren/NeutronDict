@@ -2092,6 +2092,21 @@
   en["chưa có câu nguồn đã dịch"] = "no translated source sentence yet";
   ja["chưa có câu nguồn đã dịch"] = "翻訳済みの出典文がまだありません";
 
+  en["Chưa lật thẻ vẫn chấm được. Kéo thẻ:"] = "You can grade without flipping. Drag the card:";
+  ja["Chưa lật thẻ vẫn chấm được. Kéo thẻ:"] = "めくらなくても採点できます。カードをドラッグ：";
+  en["mở nguồn"] = "open source";
+  ja["mở nguồn"] = "出典を開く";
+  en["Nhấp đúp chỗ trống của thẻ: sửa nghĩa"] = "Double-click an empty spot on the card: edit meaning";
+  ja["Nhấp đúp chỗ trống của thẻ: sửa nghĩa"] = "カードの空白をダブルクリック：意味を編集";
+  en["Mở link"] = "Open link";
+  ja["Mở link"] = "リンクを開く";
+  en["Xoá"] = "Delete";
+  ja["Xoá"] = "削除";
+  en["Từ này chưa có nguồn để mở"] = "This word has no source to open";
+  ja["Từ này chưa có nguồn để mở"] = "この単語には開ける出典がありません";
+  en["Từ này chưa có link nguồn"] = "This word has no source link";
+  ja["Từ này chưa có link nguồn"] = "この単語には出典リンクがありません";
+
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

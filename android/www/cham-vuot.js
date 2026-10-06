@@ -74,7 +74,8 @@
     const batDau = (e) => {
       // Hai ngón là đang phóng to thu nhỏ, không phải vuốt.
       // Thẻ học có cử chỉ vuốt riêng (the-vuot.js): vuốt trên thẻ là chấm, không phải đổi tab.
-      if (e.target.closest && e.target.closest("[data-khong-vuot-tab]")) { theoDoi = false; return; }
+      // Hàng sổ tay cũng vậy (hang-vuot.js): vuốt ngang trên hàng là xoá / mở link.
+      if (e.target.closest && e.target.closest("[data-khong-vuot-tab], #nbList .entry")) { theoDoi = false; return; }
       if (e.touches.length !== 1 || dangCoLopPhu() || trongVungCuonNgang(e.target)) {
         theoDoi = false;
         return;
