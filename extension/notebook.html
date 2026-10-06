@@ -391,9 +391,9 @@
   <div id="stPhim" class="stphim">
     <button id="stPhimAn" class="stphim-an" type="button" title="Ẩn" data-chu-title>×</button>
     <div class="stphim-t" data-chu>Phím tắt</div>
-    <div><kbd>Space</kbd> <span data-chu>lật thẻ · bài nghe: nghe lại</span></div>
-    <div><kbd>F</kbd> <span data-chu>Quên</span> · <kbd>J</kbd> <span data-chu>Nhớ</span> · <kbd>A</kbd> <span data-chu>phát âm</span></div>
-    <div><kbd>1</kbd>–<kbd>9</kbd> <span data-chu>chọn đáp án</span> · <kbd>Enter</kbd> <span data-chu>xong / lật bài nghe</span></div>
+    <div><kbd>Space</kbd> <span data-chu>lật thẻ · rồi mở nguồn</span></div>
+    <div><kbd>F</kbd> <span data-chu>Quên</span> · <kbd>J</kbd> <span data-chu>Nhớ</span> · <kbd>A</kbd> <span data-chu>phát âm / nghe lại</span></div>
+    <div><kbd>1</kbd>–<kbd>9</kbd> <span data-chu>chọn đáp án</span> · <kbd>Enter</kbd> <span data-chu>như Space</span></div>
     <div><kbd>←</kbd> <span data-chu>thẻ trước (huỷ lượt chấm)</span></div>
     <div><kbd>→</kbd> <span data-chu>để dành, xem sau</span></div>
     <div><kbd>0</kbd> <span data-chu>xoá mục</span> · <kbd>Esc</kbd> <span data-chu>đóng</span></div>
@@ -445,6 +445,12 @@
             <button class="btn no" id="gForgot" type="button" data-phim="F" data-chu>Quên</button>
             <button class="btn yes" id="gKnow" type="button" data-phim="J" data-chu>Nhớ</button>
           </div>
+        </div>
+        <!-- Hai mũi tên dưới thẻ: lùi / tới các thẻ đã chấm để xem lại hoặc chấm lại. -->
+        <div class="st-nav">
+          <button id="stTruoc" class="btn iconbtn-lg" type="button" title="Thẻ trước (←)" aria-label="Thẻ trước" data-chu-title></button>
+          <span id="stXemTag" class="st-xemtag" hidden></span>
+          <button id="stSau" class="btn iconbtn-lg" type="button" title="Thẻ sau (→)" aria-label="Thẻ sau" data-chu-title></button>
         </div>
         <div class="rowx" style="justify-content:center;margin-top:12px;min-height:28px">
           <span class="t-small muted" id="stUndo" style="display:none" data-chu>
@@ -590,6 +596,7 @@
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
   <script src="srs.js"></script>
+  <script src="the-vuot.js"></script>
   <script src="lich-rieng-ui.js"></script>
   <script src="duong-rieng-ui.js"></script>
   <script src="cau-nghe.js"></script>

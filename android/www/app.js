@@ -659,6 +659,8 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     const tkAll = (await Store.get("nhipMs")) || {};
     const lich = window.Srs.lichHen(Object.values(nb));
     const cu = (e.duong || {})[d] || null;
+    const truoc = cu ? Object.assign({}, cu) : null;
+    const tkTruoc = Object.assign({}, tkAll[d] || {});
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
     let kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(), chat, lich);
     kq = window.Srs.phoiHop(e, d, kq, remembered, Date.now(), lich);
@@ -669,7 +671,7 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[key] = moi; tkAll[d] = kq.tk;
     await setNB(nb); await Store.set("nhipMs", tkAll); nhipMs = tkAll;
-    return Object.assign({}, kq, { vuaToiDa: vuaToiDa });
+    return Object.assign({}, kq, { vuaToiDa: vuaToiDa, truoc: truoc, tkTruoc: tkTruoc });
   });
 }
 
@@ -4575,10 +4577,13 @@ function dungDongHo() {
 let theTrenMan = null;
 function theCardHienTai() { return theTrenMan || session.queue[0]; }
 
-function showCard(giuLat) {
+function showCard(giuLat, xem) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
-  const it = session.queue[0];
+  // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
+  if (!xem) session.xem = null;
+  const it = xem || session.queue[0];
   theTrenMan = it;
+  $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
   const daLat = giuLat && $("stGrade").style.display !== "none";
   mocHienThe = performance.now();
@@ -4650,8 +4655,27 @@ function showCard(giuLat) {
   // Nhớ lại hẹn giờ để HUỶ nó ở thẻ sau: bấm Nhớ trong vòng 120ms kể từ lúc thẻ
   // hiện ra thì hẹn cũ nổ trên thẻ mới, và người ta nghe câu của từ trước.
   if (henPhat) { clearTimeout(henPhat); henPhat = null; }
-  if (laNghe && !daLat) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
-  if (daLat) revealCard();
+  if (laNghe && !daLat && !xem) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
+  if (daLat || xem) revealCard();
+  veXemLai(xem);
+  window.TheVuot.vao($("stCard"));
+}
+
+/** Nhãn "xem lại" + trạng thái hai nút mũi tên dưới thẻ. */
+function veXemLai(xem) {
+  const b = xem && session.xem ? session.lichSu[session.xem.i] : null;
+  const tag = $("stXemTag");
+  if (tag) {
+    tag.hidden = !b;
+    if (b) tag.textContent = (b.nho ? T("Xem lại · đã chấm: Nhớ") : T("Xem lại · đã chấm: Quên"))
+      + (laBaiChon(b.duong) ? " · " + T("bài chọn đáp án, chỉ để xem") : "");
+    tag.className = "st-xemtag " + (b ? (b.nho ? "nho" : "quen") : "");
+  }
+  if (b && laBaiChon(b.duong)) $("stGrade").style.display = "none";
+  const n = (session.lichSu || []).length;
+  const truoc = $("stTruoc"), sau = $("stSau");
+  if (truoc) truoc.disabled = !n || (!!session.xem && session.xem.i === 0);
+  if (sau) sau.disabled = !session.xem && session.queue.length < 2;
 }
 
 /* ==================================================================== */
@@ -5327,7 +5351,9 @@ $("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if 
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
 $("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
-async function grade(remembered) {
+async function grade(remembered, tuVuot) {
+  // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
+  if (session.xem) { await chamLaiXem(remembered, tuVuot); return; }
   // Bài liên kết tự chấm bằng nút Xong; đừng để nút Nhớ/Quên cướp lượt.
   if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
   // Chấm ĐÚNG thẻ đang hiện trên màn, rồi mới rút nó ra khỏi hàng.
@@ -5335,6 +5361,8 @@ async function grade(remembered) {
   if (!it) return;
   const vt = session.queue.indexOf(it);
   if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
+  // Thẻ bay đi (vuốt đã tự dựng bản sao rồi), thẻ kế hiện lên ngay sau.
+  if (!tuVuot) window.TheVuot.bay($("stCard"), remembered, 0);
   hieuUng(remembered);
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
@@ -5348,8 +5376,15 @@ async function grade(remembered) {
   if (!kqCham) { showCard(); return; }
   if (kqCham.vuaToiDa) toast(T("Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."), "good");
   else toast(chuBaoCham(remembered, truocDiem, (await getNB())[it.key], it._d || "nhin"));
+  let banSao = null;
   if (remembered) session.done++;
-  else { session.again++; session.queue.push(Object.assign({}, it)); }  // quên -> học lại cuối hàng
+  else { session.again++; banSao = Object.assign({}, it); session.queue.push(banSao); }  // quên -> học lại cuối hàng
+  // Nhớ lại lượt chấm để nút ‹ lấy về xem hoặc chấm lại. Chỉ giữ vài lượt gần nhất.
+  session.lichSu = (session.lichSu || []).concat([{
+    the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
+    truoc: kqCham.truoc, tkTruoc: kqCham.tkTruoc, sau: kqCham.duong, tkSau: kqCham.tk,
+    banSao: banSao, vuaToiDa: !!kqCham.vuaToiDa
+  }]).slice(-20);
 
   // Mọi lượt chấm đều được ghi vào tiến độ, kể cả lượt "quên": công sức bỏ ra là
   // như nhau, mà đếm cả lượt quên mới khuyến khích người ta dám chấm thật.
@@ -5364,6 +5399,120 @@ async function grade(remembered) {
 }
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
+
+/**
+ * Hai giá trị có CÙNG NỘI DUNG không, không kể thứ tự khoá.
+ *
+ * So bằng JSON.stringify trần thì sai ngay: chrome.storage trả object với khoá
+ * xếp theo ABC, còn bản trong bộ nhớ giữ thứ tự lúc tạo — cùng một lượt chấm mà
+ * hai chuỗi khác nhau, và hoàn tác lúc nào cũng bị từ chối là "đã thay đổi ở cửa
+ * sổ khác".
+ */
+function cungNoiDung(a, b) {
+  const chuan = (v) => {
+    if (Array.isArray(v)) return v.map(chuan);
+    if (v && typeof v === "object") {
+      const r = {};
+      for (const k of Object.keys(v).sort()) r[k] = chuan(v[k]);
+      return r;
+    }
+    return v;
+  };
+  return JSON.stringify(chuan(a)) === JSON.stringify(chuan(b));
+}
+
+/**
+ * HOÀN TÁC một lượt chấm đã ghi (phần tử của `session.lichSu`) — xem bản extension.
+ * Chỉ làm khi đường ấy của mục vẫn đúng như ngay sau lượt chấm; không thì từ chối,
+ * vì quay về `truoc` sẽ xoá mất một lượt chấm MỚI hơn.
+ * @returns {Promise<boolean>}
+ */
+async function huyLuot(b) {
+  const daHoanTac = await xepHang(async () => {
+    const nb = await getNB(), e = nb[b.key];
+    if (!e || e.del || window.Srs.biChan(e, b.duong, Date.now())) return false;
+    if (b.sau && !cungNoiDung((e.duong || {})[b.duong], b.sau)) return false;
+    const d = Object.assign({}, e.duong || {});
+    if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
+    const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
+    if (b.vuaToiDa) delete moi.dongBang;
+    moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    nb[b.key] = moi;
+    const tk = (await Store.get("nhipMs")) || {};
+    if (b.tkTruoc && typeof b.tkTruoc.n === "number"
+        && (!b.tkSau || cungNoiDung(tk[b.duong], b.tkSau))) tk[b.duong] = b.tkTruoc;
+    await setNB(nb); await Store.set("nhipMs", tk); nhipMs = tk;
+    return true;
+  });
+  if (!daHoanTac) return false;
+  const vi = (session.lichSu || []).indexOf(b);
+  if (vi >= 0) session.lichSu.splice(vi, 1);
+  if (b.nho) session.done = Math.max(0, session.done - 1);
+  else {
+    session.again = Math.max(0, session.again - 1);
+    const i = session.queue.indexOf(b.banSao);
+    if (i >= 0) session.queue.splice(i, 1);
+  }
+  return true;
+}
+
+/** Bài chọn đáp án tự chấm theo kết quả chọn, nên xem lại chỉ để xem. */
+const laBaiChon = (d) => d === "dong" || d === "trai";
+
+function xemThe(i) {
+  const b = (session.lichSu || [])[i];
+  if (!b) return;
+  session.xem = { i: i };
+  const the = b.the;
+  showCard(false, laBaiChon(the._d) ? Object.assign({}, the, { _d: "nhin", _xem: true }) : the);
+}
+function xemTruoc() {
+  const n = (session.lichSu || []).length;
+  const i = session.xem ? session.xem.i - 1 : n - 1;
+  if (!n || i < 0) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
+  xemThe(i);
+}
+/** Để dành thẻ này xuống cuối hàng, KHÔNG chấm (thẻ đã chấm rồi thì chỉ đi tiếp). */
+function boQuaThe() {
+  const it = theCardHienTai();
+  if (!it) return;
+  const i = session.queue.indexOf(it);
+  if (i < 0) { showCard(); return; }
+  if (session.queue.length < 2) { toast(T("Chỉ còn mỗi thẻ này thôi"), "bad"); return; }
+  session.queue.splice(i, 1);
+  session.queue.push(it);
+  showCard();
+}
+function xemSau() {
+  if (!session.xem) { boQuaThe(); return; }
+  const i = session.xem.i + 1;
+  if (i >= session.lichSu.length) { session.xem = null; showCard(); } else xemThe(i);
+}
+/** Chấm lại một thẻ đang xem: huỷ lượt cũ rồi chấm lượt mới. */
+async function chamLaiXem(nho, tuVuot) {
+  const b = session.lichSu[session.xem.i];
+  if (!b || laBaiChon(b.duong)) return false;
+  if (b.nho === nho) { toast(T("Giữ nguyên kết quả đã chấm")); xemSau(); return true; }
+  if (!(await huyLuot(b))) {
+    toast(T("Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."), "bad");
+    return false;
+  }
+  session.xem = null;
+  session.queue.unshift(b.the);
+  theTrenMan = b.the;
+  await grade(nho, tuVuot);
+  return true;
+}
+$("stTruoc").innerHTML = window.Icon("arrow-left", { size: 20 });
+$("stSau").innerHTML = window.Icon("arrow-right", { size: 20 });
+$("stTruoc").addEventListener("click", xemTruoc);
+$("stSau").addEventListener("click", xemSau);
+// Vuốt thẻ: phải = Nhớ, trái = Quên. Chỉ khi đã lật thẻ — chấm mà chưa thấy nghĩa thì vô nghĩa.
+window.TheVuot.gan($("stCard"), {
+  duocKeo: () => $("stGrade").style.display !== "none",
+  chamXong: (nho) => grade(nho, true),
+  chuaDuoc: () => toast(T("Hãy hiện nghĩa trước rồi mới vuốt để chấm"))
+});
 
 async function deleteCurrentCard() {
   const it = session.queue[0];

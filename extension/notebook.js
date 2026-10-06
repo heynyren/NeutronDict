@@ -2931,10 +2931,13 @@ function dungDongHo() {
   else if (baiLien && baiLien.moc) msDaDung = Math.round(performance.now() - baiLien.moc);
 }
 
-function showCard(giuLat) {
+function showCard(giuLat, xem) {
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
-  const it = session.queue[0];
+  // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
+  if (!xem) session.xem = null;
+  const it = xem || session.queue[0];
   theTrenMan = it;
+  $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
   mocHienThe = performance.now();
   msDaDung = null;
@@ -3028,8 +3031,27 @@ function showCard(giuLat) {
   // Nhớ lại hẹn giờ để HUỶ nó ở thẻ sau: bấm Nhớ trong vòng 120ms kể từ lúc thẻ
   // hiện ra thì hẹn cũ nổ trên thẻ mới, và người ta nghe câu của từ trước.
   if (henPhat) { clearTimeout(henPhat); henPhat = null; }
-  if (laNghe && !daLat) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
-  if (daLat) revealCard();
+  if (laNghe && !daLat && !xem) henPhat = setTimeout(() => { henPhat = null; phatCauNghe(); }, 120);
+  if (daLat || xem) revealCard();
+  veXemLai(xem);
+  window.TheVuot.vao($("stCard"));
+}
+
+/** Nhãn "xem lại" + trạng thái hai nút mũi tên dưới thẻ. */
+function veXemLai(xem) {
+  const b = xem && session.xem ? session.lichSu[session.xem.i] : null;
+  const tag = $("stXemTag");
+  if (tag) {
+    tag.hidden = !b;
+    if (b) tag.textContent = (b.nho ? T("Xem lại · đã chấm: Nhớ") : T("Xem lại · đã chấm: Quên"))
+      + (laBaiChon(b.duong) ? " · " + T("bài chọn đáp án, chỉ để xem") : "");
+    tag.className = "st-xemtag " + (b ? (b.nho ? "nho" : "quen") : "");
+  }
+  if (b && laBaiChon(b.duong)) $("stGrade").style.display = "none";
+  const n = (session.lichSu || []).length;
+  const truoc = $("stTruoc"), sau = $("stSau");
+  if (truoc) truoc.disabled = !n || (!!session.xem && session.xem.i === 0);
+  if (sau) sau.disabled = !session.xem && session.queue.length < 2;
 }
 
 /**
@@ -3373,7 +3395,9 @@ function revealCard() {
   batNhip();
 }
 
-async function grade(remembered) {
+async function grade(remembered, tuVuot) {
+  // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
+  if (session.xem) { await chamLaiXem(remembered, tuVuot); return; }
   // Bài liên kết tự chấm bằng nút Xong; phím tắt 1/2 không được cướp lượt.
   if (session.queue[0] && (session.queue[0]._d === "dong" || session.queue[0]._d === "trai")) return;
   // Chấm ĐÚNG thẻ đang hiện trên màn, rồi mới rút nó ra khỏi hàng.
@@ -3381,6 +3405,8 @@ async function grade(remembered) {
   if (!it) return;
   const vt = session.queue.indexOf(it);
   if (vt >= 0) session.queue.splice(vt, 1); else session.queue.shift();
+  // Thẻ bay đi (vuốt đã tự dựng bản sao rồi), thẻ kế hiện lên ngay sau.
+  if (!tuVuot) window.TheVuot.bay($("stCard"), remembered, 0);
   hieuUng(remembered);
   coVu(remembered);
   // Chốt giờ TRƯỚC mọi lượt await: chờ ghi sổ xong mới đo là đo cả tốc độ ổ đĩa.
@@ -3815,24 +3841,47 @@ function dienNghia(ds) {
 /* ==================================================================== */
 
 /**
- * Phím ←: lấy lại thẻ vừa chấm và HOÀN TÁC lượt chấm đó.
+ * Hai giá trị có CÙNG NỘI DUNG không, không kể thứ tự khoá.
+ *
+ * So bằng JSON.stringify trần thì sai ngay: chrome.storage trả object với khoá
+ * xếp theo ABC, còn bản trong bộ nhớ giữ thứ tự lúc tạo — cùng một lượt chấm mà
+ * hai chuỗi khác nhau, và hoàn tác lúc nào cũng bị từ chối là "đã thay đổi ở cửa
+ * sổ khác".
+ */
+function cungNoiDung(a, b) {
+  const chuan = (v) => {
+    if (Array.isArray(v)) return v.map(chuan);
+    if (v && typeof v === "object") {
+      const r = {};
+      for (const k of Object.keys(v).sort()) r[k] = chuan(v[k]);
+      return r;
+    }
+    return v;
+  };
+  return JSON.stringify(chuan(a)) === JSON.stringify(chuan(b));
+}
+
+/**
+ * HOÀN TÁC một lượt chấm đã ghi (phần tử của `session.lichSu`).
  *
  * Bấm nhầm Nhớ thành Quên là chuyện xảy ra thật, và với bản cũ thì không có
  * đường chữa: cấp đã tụt, lịch đã đổi. Nên hoàn tác phải trả lại ĐÚNG trạng
  * thái cũ của đường đó — kể cả thống kê nhịp bấm, nếu không thì một lượt bấm
  * nhầm 20 giây còn nằm lại làm lệch mọi lượt chấm sau.
+ *
+ * Chỉ làm khi đường ấy của mục vẫn đúng như ngay sau lượt chấm (`sau`): đã đổi
+ * ở cửa sổ khác, hay chính thẻ quên ấy đã được hỏi lại và chấm tiếp, thì quay về
+ * `truoc` là xoá mất lượt chấm MỚI hơn — nên từ chối.
+ *
+ * @returns {Promise<boolean>} true nếu đã hoàn tác; lượt chấm được gỡ khỏi lịch sử
  */
-async function quayLaiThe() {
-  const ds = session.lichSu || [];
-  const b = ds.pop();
-  if (!b) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
+async function huyLuot(b) {
   const daHoanTac = await suaSoTay(async () => {
     const kho = await chrome.storage.local.get(["notebook", "nhipMs"]);
     const nb = kho.notebook || {};
     const e = nb[b.key];
     if (!e || e.del || window.Srs.biChan(e, b.duong, Date.now())) return false;
-    // Không để phím hoàn tác ở trang cũ xóa lượt chấm mới ở trang khác.
-    if (b.sau && JSON.stringify((e.duong || {})[b.duong]) !== JSON.stringify(b.sau)) return false;
+    if (b.sau && !cungNoiDung((e.duong || {})[b.duong], b.sau)) return false;
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
@@ -3843,7 +3892,7 @@ async function quayLaiThe() {
     const ghi = { notebook: nb };
     const tk = kho.nhipMs || {};
     if (b.tkTruoc && typeof b.tkTruoc.n === "number"
-        && (!b.tkSau || JSON.stringify(tk[b.duong]) === JSON.stringify(b.tkSau))) {
+        && (!b.tkSau || cungNoiDung(tk[b.duong], b.tkSau))) {
       tk[b.duong] = b.tkTruoc;
       ghi.nhipMs = tk;
     }
@@ -3851,10 +3900,9 @@ async function quayLaiThe() {
     nhipMs = tk;
     return true;
   });
-  if (!daHoanTac) {
-    toast(T("Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."), "bad");
-    return;
-  }
+  if (!daHoanTac) return false;
+  const vi = (session.lichSu || []).indexOf(b);
+  if (vi >= 0) session.lichSu.splice(vi, 1);
   if (b.nho) session.done = Math.max(0, session.done - 1);
   else {
     session.again = Math.max(0, session.again - 1);
@@ -3863,9 +3911,55 @@ async function quayLaiThe() {
     const i = session.queue.indexOf(b.banSao);
     if (i >= 0) session.queue.splice(i, 1);
   }
+  return true;
+}
+
+/**
+ * XEM LẠI CÁC THẺ ĐÃ CHẤM — hai nút mũi tên dưới thẻ, và phím ← →.
+ *
+ * Nút ‹ lùi từng thẻ đã chấm trong buổi này; nút › đi tới lại, và đi quá thẻ cuối
+ * thì về thẻ đang học dở. Thẻ hiện ở trạng thái đã lật, kèm nhãn "đã chấm: Nhớ/Quên".
+ * Chỉ XEM thì lượt chấm cũ giữ nguyên. Bấm Nhớ/Quên khác với lần trước thì là CHẤM
+ * LẠI: lượt cũ bị huỷ (huyLuot) rồi mới chấm lượt mới, nên một thẻ không bao giờ bị
+ * tính hai lần trong cùng buổi.
+ *
+ * Bài chọn đáp án (đồng/trái nghĩa…) tự chấm theo kết quả chọn, nên ở đây chỉ xem.
+ */
+const laBaiChon = (d) => d === "dong" || d === "trai";
+
+function xemThe(i) {
+  const b = (session.lichSu || [])[i];
+  if (!b) return;
+  session.xem = { i: i };
+  const the = b.the;
+  showCard(false, laBaiChon(the._d) ? Object.assign({}, the, { _d: "nhin", _xem: true }) : the);
+}
+function xemTruoc() {
+  const n = (session.lichSu || []).length;
+  const i = session.xem ? session.xem.i - 1 : n - 1;
+  if (!n || i < 0) { toast(T("Không còn thẻ nào để quay lại"), "bad"); return; }
+  xemThe(i);
+}
+function xemSau() {
+  if (!session.xem) { boQuaThe(); return; }
+  const i = session.xem.i + 1;
+  if (i >= session.lichSu.length) { session.xem = null; showCard(); } else xemThe(i);
+}
+/** Chấm lại một thẻ đang xem. @returns {Promise<boolean>} true nếu đã chấm lại xong */
+async function chamLaiXem(nho, tuVuot) {
+  const b = session.lichSu[session.xem.i];
+  if (!b) return false;
+  if (laBaiChon(b.duong)) return false;
+  if (b.nho === nho) { toast(T("Giữ nguyên kết quả đã chấm")); xemSau(); return true; }
+  if (!(await huyLuot(b))) {
+    toast(T("Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."), "bad");
+    return false;
+  }
+  session.xem = null;
   session.queue.unshift(b.the);
-  showCard();
-  toast(T("Đã lấy lại thẻ trước và huỷ lượt chấm"));
+  theTrenMan = b.the;
+  await grade(nho, tuVuot);
+  return true;
 }
 
 /**
@@ -4041,6 +4135,16 @@ if ($("stPhimAn")) $("stPhimAn").addEventListener("click", async () => {
   const { settings } = await chrome.storage.local.get("settings");
   await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { anPhim: true }) });
 });
+$("stTruoc").innerHTML = window.Icon("arrow-left", { size: 20 });
+$("stSau").innerHTML = window.Icon("arrow-right", { size: 20 });
+$("stTruoc").addEventListener("click", xemTruoc);
+$("stSau").addEventListener("click", xemSau);
+// Vuốt thẻ: phải = Nhớ, trái = Quên. Chỉ khi đã lật thẻ — chấm mà chưa thấy nghĩa thì vô nghĩa.
+window.TheVuot.gan($("stCard"), {
+  duocKeo: () => $("stGrade").style.display !== "none",
+  chamXong: (nho) => grade(nho, true),
+  chuaDuoc: () => toast(T("Hãy hiện nghĩa trước rồi mới vuốt để chấm (Space)"))
+});
 $("gKnow").addEventListener("click", () => grade(true));
 $("gForgot").addEventListener("click", () => grade(false));
 $("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
@@ -4080,13 +4184,15 @@ document.addEventListener("keydown", (e) => {
 /**
  * Phím tắt trong buổi học.
  *
- *   Space   lật thẻ · bài nghe: nghe lại · bài liên kết: Xong · màn kết quả: Tiếp
- *   Enter   như Space, trừ bài nghe: Enter mới là lật (Space dành để nghe lại)
+ *   Space   lật thẻ (kể cả bài nghe) · đã lật rồi: mở nguồn · bài liên kết: Xong
+ *           · màn kết quả: Tiếp
+ *   Enter   như Space
  *   F / J   Quên / Nhớ (sau khi lật)        1 / 2  như cũ, giữ cho ai đã quen
- *   A       phát âm từ (bài nghe chưa lật: nghe lại câu — từ còn phải giấu)
+ *   A       phát âm từ · bài nghe: nghe lại câu (lúc nào cũng được; từ còn phải giấu)
  *   1–9     bài liên kết: chọn ô đó và chấm ngay. Mỗi đề chỉ có MỘT đáp án đúng
  *           nên chọn xong là chấm luôn, chọn hai ô thì chắc chắn sai.
  *   J       màn kết quả bài liên kết: Tiếp
+ *   ← →     xem lại / chấm lại các thẻ đã chấm (xemTruoc / xemSau)
  */
 function phimHoc(e) {
   const it = theCardHienTai();
@@ -4101,7 +4207,6 @@ function phimHoc(e) {
     // Màn kết quả bài liên kết đang chờ: phím cách là "Tiếp".
     if (tiepBaiLien) { tiepBaiLien(); return; }
     if (baiLien) { xongBaiLien(); return; }
-    if (laNghe && k === " ") { phatCauNghe(); return; }
     if ($("stReveal").style.display !== "none") { revealCard(); return; }
     if (it && it.src && it.src.url) openSource(it, true);
   } else if (laPhim("j")) {
@@ -4114,11 +4219,11 @@ function phimHoc(e) {
   } else if (laPhim("a")) {
     e.preventDefault();
     if (!it) return;
-    if (laNghe && !daLat) phatCauNghe();
+    if (laNghe) phatCauNghe();                       // bài nghe: A = nghe lại câu, lúc nào cũng được
     else if (it._d === "dong" || it._d === "trai") { if (tiepBaiLien) speak(it.word, it.audio); }
     else speak(it.word, it.audio);
-  } else if (k === "ArrowLeft") { e.preventDefault(); quayLaiThe(); }
-  else if (k === "ArrowRight") { e.preventDefault(); boQuaThe(); }
+  } else if (k === "ArrowLeft") { e.preventDefault(); xemTruoc(); }
+  else if (k === "ArrowRight") { e.preventDefault(); xemSau(); }
   else if (baiLien && /^[1-9]$/.test(k)) {
     const o = $("stLienO").querySelectorAll(".lien-omot")[Number(k) - 1];
     if (o && !o.disabled) {

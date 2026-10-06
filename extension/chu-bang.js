@@ -2038,14 +2038,14 @@
   ja["Câu gốc tôi đã lưu:"] = "保存した元の文：";
   en["Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."] = "Maximum level reached — this word is now frozen. Unfreeze it with the “Frozen” button.";
   ja["Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."] = "最高レベルに到達 — この語は凍結されました。「凍結中」ボタンで解除できます。";
-  en["lật thẻ · bài nghe: nghe lại"] = "flip the card · listening card: replay";
-  ja["lật thẻ · bài nghe: nghe lại"] = "カードをめくる・リスニングは再生";
   en["phát âm"] = "pronounce";
   ja["phát âm"] = "発音";
   en["chọn đáp án"] = "choose an answer";
   ja["chọn đáp án"] = "答えを選ぶ";
-  en["xong / lật bài nghe"] = "submit / flip listening card";
-  ja["xong / lật bài nghe"] = "決定／リスニングをめくる";
+  en["như Space"] = "same as Space";
+  ja["như Space"] = "Space と同じ";
+  en["phát âm / nghe lại"] = "pronounce / replay";
+  ja["phát âm / nghe lại"] = "発音／もう一度聞く";
   en["Ôn từng đường"] = "Practise one type";
   ja["Ôn từng đường"] = "種類別に復習";
   en["Chỉ bài nghe"] = "Listening only";
@@ -2080,6 +2080,27 @@
   ja["Đã đóng băng câu này — sẽ không hiện lại. Mở lại ở danh sách câu đóng băng."] = "この文を凍結しました。再表示されません。凍結リストから解除できます。";
   en["Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "Put a sentence together correctly and it is frozen and won't come back; you can unfreeze it from the list below.";
   ja["Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới."] = "正しく並べた文は凍結され、再表示されません。下のリストから解除できます。";
+
+  en["Hãy hiện nghĩa trước rồi mới vuốt để chấm (Space)"] = "Reveal the meaning first, then swipe to grade (Space)";
+  ja["Hãy hiện nghĩa trước rồi mới vuốt để chấm (Space)"] = "先に意味を表示してから、スワイプして採点してください（Space）";
+  en["Hãy hiện nghĩa trước rồi mới vuốt để chấm"] = "Reveal the meaning first, then swipe to grade";
+  ja["Hãy hiện nghĩa trước rồi mới vuốt để chấm"] = "先に意味を表示してから、スワイプして採点してください";
+  en["Giữ nguyên kết quả đã chấm"] = "Grade left unchanged";
+  ja["Giữ nguyên kết quả đã chấm"] = "採点はそのままです";
+  en["Xem lại · đã chấm: Nhớ"] = "Reviewing · graded: Remembered";
+  ja["Xem lại · đã chấm: Nhớ"] = "見直し・採点：覚えた";
+  en["Xem lại · đã chấm: Quên"] = "Reviewing · graded: Forgot";
+  ja["Xem lại · đã chấm: Quên"] = "見直し・採点：忘れた";
+  en["bài chọn đáp án, chỉ để xem"] = "answer-choice exercise, view only";
+  ja["bài chọn đáp án, chỉ để xem"] = "選択問題のため閲覧のみ";
+  en["Thẻ trước (←)"] = "Previous card (←)";
+  ja["Thẻ trước (←)"] = "前のカード（←）";
+  en["Thẻ trước"] = "Previous card";
+  ja["Thẻ trước"] = "前のカード";
+  en["Thẻ sau (→)"] = "Next card (→)";
+  ja["Thẻ sau (→)"] = "次のカード（→）";
+  en["Thẻ sau"] = "Next card";
+  ja["Thẻ sau"] = "次のカード";
 
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;

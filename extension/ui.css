@@ -1417,3 +1417,31 @@ table.sodo tr.thieu td { opacity: .45; }
     font-size: 11px; font-weight: 700; color: var(--ink-3); background: var(--surface-2);
   }
 }
+
+/* ---- Vuốt thẻ kiểu Quizlet ----------------------------------------------
+   `touch-action: pan-y` để ngón tay đi NGANG thuộc về thẻ (pointer events),
+   còn đi DỌC vẫn cuộn trang. Thẻ bay đi là bản sao `.the-bay` do the-vuot.js dựng. */
+.studycard { position: relative; touch-action: pan-y; }
+.studycard.dang-keo { cursor: grabbing; user-select: none; -webkit-user-select: none; will-change: transform; }
+.studycard.keo-nho { box-shadow: 0 0 0 3px var(--good), var(--sh-2); }
+.studycard.keo-quen { box-shadow: 0 0 0 3px var(--bad), var(--sh-2); }
+.the-dau {
+  position: absolute; top: 14px; width: 62px; height: 62px; border-radius: 50%;
+  display: grid; place-items: center; opacity: 0; pointer-events: none;
+  background: var(--surface); border: 3px solid currentColor; z-index: 2;
+}
+.the-dau.nho { left: 14px; color: var(--good); transform: rotate(-12deg); }
+.the-dau.quen { right: 14px; color: var(--bad); transform: rotate(12deg); }
+.the-dau svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 5;
+  stroke-linecap: round; stroke-linejoin: round; }
+.studycard.the-vao { animation: the-vao .3s ease-out; }
+@keyframes the-vao { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .studycard.the-vao { animation: none; } }
+/* Hai mũi tên dưới thẻ + nhãn "xem lại" ở giữa. */
+.st-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+.st-nav .iconbtn-lg { width: 46px; height: 46px; padding: 0; border-radius: 50%; display: grid; place-items: center; }
+.st-nav .iconbtn-lg[disabled] { opacity: .35; cursor: default; }
+.st-xemtag { font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); }
+.st-xemtag[hidden] { display: none; }
+.st-xemtag.nho { background: var(--good-soft); color: var(--good); }
+.st-xemtag.quen { background: var(--bad-soft); color: var(--bad); }

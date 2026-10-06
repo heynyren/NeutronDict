@@ -296,7 +296,7 @@
     <div id="stProg" class="t-small muted" style="text-align:center;margin-bottom:10px"></div>
 
     <div id="stBody" style="display:none">
-      <div class="studycard" id="stCard">
+      <div class="studycard" id="stCard" data-khong-vuot-tab>
         <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
              là mắt đọc mất, tai không phải làm gì — hỏng đúng thứ đang kiểm. -->
         <div id="stNgheMat" style="display:none;text-align:center;padding:16px 0">
@@ -340,6 +340,13 @@
           <button class="btn no" id="gForgot" type="button" data-phim="F" data-chu>Quên</button>
           <button class="btn yes" id="gKnow" type="button" data-phim="J" data-chu>Nhớ</button>
         </div>
+      </div>
+
+      <!-- Hai mũi tên dưới thẻ: lùi / tới các thẻ đã chấm để xem lại hoặc chấm lại. -->
+      <div class="st-nav">
+        <button id="stTruoc" class="btn iconbtn-lg" type="button" title="Thẻ trước" aria-label="Thẻ trước" data-chu-title></button>
+        <span id="stXemTag" class="st-xemtag" hidden></span>
+        <button id="stSau" class="btn iconbtn-lg" type="button" title="Thẻ sau" aria-label="Thẻ sau" data-chu-title></button>
       </div>
 
       <button class="btn danger block" id="stDel" type="button" style="margin-top:14px" data-chu>Đã thuộc hẳn — xoá mục này</button>
@@ -566,6 +573,7 @@
   <script src="ghi-am.js"></script>
 <script src="tien-do.js"></script>
 <script src="cham-vuot.js"></script>
+<script src="the-vuot.js"></script>
 <script src="app.js"></script>
   <div id="stHieuUng" class="st-hieuung" aria-hidden="true"></div>
 </body>

@@ -6,8 +6,8 @@
  *   A. lõi: Srs.toiDa / Srs.denHanDuong, NguPhapSrs.dongBang / thongKe / denHan
  *   B. buổi học: F = Quên + dấu X đỏ, J = Nhớ + dấu V xanh; J lúc chưa lật không chấm;
  *      từ chạm trần tự đóng băng, từ chưa tới thì không
- *   C. ôn từng đường (bài nghe): chỉ toàn bài nghe, Space nghe lại chứ không lật,
- *      Enter mới lật, A đọc từ, và 12 tiếng nghỉ giữa các đường vẫn được giữ
+ *   C. ôn từng đường (bài nghe): chỉ toàn bài nghe, A nghe lại (không lật),
+ *      Space lật để hiện nghĩa, và 12 tiếng nghỉ giữa các đường vẫn được giữ
  *   D. bài liên kết: phím số chọn + chấm ngay, hiệu ứng đúng/sai, J = Tiếp
  *   E. ngữ pháp: làm đúng ngay lần đầu là đóng băng, sửa lại thì không,
  *      danh sách câu đóng băng và nút Mở lại
@@ -191,21 +191,19 @@ await cho(450);
     document.getElementById("stNgheMat").style.display !== "none" && document.getElementById("stMatChu").style.display === "none"));
   const n0 = await page.evaluate(() => window.__noi.length);
   soat("thẻ nghe tự phát một lượt", n0 === 1, n0);
-  for (let i = 0; i < 3; i++) { await page.keyboard.press("Space"); await cho(60); }
+  for (let i = 0; i < 3; i++) { await page.keyboard.press("a"); await cho(60); }
   const n1 = await page.evaluate(() => window.__noi.length);
-  soat("Space liên tục = nghe lại mỗi lần (3 lần nữa)", n1 === n0 + 3, n0 + " → " + n1);
-  soat("Space KHÔNG lật thẻ nghe", await page.evaluate(() => document.getElementById("stGrade").style.display === "none"));
-  await page.keyboard.press("a");
-  await cho(60);
-  soat("A trước khi lật: nghe lại câu (không đọc lộ từ)", await page.evaluate(() => window.__noi.length) === n1 + 1);
-  await page.keyboard.press("Enter");
+  soat("A liên tục = nghe lại mỗi lần (3 lần nữa)", n1 === n0 + 3, n0 + " → " + n1);
+  soat("A KHÔNG lật thẻ nghe", await page.evaluate(() => document.getElementById("stGrade").style.display === "none"));
+  await page.keyboard.press("Space");
   await cho(150);
-  soat("Enter mới là lật", await page.evaluate(() => document.getElementById("stGrade").style.display !== "none"));
+  soat("Space lật thẻ nghe để hiện nghĩa", await page.evaluate(() => document.getElementById("stGrade").style.display !== "none"));
   const w = await tu();
+  const nTruocA = await page.evaluate(() => window.__noi.length);
   await page.keyboard.press("a");
   await cho(60);
   const cuoi = await page.evaluate(() => window.__noi[window.__noi.length - 1]);
-  soat("A sau khi lật: đọc chính từ", cuoi === w, cuoi);
+  soat("A sau khi lật: vẫn nghe lại câu", cuoi && cuoi.includes(w) && (await page.evaluate(() => window.__noi.length)) === nTruocA + 1, cuoi);
   await page.keyboard.press("j");
   await cho(400);
   await detMung();
