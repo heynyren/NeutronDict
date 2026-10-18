@@ -4262,6 +4262,9 @@ function showCard(giuLat, xem) {
   if (!xem) session.xem = null;
   const it = xem || session.queue[0];
   theTrenMan = it;
+  // Đang làm bài điền khuyết ở thẻ trước thì xoá trạng thái đó NGAY: sang thẻ khác bằng ›, ‹,
+  // đóng buổi học… mà không xoá thì `baiDien` kẹt lại và chặn Space, F/J, vuốt trên cả thẻ thường.
+  baiDien = null;
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
@@ -4830,6 +4833,21 @@ $("stSau").addEventListener("click", xemSau);
  * Chạm đúp vào chỗ trống của thẻ = sửa nghĩa. Vuốt dọc để cuộn trang nên bản chạm không có lệnh
  * lên/xuống — hai lệnh đó dành cho chuột (extension).
  */
+/**
+ * Bài điền khuyết chỉ chấm bằng ô đáp án (chạm/click, hoặc phím 1–4). Space, Enter, F, J và vuốt
+ * ngang ở đây KHÔNG làm gì — cố ý, vì lật hay chấm sẽ lộ đáp án — nhưng im lặng thì người học
+ * tưởng phím/cử chỉ hỏng ("vài từ bấm Space không ăn rồi tự hết"). Nên nhắc: lắc nhẹ các ô và báo.
+ */
+let nhacCuoi = 0;
+function nhacDien() {
+  const nay = performance.now();
+  if (!baiDien || nay - nhacCuoi < 1500) return;
+  nhacCuoi = nay;
+  toast(T("Bài điền khuyết: hãy chọn một trong các ô (phím 1–4)"));
+  const o = $("stDienO");
+  o.classList.remove("nhac"); void o.offsetWidth; o.classList.add("nhac");
+}
+
 function choPhepChamNgay() {
   if (baiDien || !theCardHienTai()) return false;
   const b = session.xem ? (session.lichSu || [])[session.xem.i] : null;
@@ -4838,6 +4856,7 @@ function choPhepChamNgay() {
 window.TheVuot.gan($("stCard"), {
   duocKeo: choPhepChamNgay,
   chamXong: (nho) => grade(nho, true),
+  chuaDuoc: nhacDien,
   nhanDoi: () => { const it = theCardHienTai(); if (it && !baiDien) moSua(it, "trans"); }
 });
 

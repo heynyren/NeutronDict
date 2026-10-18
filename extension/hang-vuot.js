@@ -21,6 +21,18 @@
   const KHONG_KEO = "input, textarea, select, audio, [contenteditable='true'], .chon-o";
   const KHONG_DOI = KHONG_KEO + ", button, a, summary, label, .anh-hang, .lich-rieng";
 
+  /** Lớp nền màu (đỏ / xanh) phủ hàng; chỉ đổi `opacity` nên không phải vẽ lại hàng. */
+  function nen(hang) {
+    let n = hang.querySelector(":scope > .hang-nen");
+    if (!n) {
+      n = document.createElement("div");
+      n.className = "hang-nen";
+      n.setAttribute("aria-hidden", "true");
+      hang.appendChild(n);
+    }
+    return n;
+  }
+
   /** Hai nhãn nổi sau hàng khi kéo: "Xoá" bên trái (kéo phải), "Mở link" bên phải (kéo trái). */
   function dau(hang, lop, chu) {
     let d = hang.querySelector(":scope > .hang-dau." + lop);
@@ -30,7 +42,7 @@
       d.setAttribute("aria-hidden", "true");
       hang.appendChild(d);
     }
-    d.textContent = chu;
+    if (d.textContent !== chu) d.textContent = chu;
     return d;
   }
 
@@ -47,12 +59,36 @@
     let dang = null, vuaKeo = false, tapCuoi = null;
     const hangCua = (t) => (t && t.closest) ? t.closest(".entry") : null;
 
+    // Cập nhật hình gộp theo khung hình: chuột đời mới bắn 120–1000 sự kiện/giây, mà mắt chỉ
+    // thấy 60 khung — làm mỗi lần là phí và gây giật.
+    let cho = 0, moi = null;
+    const ve = () => {
+      cho = 0;
+      const m = moi, d = dang;
+      if (!m || !d || !d.keo) return;
+      const hang = d.hang;
+      hang.style.transform = "translateX(" + m.k.toFixed(1) + "px)";
+      if (m.loai !== d.loai) {
+        d.loai = m.loai;
+        const n = nen(hang);
+        n.className = "hang-nen " + (m.loai || "");
+        hang.querySelector(":scope > .hang-dau.xoa").style.display = m.loai === "xoa" ? "" : "none";
+        hang.querySelector(":scope > .hang-dau.link").style.display = m.loai === "link" ? "" : "none";
+      }
+      const do_ = String(m.do_.toFixed(2));
+      if (d.doCu !== do_) {
+        d.doCu = do_;
+        nen(hang).style.opacity = String((m.do_ * (m.loai === "xoa" ? 0.2 : 0.16)).toFixed(3));
+        const dau_ = hang.querySelector(":scope > .hang-dau." + (m.loai || "xoa"));
+        if (dau_) dau_.style.opacity = do_;
+      }
+    };
     const tra = (hang, muot) => {
-      hang.classList.remove("hang-keo", "keo-xoa", "keo-link");
+      moi = null;
+      hang.classList.remove("hang-keo");
       hang.style.transition = muot ? "transform .2s cubic-bezier(.2,.9,.3,1)" : "";
       hang.style.transform = "";
-      hang.style.removeProperty("--do");
-      for (const d of hang.querySelectorAll(":scope > .hang-dau")) d.style.opacity = "0";
+      for (const d of hang.querySelectorAll(":scope > .hang-dau, :scope > .hang-nen")) d.style.opacity = "0";
       if (muot) setTimeout(() => { hang.style.transition = ""; }, 220);
     };
 
@@ -79,21 +115,22 @@
         if (sel && sel.removeAllRanges) sel.removeAllRanges();
         hang.classList.add("hang-keo");
         hang.style.transition = "none";
+        dang.rong = Math.max(1, hang.getBoundingClientRect().width);
+        dang.coLink = !ch.duocTrai || ch.duocTrai(hang);
+        dang.loai = null; dang.doCu = "";
+        nen(hang);
+        dau(hang, "xoa", ch.nhanPhai || "").style.display = "none";
+        dau(hang, "link", ch.nhanTrai || "").style.display = "none";
       }
       dang.dx = dx;
-      const rong = Math.max(1, hang.getBoundingClientRect().width);
+      const rong = dang.rong;                       // đo MỘT lần lúc bắt đầu kéo, không đo mỗi lần di chuyển
       const phai = dx > 0;
-      const coTrai = !phai && (!ch.duocTrai || ch.duocTrai(hang));
+      const coTrai = !phai && dang.coLink;
       // Kéo trái mà không có link: chỉ nhích nhẹ, có lực cản.
       const k = (phai || coTrai) ? dx : dx * 0.15;
-      hang.style.transform = "translateX(" + k.toFixed(1) + "px)";
-      const do_ = Math.min(1, Math.abs(dx) / Math.max(NGUONG_PX, rong * NGUONG_TL));
-      hang.classList.toggle("keo-xoa", phai);
-      hang.classList.toggle("keo-link", coTrai);
-      hang.style.setProperty("--do", String(do_.toFixed(2)));
-      const dp = dau(hang, "xoa", ch.nhanPhai || ""), dt = dau(hang, "link", ch.nhanTrai || "");
-      dp.style.opacity = phai ? String(do_) : "0";
-      dt.style.opacity = coTrai ? String(do_) : "0";
+      moi = { k: k, do_: Math.min(1, Math.abs(dx) / Math.max(NGUONG_PX, rong * NGUONG_TL)),
+              loai: phai ? "xoa" : (coTrai ? "link" : "") };
+      if (!cho) cho = requestAnimationFrame(ve);
     });
     const xong = (e, huy) => {
       if (!dang || e.pointerId !== dang.id) return;
@@ -116,7 +153,7 @@
       tapCuoi = null;
       vuaKeo = true; setTimeout(() => { vuaKeo = false; }, 0);
       try { danhSach.releasePointerCapture(e.pointerId); } catch (x) { /* không sao */ }
-      const rong = Math.max(1, hang.getBoundingClientRect().width);
+      const rong = d.rong;
       const du = Math.abs(d.dx) >= Math.max(NGUONG_PX, rong * NGUONG_TL);
       if (huy || !du) { tra(hang, true); return; }
       if (d.dx > 0) {
@@ -126,18 +163,21 @@
         hang.style.opacity = "0";
         setTimeout(() => {
           hang.style.opacity = ""; hang.style.transition = ""; hang.style.transform = "";
-          hang.classList.remove("hang-keo", "keo-xoa", "keo-link");
+          tra(hang, false);
           ch.phai(hang);
         }, 170);
       } else {
-        const coLink = !ch.duocTrai || ch.duocTrai(hang);
         tra(hang, true);
         ch.trai(hang);               // có link thì mở, không thì nền tảng tự báo
-        void coLink;
       }
     };
     danhSach.addEventListener("pointerup", (e) => xong(e, false));
     danhSach.addEventListener("pointercancel", (e) => xong(e, true));
+    // Bấm giữ rồi kéo trên chữ đã bôi/ảnh/liên kết thì trình duyệt (nhất là macOS) bắt đầu KÉO-THẢ
+    // NGUYÊN BẢN và huỷ chuỗi sự kiện chuột (pointercancel) — cử chỉ chết giữa chừng. Chặn nó khi
+    // đang theo dõi một cú bấm, và chặn bôi chọn chữ khi đã chốt là đang vuốt.
+    danhSach.addEventListener("dragstart", (e) => { if (dang) e.preventDefault(); });
+    danhSach.addEventListener("selectstart", (e) => { if (dang && dang.keo) e.preventDefault(); });
     // Nhả chuột sau cú kéo cũng sinh một `click` — nuốt nó, kẻo bấm trúng nút dưới tay.
     danhSach.addEventListener("click", (e) => { if (vuaKeo) { e.stopPropagation(); e.preventDefault(); } }, true);
   }

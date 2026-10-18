@@ -2785,6 +2785,9 @@ function showCard(giuLat, xem) {
   if (!xem) session.xem = null;
   const it = xem || session.queue[0];
   theTrenMan = it;
+  // Đang làm bài điền khuyết ở thẻ trước thì xoá trạng thái đó NGAY: sang thẻ khác bằng ›, ‹,
+  // đóng buổi học… mà không xoá thì `baiDien` kẹt lại và chặn Space, F/J, vuốt trên cả thẻ thường.
+  baiDien = null;
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   // Không để một nút giữ focus từ thẻ trước sang thẻ này: Space/Enter trên nút đang focus
   // là BẤM nút ấy, và khi nút hiện ra trên thẻ mới thì cú bấm rơi trúng nó — chấm luôn
@@ -3592,6 +3595,21 @@ $("stSau").addEventListener("click", xemSau);
  * Lên/xuống/nhấp đúp không dùng khi đang làm bài điền khuyết: nguồn, Gemini và phiếu sửa nghĩa
  * đều bày ra chính từ đang bị đục lỗ.
  */
+/**
+ * Bài điền khuyết chỉ chấm bằng ô đáp án (chạm/click, hoặc phím 1–4). Space, Enter, F, J và vuốt
+ * ngang ở đây KHÔNG làm gì — cố ý, vì lật hay chấm sẽ lộ đáp án — nhưng im lặng thì người học
+ * tưởng phím/cử chỉ hỏng ("vài từ bấm Space không ăn rồi tự hết"). Nên nhắc: lắc nhẹ các ô và báo.
+ */
+let nhacCuoi = 0;
+function nhacDien() {
+  const nay = performance.now();
+  if (!baiDien || nay - nhacCuoi < 1500) return;
+  nhacCuoi = nay;
+  toast(T("Bài điền khuyết: hãy chọn một trong các ô (phím 1–4)"));
+  const o = $("stDienO");
+  o.classList.remove("nhac"); void o.offsetWidth; o.classList.add("nhac");
+}
+
 function choPhepChamNgay() {
   if (baiDien || !theCardHienTai()) return false;
   const b = session.xem ? (session.lichSu || [])[session.xem.i] : null;
@@ -3600,6 +3618,7 @@ function choPhepChamNgay() {
 window.TheVuot.gan($("stCard"), {
   duocKeo: choPhepChamNgay,
   chamXong: (nho) => grade(nho, true),
+  chuaDuoc: nhacDien,
   duocDoc: () => !baiDien && !!theCardHienTai(),
   nhanLen: T("Mở nguồn"), nhanXuong: T("Hỏi Gemini"),
   len: () => {
@@ -3685,16 +3704,17 @@ function phimHoc(e) {
     e.preventDefault();
     // Màn kết quả bài liên kết đang chờ: phím cách là "Tiếp".
     if (tiepBaiDien) { tiepBaiDien(); return; }
-    if (baiDien) return;                              // đang làm bài: chọn bằng phím 1–9
+    if (baiDien) { nhacDien(); return; }              // đang làm bài: chọn bằng phím 1–9
     if ($("stReveal").style.display !== "none") { revealCard(); return; }
     if (it && it.src && it.src.url) openSource(it, true);
   } else if (laPhim("j")) {
     e.preventDefault();
     if (tiepBaiDien) tiepBaiDien();
     else if (choPhepChamNgay()) grade(true);      // chấm được ngay, không cần Space
+    else nhacDien();
   } else if (laPhim("f")) {
     e.preventDefault();
-    if (choPhepChamNgay()) grade(false);
+    if (choPhepChamNgay()) grade(false); else nhacDien();
   } else if (laPhim("a")) {
     e.preventDefault();
     if (!it) return;

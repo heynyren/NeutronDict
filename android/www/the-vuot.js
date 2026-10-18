@@ -49,8 +49,8 @@
     if (d.dataset.k !== (nho ? "nho" : "quen")) {
       d.dataset.k = nho ? "nho" : "quen";
       d.innerHTML = nho ? SVG_V : SVG_X;
+      d.className = "the-dau " + (nho ? "nho" : "quen");
     }
-    d.className = "the-dau " + (nho ? "nho" : "quen");
     d.style.opacity = String(Math.max(0, Math.min(1, do_)));
   }
 
@@ -123,7 +123,45 @@
    */
   function gan(khung, ch) {
     let dang = null, vuaKeo = false, tapCuoi = null;
+    // Gộp cập nhật hình theo khung hình (chuột bắn nhiều sự kiện hơn số khung mắt thấy).
+    let cho = 0, moi = null, daoCu = "";
+    const ve = () => {
+      cho = 0;
+      const m = moi, d = dang;
+      if (!m || !d || !d.keo) return;
+      const { dx, dy } = m;
+      if (d.truc === "doc") {
+        // Thẻ nhún theo chuột có lực cản; nhãn nổi lên ở phía kéo tới.
+        const k = Math.max(-80, Math.min(80, dy * 0.45));
+        khung.style.transform = "translateY(" + k.toFixed(1) + "px)";
+        const len = dy < 0, nhan = len ? ch.nhanLen : ch.nhanXuong;
+        const g = goiCua(khung);
+        if (nhan && ((len && ch.len) || (!len && ch.xuong))) {
+          if (g.textContent !== nhan) g.textContent = nhan;
+          const lop = "the-goi " + (len ? "len" : "xuong");
+          if (g.className !== lop) g.className = lop;
+          g.style.opacity = String(Math.max(0, Math.min(1, Math.abs(dy) / NGUONG_DOC)).toFixed(2));
+        } else g.style.opacity = "0";
+        return;
+      }
+      const duoc = d.duoc;
+      // Chưa được chấm: thẻ chỉ nhích nhẹ, có lực cản — đủ để thấy là "chưa".
+      const k = duoc ? dx : dx * 0.18;
+      khung.style.transform = "translate(" + k.toFixed(1) + "px," + (dy * 0.15).toFixed(1) + "px) rotate(" + (k / 20).toFixed(2) + "deg)";
+      if (duoc) {
+        const nho = dx > 0, do_ = Math.abs(dx) / NGUONG;
+        const dao = nho ? "nho" : "quen";
+        // Đổi lớp trên thẻ làm tính lại style cả cây con của nó: chỉ làm khi đổi chiều.
+        if (daoCu !== dao) {
+          daoCu = dao;
+          khung.classList.toggle("keo-nho", nho);
+          khung.classList.toggle("keo-quen", !nho);
+        }
+        datDau(dauCua(khung), nho, do_);
+      }
+    };
     const tra = (muot) => {
+      moi = null; daoCu = "";
       khung.style.transition = muot ? "transform .22s cubic-bezier(.2,.9,.3,1)" : "none";
       khung.style.transform = "";
       khung.classList.remove("dang-keo", "keo-nho", "keo-quen");
@@ -156,31 +194,11 @@
         if (sel && sel.removeAllRanges) sel.removeAllRanges();
         khung.classList.add("dang-keo");
         khung.style.transition = "none";
+        dang.duoc = dang.truc === "ngang" && ch.duocKeo();
       }
       dang.dx = dx; dang.dy = dy;
-      if (dang.truc === "doc") {
-        // Thẻ nhún theo chuột có lực cản; nhãn nổi lên ở phía kéo tới.
-        const k = Math.max(-80, Math.min(80, dy * 0.45));
-        khung.style.transform = "translateY(" + k.toFixed(1) + "px)";
-        const len = dy < 0, nhan = len ? ch.nhanLen : ch.nhanXuong;
-        const g = goiCua(khung);
-        if (nhan && ((len && ch.len) || (!len && ch.xuong))) {
-          g.textContent = nhan;
-          g.className = "the-goi " + (len ? "len" : "xuong");
-          g.style.opacity = String(Math.max(0, Math.min(1, Math.abs(dy) / NGUONG_DOC)));
-        } else g.style.opacity = "0";
-        return;
-      }
-      const duoc = ch.duocKeo();
-      // Chưa được chấm: thẻ chỉ nhích nhẹ, có lực cản — đủ để thấy là "chưa".
-      const k = duoc ? dx : dx * 0.18;
-      khung.style.transform = "translate(" + k.toFixed(1) + "px," + (dy * 0.15).toFixed(1) + "px) rotate(" + (k / 20).toFixed(2) + "deg)";
-      if (duoc) {
-        const nho = dx > 0, do_ = Math.abs(dx) / NGUONG;
-        khung.classList.toggle("keo-nho", nho);
-        khung.classList.toggle("keo-quen", !nho);
-        datDau(dauCua(khung), nho, do_);
-      }
+      moi = { dx: dx, dy: dy };
+      if (!cho) cho = requestAnimationFrame(ve);
     });
     const xong = (e, huy) => {
       if (!dang || e.pointerId !== dang.id) return;
@@ -221,6 +239,11 @@
     };
     khung.addEventListener("pointerup", (e) => xong(e, false));
     khung.addEventListener("pointercancel", (e) => xong(e, true));
+    // Bấm giữ rồi kéo trên chữ đã bôi/ảnh/liên kết thì trình duyệt (nhất là macOS) bắt đầu KÉO-THẢ
+    // NGUYÊN BẢN và huỷ chuỗi sự kiện chuột (pointercancel) — cử chỉ chết giữa chừng. Chặn nó khi
+    // đang theo dõi một cú bấm, và chặn bôi chọn chữ khi đã chốt là đang vuốt.
+    khung.addEventListener("dragstart", (e) => { if (dang) e.preventDefault(); });
+    khung.addEventListener("selectstart", (e) => { if (dang && dang.keo) e.preventDefault(); });
     // Nhả chuột sau cú kéo cũng sinh một `click` — nuốt nó, kẻo bấm trúng nút dưới tay.
     khung.addEventListener("click", (e) => { if (vuaKeo) { e.stopPropagation(); e.preventDefault(); } }, true);
   }
