@@ -3129,7 +3129,30 @@ function nutGemini(it, tenSo) {
   return b;
 }
 
+/**
+ * Chuẩn hoá một đường link nguồn người dùng dán vào, và CHỮA link đã lưu sai.
+ *
+ * Bản cũ gặp thứ gì không bắt đầu bằng http(s):// cũng gắn "https://" lên đầu — kể cả
+ * `file:///Users/.../x.pdf` của một PDF trên ổ đĩa, thành `https://file///Users/...` rồi không mở
+ * được nữa. Giờ: đã có scheme (file:, http:, https:, chrome-extension:…) thì giữ nguyên; chỉ link
+ * trần kiểu `example.com/trang` mới được thêm https://. Link đã lưu hỏng đúng kiểu trên
+ * (`https://file///…`, `https://file:///…`, `http://file/…`) được trả về dạng `file:///…`.
+ */
+function chuanHoaUrl(u) {
+  let s = String(u || "").trim();
+  if (!s) return "";
+  const hong = /^https?:\/\/file:?\/+(.*)$/i.exec(s);
+  if (hong) return "file:///" + hong[1].replace(/^\/+/, "");
+  // Đường dẫn trần của máy: Windows `C:\Users\a b.pdf` hoặc macOS/Linux `/Users/a b.pdf` → file:///…
+  if (/^[a-z]:[\\/]/i.test(s)) return "file:///" + encodeURI(s.replace(/\\/g, "/")).replace(/#/g, "%23");
+  if (/^\/[^/]/.test(s)) return "file://" + encodeURI(s);
+  if (/^[a-z][a-z0-9+.\-]*:/i.test(s) && !/^[a-z0-9.\-]+:\d+(\/|$)/i.test(s)) return s;   // đã có scheme (không phải host:port)
+  return "https://" + s;
+}
+
 function openSourceExt(it) {
+  // Link đã lưu sai kiểu `https://file///…` thì chữa lại trước khi mở.
+  if (it && it.src && it.src.url) { const u = chuanHoaUrl(it.src.url); if (u !== it.src.url) it = Object.assign({}, it, { src: Object.assign({}, it.src, { url: u }) }); }
   // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn đều đi qua đây.
   // Đặt ở nút thì sớm muộn có một lối quên, và quên thì không có gì báo.
   dungDongHo();
@@ -3147,7 +3170,7 @@ async function addLink(it) {
   const cur = (it.src && it.src.url) || "";
   let url = (prompt('Dán đường link trang nguồn cho “' + it.word + '”\n(để trống rồi OK = xoá link):', cur) || "").trim();
   if (url === cur) return;
-  if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;   // tự thêm https:// nếu thiếu
+  if (url) url = chuanHoaUrl(url);   // tự thêm https:// nếu thiếu; file:// giữ nguyên
   await capNhat((nb) => {
     const e = nb[it.key]; if (!e || e.del) return;
     const ne = Object.assign({}, e, { ts: Date.now() });
