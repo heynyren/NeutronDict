@@ -1272,8 +1272,10 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
 /* Hàng sổ tay: ngón tay đi ngang thuộc về hàng (kéo xoá / mở link), đi dọc vẫn cuộn danh sách. */
 .entry { position: relative; touch-action: pan-y; }
 .entry.hang-keo { cursor: grabbing; user-select: none; -webkit-user-select: none; will-change: transform; z-index: 1; }
-.entry.keo-xoa { box-shadow: inset 0 0 0 999px rgba(209, 60, 60, calc(var(--do, 0) * 0.16)); }
-.entry.keo-link { box-shadow: inset 0 0 0 999px rgba(26, 115, 232, calc(var(--do, 0) * 0.14)); }
+/* Lớp màu phủ hàng khi kéo: chỉ đổi opacity (không vẽ lại hàng) — trước đây là box-shadow inset khổng lồ + biến CSS, vừa nặng vừa làm tính lại style cả hàng mỗi lần chuột nhích. */
+.hang-nen { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; border-radius: inherit; }
+.hang-nen.xoa { background: rgb(209, 60, 60); }
+.hang-nen.link { background: rgb(26, 115, 232); }
 .hang-dau {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
   padding: 6px 14px; border-radius: 999px; color: #fff; font-size: 13px; font-weight: 700;
@@ -1281,3 +1283,8 @@ details.box .boxbody { display: flex; flex-direction: column; gap: 10px; padding
 }
 .hang-dau.xoa { left: 12px; background: var(--bad); }
 .hang-dau.link { right: 12px; background: #1a73e8; }
+
+/* Nhắc người học khi bấm phím/vuốt trên bài điền khuyết (vốn không chấm bằng các thao tác ấy): lắc nhẹ bốn ô. */
+.dien-o.nhac { animation: dien-nhac .4s ease-out; }
+@keyframes dien-nhac { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 45% { transform: translateX(6px); } 70% { transform: translateX(-3px); } }
+@media (prefers-reduced-motion: reduce) { .dien-o.nhac { animation: none; } }

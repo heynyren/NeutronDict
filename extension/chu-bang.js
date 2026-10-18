@@ -2134,6 +2134,9 @@
   en["Từ này chưa có link nguồn"] = "This word has no source link";
   ja["Từ này chưa có link nguồn"] = "この単語には出典リンクがありません";
 
+  en["Bài điền khuyết: hãy chọn một trong các ô (phím 1–4)"] = "Fill-in-the-blank: pick one of the options (keys 1–4)";
+  ja["Bài điền khuyết: hãy chọn một trong các ô (phím 1–4)"] = "穴埋め問題：選択肢から1つ選んでください（キー1〜4）";
+
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

@@ -179,6 +179,56 @@ console.log("\nThẻ học: bài điền khuyết KHÔNG cử chỉ nào lộ đ
   await page.keyboard.press("Escape"); await cho(300);
 }
 
+console.log("\nBài điền khuyết rồi sang thẻ thường: không được kẹt trạng thái");
+{
+  // Lỗi người dùng báo: "một vài từ Space/F/J/vuốt không ăn rồi một lúc tự hết". Nguyên nhân là
+  // `baiDien` không được xoá khi rời bài điền khuyết bằng › / ‹ / đóng buổi học.
+  await sw.evaluate(async (now) => {
+    const NGAY = 86400000;
+    const mk = (w, extra) => Object.assign({ word: w, dict: "javi", means: [w + "-nghĩa"], ts: now, srs: { lv: 2, due: now - NGAY, ts: now },
+      src: { url: "https://x.test/" + w, title: "t", sel: w },
+      duong: { nhin: { lv: 3, ngay: 3, net: 2, sai: 0, due: now - NGAY, ts: now - 5 * NGAY } } }, extra || {});
+    const dien = { cauNghe: { cau: "庭に猫がいます。", dich: "Có mèo trong vườn.", ts: now },
+      duong: { nhin: { lv: 3, ngay: 14, net: 2, sai: 0, due: now + 5 * NGAY, ts: now - 20 * NGAY },
+               nghe: { lv: 3, ngay: 14, net: 2, sai: 0, due: now + 5 * NGAY, ts: now - 20 * NGAY },
+               dien: { lv: 2, ngay: 7, net: 2, sai: 0, due: now - NGAY, ts: now - 8 * NGAY } } };
+    await chrome.storage.local.set({ notebook: { "javi:猫": mk("猫", dien), "javi:犬": mk("犬"), "javi:鳥": mk("鳥"), "javi:魚": mk("魚"), "javi:馬": mk("馬") } });
+  }, now);
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll(".entry").length >= 5);
+  await page.evaluate(() => { window.__log = []; openSource = (it) => window.__log.push("nguon:" + it.word); moGemini = (it) => window.__log.push("gemini:" + it.word); });
+  await page.click("#study");
+  await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
+  await cho(500);
+  // Ép thẻ bài điền khuyết lên đầu hàng, rồi bỏ qua nó bằng › (boQuaThe).
+  await page.evaluate(() => { const i = session.queue.findIndex((x) => x._d === "dien"); const [x] = session.queue.splice(i, 1); session.queue.unshift(x); showCard(); });
+  await cho(450);
+  soat("đang ở một thẻ bài điền khuyết", await page.evaluate(() => !!baiDien));
+  await page.evaluate(() => document.getElementById("stSau").click()); await cho(400);
+  const sang = await page.evaluate(() => ({ dien: !!baiDien, w: theCardHienTai().word, d: theCardHienTai()._d }));
+  soat("sang thẻ thường bằng ›: trạng thái bài điền khuyết đã được xoá", !sang.dien && sang.d !== "dien", JSON.stringify(sang));
+  const t0 = await trang();
+  await page.keyboard.press("j"); await cho(700); await detMung(); await cho(300);
+  const t1 = await trang();
+  soat("phím J chấm được ngay trên thẻ thường đó", t1.d === t0.d + 1, JSON.stringify(t1));
+  // Đóng buổi học GIỮA bài điền khuyết rồi mở lại
+  await page.evaluate(() => { const i = session.queue.findIndex((x) => x._d === "dien"); if (i > 0) { const [x] = session.queue.splice(i, 1); session.queue.unshift(x); } showCard(); });
+  await cho(450);
+  await page.keyboard.press("Escape"); await cho(400);
+  await page.evaluate(() => { document.getElementById("studyOverlay").classList.remove("show"); });
+  await page.click("#study");
+  await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
+  await cho(500);
+  const w = await page.evaluate(() => ({ dien: !!baiDien, d: theCardHienTai()._d }));
+  if (w.d !== "dien") {
+    const t2 = await trang();
+    await page.keyboard.press("Space"); await cho(200);
+    soat("mở lại buổi học sau khi đóng giữa bài điền khuyết: Space lật thẻ bình thường", (await trang()).grade !== "none" || (await trang()).ls > t2.ls);
+  } else soat("(thẻ đầu lại là bài điền khuyết — bỏ qua kiểm tra này)", true);
+  await page.keyboard.press("Escape"); await cho(300);
+  await page.evaluate(() => { document.getElementById("studyOverlay").classList.remove("show"); });
+}
+
 /* ------------------------------------------------------------------ */
 console.log("\nSổ tay: nhấp đúp, kéo phải xoá, kéo trái mở link");
 await gieo(nbBase());
@@ -210,7 +260,7 @@ const hang = (w) => page.evaluate((w) => {
   soat("kéo phải ngắn (90px) không làm gì", !!(await hang("犬")) && !!(await doc("犬")) && !(await doc("犬")).del);
   await page.mouse.move(h.x + 40, h.y + h.h - 8); await page.mouse.down();
   await page.mouse.move(h.x + 40 + 140, h.y + h.h - 8, { steps: 8 });
-  const mid = await page.evaluate(() => { const e = document.querySelector("#list .entry.hang-keo"); return e ? { xoa: e.classList.contains("keo-xoa"), dau: (e.querySelector(".hang-dau.xoa") || {}).textContent, op: Number((e.querySelector(".hang-dau.xoa") || { style: {} }).style.opacity) } : null; });
+  const mid = await page.evaluate(() => { const e = document.querySelector("#list .entry.hang-keo"); return e ? { xoa: /xoa/.test((e.querySelector(".hang-nen") || {}).className || "") && Number((e.querySelector(".hang-nen") || { style: {} }).style.opacity) > 0.05, dau: (e.querySelector(".hang-dau.xoa") || {}).textContent, op: Number((e.querySelector(".hang-dau.xoa") || { style: {} }).style.opacity) } : null; });
   soat("đang kéo phải: hàng đỏ dần và nổi nhãn “Xoá”", mid && mid.xoa && /Xoá/.test(mid.dau) && mid.op > 0.4, JSON.stringify(mid));
   await page.mouse.move(h.x + 40 + 320, h.y + h.h - 8, { steps: 8 });
   await page.mouse.up(); await cho(900);
