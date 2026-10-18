@@ -1408,7 +1408,7 @@ async function luuSua() {
   const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
   const ghiChu = $("edNote").value.trim();
   let link = $("edLink").value.trim();
-  if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;   // dán thiếu https:// thì tự thêm
+  if (link) link = chuanHoaUrl(link);   // dán thiếu https:// thì tự thêm; file:// giữ nguyên
 
   const doiNghia = await capNhat((nb) => {
     const e = nb[key];
@@ -1682,9 +1682,37 @@ function openYoutube(yt, chiaDoi) {
  * @param {boolean} [chiaDoi] mở ở cửa sổ riêng. Chỉ bật từ chế độ học — bấm
  *   link trong danh sách sổ tay mà bật thêm cửa sổ thì phiền.
  */
+/**
+ * Chuẩn hoá một đường link nguồn người dùng dán vào, và CHỮA link đã lưu sai.
+ *
+ * Bản cũ gặp thứ gì không bắt đầu bằng http(s):// cũng gắn "https://" lên đầu — kể cả
+ * `file:///Users/.../x.pdf` của một PDF trên ổ đĩa, thành `https://file///Users/...` rồi không mở
+ * được nữa. Giờ: đã có scheme (file:, http:, https:, chrome-extension:…) thì giữ nguyên; chỉ link
+ * trần kiểu `example.com/trang` mới được thêm https://. Link đã lưu hỏng đúng kiểu trên
+ * (`https://file///…`, `https://file:///…`, `http://file/…`) được trả về dạng `file:///…`.
+ */
+function chuanHoaUrl(u) {
+  let s = String(u || "").trim();
+  if (!s) return "";
+  const hong = /^https?:\/\/file:?\/+(.*)$/i.exec(s);
+  if (hong) return "file:///" + hong[1].replace(/^\/+/, "");
+  // Đường dẫn trần của máy: Windows `C:\Users\a b.pdf` hoặc macOS/Linux `/Users/a b.pdf` → file:///…
+  if (/^[a-z]:[\\/]/i.test(s)) return "file:///" + encodeURI(s.replace(/\\/g, "/")).replace(/#/g, "%23");
+  if (/^\/[^/]/.test(s)) return "file://" + encodeURI(s);
+  if (/^[a-z][a-z0-9+.\-]*:/i.test(s) && !/^[a-z0-9.\-]+:\d+(\/|$)/i.test(s)) return s;   // đã có scheme (không phải host:port)
+  return "https://" + s;
+}
+
 async function openSource(it, chiaDoi) {
   const src = it.src;
   if (!src || !src.url) return;
+  // Link đã lưu sai kiểu `https://file///…` thì chữa lại trước khi mở.
+  const daChua = chuanHoaUrl(src.url);
+  if (daChua !== src.url) it = Object.assign({}, it, { src: Object.assign({}, src, { url: daChua }) });
+  return moNguon(it, chiaDoi);
+}
+async function moNguon(it, chiaDoi) {
+  const src = it.src;
   // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn — nút trên thẻ,
   // phím cách, hay chỗ nào thêm sau này — đều đi qua đây. Đặt ở nút thì sớm muộn
   // có một lối quên, và quên thì không có gì báo. Ngoài buổi học thì nó vô hại:
