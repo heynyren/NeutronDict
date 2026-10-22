@@ -174,6 +174,8 @@
     "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.":
       "Keep it tight. Do not repeat back what I just gave you.",
     "Hỏi Gemini": "Ask Gemini",
+    "Hỏi Gemini về từ này — link đoạn chat sẽ lưu vào mục trong sổ tay": "Ask Gemini about this word — the chat link is saved to its notebook entry",
+    "Hỏi Gemini về từ này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)": "Ask Gemini about this word (save it first to keep the chat link)",
     "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "Ask Gemini about this word, with the context you saved",
 
     /* --- khung chung --- */
@@ -1168,6 +1170,8 @@
     "6. Một mẹo ngắn để tôi nhớ được lâu.": "6. 長く覚えておくための短いコツを一つ。",
     "Trả lời gọn. Đừng chép lại những gì tôi vừa đưa.": "簡潔に。今渡した情報をそのまま繰り返さないでください。",
     "Hỏi Gemini": "Gemini に聞く",
+    "Hỏi Gemini về từ này — link đoạn chat sẽ lưu vào mục trong sổ tay": "この語について Gemini に聞く — チャットのリンクはノートの項目に保存されます",
+    "Hỏi Gemini về từ này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)": "この語について Gemini に聞く(先に保存するとチャットのリンクが残ります)",
     "Hỏi Gemini về từ này kèm ngữ cảnh đã lưu": "保存した文脈つきで、この語について Gemini に聞く",
 
     /* --- khung chung --- */

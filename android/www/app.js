@@ -3577,14 +3577,24 @@ function veHangNb(it, decks, activeDecks, now) {
   });
   sel.value = it.deck && deckName(decks, it.deck) ? it.deck : NONE;
   sel.addEventListener("change", async () => {
+    /* Từ đang nằm trong nhóm đã tick thì cả nhóm đi cùng. */
+    const keys = chonNb.has(it.key) && chonNb.size > 1 ? Array.from(chonNb) : [it.key];
+    const dich = sel.value;
     await capNhat((nb) => {
-      const e = nb[it.key]; if (!e) return;
-      const ne = Object.assign({}, e, { ts: Date.now() });
-      if (sel.value === NONE) delete ne.deck; else ne.deck = sel.value;
-      nb[it.key] = ne;
+      for (const k of keys) {
+        const e = nb[k]; if (!e) continue;
+        const ne = Object.assign({}, e, { ts: Date.now() });
+        if (dich === NONE) delete ne.deck; else ne.deck = dich;
+        nb[k] = ne;
+      }
     });
-    if (sel.value === NONE) delete it.deck; else it.deck = sel.value;
-    taiChoNb(it); syncSoon();
+    for (const k of keys) {
+      const m = nbCtx.items.find((x) => x.key === k);
+      if (!m) continue;
+      if (dich === NONE) delete m.deck; else m.deck = dich;
+      taiChoNb(m);
+    }
+    syncSoon();
   });
   ctl.appendChild(sel);
 

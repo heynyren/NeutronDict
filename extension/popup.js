@@ -420,7 +420,7 @@ async function renderWord(res) {
         saved: !!(daCo && daCo.saved),
         mEdit: daCo && daCo.mEdit ? 1 : 0
       },
-      dau: (el) => {
+      dau: (el, dl) => {
         const w = document.createElement("span");
         w.className = "wja";
         w.textContent = en.word;
@@ -432,6 +432,9 @@ async function renderWord(res) {
           r.textContent = en.reading;
           el.appendChild(r);
         }
+        // Hỏi Gemini ngay cạnh nghĩa, khỏi đợi vào sổ tay. `dl` đọc lúc bấm
+        // nên nút Lưu bấm xong thì link đoạn chat được giữ luôn.
+        el.appendChild(nutGemini({ word: en.word, reading: en.reading || "", means: dl.means, kind: "word", dict: huong }, dl, "tu", huong));
       },
       veNghia: (el, dl) => {
         if (!dl.means.length) return;
@@ -665,19 +668,24 @@ function doTranslate(raw) {
  * Link đoạn chat chỉ gắn được khi câu này ĐÃ nằm trong sổ tay — chưa lưu thì
  * không có mục nào để gắn vào, nên lúc đó chỉ mở Gemini chứ không hứa suông.
  */
-function nutGemini(muc, daCo) {
+function nutGemini(muc, daCo, loai, tienTo) {
   const b = document.createElement("button");
   b.className = "iconbtn"; b.type = "button";
-  const daLuu = !!(daCo && daCo.saved);
-  b.title = daLuu
-    ? T("Hỏi Gemini về câu này — link đoạn chat sẽ lưu vào mục trong sổ tay")
-    : T("Hỏi Gemini về câu này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)");
+  const laTu = loai === "tu";
+  const tuaDe = () => (daCo && daCo.saved)
+    ? (laTu ? T("Hỏi Gemini về từ này — link đoạn chat sẽ lưu vào mục trong sổ tay")
+            : T("Hỏi Gemini về câu này — link đoạn chat sẽ lưu vào mục trong sổ tay"))
+    : (laTu ? T("Hỏi Gemini về từ này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)")
+            : T("Hỏi Gemini về câu này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)"));
+  b.title = tuaDe();
+  b.addEventListener("mouseenter", () => { b.title = tuaDe(); });
   b.appendChild(ic("sparkle", { size: 17 }));
   b.addEventListener("click", () => {
     if (!window.HoiGemini) return;
+    const daLuu = !!(daCo && daCo.saved);
     const loi = window.HoiGemini.loiHoi(muc, {});
     navigator.clipboard.writeText(loi).then(() => {
-      const khoa = daLuu ? (window.Ngu.nganChinh(NGU) + ":" + muc.word) : "";
+      const khoa = daLuu ? ((tienTo || window.Ngu.nganChinh(NGU)) + ":" + muc.word) : "";
       const moThang = () => {
         try { window.open(window.HoiGemini.GOC_URL, "_blank", "noopener"); } catch (e) { /* bị chặn */ }
       };

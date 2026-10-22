@@ -1099,17 +1099,25 @@ function taiCho(it) {
 }
 
 async function moveWord(key, deckId) {
+  /* Từ đang nằm trong nhóm đã tick (từ 2 từ trở lên) thì cả nhóm đi cùng. */
+  const keys = chon.has(key) && chon.size > 1 ? Array.from(chon) : [key];
   await capNhat((nb) => {
-    const e = nb[key];
-    if (!e) return;
-    const ne = Object.assign({}, e, { ts: Date.now() });
-    if (deckId === NONE) delete ne.deck;
-    else ne.deck = deckId;
-    nb[key] = ne;
+    for (const k of keys) {
+      const e = nb[k];
+      if (!e) continue;
+      const ne = Object.assign({}, e, { ts: Date.now() });
+      if (deckId === NONE) delete ne.deck;
+      else ne.deck = deckId;
+      nb[k] = ne;
+    }
   });
-  const it = items.find((x) => x.key === key);
-  if (it) { if (deckId === NONE) delete it.deck; else it.deck = deckId; taiCho(it); }
-  else await load();
+  let thieu = false;
+  for (const k of keys) {
+    const it = items.find((x) => x.key === k);
+    if (it) { if (deckId === NONE) delete it.deck; else it.deck = deckId; taiCho(it); }
+    else thieu = true;
+  }
+  if (thieu) await load();
   syncSoon();
 }
 
