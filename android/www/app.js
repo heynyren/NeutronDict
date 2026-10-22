@@ -1290,7 +1290,38 @@ async function lookupViJa(word) {
   return themDoc([entry].concat(khac), 3);
 }
 
+/*
+ * Gói thuật ngữ chuyên ngành (Điện): nạp lười một lần, tra trước Google. Xem
+ * thuat-ngu.js về cách cân bằng với Google (từ chung / đoạn dài).
+ */
+let goiNapP = null;
+function napGoi() {
+  if (!goiNapP) {
+    goiNapP = Promise.all([["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"]].map(async (g) => {
+      try {
+        const r = await fetch(g[1]);
+        window.ThuatNgu.nap(g[0], await r.json());
+      } catch (e) { /* thiếu gói thì tra như cũ */ }
+    }));
+  }
+  return goiNapP;
+}
+
 async function lookup(word, dict) {
+  const w = (word || "").trim();
+  const entries = await lookupGoc(w, dict);
+  const ngu = (dict === "javi") ? "ja" : (dict === "envi" || dict === "auto") ? "en" : "";
+  if (!ngu || !w) return entries;
+  if (ngu === "en" && (!/[A-Za-z]/.test(w) || (entries[0] && entries[0].dict === "vien"))) return entries;
+  try {
+    await napGoi();
+    const kq = window.ThuatNgu.tron(entries, w, ngu);
+    if (kq !== entries && kq.length) lastLookupError = "";   // gói có đáp án thì thôi báo lỗi mạng
+    return kq;
+  } catch (e) { return entries; }
+}
+
+async function lookupGoc(word, dict) {
   const w = (word || "").trim();
   lastLookupError = "";
   if (!w) return [];
@@ -1301,7 +1332,7 @@ async function lookup(word, dict) {
   if (dict === "auto") {
     if (looksVietnamese(w)) dict = "vien";
     else {
-      const en = await lookup(w, "envi");
+      const en = await lookupGoc(w, "envi");
       if (en.length) return en;
       let src = "";
       try { const d = await gtxTranslateDetect(w, "en"); src = d.src; } catch (e) {}
@@ -1936,19 +1967,17 @@ let currentSrc = null;   // nguồn của lượt tra hiện tại, để lưu k
 function switchSub(name) {
   if (name === "detail" && ($("tabDetail").disabled || laNhat())) name = "word";
   if (name === "kanji" && !laNhat()) name = "word";
-  ["word", "detail", "kanji", "trans"].forEach((n) => {
-    const btn = { word: "tabWord", detail: "tabDetail", kanji: "tabKanji", trans: "tabTrans" }[n];
-    const pane = { word: "result", detail: "detail", kanji: "kanji", trans: "trans" }[n];
+  ["word", "detail", "kanji"].forEach((n) => {
+    const btn = { word: "tabWord", detail: "tabDetail", kanji: "tabKanji" }[n];
+    const pane = { word: "result", detail: "detail", kanji: "kanji" }[n];
     $(btn).classList.toggle("active", n === name);
     $(pane).style.display = n === name ? "" : "none";
   });
   if (name === "detail") renderDetail();
-  if (name === "trans") showTranslate(($("q").value || "").trim());
 }
 $("tabWord").addEventListener("click", () => switchSub("word"));
 $("tabDetail").addEventListener("click", () => switchSub("detail"));
 $("tabKanji").addEventListener("click", () => switchSub("kanji"));
-$("tabTrans").addEventListener("click", () => switchSub("trans"));
 
 /* ---- tab Hán tự (chỉ ở chế độ Nhật–Việt) ---- */
 /** Chữ này có phải chữ Hán không (gồm cả vùng mở rộng A và vùng tương thích). */
@@ -2061,15 +2090,17 @@ async function runLookup(word, src) {
     const lb = $("tabKanji").querySelector(".lb");
     if (lb) lb.textContent = T("Hán tự") + (chars.length ? " " + chars.length : "");
   }
-  switchSub(trongNhuCau(w) ? "trans" : "word");
+  switchSub("word");
 
-  // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ lượt gọi mạng
-  // đó đi, nhưng nói rõ vì sao tab Từ vựng trống.
-  if (w.length > 40) {
+  // Một ô cho cả từ lẫn câu (tab Dịch riêng đã bỏ — mọi thứ đều đi đường Google
+  // Dịch): đoạn / câu dài thì dịch cả đoạn, từ / cụm ngắn thì tra từ điển.
+  const laCau = trongNhuCau(w);
+  const nhanWord = $("tabWord").querySelector(".lb");
+  if (nhanWord) nhanWord.textContent = laCau ? T("Dịch") : T("Từ vựng");
+  if (laCau) {
     lastEntries = [];
     $("tabDetail").disabled = true;
-    trangThai($("result"), "article",
-      T("Đoạn này dài quá để tra như một từ."), T("Xem tab Dịch, hoặc gõ riêng từ cần tra."));
+    showTranslate(w);
     return;
   }
   trangThai($("result"), "spinner-gap", "Đang tra “" + w + "”…");
@@ -2079,13 +2110,10 @@ async function runLookup(word, src) {
   await renderWord(entries);
 }
 /**
- * Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì.
- *
- * Bản cũ dùng chính phép thử này để chọn CHỈ tra từ hay CHỈ dịch, và đoán sai
- * suốt. Nay cả ba tab đều có dữ liệu, đoán sai thì chỉ mất một cú chạm.
+ * Đoạn / câu (dịch cả đoạn) hay từ / cụm (tra từ điển).
  */
 function trongNhuCau(w) {
-  return w.length > 40 || /[.!?;\n]/.test(w);
+  return w.length > 40 || /[.!?;。！？；\n]/.test(w);
 }
 
 $("go").addEventListener("click", () => runLookup($("q").value));
@@ -2420,7 +2448,7 @@ async function translateText(text, dir) {
 }
 
 async function showTranslate(text) {
-  const box = $("trans");
+  const box = $("result");
   if (!text) { trangThai(box, "translate", T("Nhập hoặc dán đoạn cần dịch.")); return; }
   const srcSnap = (currentSrc && currentSrc.url) ? { url: currentSrc.url, title: currentSrc.title, sel: text } : null;
   trangThai(box, "spinner-gap", T("Đang dịch…"));
@@ -5105,7 +5133,6 @@ function gaiIcon() {
   gan("paste", "clipboard-text", "Dán &amp; tra");
   gan("tabWord", "book-open-text", "Từ vựng");
   gan("tabDetail", "article", "Chi tiết");
-  gan("tabTrans", "translate", "Dịch");
   gan("stSrc", "link-simple", "Mở nguồn", 15);
   gan("stGemini", "sparkle", "Hỏi Gemini", 15);
   gan("stEdit", "translate", "Sửa bản dịch", 15);

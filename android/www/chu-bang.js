@@ -216,6 +216,9 @@
       "Show a popup at the cursor as soon as you select text (web pages only, not PDFs)",
     "Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)":
       "Only show it while Ctrl is held (so the popup stays away when you just want to copy)",
+    "Bôi đen đoạn dài thì dịch cả đoạn bằng Google Dịch": "Translate a long selection as a whole with Google Translate",
+    "Dùng gói thuật ngữ chuyên ngành (Điện) trước Google Dịch": "Use the specialist glossary (Electrical) before Google Translate",
+    "Đoạn này dài quá để tra như một từ — hãy bôi đen riêng từ cần tra.": "This passage is too long to look up as a word — select the single word you need.",
     "Hiện tab": "Show the",
     "trong popup (dịch cả câu bằng Google Dịch)": "tab in the popup (whole-sentence translation via Google Translate)",
     "Bỏ qua tra từ điển khi bôi đen dài hơn": "Skip the dictionary when the selection is longer than",
@@ -1212,6 +1215,9 @@
       "テキストを選択したらカーソル位置にポップアップを出す（ウェブページのみ、PDF は対象外）",
     "Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)":
       "Ctrl を押しながら選択したときだけ出す（コピーしたいだけのときに邪魔にならない）",
+    "Bôi đen đoạn dài thì dịch cả đoạn bằng Google Dịch": "長い範囲を選択したら Google 翻訳で全体を訳す",
+    "Dùng gói thuật ngữ chuyên ngành (Điện) trước Google Dịch": "Google 翻訳より先に専門用語集(電気)を使う",
+    "Đoạn này dài quá để tra như một từ — hãy bôi đen riêng từ cần tra.": "長すぎて1語として検索できません。調べたい語だけを選択してください。",
     "Hiện tab": "ポップアップに",
     "trong popup (dịch cả câu bằng Google Dịch)": "タブを表示（Google 翻訳で文全体を訳す）",
     "Bỏ qua tra từ điển khi bôi đen dài hơn": "選択範囲がこれより長いときは辞書を引かない",

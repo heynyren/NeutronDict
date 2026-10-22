@@ -9,6 +9,7 @@ importScripts("pdf-source.js");
 importScripts("web-context.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
+importScripts("thuat-ngu.js"); // self.ThuatNgu — gói thuật ngữ chuyên ngành, tra trước Google
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
 // NeutronDict — service worker (nền).
@@ -268,6 +269,44 @@ async function openPopupWindow(rawText, tab, captured) {
       await chrome.tabs.create({ url: opts.url });
     }
   }
+}
+
+// ==== Gói thuật ngữ chuyên ngành ====
+/*
+ * Nạp LƯỜI, đúng một lần cho mỗi lần service worker thức dậy: ~0,5MB JSON, vài
+ * chục mili-giây. Không nạp ở lúc khởi động để khỏi chậm những lượt tra đầu tiên
+ * của người không dùng ngành nào cả.
+ */
+let goiNap = null;
+function napGoi() {
+  if (!goiNap) {
+    goiNap = Promise.all([["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"]].map(async (g) => {
+      try {
+        const r = await fetch(chrome.runtime.getURL(g[1]));
+        self.ThuatNgu.nap(g[0], await r.json());
+      } catch (e) { /* thiếu gói thì tra như cũ, không hỏng gì */ }
+    }));
+  }
+  return goiNap;
+}
+let goiBatMem = null;
+chrome.storage.onChanged.addListener((ch, vung) => {
+  if (vung === "local" && ch.settings) goiBatMem = null;
+});
+async function goiBat() {
+  if (goiBatMem === null) {
+    const { settings } = await chrome.storage.local.get("settings").catch(() => ({}));
+    goiBatMem = (settings || {}).goiDien !== false;
+  }
+  return goiBatMem;
+}
+/** Trộn gói vào kết quả tra từ. `dict`: javi / envi / auto… — chỉ hai chiều xuôi có gói. */
+async function tronGoi(entries, word, dict) {
+  const ngu = (dict === "javi" || dict === "jvi") ? "ja" : (dict === "envi" || dict === "auto") ? "en" : "";
+  if (!ngu || !(await goiBat())) return entries;
+  await napGoi();
+  if (ngu === "en" && (!/[A-Za-z]/.test(word) || (entries[0] && entries[0].dict === "vien"))) return entries;   // "auto" gặp tiếng Việt
+  return self.ThuatNgu.tron(entries, word, ngu);
 }
 
 // ==== Tin nhắn ====
@@ -1622,9 +1661,10 @@ async function handleLookup(rawWord, dict, chiHanTu) {
   const now = Date.now();
   if (hit && (now - (hit.ts || 0) < CACHE_TTL)) {
     const kC = ks(), nb = await nbP;
+    const eC = await tronGoi(hit.entries, word, dict);
     return {
-      ok: true, word, dict, entries: hit.entries, kanji: kC,
-      saved: savedKeys(hit.entries, dict, nb), savedKanji: savedKanji(kC, nb), cached: true
+      ok: true, word, dict, entries: eC, kanji: kC,
+      saved: savedKeys(eC, dict, nb), savedKanji: savedKanji(kC, nb), cached: true
     };
   }
 
@@ -1635,9 +1675,10 @@ async function handleLookup(rawWord, dict, chiHanTu) {
     demTra.ghi();
   }
   const kR = ks(), nb = await nbP;
+  const eR = await tronGoi(entries, word, dict);
   return {
-    ok: true, word, dict, entries, kanji: kR,
-    saved: savedKeys(entries, dict, nb), savedKanji: savedKanji(kR, nb)
+    ok: true, word, dict, entries: eR, kanji: kR,
+    saved: savedKeys(eR, dict, nb), savedKanji: savedKanji(kR, nb)
   };
 }
 

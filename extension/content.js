@@ -117,6 +117,7 @@
       .defs { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
       .pos { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent-2); margin-right: 5px; text-transform: lowercase; }
       .ex { color: var(--ink-3); font-style: italic; }
+      .spk.gm { color: var(--accent); }
 
       /* Thanh tab — cùng kiểu với popup trên thanh công cụ, để bôi đen trên
          trang hay bấm biểu tượng cũng ra một thứ quen mắt. */
@@ -252,6 +253,44 @@
     return b;
   }
 
+  /**
+   * Nút hỏi Gemini cạnh từ / câu — khỏi phải lưu rồi vào sổ tay mới hỏi được.
+   *
+   * Câu hỏi đi qua BỘ NHỚ TẠM (Gemini không còn đọc `?q=`). Link đoạn chat chỉ gắn
+   * được khi mục ĐÃ có trong sổ, nên `dl.saved` được đọc lúc bấm chứ không phải lúc
+   * dựng nút: bấm Lưu xong rồi hỏi là link được giữ luôn.
+   */
+  function nutGemini(muc, dl, tienTo, laTu) {
+    const b = document.createElement("button");
+    b.className = "spk gm"; b.type = "button";
+    const tip = () => dl.saved
+      ? (laTu ? T("Hỏi Gemini về từ này — link đoạn chat sẽ lưu vào mục trong sổ tay")
+              : T("Hỏi Gemini về câu này — link đoạn chat sẽ lưu vào mục trong sổ tay"))
+      : (laTu ? T("Hỏi Gemini về từ này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)")
+              : T("Hỏi Gemini về câu này (lưu vào sổ trước thì link đoạn chat mới được giữ lại)"));
+    b.title = tip();
+    b.addEventListener("mouseenter", () => { b.title = tip(); });
+    b.appendChild(ic("sparkle", 16));
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!self.HoiGemini) return;
+      const loi = self.HoiGemini.loiHoi(muc, {});
+      navigator.clipboard.writeText(loi).then(() => {
+        const khoa = dl.saved ? (tienTo + ":" + muc.word) : "";
+        const moThang = () => {
+          try { window.open(self.HoiGemini.GOC_URL, "_blank", "noopener"); } catch (err) { /* trình duyệt chặn */ }
+        };
+        // Song.gui nuốt lastError rồi; lỗi về qua tham số thứ hai, và gui() trả
+        // false khi nền đã chết (callback không bao giờ được gọi).
+        const di = self.Song.gui({ type: "MO_GEMINI", key: khoa }, (kq, loiNen) => {
+          if (loiNen || !kq) moThang();
+        });
+        if (!di) moThang();
+      }).catch(() => {});
+    });
+    return b;
+  }
+
   const _audioCache = new Map();
   function getAudio(url) {
     let a = _audioCache.get(url);
@@ -302,7 +341,7 @@
 
   /** Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì. */
   function trongNhuCau(text) {
-    return text.length > 40 || /[.!?;\n]/.test(text);
+    return text.length > 40 || /[.!?;。！？；\n]/.test(text);
   }
 
   /** Dựng khung tab. Trả về { o, nut, moTab } — `o` là các ô nội dung. */
@@ -338,7 +377,6 @@
     // cái luôn rỗng.
     if (laNhat()) them("kanji", T("Hán tự"), "text-aa");
     else them("detail", T("Chi tiết"), "article");
-    if (coDich) them("trans", T("Dịch"), "translate");
 
     function moTab(id) {
       if (!panes[id]) return;
@@ -561,7 +599,7 @@
     if (!entries.length) {
       pane.appendChild(trangThai(
         (res && res.error) ? T2("Lỗi: {loi}", { loi: res.error })
-          : (res && res.quaDai) ? T("Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc bôi đen riêng từ cần tra.")
+          : (res && res.quaDai) ? T("Đoạn này dài quá để tra như một từ — hãy bôi đen riêng từ cần tra.")
           : T("Không tìm thấy từ này trong từ điển."),
         "warning-circle"));
       return;
@@ -583,9 +621,10 @@
           saved: !!(daCo && daCo.saved),
           mEdit: daCo && daCo.mEdit ? 1 : 0
         },
-        dau: (el) => {
+        dau: (el, dl) => {
           const w = document.createElement("span"); w.className = "w"; w.textContent = en.word; el.appendChild(w);
           el.appendChild(nutLoa(en.word, en.audio));
+          el.appendChild(nutGemini({ word: en.word, reading: en.reading || "", means: dl.means, kind: "word", dict: huong, src: src }, dl, huong, true));
           if (en.reading) { const r = document.createElement("div"); r.className = "rd"; r.textContent = en.reading; el.appendChild(r); }
         },
         veNghia: (el, dl) => {
@@ -693,18 +732,20 @@
     const goc = [res.text];
     const daCo = res.saved || null;
     const muc = { word: text, reading: "", means: goc, kind: "sent", src: pageSrc(text) };
+    const dl0 = {
+      means: (daCo && daCo.mEdit ? daCo.means : goc),
+      note: (daCo && daCo.note) || "",
+      saved: !!(daCo && daCo.saved),
+      mEdit: daCo && daCo.mEdit ? 1 : 0
+    };
     theSuaDuoc(pane, {
-      dl: {
-        means: (daCo && daCo.mEdit ? daCo.means : goc),
-        note: (daCo && daCo.note) || "",
-        saved: !!(daCo && daCo.saved),
-        mEdit: daCo && daCo.mEdit ? 1 : 0
-      },
+      dl: dl0,
       // Bản dịch chính LÀ phần sửa được, nên phần đầu thẻ chỉ có nút nghe.
       dau: (el) => {
         const spk = nutLoa(engText, null);
         spk.title = T("Nghe câu tiếng Anh");
         el.appendChild(spk);
+        el.appendChild(nutGemini(muc, dl0, nganLuu(), false));
       },
       veNghia: (el, dl) => {
         const tr = document.createElement("div"); tr.className = "tr";
@@ -778,18 +819,28 @@
     const cuaToi = host;   // popup có thể bị đóng và mở lại trước khi mạng trả về
 
     const nhat = laNhat();
-    kh.o.word.appendChild(trangThai("Đang tra “" + text.slice(0, 24) + "”…"));
+    const quaDai = text.length > (S.maxLen || 40);
+    /*
+     * Một ô duy nhất cho cả từ lẫn câu (tab "Dịch" riêng đã bỏ: từ khi mọi thứ đi
+     * đường Google Dịch thì hai tab chỉ còn là một lượt gọi chia đôi):
+     *   - từ / cụm ngắn  → tra từ điển (gói thuật ngữ trước, Google sau);
+     *   - đoạn / câu dài → dịch cả đoạn, kèm thuật ngữ ngành mà bản dịch bỏ sót.
+     */
+    const laCau = coDich && (trongNhuCau(text) || quaDai);
+    if (laCau) {
+      const lb = kh.nut.word.querySelector("span");
+      if (lb) lb.textContent = T("Dịch");
+    }
+    kh.o.word.appendChild(trangThai(laCau ? T("Đang dịch…") : "Đang tra “" + text.slice(0, 24) + "”…"));
     if (nhat) kh.o.kanji.appendChild(trangThai(T("Đang đọc Hán tự…")));
     else kh.o.detail.appendChild(trangThai(T("Đang lấy chi tiết…")));
-    if (coDich) kh.o.trans.appendChild(trangThai(T("Đang dịch…")));
-    kh.moTab(trongNhuCau(text) && coDich ? "trans" : "word");
+    kh.moTab("word");
 
-    const quaDai = text.length > (S.maxLen || 40);
-    // Bôi đen cả đoạn văn thì tra nguyên đoạn như một từ chỉ tổ phí một lượt
-    // gọi mạng. Bên tiếng Anh thì thôi hẳn; bên tiếng Nhật vẫn hỏi, chỉ bảo
-    // service worker bỏ qua phần từ điển — vì Hán tự trong đoạn vẫn phải liệt kê.
+    // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng. Bên tiếng Anh thì bỏ
+    // hẳn; bên tiếng Nhật vẫn hỏi, chỉ bảo service worker bỏ qua phần từ điển —
+    // vì Hán tự trong đoạn vẫn phải liệt kê.
     if (quaDai && !nhat) {
-      veTuVung(kh.o.word, { quaDai: true }, text);
+      if (!laCau) veTuVung(kh.o.word, { quaDai: true }, text);
       veChiTiet(kh.o.detail, null);
       place(); requestAnimationFrame(place);
     } else {
@@ -801,7 +852,7 @@
             ? { error: (loi && loi.message) || T("Không tra được") }
             : res;
           if (nhat && quaDai) r.quaDai = true;
-          veTuVung(kh.o.word, r, text);
+          if (!laCau) veTuVung(kh.o.word, r, text);
           if (nhat) {
             veHanTu(kh.o.kanji, r);
             const n = ((r && r.kanji) || []).length;
@@ -813,12 +864,12 @@
         });
     }
 
-    if (coDich) {
+    if (laCau) {
       self.Song.gui(
         { type: "TRANSLATE", text: text, from: nhat ? "ja" : "auto", to: nhat ? "vi" : "" },
         (res, loi) => {
         if (host !== cuaToi) return;
-        veDich(kh.o.trans, (loi || !res)
+        veDich(kh.o.word, (loi || !res)
           ? { ok: false, error: (loi && loi.message) || T("Không dịch được") }
           : res, text);
         place(); requestAnimationFrame(place);

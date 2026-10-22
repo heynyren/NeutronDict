@@ -54,6 +54,8 @@ Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, 
 ## Nguồn dữ liệu
 
 - **Nghĩa & dịch câu (cả Anh và Nhật):** [Google Dịch](https://translate.google.com) (endpoint công khai `gtx`), dự phòng qua Apps Script (`LanguageApp`). Tiếng Nhật **không còn dùng Mazii**: nghĩa, các nghĩa theo loại từ và phiên âm La-tinh (nguồn dựng furigana) lấy chung trong **một** lượt gọi Google.
+- **Gói thuật ngữ chuyên ngành (Điện), tra TRƯỚC Google:** `extension/goi/dien-ja-vi.json` (~7.100 mục Nhật→Việt từ bộ dữ liệu 4 môn riron/kikai/denryoku/houki) và `dien-en-vi.json` (~830 mục Anh→Việt do Claude soạn, chưa có chuyên gia duyệt). Cân bằng với Google: từ/cụm chuyên ngành thì nghĩa của gói đứng trước, nghĩa Google nối sau; từ chung (あう, work, line…) thì Google đứng trước; bôi đen/dịch cả đoạn dài thì không đụng vào bản dịch của Google. Kết quả hiện như nghĩa bình thường, không dán nhãn. Tắt/bật ở Cài đặt (extension). Dựng lại gói bằng `cong-cu/dung-goi-dien.py` (Nhật) và `cong-cu/dung-goi-dien-en.py` (Anh, nguồn `cong-cu/du-lieu-goi/dien-en-vi.tsv`). Thêm ngành khác (IT, Y…) = thêm một tệp `goi/*.json` cùng khuôn.
+- **Popup / thẻ bôi đen không còn tab Dịch riêng:** một ô cho cả từ và câu (đoạn dài thì dịch cả đoạn bằng Google). Cạnh từ có nút ✨ Hỏi Gemini.
 - **Tốc độ tra:** hai cổng Google chạy *đua* (cổng treo thì cổng kia đi song song sau ~1 giây), Apps Script vào cuộc ngay khi Google chặn; tra từ và dịch cùng một từ dùng chung một lượt gọi; kết quả giữ trong RAM nên tra lại gần như tức thì.
 - **IPA, phát âm, định nghĩa, ví dụ, từ đồng nghĩa:** [Free Dictionary API](https://dictionaryapi.dev) (`api.dictionaryapi.dev`) — miễn phí, không cần API key.
 

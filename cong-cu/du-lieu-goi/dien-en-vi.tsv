@@ -1,0 +1,854 @@
+# Thuật ngữ ĐIỆN Anh→Việt. Mỗi dòng: tiếng Anh <TAB> nghĩa (cách nhau bằng ;) <TAB> dạng khác (cách nhau bằng |, tuỳ chọn)
+# Do Claude soạn từ kiến thức kỹ thuật điện phổ thông — CHƯA có chuyên gia duyệt. Sai chỗ nào thì sửa thẳng ở đây rồi chạy lại cong-cu/dung-goi-dien.py.
+# ---- Cơ bản / mạch điện ----
+voltage	điện áp	potential difference
+current	dòng điện
+resistance	điện trở
+resistor	điện trở (linh kiện)
+conductance	độ dẫn điện
+conductor	vật dẫn; dây dẫn
+insulator	chất cách điện; vật cách điện
+semiconductor	chất bán dẫn
+impedance	tổng trở
+reactance	điện kháng
+inductive reactance	cảm kháng
+capacitive reactance	dung kháng
+admittance	tổng dẫn
+susceptance	điện nạp
+capacitance	điện dung
+capacitor	tụ điện
+inductance	độ tự cảm; điện cảm
+inductor	cuộn cảm
+mutual inductance	hỗ cảm
+self-inductance	tự cảm
+coil	cuộn dây
+winding	cuộn dây (máy điện)
+electromotive force	sức điện động	emf
+magnetomotive force	sức từ động	mmf
+electric field	điện trường
+magnetic field	từ trường
+magnetic flux	từ thông
+magnetic flux density	mật độ từ thông; cảm ứng từ
+magnetic circuit	mạch từ
+reluctance	từ trở
+permeability	độ từ thẩm
+permittivity	hằng số điện môi; độ điện thẩm
+dielectric	chất điện môi
+hysteresis	từ trễ
+hysteresis loss	tổn hao từ trễ
+eddy current	dòng điện xoáy
+eddy current loss	tổn hao dòng điện xoáy
+core loss	tổn hao lõi thép; tổn hao sắt
+copper loss	tổn hao đồng
+iron loss	tổn hao sắt
+Ohm's law	định luật Ohm
+Kirchhoff's current law	định luật Kirchhoff về dòng điện	KCL
+Kirchhoff's voltage law	định luật Kirchhoff về điện áp	KVL
+Coulomb's law	định luật Coulomb
+Faraday's law	định luật Faraday
+Lenz's law	định luật Lenz
+Ampere's law	định luật Ampe
+Joule heating	nhiệt Joule
+superposition theorem	định lý xếp chồng
+Thevenin's theorem	định lý Thevenin
+Norton's theorem	định lý Norton
+maximum power transfer	truyền công suất cực đại
+time constant	hằng số thời gian
+transient response	đáp ứng quá độ
+transient	quá độ
+steady state	trạng thái xác lập
+resonance	cộng hưởng
+series resonance	cộng hưởng nối tiếp
+parallel resonance	cộng hưởng song song
+resonant frequency	tần số cộng hưởng
+quality factor	hệ số phẩm chất	Q factor
+bandwidth	băng thông; dải thông
+series circuit	mạch nối tiếp
+parallel circuit	mạch song song
+open circuit	hở mạch
+short circuit	ngắn mạch
+closed circuit	mạch kín
+node	nút
+branch	nhánh
+loop	vòng
+mesh	mắt lưới
+voltage divider	bộ chia áp
+current divider	bộ chia dòng
+voltage source	nguồn áp
+current source	nguồn dòng
+ideal source	nguồn lý tưởng
+internal resistance	nội trở; điện trở trong
+load	tải
+no-load	không tải
+full load	đầy tải
+overload	quá tải
+ground	đất; nối đất; mass
+earth	đất; nối đất
+grounding	nối đất
+earthing	nối đất
+neutral	trung tính; dây trung tính
+neutral point	điểm trung tính
+phase	pha
+line	đường dây; dây pha
+potential	điện thế
+potential difference	hiệu điện thế
+electric charge	điện tích
+charge	điện tích; sạc
+energy	năng lượng
+power	công suất
+work	công
+efficiency	hiệu suất
+# ---- Xoay chiều ----
+alternating current	dòng điện xoay chiều	AC
+direct current	dòng điện một chiều	DC
+frequency	tần số
+period	chu kỳ
+angular frequency	tần số góc
+amplitude	biên độ
+peak value	giá trị đỉnh
+peak-to-peak	đỉnh-đỉnh
+RMS value	giá trị hiệu dụng	root mean square|effective value
+average value	giá trị trung bình
+instantaneous value	giá trị tức thời
+phase angle	góc pha
+phase difference	độ lệch pha
+phase shift	dịch pha
+leading	sớm pha
+lagging	trễ pha
+in phase	cùng pha
+out of phase	lệch pha
+phasor	vectơ pha; phasor
+waveform	dạng sóng
+sine wave	sóng sin
+square wave	sóng vuông
+triangular wave	sóng tam giác
+sawtooth wave	sóng răng cưa
+harmonic	sóng hài; hài
+fundamental	thành phần cơ bản; sóng cơ bản
+total harmonic distortion	độ méo sóng hài tổng	THD
+distortion	méo; biến dạng
+power factor	hệ số công suất	PF
+active power	công suất tác dụng; công suất thực
+reactive power	công suất phản kháng
+apparent power	công suất biểu kiến
+complex power	công suất phức
+power triangle	tam giác công suất
+power factor correction	bù hệ số công suất; nâng cao hệ số công suất
+lagging power factor	hệ số công suất trễ
+leading power factor	hệ số công suất sớm
+single-phase	một pha
+three-phase	ba pha
+three-phase system	hệ thống ba pha
+balanced load	tải cân bằng
+unbalanced load	tải không cân bằng
+star connection	nối sao	wye connection|Y connection
+delta connection	nối tam giác	triangle connection
+line voltage	điện áp dây
+phase voltage	điện áp pha
+line current	dòng điện dây
+phase current	dòng điện pha
+phase sequence	thứ tự pha
+positive sequence	thứ tự thuận
+negative sequence	thứ tự nghịch
+zero sequence	thứ tự không
+symmetrical components	các thành phần đối xứng
+rectifier	bộ chỉnh lưu
+half-wave rectifier	chỉnh lưu nửa chu kỳ
+full-wave rectifier	chỉnh lưu toàn chu kỳ
+bridge rectifier	chỉnh lưu cầu
+smoothing	làm phẳng; lọc
+ripple	độ gợn sóng
+filter	bộ lọc
+low-pass filter	bộ lọc thông thấp
+high-pass filter	bộ lọc thông cao
+band-pass filter	bộ lọc thông dải
+band-stop filter	bộ lọc chắn dải
+# ---- Máy biến áp ----
+transformer	máy biến áp
+power transformer	máy biến áp lực
+distribution transformer	máy biến áp phân phối
+step-up transformer	máy biến áp tăng áp
+step-down transformer	máy biến áp hạ áp
+autotransformer	máy biến áp tự ngẫu
+instrument transformer	máy biến đổi đo lường
+current transformer	máy biến dòng	CT
+potential transformer	máy biến điện áp	voltage transformer|VT|PT
+isolation transformer	máy biến áp cách ly
+primary winding	cuộn sơ cấp
+secondary winding	cuộn thứ cấp
+tertiary winding	cuộn thứ ba
+turns ratio	tỉ số vòng dây; tỉ số biến áp
+transformation ratio	tỉ số biến đổi
+core	lõi thép
+laminated core	lõi thép ghép lá
+magnetizing current	dòng điện từ hóa
+excitation current	dòng điện kích từ
+leakage flux	từ thông tản
+leakage reactance	điện kháng tản
+equivalent circuit	sơ đồ tương đương
+open-circuit test	thí nghiệm không tải
+short-circuit test	thí nghiệm ngắn mạch
+voltage regulation	độ biến thiên điện áp; điều chỉnh điện áp
+tap changer	bộ đổi nấc
+on-load tap changer	bộ đổi nấc dưới tải	OLTC
+off-circuit tap changer	bộ đổi nấc không tải
+conservator	bình dầu phụ
+Buchholz relay	rơle khí (Buchholz)
+transformer oil	dầu máy biến áp
+bushing	sứ xuyên
+cooling	làm mát
+vector group	tổ đấu dây
+inrush current	dòng điện từ hóa đột biến; dòng xung kích
+# ---- Máy điện quay ----
+electric machine	máy điện
+rotating machine	máy điện quay
+motor	động cơ
+generator	máy phát điện
+alternator	máy phát điện xoay chiều
+DC motor	động cơ điện một chiều
+DC generator	máy phát điện một chiều
+induction motor	động cơ không đồng bộ	asynchronous motor
+squirrel-cage motor	động cơ lồng sóc	squirrel cage induction motor
+wound-rotor motor	động cơ rôto dây quấn	slip-ring motor
+synchronous motor	động cơ đồng bộ
+synchronous generator	máy phát điện đồng bộ
+synchronous machine	máy điện đồng bộ
+stator	stato
+rotor	rôto
+armature	phần ứng
+field winding	cuộn kích từ
+field	từ trường; kích từ
+excitation	kích từ
+exciter	máy kích từ
+commutator	cổ góp
+brush	chổi than
+slip ring	vành trượt
+air gap	khe hở không khí
+pole	cực từ
+pole pair	cặp cực
+salient pole	cực lồi
+cylindrical rotor	rôto cực ẩn
+shaft	trục
+bearing	ổ trục
+slip	độ trượt
+synchronous speed	tốc độ đồng bộ
+rated speed	tốc độ định mức
+torque	mômen
+starting torque	mômen khởi động
+breakdown torque	mômen cực đại
+pull-out torque	mômen cực đại
+rated torque	mômen định mức
+torque-speed characteristic	đặc tính mômen-tốc độ
+rotating magnetic field	từ trường quay
+back EMF	sức điện động ngược	counter EMF
+armature reaction	phản ứng phần ứng
+commutation	chuyển mạch
+shunt motor	động cơ kích từ song song
+series motor	động cơ kích từ nối tiếp
+compound motor	động cơ kích từ hỗn hợp
+separately excited	kích từ độc lập
+permanent magnet	nam châm vĩnh cửu
+permanent magnet motor	động cơ nam châm vĩnh cửu
+brushless DC motor	động cơ một chiều không chổi than	BLDC
+stepper motor	động cơ bước	stepping motor
+servo motor	động cơ servo
+linear motor	động cơ tuyến tính
+reluctance motor	động cơ từ trở
+single-phase motor	động cơ một pha
+capacitor-start motor	động cơ khởi động bằng tụ
+direct-on-line starting	khởi động trực tiếp	DOL starting
+star-delta starting	khởi động sao-tam giác
+soft starter	bộ khởi động mềm
+autotransformer starting	khởi động bằng máy biến áp tự ngẫu
+speed control	điều chỉnh tốc độ
+regenerative braking	hãm tái sinh
+dynamic braking	hãm động năng
+plugging	hãm ngược
+synchronization	hòa đồng bộ
+synchronizing	hòa đồng bộ
+parallel operation	vận hành song song
+hunting	dao động tốc độ; dao động lắc
+efficiency	hiệu suất
+rated power	công suất định mức
+rated voltage	điện áp định mức
+rated current	dòng điện định mức
+nameplate	nhãn máy; biển tên
+insulation class	cấp cách điện
+duty cycle	chu kỳ làm việc
+service factor	hệ số vận hành
+# ---- Điện tử công suất / biến tần ----
+power electronics	điện tử công suất
+inverter	bộ nghịch lưu; biến tần
+converter	bộ biến đổi
+chopper	bộ băm xung
+DC-DC converter	bộ biến đổi DC-DC
+buck converter	bộ giảm áp	step-down converter
+boost converter	bộ tăng áp	step-up converter
+buck-boost converter	bộ giảm-tăng áp
+AC-DC converter	bộ biến đổi AC-DC
+variable frequency drive	biến tần	VFD|variable speed drive|VSD|frequency inverter
+cycloconverter	bộ biến tần trực tiếp
+thyristor	thyristor
+SCR	thyristor	silicon controlled rectifier
+triac	triac
+diode	điốt
+Zener diode	điốt Zener
+Schottky diode	điốt Schottky
+light-emitting diode	điốt phát quang	LED
+transistor	tranzito
+bipolar junction transistor	tranzito lưỡng cực	BJT
+MOSFET	tranzito hiệu ứng trường MOS
+IGBT	tranzito lưỡng cực cổng cách ly
+GTO	thyristor tắt bằng cực cổng	gate turn-off thyristor
+gate	cực cổng
+gate drive	mạch điều khiển cổng
+collector	cực góp
+emitter	cực phát
+base	cực nền
+drain	cực máng
+source	cực nguồn
+anode	anốt
+cathode	catốt
+junction	tiếp giáp; mối nối
+p-n junction	tiếp giáp p-n
+forward bias	phân cực thuận
+reverse bias	phân cực ngược
+breakdown voltage	điện áp đánh thủng
+threshold voltage	điện áp ngưỡng
+saturation	bão hòa
+switching	đóng cắt; chuyển mạch
+switching loss	tổn hao đóng cắt
+conduction loss	tổn hao dẫn
+snubber	mạch bảo vệ dập xung; snubber
+heat sink	tản nhiệt
+pulse width modulation	điều chế độ rộng xung	PWM
+duty ratio	hệ số lấp đầy
+carrier frequency	tần số sóng mang
+dead time	thời gian chết
+freewheeling diode	điốt xả ngược; điốt xả	flyback diode
+DC link	mạch một chiều trung gian	DC bus
+uninterruptible power supply	nguồn điện liên tục	UPS
+switched-mode power supply	nguồn xung	SMPS|switching power supply
+power supply	nguồn cấp điện; bộ nguồn
+voltage regulator	bộ ổn áp
+linear regulator	bộ ổn áp tuyến tính
+battery	ắc quy; pin
+battery charger	bộ sạc ắc quy
+lead-acid battery	ắc quy axit-chì
+lithium-ion battery	pin lithium-ion
+cell	cell; pin đơn
+fuel cell	pin nhiên liệu
+supercapacitor	siêu tụ điện
+# ---- Hệ thống điện ----
+power system	hệ thống điện
+power plant	nhà máy điện
+power station	nhà máy điện
+generating station	nhà máy phát điện
+substation	trạm biến áp
+switchyard	sân phân phối; trạm đóng cắt
+transmission line	đường dây truyền tải
+distribution line	đường dây phân phối
+overhead line	đường dây trên không
+underground cable	cáp ngầm
+transmission	truyền tải
+distribution	phân phối
+generation	phát điện
+grid	lưới điện
+power grid	lưới điện
+interconnection	liên kết lưới
+busbar	thanh cái	bus bar|bus
+feeder	lộ ra; đường dây cấp
+high voltage	cao áp	HV
+extra high voltage	siêu cao áp	EHV
+ultra high voltage	cực cao áp	UHV
+medium voltage	trung áp	MV
+low voltage	hạ áp	LV
+rated voltage	điện áp định mức
+nominal voltage	điện áp danh định
+voltage drop	sụt áp
+voltage regulation	điều chỉnh điện áp
+voltage stability	ổn định điện áp
+voltage sag	sụt áp tức thời
+voltage swell	tăng áp tức thời
+voltage dip	sụt áp tức thời
+flicker	nhấp nháy điện áp
+frequency regulation	điều chỉnh tần số
+frequency stability	ổn định tần số
+load flow	phân bố công suất; trào lưu công suất	power flow
+load shedding	sa thải phụ tải
+load forecasting	dự báo phụ tải
+peak load	phụ tải đỉnh	peak demand
+base load	phụ tải nền
+demand	nhu cầu; phụ tải cực đại
+demand factor	hệ số nhu cầu
+load factor	hệ số phụ tải
+diversity factor	hệ số đồng thời
+utilization factor	hệ số sử dụng
+capacity factor	hệ số công suất khả dụng; hệ số tải
+power loss	tổn thất công suất
+line loss	tổn thất đường dây
+corona	vầng quang
+corona discharge	phóng điện vầng quang
+sag	độ võng
+tower	cột điện; tháp
+pole	cột điện
+insulator string	chuỗi sứ
+conductor	dây dẫn
+ACSR	dây nhôm lõi thép	aluminium conductor steel reinforced
+ground wire	dây chống sét	shield wire|earth wire
+lightning arrester	chống sét van	surge arrester
+surge arrester	chống sét van
+surge	xung; sóng quá điện áp
+overvoltage	quá điện áp
+undervoltage	thấp áp
+lightning	sét
+lightning strike	sét đánh
+switching surge	quá điện áp thao tác
+insulation coordination	phối hợp cách điện
+reactive power compensation	bù công suất phản kháng
+shunt capacitor	tụ bù ngang	capacitor bank
+shunt reactor	kháng điện bù ngang
+series capacitor	tụ bù dọc
+static var compensator	bộ bù tĩnh	SVC
+STATCOM	bộ bù đồng bộ tĩnh
+FACTS	hệ thống truyền tải xoay chiều linh hoạt
+HVDC	truyền tải điện một chiều cao áp
+power quality	chất lượng điện năng
+blackout	mất điện toàn bộ
+brownout	sụt giảm điện áp kéo dài
+outage	sự cố mất điện; ngừng điện
+reliability	độ tin cậy
+stability	ổn định
+transient stability	ổn định quá độ
+steady-state stability	ổn định tĩnh
+swing equation	phương trình dao động
+smart grid	lưới điện thông minh
+microgrid	lưới điện siêu nhỏ
+distributed generation	phát điện phân tán
+demand response	đáp ứng phụ tải
+energy storage	lưu trữ năng lượng
+pumped storage	thủy điện tích năng
+spinning reserve	dự phòng quay
+reserve margin	dự phòng công suất
+economic dispatch	phân bố kinh tế công suất
+unit commitment	huy động tổ máy
+power flow	trào lưu công suất
+per unit	đơn vị tương đối	p.u.
+per-unit system	hệ đơn vị tương đối
+base value	giá trị cơ sở
+short-circuit current	dòng điện ngắn mạch
+short-circuit capacity	công suất ngắn mạch
+fault current	dòng điện sự cố
+fault level	mức ngắn mạch
+symmetrical fault	ngắn mạch đối xứng
+unsymmetrical fault	ngắn mạch không đối xứng
+line-to-ground fault	ngắn mạch một pha chạm đất
+line-to-line fault	ngắn mạch hai pha
+double line-to-ground fault	ngắn mạch hai pha chạm đất
+three-phase fault	ngắn mạch ba pha
+ground fault	sự cố chạm đất	earth fault
+open-phase	đứt pha; mất pha
+phase loss	mất pha
+neutral grounding	nối đất trung tính
+solidly grounded	nối đất trực tiếp
+resistance grounded	nối đất qua điện trở
+reactance grounded	nối đất qua điện kháng
+Petersen coil	cuộn dập hồ quang	arc suppression coil
+ungrounded	trung tính cách ly
+# ---- Thủy điện / nhiệt điện / năng lượng ----
+hydroelectric power	thủy điện	hydropower
+hydroelectric power plant	nhà máy thủy điện
+dam	đập
+reservoir	hồ chứa
+penstock	đường ống áp lực
+surge tank	tháp điều áp
+turbine	tuabin
+water turbine	tuabin nước
+Pelton turbine	tuabin Pelton
+Francis turbine	tuabin Francis
+Kaplan turbine	tuabin Kaplan
+steam turbine	tuabin hơi
+gas turbine	tuabin khí
+combined cycle	chu trình hỗn hợp
+thermal power plant	nhà máy nhiệt điện
+boiler	lò hơi
+condenser	bình ngưng
+feedwater	nước cấp
+superheater	bộ quá nhiệt
+reheater	bộ hâm hơi
+economizer	bộ hâm nước
+cooling tower	tháp giải nhiệt
+governor	bộ điều tốc
+nuclear power plant	nhà máy điện hạt nhân
+nuclear reactor	lò phản ứng hạt nhân
+fission	phân hạch
+control rod	thanh điều khiển
+moderator	chất làm chậm
+coolant	chất làm mát
+fuel rod	thanh nhiên liệu
+radioactive	phóng xạ
+solar cell	pin mặt trời	photovoltaic cell
+solar panel	tấm pin mặt trời	PV panel|PV module
+photovoltaic	quang điện	PV
+solar inverter	biến tần năng lượng mặt trời
+maximum power point tracking	bám điểm công suất cực đại	MPPT
+wind turbine	tuabin gió
+wind farm	trang trại điện gió
+wind power	điện gió
+solar power	điện mặt trời
+renewable energy	năng lượng tái tạo
+biomass	sinh khối
+geothermal	địa nhiệt
+tidal power	điện thủy triều
+cogeneration	đồng phát	combined heat and power|CHP
+efficiency	hiệu suất
+heat rate	suất tiêu hao nhiệt
+calorific value	nhiệt trị
+fuel	nhiên liệu
+coal	than đá
+natural gas	khí tự nhiên
+diesel generator	máy phát điện diesel
+standby generator	máy phát điện dự phòng
+emergency power	nguồn điện khẩn cấp
+# ---- Bảo vệ / thiết bị đóng cắt ----
+protective relay	rơle bảo vệ	protection relay
+relay	rơle
+overcurrent relay	rơle quá dòng
+earth fault relay	rơle chạm đất
+differential relay	rơle so lệch
+distance relay	rơle khoảng cách
+directional relay	rơle định hướng
+reverse power relay	rơle công suất ngược
+undervoltage relay	rơle thấp áp
+overvoltage relay	rơle quá áp
+thermal relay	rơle nhiệt
+overload relay	rơle quá tải
+time relay	rơle thời gian	timer relay
+auxiliary relay	rơle trung gian
+solid-state relay	rơle bán dẫn	SSR
+electromechanical relay	rơle điện cơ
+numerical relay	rơle số
+buchholz relay	rơle khí
+protection	bảo vệ
+backup protection	bảo vệ dự phòng
+main protection	bảo vệ chính
+selectivity	tính chọn lọc
+sensitivity	độ nhạy
+speed	tốc độ tác động
+reliability	độ tin cậy
+discrimination	phối hợp chọn lọc
+protection coordination	phối hợp bảo vệ
+inverse time	thời gian ngược
+definite time	thời gian xác định
+pickup current	dòng khởi động
+trip	cắt; tác động cắt
+tripping	cắt; tác động cắt
+reclosing	tự động đóng lại
+auto-reclose	tự động đóng lại
+circuit breaker	máy cắt; áp tô mát	CB
+molded case circuit breaker	áp tô mát khối	MCCB
+miniature circuit breaker	áp tô mát tép	MCB
+air circuit breaker	máy cắt không khí	ACB
+vacuum circuit breaker	máy cắt chân không	VCB
+SF6 circuit breaker	máy cắt khí SF6
+oil circuit breaker	máy cắt dầu
+residual current device	thiết bị chống dòng rò	RCD|RCCB
+earth leakage circuit breaker	áp tô mát chống rò	ELCB
+ground fault circuit interrupter	bộ ngắt mạch chống rò	GFCI
+leakage current	dòng điện rò
+disconnector	dao cách ly	isolator|disconnect switch
+isolator	dao cách ly
+earthing switch	dao nối đất
+load break switch	dao cắt có tải
+switch	công tắc; khóa; dao
+switchgear	thiết bị đóng cắt; tủ đóng cắt
+metal-enclosed switchgear	tủ đóng cắt kín
+gas-insulated switchgear	thiết bị đóng cắt cách điện khí	GIS
+air-insulated switchgear	thiết bị đóng cắt cách điện không khí	AIS
+ring main unit	tủ vòng	RMU
+recloser	máy cắt tự đóng lại
+sectionalizer	dao phân đoạn tự động
+fuse	cầu chì
+fusing current	dòng nóng chảy
+fuse link	dây chì
+HRC fuse	cầu chì cao áp dung lượng cắt lớn
+contactor	công tắc tơ	contactor
+magnetic contactor	khởi động từ
+motor starter	khởi động từ; bộ khởi động động cơ
+arc	hồ quang
+arc extinction	dập hồ quang
+arc flash	hồ quang điện
+arc chute	buồng dập hồ quang
+breaking capacity	khả năng cắt
+making capacity	khả năng đóng
+rated breaking current	dòng cắt định mức
+interrupting capacity	dung lượng cắt
+short-time withstand current	dòng chịu đựng ngắn hạn
+withstand voltage	điện áp chịu đựng
+dielectric strength	độ bền điện môi
+insulation resistance	điện trở cách điện
+insulation	cách điện
+insulation breakdown	phóng điện đánh thủng cách điện
+partial discharge	phóng điện cục bộ
+flashover	phóng điện bề mặt
+creepage distance	khoảng cách rò
+clearance	khoảng cách không khí
+grounding resistance	điện trở nối đất	earth resistance
+grounding grid	lưới nối đất
+earth electrode	cọc tiếp địa; điện cực nối đất
+ground rod	cọc tiếp địa
+touch voltage	điện áp tiếp xúc
+step voltage	điện áp bước
+protective earth	nối đất bảo vệ
+equipotential bonding	liên kết đẳng thế
+electric shock	điện giật
+electrocution	điện giật chết người
+lockout tagout	khóa và gắn thẻ an toàn	LOTO
+personal protective equipment	trang bị bảo hộ cá nhân	PPE
+insulating gloves	găng tay cách điện
+live	có điện
+dead	mất điện; không có điện
+energized	đã cấp điện
+de-energized	đã cắt điện
+live working	làm việc có điện
+hot work	làm việc có điện
+# ---- Đo lường ----
+ammeter	ampe kế
+voltmeter	vôn kế
+ohmmeter	ôm kế
+wattmeter	oát kế
+multimeter	đồng hồ vạn năng
+clamp meter	ampe kìm
+megohmmeter	mêgôm kế	megger
+oscilloscope	máy hiện sóng
+energy meter	công tơ điện	kilowatt-hour meter|kWh meter
+power meter	đồng hồ đo công suất
+power analyzer	máy phân tích công suất
+frequency meter	tần số kế
+phase meter	pha kế
+tachometer	máy đo tốc độ vòng quay
+bridge circuit	mạch cầu
+Wheatstone bridge	cầu Wheatstone
+galvanometer	điện kế
+shunt	điện trở shunt
+multiplier	điện trở phụ
+measurement error	sai số đo
+accuracy	độ chính xác
+precision	độ chuẩn xác
+resolution	độ phân giải
+calibration	hiệu chuẩn
+sensor	cảm biến
+transducer	bộ chuyển đổi đo lường; đầu đo
+thermocouple	cặp nhiệt điện
+thermistor	nhiệt điện trở
+RTD	nhiệt điện trở kim loại	resistance temperature detector
+strain gauge	cảm biến biến dạng
+Hall effect sensor	cảm biến hiệu ứng Hall
+encoder	bộ mã hóa vòng quay
+resolver	bộ phân tích vị trí
+proximity sensor	cảm biến tiệm cận
+photoelectric sensor	cảm biến quang
+limit switch	công tắc hành trình
+pressure transmitter	bộ truyền áp suất
+flow meter	lưu lượng kế
+level sensor	cảm biến mức
+rogowski coil	cuộn Rogowski
+# ---- Điều khiển / tự động hóa ----
+control system	hệ thống điều khiển
+open loop	vòng hở
+closed loop	vòng kín
+feedback	hồi tiếp
+feedforward	điều khiển truyền thẳng
+setpoint	giá trị đặt
+reference	giá trị chuẩn; tín hiệu đặt
+error	sai lệch; sai số
+controller	bộ điều khiển
+PID controller	bộ điều khiển PID
+proportional	tỉ lệ
+integral	tích phân
+derivative	vi phân
+gain	độ lợi; hệ số khuếch đại
+transfer function	hàm truyền
+step response	đáp ứng bước
+overshoot	độ quá điều chỉnh
+settling time	thời gian xác lập
+rise time	thời gian lên
+damping	sự tắt dần; giảm chấn
+damping ratio	hệ số tắt dần
+natural frequency	tần số tự nhiên
+stability margin	độ dự trữ ổn định
+phase margin	độ dự trữ pha
+gain margin	độ dự trữ biên
+Bode plot	biểu đồ Bode
+Nyquist plot	biểu đồ Nyquist
+root locus	quỹ đạo nghiệm số
+state space	không gian trạng thái
+observer	bộ quan sát
+actuator	cơ cấu chấp hành
+PLC	bộ điều khiển logic khả trình	programmable logic controller
+ladder diagram	sơ đồ bậc thang
+SCADA	hệ thống giám sát và thu thập dữ liệu
+HMI	giao diện người-máy
+DCS	hệ thống điều khiển phân tán
+RTU	thiết bị đầu cuối từ xa
+IED	thiết bị điện tử thông minh
+fieldbus	bus trường
+Modbus	Modbus
+protocol	giao thức
+analog	tương tự
+digital	số
+analog-to-digital converter	bộ chuyển đổi tương tự-số	ADC
+digital-to-analog converter	bộ chuyển đổi số-tương tự	DAC
+sampling	lấy mẫu
+sampling frequency	tần số lấy mẫu
+Nyquist frequency	tần số Nyquist
+quantization	lượng tử hóa
+signal	tín hiệu
+noise	nhiễu
+signal-to-noise ratio	tỉ số tín hiệu trên nhiễu	SNR
+interference	nhiễu; giao thoa
+electromagnetic interference	nhiễu điện từ	EMI
+electromagnetic compatibility	tương thích điện từ	EMC
+shielding	che chắn
+# ---- Điện tử / mạch ----
+amplifier	bộ khuếch đại
+operational amplifier	khuếch đại thuật toán	op-amp
+inverting amplifier	khuếch đại đảo
+non-inverting amplifier	khuếch đại không đảo
+differential amplifier	khuếch đại vi sai
+comparator	bộ so sánh
+oscillator	bộ dao động
+multivibrator	mạch đa hài
+astable multivibrator	mạch đa hài phiếm định
+monostable multivibrator	mạch đa hài đơn ổn
+bistable multivibrator	mạch đa hài lưỡng ổn
+flip-flop	flip-flop; mạch lật
+latch	chốt
+counter	bộ đếm
+register	thanh ghi
+logic gate	cổng logic
+AND gate	cổng AND
+OR gate	cổng OR
+NOT gate	cổng NOT
+NAND gate	cổng NAND
+NOR gate	cổng NOR
+XOR gate	cổng XOR
+truth table	bảng chân trị
+Boolean algebra	đại số Boole
+binary	nhị phân
+decimal	thập phân
+hexadecimal	thập lục phân
+microcontroller	vi điều khiển
+microprocessor	vi xử lý
+integrated circuit	mạch tích hợp	IC
+printed circuit board	mạch in	PCB
+circuit diagram	sơ đồ mạch
+schematic	sơ đồ nguyên lý
+wiring diagram	sơ đồ đấu dây
+single-line diagram	sơ đồ một sợi	one-line diagram
+block diagram	sơ đồ khối
+bias	phân cực; thiên áp
+coupling	ghép
+feedback loop	vòng hồi tiếp
+negative feedback	hồi tiếp âm
+positive feedback	hồi tiếp dương
+cutoff frequency	tần số cắt
+cutoff	ngắt; cắt
+slew rate	tốc độ biến thiên
+input impedance	trở kháng vào
+output impedance	trở kháng ra
+common mode	chế độ chung
+common-mode rejection ratio	hệ số triệt tín hiệu chung	CMRR
+decibel	đềxiben	dB
+# ---- Cáp / dây / lắp đặt ----
+cable	cáp điện
+power cable	cáp điện lực
+control cable	cáp điều khiển
+XLPE cable	cáp cách điện XLPE
+armored cable	cáp có giáp
+shielded cable	cáp có màng chắn
+coaxial cable	cáp đồng trục
+twisted pair	cặp xoắn
+optical fiber	sợi quang
+wire	dây điện
+cable tray	máng cáp
+conduit	ống luồn dây
+cable gland	đầu nối cáp; ốc xiết cáp
+terminal	đầu cực; cọc đấu dây
+terminal block	hàng kẹp; domino
+lug	đầu cốt
+connector	đầu nối
+plug	phích cắm
+socket	ổ cắm
+outlet	ổ cắm
+distribution board	tủ phân phối	DB
+switchboard	tủ điện; bảng điện
+panel	tủ; bảng
+motor control center	tủ điều khiển động cơ	MCC
+control panel	tủ điều khiển
+junction box	hộp nối
+current-carrying capacity	khả năng mang dòng; dòng cho phép	ampacity
+cross-sectional area	tiết diện
+voltage rating	điện áp định mức
+derating	giảm tải; hệ số giảm dòng
+installation	lắp đặt
+commissioning	chạy thử; nghiệm thu đưa vào vận hành
+maintenance	bảo trì
+preventive maintenance	bảo trì phòng ngừa
+predictive maintenance	bảo trì dự đoán
+inspection	kiểm tra
+testing	thí nghiệm; kiểm tra
+fault	sự cố; lỗi
+fault location	xác định vị trí sự cố
+troubleshooting	xử lý sự cố
+failure	hỏng hóc
+# ---- Chiếu sáng / khác ----
+illuminance	độ rọi
+luminous flux	quang thông
+luminous intensity	cường độ sáng
+luminance	độ chói
+lumen	lumen
+candela	candela
+lux	lux
+luminaire	bộ đèn
+lamp	đèn
+incandescent lamp	đèn sợi đốt
+fluorescent lamp	đèn huỳnh quang
+discharge lamp	đèn phóng điện
+LED lamp	đèn LED
+ballast	chấn lưu
+lighting	chiếu sáng
+heater	máy sưởi; thiết bị gia nhiệt
+induction heating	gia nhiệt cảm ứng
+dielectric heating	gia nhiệt điện môi
+electric arc furnace	lò hồ quang điện
+resistance heating	gia nhiệt bằng điện trở
+electroplating	mạ điện
+electrolysis	điện phân
+electrolyte	chất điện phân
+electrode	điện cực
+corrosion	ăn mòn
+cathodic protection	bảo vệ catốt
+electric vehicle	xe điện	EV
+charging station	trạm sạc
+traction	lực kéo; kéo điện
+elevator	thang máy
+crane	cần cẩu
+unit	đơn vị
+ampere	ampe
+volt	vôn
+ohm	ôm
+watt	oát
+kilowatt	kilôoát
+kilowatt-hour	kilôoát giờ	kWh
+megawatt	mêgaoát
+kilovolt-ampere	kilôvôn-ampe	kVA
+volt-ampere reactive	vôn-ampe phản kháng	var
+farad	fara
+henry	henry
+tesla	tesla
+weber	vêbe
+hertz	héc
+joule	jun
+coulomb	culông
+siemens	simen

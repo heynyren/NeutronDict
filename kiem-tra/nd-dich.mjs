@@ -1,5 +1,6 @@
 /**
- * Tab Dịch trong popup phải gọi Google Dịch ĐÚNG HƯỚNG.
+ * Dịch câu trong popup (nay nằm ngay ô kết quả, không còn tab riêng) phải gọi
+ * Google Dịch ĐÚNG HƯỚNG.
  *
  * Lỗi thật: ở chế độ Nhật (hướng "javi"), popup bảo dịch từ tiếng ANH một câu
  * tiếng Nhật, Google trả lại nguyên câu — "tra ở tab Dịch mà ra nguyên mẫu".
@@ -39,21 +40,16 @@ pop.on("pageerror", (e) => loi.push("popup: " + e.message));
 await pop.goto(`chrome-extension://${ID}/popup.html`);
 await pop.waitForTimeout(700);
 
-/* Gõ một câu tiếng Nhật rồi mở tab Dịch */
-await pop.fill("#q", "伝統の酒を守る");
-await pop.click("#tabTrans").catch(async () => {
-  // id có thể khác — bấm nút có chữ "Dịch"
-  await pop.evaluate(() => {
-    const b = [...document.querySelectorAll("button, .tab")].find((x) => /Dịch|Translate|翻訳/.test(x.textContent));
-    if (b) b.click();
-  });
-});
+/* Gõ một câu tiếng Nhật (có dấu câu => dịch cả câu) rồi Enter */
+await pop.fill("#q", "伝統の酒を守る。");
+await pop.press("#q", "Enter");
 await pop.waitForTimeout(1200);
+soat("không còn tab Dịch riêng", (await pop.$("#tabTrans")) === null);
 
-const than = await pop.textContent("#trans").catch(() => pop.textContent("body"));
+const than = await pop.textContent("#result").catch(() => pop.textContent("body"));
 soat("tab Dịch gọi hướng ja→vi (không phải en→vi)", /VI\(ja→vi\)/.test(than || ""),
   (than || "").slice(0, 60));
-soat("KHÔNG trả về nguyên câu tiếng Nhật", !/^\s*伝統の酒を守る\s*$/.test((than || "").trim()),
+soat("KHÔNG trả về nguyên câu tiếng Nhật", !/^\s*伝統の酒を守る。?\s*$/.test((than || "").trim()),
   (than || "").slice(0, 40));
 
 /* Ở chế độ Anh, hướng envi vẫn phải là en→vi */
@@ -62,13 +58,10 @@ const pop2 = await ctx.newPage();
 pop2.on("pageerror", (e) => loi.push("popup2: " + e.message));
 await pop2.goto(`chrome-extension://${ID}/popup.html`);
 await pop2.waitForTimeout(700);
-await pop2.fill("#q", "hello world");
-await pop2.evaluate(() => {
-  const b = [...document.querySelectorAll("button, .tab")].find((x) => /Dịch|Translate/.test(x.textContent));
-  if (b) b.click();
-});
+await pop2.fill("#q", "hello world.");
+await pop2.press("#q", "Enter");
 await pop2.waitForTimeout(1000);
-const than2 = await pop2.textContent("#trans").catch(() => "");
+const than2 = await pop2.textContent("#result").catch(() => "");
 soat("chế độ Anh vẫn dịch được (auto/en→vi), không trả nguyên câu",
   /VI\((auto|en→vi)\)/.test(than2 || ""), (than2 || "").slice(0, 40));
 

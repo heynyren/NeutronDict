@@ -4221,7 +4221,7 @@ document.addEventListener("visibilitychange", async () => {
 /* Cài đặt tra nhanh                                                    */
 /* ==================================================================== */
 
-const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, maxSent: 400,
+const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, goiDien: true, maxSent: 400,
                        ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true, chiaDoi: true };
 
 /**
@@ -4250,6 +4250,7 @@ async function loadSettings() {
   $("setCtrl").checked = !!S.requireCtrl;
   $("setLen").value = S.maxLen || 30;
   $("setTrans").checked = S.translate !== false;
+  if ($("setGoi")) $("setGoi").checked = S.goiDien !== false;
   if ($("setYtAuto")) $("setYtAuto").checked = !!S.ytTuBat;
   if ($("setYtPhoi")) $("setYtPhoi").checked = S.ytPhoi !== false;
 }
@@ -4264,6 +4265,7 @@ async function saveSettings() {
       requireCtrl: $("setCtrl").checked,
       maxLen: Math.max(5, Math.min(200, parseInt($("setLen").value, 10) || 30)),
       translate: $("setTrans").checked,
+      goiDien: $("setGoi") ? $("setGoi").checked : true,
       maxSent: 400,
       ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false,
       ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true,

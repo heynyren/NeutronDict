@@ -59,8 +59,6 @@ const tabWordEl = document.getElementById("tabWord");
 const tabDetailEl = document.getElementById("tabDetail");
 const tabKanjiEl = document.getElementById("tabKanji");
 const kanjiEl = document.getElementById("kanji");
-const tabTransEl = document.getElementById("tabTrans");
-const transEl = document.getElementById("trans");
 const IS_CTX_WINDOW = new URLSearchParams(location.search).get("ctx") === "1";
 let initialSrc = null;   // nguồn của từ ban đầu (URL + tiêu đề + đoạn chọn)
 let lastEntry = null;    // mục hiện tại để dựng tab Chi tiết
@@ -511,13 +509,10 @@ function switchTab(name) {
   tabWordEl.classList.toggle("active", name === "word");
   tabDetailEl.classList.toggle("active", name === "detail");
   tabKanjiEl.classList.toggle("active", name === "kanji");
-  tabTransEl.classList.toggle("active", name === "trans");
   resEl.style.display    = name === "word"   ? "" : "none";
   detailEl.style.display = name === "detail" ? "" : "none";
   kanjiEl.style.display  = name === "kanji"  ? "" : "none";
-  transEl.style.display  = name === "trans"  ? "" : "none";
   if (name === "detail") renderDetail();
-  if (name === "trans") doTranslate(qEl.value);
 }
 
 /* ---- tab Hán tự (chỉ ở chế độ Nhật–Việt) ---- */
@@ -599,7 +594,8 @@ async function renderKanji(chars) {
 
 // ---- Dịch câu ----
 let lastTranslated = "";
-function doTranslate(raw) {
+let dichSeq = 0;   // mỗi lượt tra mới huỷ kết quả dịch đang bay của lượt trước
+function doTranslate(raw, transEl) {
   const text = (raw || "").trim();
   if (!text) { trangThai(transEl, "translate", T("Nhập hoặc dán đoạn cần dịch.")); return; }
   const dir = dirEl.value;
@@ -619,7 +615,9 @@ function doTranslate(raw) {
   const tkey = dir + ":" + text;
   if (lastTranslated === tkey && transEl.querySelector(".tr")) return;
   trangThai(transEl, "spinner-gap", T("Đang dịch…"));
+  const ms = dichSeq;
   chrome.runtime.sendMessage({ type: "TRANSLATE", text, from, to }, (res) => {
+    if (ms !== dichSeq) return;
     if (chrome.runtime.lastError) { trangThai(transEl, "warning-circle", T2("Lỗi: {loi}", { loi: chrome.runtime.lastError.message })); return; }
     if (!res || !res.ok) { trangThai(transEl, "warning-circle", (res && res.error) || T("Không dịch được.")); return; }
     lastTranslated = tkey;
@@ -713,6 +711,7 @@ async function run(word) {
   const dict = dirEl.value;
   if (initialSrc && w !== String(initialSrc.sel || "").trim()) initialSrc = null;
   lastTranslated = "";
+  dichSeq++;
 
   // Hán tự luôn có mặt ở chế độ Nhật–Việt, kể cả khi đang xem tab Dịch. Cố ý
   // KHÔNG khoá tab khi đoạn không có chữ Hán: tab lúc có lúc mất khó dùng hơn
@@ -731,15 +730,17 @@ async function run(word) {
     return;
   }
 
-  // Mở sẵn tab hợp lý nhất, nhưng cả ba tab đều có dữ liệu.
-  switchTab(trongNhuCau(w) ? "trans" : "word");
+  switchTab("word");
 
-  // Đoạn dài thì tra nguyên đoạn như một từ chắc chắn rỗng — bỏ qua lượt gọi
-  // mạng đó, nhưng nói rõ vì sao tab Từ vựng trống.
-  if (w.length > 40) {
+  // Một ô cho cả từ lẫn câu (tab Dịch riêng đã bỏ — mọi thứ đều đi đường Google
+  // Dịch): đoạn dài thì dịch cả đoạn, từ/cụm ngắn thì tra từ điển.
+  const laCau = trongNhuCau(w);
+  const nhanWord = tabWordEl.querySelector(".lb");
+  if (nhanWord) nhanWord.textContent = laCau ? T("Dịch") : T("Từ vựng");
+  if (laCau) {
     lastEntry = null;
     tabDetailEl.disabled = true;
-    trangThai(resEl, "article", T("Đoạn này dài quá để tra như một từ — xem tab Dịch, hoặc gõ riêng từ cần tra."));
+    doTranslate(w, resEl);
     return;
   }
   trangThai(resEl, "spinner-gap", "Đang tra “" + w + "”…");
@@ -748,9 +749,9 @@ async function run(word) {
   await renderWord(res);
 }
 
-/** Chỉ dùng để chọn tab mở sẵn, không dùng để quyết định tra cái gì. */
+/** Đoạn / câu (dịch cả đoạn) hay từ / cụm (tra từ điển). */
 function trongNhuCau(w) {
-  return w.length > 40 || /[.!?;\n]/.test(w);
+  return w.length > 40 || /[.!?;。！？；\n]/.test(w);
 }
 
 // ---- Sự kiện ----
@@ -761,7 +762,6 @@ nguBtn.addEventListener("click", doiNgu);
 tabWordEl.addEventListener("click", () => switchTab("word"));
 tabDetailEl.addEventListener("click", () => { if (!tabDetailEl.disabled) switchTab("detail"); });
 tabKanjiEl.addEventListener("click", () => switchTab("kanji"));
-tabTransEl.addEventListener("click", () => switchTab("trans"));
 bookEl.addEventListener("click", () => { chrome.tabs.create({ url: chrome.runtime.getURL("notebook.html") }); });
 function openGuide() { chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") }); }
 document.getElementById("ipaGuide").addEventListener("click", openGuide);
@@ -783,7 +783,6 @@ function gaiIcon() {
   gan(tabWordEl, "book-open-text", "Từ vựng");
   gan(tabDetailEl, "article", "Chi tiết");
   gan(tabKanjiEl, "text-aa", "Hán tự");
-  gan(tabTransEl, "translate", "Dịch");
   qEl.parentElement.insertBefore(ic("magnifying-glass", { size: 18 }), qEl);
 }
 
