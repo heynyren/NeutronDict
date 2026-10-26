@@ -94,6 +94,61 @@
     return { cau: cau, tu: t };
   }
 
+  /*
+   * LỌC TIẾNG VIỆT LẪN VÀO CÂU VÍ DỤ.
+   *
+   * Tài liệu song ngữ (PDF Nhật–Việt, trang web có chú thích tiếng Việt) làm câu
+   * moi ra dính cả nửa tiếng Việt. Bài nghe đọc nguyên câu đó bằng giọng Anh/Nhật
+   * còn bài điền khuyết thì hỏi bằng chính bản dịch — ví dụ lẫn tiếng Việt hỏng cả hai.
+   *
+   * Nhận ra tiếng Việt bằng những chữ CHỈ tiếng Việt mới có (ă ơ ư đ và các nguyên âm
+   * mang dấu thanh ả ạ ằ ế ể… ). Chữ như à á é ò có cả ở tiếng Pháp/Bồ nên không dùng làm
+   * dấu hiệu. Tiếng Việt viết không dấu thì chịu — không có gì để nhận ra.
+   */
+  const VIET = /[ăđơưĂĐƠƯảãạằắẳẵặầấẩẫậẻẽẹềếểễệỉĩịỏõọồốổỗộờớởỡợủũụừứửữựỳỷỹỵẢÃẠẰẮẲẴẶẦẤẨẪẬẺẼẸỀẾỂỄỆỈĨỊỎÕỌỒỐỔỖỘỜỚỞỠỢỦŨỤỪỨỬỮỰỲỶỸỴ]/;
+  // Chữ có cả ở tiếng Pháp/Bồ: không đủ để kết luận một chữ là tiếng Việt, nhưng khi câu
+  // ĐÃ bị nghi lẫn thì dùng làm chỗ dừng khi cắt ("Máy cắt…" đứng sát phần tiếng Anh).
+  const YEU = /[àáâèéêìíòóôùúýÀÁÂÈÉÊÌÍÒÓÔÙÚÝ]/;
+  const CUOI_CAU = /[。．.!?！？…」』]$/;
+
+  function coTiengViet(s) { return VIET.test(String(s || "")); }
+
+  /**
+   * Bỏ phần tiếng Việt khỏi câu ví dụ, giữ đoạn chứa `word`.
+   *
+   * Cắt ở token (chữ cách nhau bằng dấu cách) có chữ riêng của tiếng Việt, hoặc ở dấu
+   * kết câu. Không chắc chắn thì KHÔNG đoán: trả `lan:true` và giữ nguyên câu, để
+   * giao diện báo người dùng mở ra sửa tay.
+   *
+   * @returns {{cau:string, lan:boolean, doi:boolean}}
+   *   lan = vẫn còn tiếng Việt mà không lọc được · doi = câu đã được lọc
+   */
+  function lamSach(cau, word) {
+    const goc = String(cau || "").replace(/\s+/g, " ").trim();
+    if (!VIET.test(goc)) return { cau: goc, lan: false, doi: false };
+    const w = String(word || "").trim();
+    // "...です。Điện áp..." — dính liền sau dấu kết câu thì tách ra để cắt được.
+    const s = goc.replace(/([。！？.!?」』])(?=[A-Za-zĐđ])/g, "$1 ");
+    const tok = [], vt = [];
+    s.replace(/\S+/g, (t, i) => { tok.push(t); vt.push(i); return t; });
+    const dau = w ? s.toLowerCase().indexOf(w.toLowerCase()) : -1;
+    if (dau < 0) return { cau: goc, lan: true, doi: false };
+    const cuoi = dau + w.length;
+    let l = -1, r = -1;
+    for (let i = 0; i < tok.length; i++) {
+      const a = vt[i], b = vt[i] + tok[i].length;
+      if (b > dau && a < cuoi) { if (l < 0) l = i; r = i; }
+    }
+    if (l < 0) return { cau: goc, lan: true, doi: false };
+    for (let i = l; i <= r; i++) if (VIET.test(tok[i])) return { cau: goc, lan: true, doi: false };
+    while (l > 0 && !VIET.test(tok[l - 1]) && !YEU.test(tok[l - 1]) && !CUOI_CAU.test(tok[l - 1])) l--;
+    while (r < tok.length - 1 && !CUOI_CAU.test(tok[r]) && !VIET.test(tok[r + 1]) && !YEU.test(tok[r + 1])) r++;
+    const kq = tok.slice(l, r + 1).join(" ").trim();
+    if (!kq || VIET.test(kq) || kq.toLowerCase().indexOf(w.toLowerCase()) < 0
+        || kq.replace(/[。．.!?！？…\s]/g, "") === w.replace(/\s/g, "")) return { cau: goc, lan: true, doi: false };
+    return { cau: kq, lan: false, doi: kq !== goc };
+  }
+
   /**
    * Dựng câu nghe từ phần `src` của một mục sổ tay.
    * @returns {{cau:string, tu:string}|null}
@@ -105,13 +160,18 @@
     if(!src)return null;
     const tu=String(src.sel||word||"").trim();
     const raw=String(src.cau||"").replace(/\s+/g," ").trim();
+    let kq=null;
     if(raw && raw.length<=8000 && (raw.includes(tu)||raw.includes(word)) &&
        raw.replace(/[。．.!?！？…\s]/g,"")!==tu.replace(/\s/g,""))
-      return {cau:raw,tu:word||tu};
-    if(src.yt&&src.yt.v&&tu!==word&&tu.includes(word))return {cau:tu,tu:word};
-    return moiNguCanh(src.prefix,src.suffix,tu,{
+      kq={cau:raw,tu:word||tu};
+    else if(src.yt&&src.yt.v&&tu!==word&&tu.includes(word))kq={cau:tu,tu:word};
+    else kq=moiNguCanh(src.prefix,src.suffix,tu,{
       contextStart:src.contextStart===true,contextEnd:src.contextEnd===true,max:8000
     });
+    // Ví dụ lẫn tiếng Việt: lọc ra phần của từ; lọc không được thì giữ nguyên để
+    // người dùng thấy và sửa tay (xem hienThi), chứ không im lặng nuốt mất ví dụ.
+    if(kq&&VIET.test(kq.cau)){const sach=lamSach(kq.cau,kq.tu||word);if(sach.doi)kq=Object.assign({},kq,{cau:sach.cau});}
+    return kq;
   }
   function tuNguon(src,word) {
     const context=nguCanh(src,word);
@@ -153,6 +213,8 @@
     if (!it || it.del || it.kind === "sent") return null;
     const w = String(it.word || "").trim();
     if (!w) return null;
+    // Người dùng đã tự xoá ví dụ: tôn trọng, đừng moi lại từ nguồn.
+    if (it.cauNghe && it.cauNghe.sua && !it.cauNghe.cau) return null;
     let cau = (it.cauNghe && it.cauNghe.cau) ? String(it.cauNghe.cau) : "";
     if (!cau && it.src) {
       let c = null;
@@ -165,9 +227,17 @@
     let dich = "";
     if (it.cauNghe && it.cauNghe.dich && String(it.cauNghe.cau).replace(/\s+/g, " ").trim() === cau) dich = it.cauNghe.dich;
     else if (it.src && it.src.cauDich) dich = it.src.cauDich;
+    // Ví dụ máy moi mà lẫn tiếng Việt: lọc lúc hiển thị; lọc không được thì báo `lan`.
+    // Bản người dùng tự sửa (`sua`) thì giữ nguyên, không lọc lại.
+    let lan = false;
+    if (!(it.cauNghe && it.cauNghe.sua) && VIET.test(cau)) {
+      const sach = lamSach(cau, w);
+      if (sach.doi) { cau = sach.cau; dich = ""; }
+      lan = sach.lan;
+    }
     const thap = cau.toLowerCase();
     const i = thap.length === cau.length ? thap.indexOf(w.toLowerCase()) : cau.indexOf(w);
-    return { cau, dich: String(dich).trim(), tu: i >= 0 ? [i, i + w.length] : null };
+    return { cau, dich: String(dich).trim(), tu: i >= 0 ? [i, i + w.length] : null, lan: lan, sua: !!(it.cauNghe && it.cauNghe.sua) };
   }
 
   /*
@@ -258,5 +328,5 @@
     const x = chuanCau(a), y = chuanCau(b);
     return !!x && !!y && (x === y || x.includes(y) || y.includes(x));
   }
-  goc.CauNghe = { moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe, hienThi, nhomChung, capNhatNheChung, cungNguCanh, nguonId };
+  goc.CauNghe = { lamSach, coTiengViet, moiCau, moiNguCanh, nguCanh, tuNguon, thatSuKet, cauHopLe, hienThi, nhomChung, capNhatNheChung, cungNguCanh, nguonId };
 })(typeof self !== "undefined" ? self : this);

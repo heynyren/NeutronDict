@@ -132,7 +132,7 @@ console.log("\nThẻ học: kéo dọc + nhấp đúp");
   await page.mouse.dblclick(b.x + 8, b.y + b.height - 6); await cho(400);
   soat("nhấp đúp chỗ trống: mở phần sửa nghĩa", (await trang()).sheet);
   const ten = await page.evaluate(() => document.getElementById("edTitle").textContent);
-  soat("đúng phiếu “Sửa bản dịch”", /Sửa bản dịch/.test(ten), ten);
+  soat("đúng phiếu “Sửa mục này”", /Sửa mục này/.test(ten), ten);
   await dongSua();
   // Nhấp đúp trên NÚT thì không mở
   const nut = await page.locator("#stFav .btn").first().boundingBox();
@@ -247,7 +247,7 @@ const hang = (w) => page.evaluate((w) => {
   await page.mouse.dblclick(h.x + h.w - 14, h.y + h.h - 6); await cho(400);
   soat("nhấp đúp vào hàng: mở phiếu sửa nghĩa", (await trang()).sheet);
   const ten = await page.evaluate(() => document.getElementById("edTitle").textContent);
-  soat("đúng phiếu “Sửa bản dịch”", /Sửa bản dịch/.test(ten), ten);
+  soat("đúng phiếu “Sửa mục này”", /Sửa mục này/.test(ten), ten);
   await dongSua();
   const nut = await page.evaluate(() => { const b = document.querySelector("#list .entry .iconbtn"); const r = b.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
   await page.mouse.dblclick(nut.x, nut.y); await cho(300);

@@ -1179,6 +1179,9 @@ table.sodo tr.thieu td { opacity: .45; }
 }
 .nguc-dich { margin-top: 3px; color: var(--ink-3); font-size: 12.5px; }
 .nguc-dich:empty { display: none; }
+.nguc.sua-duoc { cursor: pointer; }
+.nguc.lan { outline: 1px dashed var(--warn, #d97706); outline-offset: 3px; border-radius: 6px; }
+.nguc-lan { margin-top: 3px; color: var(--warn, #b45309); font-size: 12px; font-weight: 600; }
 
 /* --------------------------------------------------------------------------
    Chọn nhiều + xoá hàng loạt (sổ tay)

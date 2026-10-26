@@ -744,6 +744,18 @@ async function phucHoiNguCanhWeb() {
   return vaSau(async () => {
     const nb=(await chrome.storage.local.get("notebook")).notebook||{};
     let count=0;
+    // Ví dụ máy moi mà lẫn tiếng Việt (tài liệu song ngữ): lọc lấy phần của từ. Bản người
+    // dùng tự sửa (`sua`) thì không đụng. Dịch cũ gắn với câu cũ nên xoá để dịch lại.
+    for(const it of Object.values(nb)){
+      if(!it||it.del||!it.word||!it.cauNghe||it.cauNghe.sua||!it.cauNghe.cau)continue;
+      if(!self.CauNghe.coTiengViet(it.cauNghe.cau))continue;
+      const sach=self.CauNghe.lamSach(it.cauNghe.cau,it.word);
+      if(!sach.doi)continue;
+      const cu=it.cauNghe.cau;
+      it.cauNghe={cau:sach.cau,dich:"",ts:Date.now()};
+      if(it.src&&it.src.cau===cu)it.src=Object.assign({},it.src,{cau:sach.cau});
+      count++;
+    }
     for(const it of Object.values(nb)){
       if(!it||it.del||!it.src||!it.word)continue;
       const context=self.CauNghe.nguCanh(it.src,it.word);
@@ -1927,7 +1939,7 @@ async function saveWord(entry, dict) {
   const context = self.CauNghe.tuNguon(e.src, e.word);
   if (context) {
     e.src = Object.assign({}, e.src, { cau: context.cau });
-    e.cauNghe = old && !old.del && old.cauNghe && old.cauNghe.cau === context.cau
+    e.cauNghe = old && !old.del && old.cauNghe && (old.cauNghe.cau === context.cau || old.cauNghe.sua)
       ? old.cauNghe : { cau: context.cau, dich: e.src.cauDich || "", ts: Date.now() };
   } else if (old && !old.del && old.cauNghe) {
     e.cauNghe = old.cauNghe;
@@ -2503,7 +2515,7 @@ async function savePdfSelection(msg) {
     const it = fresh ? { word, dict, means: [], reading: "" } : Object.assign({}, old);
     // Keep every learning/manual field of an existing entry, including unknown future fields.
     it.src = src; it.ts = Date.now();
-    it.cauNghe = old && !old.del && old.cauNghe && old.cauNghe.cau === cau
+    it.cauNghe = old && !old.del && old.cauNghe && (old.cauNghe.cau === cau || old.cauNghe.sua)
       ? old.cauNghe : { cau, dich: "", ts: version };
     nb[key] = it;
     await chrome.storage.local.set({ notebook: nb });

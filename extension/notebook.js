@@ -1372,20 +1372,27 @@ function moSua(it, tab) {
   veAnhSua();
   $("edAnhLoi").textContent = "";
 
-  const laLink = tab === "link";
-  const laGhiChu = tab === "note";
-  $("edTitle").textContent = laLink ? T("Nguồn của mục này")
-    : laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
-  $("edIcon").innerHTML = window.Icon(laLink ? "link-simple" : laGhiChu ? "note-pencil" : "translate", { size: 20 });
-  $("edSub").textContent = laLink
-    ? T("Dán địa chỉ trang hoặc video bạn đã gặp từ này, để sau còn tìm lại được ngữ cảnh.")
-    : laGhiChu
-    ? T("Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.")
-    : T("Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.");
+  // Một hộp sửa cho TẤT CẢ: nghĩa, câu ví dụ + bản dịch của nó, ghi chú, ảnh, nguồn.
+  // `tab` chỉ còn quyết định ô nào được đặt con trỏ khi mở.
+  $("edTitle").textContent = T("Sửa mục này");
+  $("edIcon").innerHTML = window.Icon("pencil-simple", { size: 20 });
+  $("edSub").textContent = T("Sửa nghĩa, câu ví dụ, ghi chú, ảnh và nguồn — tất cả ở một chỗ.");
 
   $("edOrig").textContent = it.word || "";
   $("edTrans").value = (it.means || []).join("\n");
   $("edNote").value = it.note || "";
+
+  // Câu ví dụ: là thứ máy tự moi từ chỗ bạn gặp từ, nên có lúc sai (lẫn tiếng Việt,
+  // cắt nhầm câu). Cho sửa tay, và nhớ lại ô nào người dùng đã đụng để biết có lưu không.
+  const coViDu = it.kind !== "sent";
+  $("edViDuWrap").style.display = coViDu ? "" : "none";
+  const hv = coViDu ? window.CauNghe.hienThi(it) : null;
+  $("edViDu").value = hv ? hv.cau : "";
+  $("edViDuDich").value = hv ? hv.dich : "";
+  dangSua.viDu = { cau: $("edViDu").value, dich: $("edViDuDich").value };
+  $("edViDuHint").textContent = (hv && hv.lan)
+    ? T("Câu này có vẻ còn lẫn tiếng Việt mà app không tự lọc được — sửa lại cho đúng nhé.")
+    : (hv && hv.sua ? T("Đây là câu bạn đã tự sửa; app sẽ không ghi đè lên nó.") : "");
 
   // Đường link: cho SỬA TAY được, vì không phải lượt lưu nào cũng có nguồn đi
   // kèm (tra từ ô gõ, hay trang mà trình duyệt không cho đọc địa chỉ), mà một
@@ -1402,7 +1409,8 @@ function moSua(it, tab) {
   $("edRestore").style.display = goc ? "" : "none";
 
   $("editSheet").classList.add("show");
-  setTimeout(() => $(laLink ? "edLink" : laGhiChu ? "edNote" : "edTrans").focus(), 40);
+  const oFocus = tab === "link" ? "edLink" : tab === "note" ? "edNote" : (tab === "vidu" && coViDu) ? "edViDu" : "edTrans";
+  setTimeout(() => $(oFocus).focus(), 40);
 }
 
 function dongSua() {
@@ -1417,6 +1425,11 @@ async function luuSua() {
   const ghiChu = $("edNote").value.trim();
   let link = $("edLink").value.trim();
   if (link) link = chuanHoaUrl(link);   // dán thiếu https:// thì tự thêm; file:// giữ nguyên
+  const viDu0 = dangSua.viDu || null;
+  const cauMoi = $("edViDu").value.replace(/\s+/g, " ").trim();
+  const dichMoi = $("edViDuDich").value.replace(/\s+/g, " ").trim();
+  const doiViDu = !!viDu0 && $("edViDuWrap").style.display !== "none"
+    && (cauMoi !== viDu0.cau.replace(/\s+/g, " ").trim() || dichMoi !== viDu0.dich.replace(/\s+/g, " ").trim());
 
   const doiNghia = await capNhat((nb) => {
     const e = nb[key];
@@ -1432,6 +1445,14 @@ async function luuSua() {
       ne.mEdit = 1;
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
+    if (doiViDu) {
+      // `sua:1` = bản của người dùng: nền không được moi lại / lọc lại / ghi đè nó. Sửa câu mà
+      // không sửa bản dịch thì bản dịch cũ không còn khớp câu -> bỏ để nền dịch lại.
+      const cauDoi = cauMoi !== viDu0.cau.replace(/\s+/g, " ").trim();
+      const dichDoi = dichMoi !== viDu0.dich.replace(/\s+/g, " ").trim();
+      ne.cauNghe = { cau: cauMoi, dich: (cauDoi && !dichDoi) ? "" : dichMoi, ts: Date.now(), sua: 1 };
+      if (ne.nheChung) delete ne.nheChung;   // ngữ cảnh đã đổi: để nền gom nhóm lại
+    }
     if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
     // Link: giữ nguyên mốc phút và đoạn đã tô nếu địa chỉ không đổi; đổi địa chỉ
     // thì hai thứ kia không còn đúng nữa nên bỏ đi, chứ không mang sang link mới.
@@ -1443,7 +1464,7 @@ async function luuSua() {
       ne.src = { url: link, title: ten, sel: scCu.sel || e.word || "" };
     }
     nb[key] = ne;
-    return doi;
+    return doi || doiViDu;
   });
   if (doiNghia === null) { dongSua(); return; }
   dongSua();
@@ -1467,7 +1488,7 @@ async function luuSua() {
   }
   syncSoon();
   mung(await theoDoi.xetHuyHieu());
-  toast(doiNghia ? T("Đã lưu bản dịch của bạn") : T("Đã lưu ghi chú"));
+  toast(T("Đã lưu thay đổi"));
 }
 
 async function khoiPhucGoc() {
@@ -2298,13 +2319,10 @@ function veHang(it, dks, now) {
   // từ mà không nhớ nó nằm trong câu nào.
   hang.appendChild(nutGemini(it));
 
-  const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 17);
+  // MỘT nút sửa cho mọi thứ: nghĩa, câu ví dụ, ghi chú, ảnh, nguồn.
+  const sua = nutIcon("pencil-simple", T("Sửa nghĩa, câu ví dụ, ghi chú"), it.note ? "on" : "", 17);
   sua.addEventListener("click", () => moSua(it, "trans"));
   hang.appendChild(sua);
-
-  const gc = nutIcon("note-pencil", it.note ? T("Sửa ghi chú") : T("Thêm ghi chú"), it.note ? "on" : "", 17);
-  gc.addEventListener("click", () => moSua(it, "note"));
-  hang.appendChild(gc);
 
   // Nút nguồn hiện CẢ KHI mục chưa có link: bấm vào là thêm được. Trước đây nút
   // này biến mất khi không có nguồn, nên một mục lỡ lưu thiếu link thì trong sổ
@@ -2986,6 +3004,14 @@ function khoiNguCanh(it, tuDich) {
   box.appendChild(c);
   const d = el("div", "nguc-dich", h.dich);
   box.appendChild(d);
+  // Bấm vào ví dụ = mở hộp sửa ngay ở ô ví dụ. Ví dụ lẫn tiếng Việt mà app không lọc
+  // được thì nói thẳng ra, để người dùng sửa.
+  box.classList.add("sua-duoc");
+  box.addEventListener("click", (ev) => { if (ev.target.closest(".nut-lai")) return; moSua(it, "vidu"); });
+  if (h.lan) {
+    box.classList.add("lan");
+    box.appendChild(el("div", "nguc-lan", T("Ví dụ có vẻ lẫn tiếng Việt — bấm để sửa")));
+  }
   if (!h.dich) {
     const xin = () => {
       d.className = "nguc-dich";
@@ -3675,7 +3701,6 @@ $("stDel").addEventListener("click", deleteCurrentCard);
 $("stUndoBtn").addEventListener("click", undoDelete);
 $("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if (it) moGemini(it); });
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
-$("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
 document.addEventListener("keydown", (e) => {
   if ($("editSheet").classList.contains("show")) {
@@ -4642,8 +4667,7 @@ function gaiIcon() {
   };
   gan("stSrc", "link-simple", "Mở nguồn");
   gan("stGemini", "sparkle", "Hỏi Gemini");
-  gan("stEdit", "translate", "Sửa bản dịch");
-  gan("stNote", "note-pencil", "Ghi chú");
+  gan("stEdit", "pencil-simple", "Sửa");
   gan("gForgot", "arrow-counter-clockwise", "Quên");
   gan("gKnow", "check", "Nhớ");
   gan("stReveal", "eye", "Hiện nghĩa");

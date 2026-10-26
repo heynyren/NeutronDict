@@ -417,8 +417,7 @@
           <div class="rowx" id="stThaoTac" style="justify-content:center;gap:6px;margin-top:8px">
             <button class="btn xs" id="stSrc" type="button" style="display:none" data-chu>Mở nguồn</button>
             <button class="btn xs gemini" id="stGemini" type="button" data-chu>Hỏi Gemini</button>
-            <button class="btn xs" id="stEdit" type="button" data-chu>Sửa bản dịch</button>
-            <button class="btn xs" id="stNote" type="button" data-chu>Ghi chú</button>
+            <button class="btn xs" id="stEdit" type="button" data-chu>Sửa</button>
           </div>
           <div class="rowx" style="justify-content:center;gap:8px;margin-top:10px" id="stFav"></div>
           <div class="rowx" style="justify-content:center;gap:6px;margin-top:8px" id="stGhiAm"></div>
@@ -469,8 +468,8 @@
 <!-- ====================== Sửa bản dịch / ghi chú ====================== -->
 <div id="editSheet" class="sheet">
   <div class="panel">
-    <h3><span id="edIcon"></span><span id="edTitle" data-chu>Sửa bản dịch</span></h3>
-    <div class="sub" id="edSub" data-chu>Chỉnh lại cho đúng cách nói của chuyên ngành bạn.</div>
+    <h3><span id="edIcon"></span><span id="edTitle" data-chu>Sửa mục này</span></h3>
+    <div class="sub" id="edSub" data-chu>Sửa nghĩa, câu ví dụ, ghi chú, ảnh và nguồn — tất cả ở một chỗ.</div>
 
     <div id="edOrigWrap">
       <label class="field-label" data-chu>Nội dung gốc</label>
@@ -481,6 +480,14 @@
       <label class="field-label" for="edTrans" data-chu>Bản dịch / nghĩa <span class="faint" data-chu>— mỗi dòng một nghĩa</span></label>
       <textarea id="edTrans" placeholder="Nhập nghĩa cho sát chuyên ngành…" data-chu-ph></textarea>
       <div class="t-tiny faint" style="margin-top:6px" id="edOrigHint"></div>
+    </div>
+
+    <div id="edViDuWrap" style="margin-top:14px">
+      <label class="field-label" for="edViDu" data-chu>Câu ví dụ <span class="faint" data-chu>— câu chứa từ này ở nơi bạn gặp</span></label>
+      <textarea id="edViDu" rows="2" placeholder="Để trống = không dùng ví dụ nào" data-chu-ph></textarea>
+      <label class="field-label" style="margin-top:8px" for="edViDuDich" data-chu>Bản dịch của câu ví dụ</label>
+      <textarea id="edViDuDich" rows="2" placeholder="Nghĩa tiếng Việt của cả câu" data-chu-ph></textarea>
+      <div class="t-tiny faint" style="margin-top:4px" id="edViDuHint"></div>
     </div>
 
     <div id="edNoteWrap" style="margin-top:14px">

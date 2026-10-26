@@ -2686,20 +2686,29 @@ function moSua(it, tab, veLai) {
   anhSua = (it.anh || []).slice();
   veAnhSua();
   $("edAnhLoi").textContent = "";
-  const laGhiChu = tab === "note";
-  $("edTitle").textContent = laGhiChu ? T("Ghi chú cho mục này") : T("Sửa bản dịch");
-  $("edIcon").innerHTML = window.Icon(laGhiChu ? "note-pencil" : "translate", { size: 20 });
-  $("edSub").textContent = laGhiChu
-    ? T("Ghi lại ngữ cảnh, thuật ngữ tương đương, cách dùng — thứ mà từ điển không nói.")
-    : T("Chỉnh lại cho đúng cách nói của chuyên ngành bạn. Mỗi dòng là một nghĩa.");
+  // Một hộp sửa cho TẤT CẢ: nghĩa, câu ví dụ + bản dịch của nó, ghi chú, ảnh.
+  $("edTitle").textContent = T("Sửa mục này");
+  $("edIcon").innerHTML = window.Icon("pencil-simple", { size: 20 });
+  $("edSub").textContent = T("Sửa nghĩa, câu ví dụ, ghi chú, ảnh và nguồn — tất cả ở một chỗ.");
   $("edOrig").textContent = it.word || "";
   $("edTrans").value = (it.means || []).join("\n");
   $("edNote").value = it.note || "";
+  // Câu ví dụ do máy moi từ chỗ bạn gặp từ nên có lúc sai (lẫn tiếng Việt, cắt nhầm): sửa tay được.
+  const coViDu = it.kind !== "sent";
+  $("edViDuWrap").style.display = coViDu ? "" : "none";
+  const hv = coViDu ? window.CauNghe.hienThi(it) : null;
+  $("edViDu").value = hv ? hv.cau : "";
+  $("edViDuDich").value = hv ? hv.dich : "";
+  dangSua.viDu = { cau: $("edViDu").value, dich: $("edViDuDich").value };
+  $("edViDuHint").textContent = (hv && hv.lan)
+    ? T("Câu này có vẻ còn lẫn tiếng Việt mà app không tự lọc được — sửa lại cho đúng nhé.")
+    : (hv && hv.sua ? T("Đây là câu bạn đã tự sửa; app sẽ không ghi đè lên nó.") : "");
   const goc = it.mOrig && it.mOrig.length ? it.mOrig.join("; ") : "";
   $("edOrigHint").textContent = goc ? T2("Bản máy dịch ban đầu: {ban}", { ban: goc }) : "";
   $("edRestore").style.display = goc ? "" : "none";
   $("editSheet").classList.add("show");
-  setTimeout(() => $(laGhiChu ? "edNote" : "edTrans").focus(), 60);
+  const oFocus = tab === "note" ? "edNote" : (tab === "vidu" && coViDu) ? "edViDu" : "edTrans";
+  setTimeout(() => $(oFocus).focus(), 60);
 }
 
 function dongSua() { $("editSheet").classList.remove("show"); dangSua = null; }
@@ -2709,6 +2718,11 @@ async function luuSua() {
   const key = dangSua.key;
   const dong = $("edTrans").value.split("\n").map((x) => x.trim()).filter(Boolean);
   const ghiChu = $("edNote").value.trim();
+  const viDu0 = dangSua.viDu || null;
+  const gon = (x) => String(x || "").replace(/\s+/g, " ").trim();
+  const cauMoi = gon($("edViDu").value), dichMoi = gon($("edViDuDich").value);
+  const doiViDu = !!viDu0 && $("edViDuWrap").style.display !== "none"
+    && (cauMoi !== gon(viDu0.cau) || dichMoi !== gon(viDu0.dich));
 
   const kq = await capNhat((nb) => {
     const e = nb[key];
@@ -2724,9 +2738,16 @@ async function luuSua() {
       ne.mEdit = 1;
     }
     if (ghiChu) ne.note = ghiChu; else delete ne.note;
+    if (doiViDu) {
+      // `sua:1` = bản của người dùng: nền không được moi lại / lọc lại / ghi đè. Sửa câu mà
+      // không sửa bản dịch thì bản dịch cũ không còn khớp câu -> bỏ để nền dịch lại.
+      const cauDoi = cauMoi !== gon(viDu0.cau), dichDoi = dichMoi !== gon(viDu0.dich);
+      ne.cauNghe = { cau: cauMoi, dich: (cauDoi && !dichDoi) ? "" : dichMoi, ts: Date.now(), sua: 1 };
+      if (ne.nheChung) delete ne.nheChung;
+    }
     if (anhSua.length) ne.anh = anhSua.slice(); else delete ne.anh;
     nb[key] = ne;
-    return { doi, ne };
+    return { doi: doi || doiViDu, ne };
   });
   const veLai = dangSua.veLai;
   if (!kq) { dongSua(); return; }
@@ -2747,7 +2768,7 @@ async function luuSua() {
   }
   syncSoon();
   mung(await theoDoi.xetHuyHieu());
-  toast(doiNghia ? T("Đã lưu bản dịch của bạn") : T("Đã lưu ghi chú"));
+  toast(T("Đã lưu thay đổi"));
 }
 
 $("edSave").addEventListener("click", luuSua);
@@ -3263,8 +3284,16 @@ function canVaSoCuNb(nb) {
     if (!e) continue;
     if (Array.isArray(e.means) && e.means.some((m) => typeof m !== "string")) return true;
     if (e.srs && typeof e.srs.lv === "number" && typeof e.srs.ts !== "number") return true;
+    if (viDuLanViet(e)) return true;
   }
   return false;
+}
+
+/** Ví dụ máy moi mà lẫn tiếng Việt và lọc được (bản người dùng tự sửa thì không đụng). */
+function viDuLanViet(e) {
+  if (!e || e.del || !e.word || !e.cauNghe || e.cauNghe.sua || !e.cauNghe.cau) return false;
+  if (!window.CauNghe.coTiengViet(e.cauNghe.cau)) return false;
+  return window.CauNghe.lamSach(e.cauNghe.cau, e.word).doi;
 }
 
 async function drawNotebook() {
@@ -3281,6 +3310,12 @@ async function drawNotebook() {
         if (e && Array.isArray(e.means)) {
           const nm = e.means.map(meanToStr);
           if (nm.some((v, i) => v !== e.means[i])) { e.means = nm; daSuaCu = true; }
+        }
+        if (viDuLanViet(e)) {
+          // Lọc phần tiếng Việt khỏi câu ví dụ; bản dịch cũ gắn với câu cũ nên bỏ để dịch lại.
+          const sach = window.CauNghe.lamSach(e.cauNghe.cau, e.word);
+          e.cauNghe = { cau: sach.cau, dich: "", ts: Date.now() };
+          daSuaCu = true;
         }
         // Đóng dấu mốc cho tiến độ ôn của các mục cũ — xem ghi chú cùng chỗ này
         // bên bản extension. KHÔNG đụng vào `e.ts`.
@@ -3631,13 +3666,10 @@ function veHangNb(it, decks, activeDecks, now) {
   // từ mà không nhớ nó nằm trong câu nào.
   ctl.appendChild(nutGemini(it, deckName(decks, it.deck)));
 
-  const sua = nutIcon("translate", T("Sửa bản dịch cho đúng chuyên ngành"), "", 18);
+  // MỘT nút sửa cho mọi thứ: nghĩa, câu ví dụ, ghi chú, ảnh.
+  const sua = nutIcon("pencil-simple", T("Sửa nghĩa, câu ví dụ, ghi chú"), it.note ? "on" : "", 18);
   sua.addEventListener("click", () => moSua(it, "trans"));
   ctl.appendChild(sua);
-
-  const gc = nutIcon("note-pencil", it.note ? T("Sửa ghi chú") : T("Thêm ghi chú"), it.note ? "on" : "", 18);
-  gc.addEventListener("click", () => moSua(it, "note"));
-  ctl.appendChild(gc);
 
   const lk = nutIcon("link-simple", it.src && it.src.url ? T("Mở lại trang nguồn") : T("Thêm link nguồn"),
     it.src && it.src.url ? "on" : "", 18);
@@ -4459,7 +4491,7 @@ async function boiThem(key) {
       }
     }
 
-    else if (!e.cauNghe.dich) {
+    else if (!e.cauNghe.dich && e.cauNghe.cau) {
       // Câu đã có mà lượt dịch trước hụt: thử lại. Bài điền khuyết cần bản dịch làm lời hỏi.
       let dich = "";
       try { dich = await gtxTranslate(e.cauNghe.cau, laJa ? "ja" : "en", "vi"); } catch (er) { dich = ""; }
@@ -4662,6 +4694,13 @@ function khoiNguCanh(it, tuDich) {
   box.appendChild(c);
   const d = el("div", "nguc-dich", h.dich);
   box.appendChild(d);
+  // Chạm vào ví dụ = mở hộp sửa ngay ở ô ví dụ. Lẫn tiếng Việt mà không lọc được thì nói thẳng.
+  box.classList.add("sua-duoc");
+  box.addEventListener("click", (ev) => { if (ev.target.closest(".nut-lai")) return; moSua(it, "vidu"); });
+  if (h.lan) {
+    box.classList.add("lan");
+    box.appendChild(el("div", "nguc-lan", T("Ví dụ có vẻ lẫn tiếng Việt — bấm để sửa")));
+  }
   if (!h.dich) {
     const xin = async () => {
       d.className = "nguc-dich";
@@ -4730,7 +4769,6 @@ $("stReveal").addEventListener("click", revealCard);
 $("stSpk").addEventListener("click", () => { const it = theCardHienTai(); if (it) speak(it.word, it.audio); });
 $("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if (it) moGemini(it); });
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
-$("stNote").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "note"); });
 
 async function grade(remembered, tuVuot) {
   // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
@@ -5135,8 +5173,7 @@ function gaiIcon() {
   gan("tabDetail", "article", "Chi tiết");
   gan("stSrc", "link-simple", "Mở nguồn", 15);
   gan("stGemini", "sparkle", "Hỏi Gemini", 15);
-  gan("stEdit", "translate", "Sửa bản dịch", 15);
-  gan("stNote", "note-pencil", "Ghi chú", 15);
+  gan("stEdit", "pencil-simple", "Sửa", 15);
   gan("stReveal", "eye", "Hiện nghĩa", 19);
   gan("gForgot", "arrow-counter-clockwise", "Quên", 18);
   gan("gKnow", "check", "Nhớ", 18);
