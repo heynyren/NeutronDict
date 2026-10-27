@@ -115,6 +115,13 @@ for (const lv of ["n3", "n2"]) {
   const bossDe = CH.dungDe(mon, ds[ds.length - 1], { rng: r1 });
   soat(lv.toUpperCase() + ": trùm cuối ra 30 câu trộn nhiều dạng", bossDe.length === 30 && new Set(bossDe.map((q) => q.kieu)).size >= 5, bossDe.length + " câu, " + new Set(bossDe.map((q) => q.kieu)).size + " dạng");
   // báo lỗi: câu bị báo không xuất hiện lại
+  // Câu chuyện: mỗi chặng có đoạn thoại riêng, nối thành một truyện liền mạch
+  const tr = JSON.parse(fs.readFileSync(new URL("../extension/jlpt/truyen-" + lv + ".json", import.meta.url)));
+  const bong = [].concat(tr.batDau || [], ...Object.values(tr.chang || {}), ...Object.values(tr.xongChuong || {}), tr.thang || []);
+  soat(lv.toUpperCase() + ": truyện có đoạn riêng cho TỪNG chặng (không thiếu, không thừa id)", ds.every((c) => Array.isArray(tr.chang[c.id]) && tr.chang[c.id].length >= 1) && Object.keys(tr.chang).every((id) => ds.some((c) => c.id === id)), Object.keys(tr.chang).length + "/" + ds.length);
+  soat(lv.toUpperCase() + ": truyện > 200 lời thoại, mỗi chặng ≤ 3 bong bóng, mỗi bong bóng 12–190 ký tự, không trùng", bong.length > 200 && Object.values(tr.chang).every((a) => a.length <= 3) && bong.every((x) => typeof x === "string" && x.length >= 12 && x.length <= 190) && new Set(bong).size === bong.length, bong.length + " bong bóng");
+  soat(lv.toUpperCase() + ": có lời mở màn, 9 đoạn sau mỗi chương và đoạn kết", tr.batDau.length >= 3 && [1, 2, 3, 4, 5, 6, 7, 8, 9].every((k) => tr.xongChuong[k] && tr.xongChuong[k].length >= 1) && tr.thang.length >= 4);
+  soat(lv.toUpperCase() + ": truyện chỉ nhắc nhân vật của màn mình (không lẫn Taro/Kai)", lv === "n3" ? !bong.some((x) => /\bKai\b/.test(x)) : !bong.some((x) => /\bTaro\b/.test(x)));
   const c0 = ds.find((c) => c.loai === "tu");
   const de0 = CH.dungDe(mon, c0, { rng: rng(5) });
   const bl = {}; de0.forEach((q) => { bl[q.id] = 1; });

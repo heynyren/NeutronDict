@@ -25,6 +25,7 @@ const bamChang = async (p, sel) => {
     }
     await p.waitForSelector(".jl-to-hop", { timeout: 5000 });
   };
+  const xongThoai = async (p) => { for (let i = 0; i < 12; i++) { const t = await p.$(".jl-thoai:not(.di) .jl-btn"); if (!t) return; await t.tap().catch(() => {}); await new Promise((r) => setTimeout(r, 150)); } };
   const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 const b = await chromium.launch({ channel: "chromium" });
 try {
@@ -46,7 +47,7 @@ try {
   soat("điện thoại: nút nhạc nền nằm TRÊN thanh tab dưới, bấm được", await p.evaluate(() => { const b = document.querySelector(".jl-nhac"); if (!b || b.hidden) return false; const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); const nv = document.getElementById("navJlpt").getBoundingClientRect(); return b.contains(e) && r.bottom <= nv.top + 2; }));
   await p.tap('.jl-the[data-mon="n3"]');
   await p.waitForSelector(".jl-thoai");
-  await p.tap(".jl-thoai .jl-btn"); await p.tap(".jl-thoai .jl-btn");
+  await xongThoai(p);
   await p.waitForSelector(".jl-bd");
   soat("cảnh nền liền mạch: 10 khung chồng, sân khấu dính đầu vùng cuộn, tràn sát hai mép", await p.evaluate(() => { const k = document.querySelector(".jl-gioi-khung").getBoundingClientRect(); return document.querySelectorAll(".jl-gioi-lop").length === 10 && Math.abs(k.left) < 1 && Math.abs(k.right - innerWidth) < 1 && !document.querySelector(".jl-banner"); }));
   soat("N3 leo núi LÊN: lúc vào là chân núi (khung 1 hiện), nút chặng 1 ở dưới cùng", await p.evaluate(() => { const l = [...document.querySelectorAll(".jl-gioi-lop")]; const n = [...document.querySelectorAll(".jl-nut")]; return !l[0].classList.contains("an") && l.slice(1).every((x) => x.classList.contains("an") || +x.style.opacity === 0) && n[0].getBoundingClientRect().top > n[n.length - 1].getBoundingClientRect().top; }));

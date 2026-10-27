@@ -45,6 +45,8 @@ const bamChang = async (sel) => {
   }
   await pg.waitForSelector(".jl-to-hop", { timeout: 5000 });
 };
+// Bấm "Tiếp" cho tới khi thú cưng nói hết (số bong bóng tuỳ truyện).
+const xongThoai = async () => { for (let i = 0; i < 12; i++) { const t = await pg.$(".jl-thoai:not(.di) .jl-btn"); if (!t) return; await t.click().catch(() => {}); await pg.waitForTimeout(120); } };
 const hien = (s) => pg.evaluate((s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== "none"; }, s);
 
 console.log("Hiển thị theo ngôn ngữ");
@@ -74,8 +76,7 @@ soat("lời thoại: nhân vật đứng ở chân cảnh nền (cố định, s
 soat("nhân vật Taro là hình SVG có hoạt ảnh (chớp mắt/vẫy đuôi)", sanKhau.nvSvg && await pg.evaluate(() => { const e = document.querySelector(".jl-thoai .nv-duoi"); return getComputedStyle(e).animationName !== "none"; }));
 soat("đang thoại: các chặng bị chặn bấm (tránh chạy chồng)", await pg.evaluate(() => getComputedStyle(document.querySelector(".jl-lo")).pointerEvents === "none"));
 soat("chữ hiện dần nhưng DOM có đủ chữ ngay (đọc được bằng trình đọc màn hình)", await pg.evaluate(() => document.querySelectorAll(".jl-bong-chu span").length > 20));
-await pg.click(".jl-thoai .jl-btn");
-await pg.click(".jl-thoai .jl-btn");
+await xongThoai();
 await pg.waitForSelector(".jl-bd", { timeout: 10000 });
 await pg.waitForFunction(() => !document.querySelector(".jl-thoai"), null, { timeout: 3000 });
 soat("nói xong: nhân vật rời cảnh, chặng bấm được lại", await pg.evaluate(() => getComputedStyle(document.querySelector(".jl-lo")).pointerEvents !== "none"));
@@ -242,7 +243,7 @@ await pg.check("#jlThu");
 await pg.waitForTimeout(400);
 await pg.click('.jl-the[data-mon="n2"]');
 await pg.waitForSelector(".jl-thoai");
-await pg.click(".jl-thoai .jl-btn"); await pg.click(".jl-thoai .jl-btn");
+await xongThoai();
 await pg.waitForSelector(".jl-bd");
 const n2 = await pg.evaluate(() => ({ n: document.querySelectorAll(".jl-nut").length, khoa: document.querySelectorAll(".jl-nut.khoa").length, tit: document.querySelector(".jl-bd-ten").textContent }));
 soat("N2: 201 chặng, tất cả mở (chế độ thử), tiêu đề Okinawa", n2.n === 201 && n2.khoa === 0 && /Okinawa/.test(n2.tit), JSON.stringify(n2));

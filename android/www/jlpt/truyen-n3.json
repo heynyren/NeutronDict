@@ -1,0 +1,983 @@
+{
+ "v": 1,
+ "batDau": [
+  "Á, dừng lại, dừng lại! Xin lỗi vì lao ra chắn đường. Mình là Taro, tanuki học việc ở ngôi đền trên đỉnh Phú Sĩ. 🦝",
+  "Mỗi bình minh, người ta đọc to Bình Minh Thư trên đỉnh núi thì mặt trời mới bừng lên, làng dưới chân núi mới sáng. Nhưng đêm qua, cuộn thư biến mất!",
+  "Thủ phạm là Kuro, tên quạ-thiên cẩu tinh nghịch. Hắn xé thư thành 9 trang, rải khắp 9 chặng trên đường lên đỉnh. Hết đêm mà thư chưa về, trời sẽ không sáng nữa.",
+  "Khó ở chỗ này: mỗi trang chỉ hiện chữ với người thật sự hiểu chữ. Mà mình đọc dở tệ. Nên… bạn học, mình dẫn đường, được không?",
+  "Mình hứa sẽ không hóa thành ấm trà giữa đường đâu. (Hứa được chín mươi phần trăm thôi.) Đi nào, trang đầu nằm ngay cổng đền chân núi!"
+ ],
+ "chang": {
+  "c1b1h1": [
+   "Nhìn kìa, tấm ván ở cổng đền có khắc chữ, đang sáng mờ mờ! Trang thư đầu tiên chắc ở rất gần. Bạn thử đọc xem?",
+   "Mình đứng sau lưng bạn nhé. Không phải mình sợ đâu, chỉ là… hướng kia gió hơi to thôi."
+  ],
+  "c1b1h2": [
+   "Chữ 忘 trên tấm ván thứ hai nghĩa là “quên”. Chữ này mình thuộc lòng, vì đêm qua mình quên… à, quên mang áo khoác. Đúng, áo khoác!"
+  ],
+  "c1b1t1": [
+   "Có gì đó cứ xoay vòng quanh chân bạn… một chiếc lông vũ đen! Nó vẽ mấy vòng tròn rồi đáp xuống tay bạn như đang chào.",
+   "Trên lông có dòng chữ nắn nót: “Ai đọc được hết, ta tặng cả núi.” Hừ, Kuro vừa đi qua đây rồi!"
+  ],
+  "c1b1t2": [
+   "Dưới gốc tùng có chiếc túi vải bị bỏ quên… ơ, túi của mình! Trong đó còn hai nắm onigiri. Chắc ăn như cơm nắm!",
+   "Mình luôn mang hai nắm: một cho mình, một để dành cho người cần nhất. Bạn nhớ nhắc mình đừng ăn lố nhé."
+  ],
+  "c1b1t3": [
+   "Có tiếng cười khúc khích trên cành tùng, nghe như ai đó đang rình chúng ta. Khoan, sao tự nhiên mình thấy tròn tròn, nóng nóng thế này?",
+   "Hức, mình lại thành ấm trà có đuôi rồi sao? Hồi hộp là mình hóa ấm. Bạn đừng cười… mà thôi, cười một xíu cũng được."
+  ],
+  "c1b1t4": [
+   "Chiếc lông thứ hai kẹp trên ván gỗ: “Học chữ cổ là vô ích (無駄). Về đi, kẻo uổng công. – K”",
+   "Vô ích á? Mình không tin! Mỗi chữ bạn học là một viên gạch lót đường lên đỉnh. Mà sao dòng chữ ấy nghe buồn buồn nhỉ?"
+  ],
+  "c1b1t5": [
+   "Nhìn vết mực này, còn ướt! Hắn vừa ghé qua, vừa đi vừa viết. Mình nhặt chiếc lông làm bằng chứng nhé.",
+   "Nhẹ tênh vậy mà một chiếc lông cũng đủ làm cả đêm dài thêm. Đi tiếp thôi, đừng để hắn cười thêm lần nào nữa."
+  ],
+  "c1b1p": [
+   "Bạn nhớ mẫu “càng… càng…” (～ば～ほど) chứ? Càng leo mình càng lo, mà càng có bạn đi cùng thì mình lại càng yên tâm!",
+   "Còn Kuro thì ngược lại: càng chạy càng rơi nhiều lông. Hắn đang rải dấu cho ta lần theo, hay hắn vụng thật? 🤔"
+  ],
+  "c1b2h1": [
+   "Bình minh còn xa, nhưng đèn lồng bên đường đã sáng dần cho ta. Chữ khắc trên cột nhìn như lưỡi gươm cong. Đừng lo, nó chỉ là chữ thôi!"
+  ],
+  "c1b2h2": [
+   "Có một chữ nghĩa là chia, là vỡ, làm mình nhớ tiếng giấy rách đêm qua. Mình nghe lơ mơ trong cơn buồn ngủ thôi…",
+   "Nhưng bạn thấy không, chữ rời rạc rồi cũng ghép lại được. Chín mảnh thư cũng vậy. Mình tin thế."
+  ],
+  "c1b2t1": [
+   "Đây là lần đầu mình dẫn khách lên núi vào ban đêm. Tim mình đập thình thịch như trống hội!",
+   "Sư phụ bảo lần đầu nào cũng vụng, nhưng đi tiếp thì lần sau sẽ đỡ hơn. Mình đang tin lời sư phụ đây."
+  ],
+  "c1b2t2": [
+   "Bạn có để ý bộ đồng phục học việc của mình không? Rộng đến nỗi mỗi lần quay người, tay áo quay chậm hơn mình nửa nhịp.",
+   "Tối nay nó thành cái chăn luôn: mình trùm kín đầu mỗi lần nghe tiếng động lạ. Mà… lại có tiếng động nữa kìa!"
+  ],
+  "c1b2t3": [
+   "Trước mặt có tấm biển 危険 (nguy hiểm), nhưng ai đó dán thêm dòng nhỏ: “Hoàn toàn an toàn. Tin ta đi. ~K”.",
+   "Cái kiểu viết cợt nhả đó chỉ có thể là Kuro! Mình không tin tấm biển nào có chữ ký của một con quạ."
+  ],
+  "c1b2t4": [
+   "Một chiếc lông đen kẹp mảnh giấy: “Xin lỗi vì làm phiền. Đùa thôi, ta không xin lỗi đâu.” Kuro vẫn bướng như mọi khi.",
+   "Hắn lúc nào cũng nhanh hơn ta một bước. Nhưng ở khúc cua có dấu chân quạ nhỏ xíu đang dẫn lên dốc, cứ lần theo là gặp!"
+  ],
+  "c1b2t5": [
+   "Hai hàng đèn đá xếp ngay ngắn dọc lối đi, bạn bước tới đâu là đèn bật sáng tới đó. Đẹp quá, mình muốn đứng ngắm cả đêm!",
+   "Nhưng không được, ngắm xong trời vẫn chưa sáng. Đi tiếp thôi, lần này bạn đi trước, mình ôm đèn lồng theo sau."
+  ],
+  "c1b2p": [
+   "Hồi nhỏ, cứ nhắc tới Kuro là sư phụ thở dài, nói “Kuro って…” (Kuro ấy mà…) rồi bỏ lửng câu. Bạn đoán xem vì sao?",
+   "Mình đoán không ra. Nhưng mình có cảm giác câu trả lời nằm đâu đó trên đường lên đỉnh. Cùng tìm nhé!"
+  ],
+  "c1b3h1": [
+   "Chữ 残 nghĩa là “còn lại”. Nhìn ngọn nến ở trạm gác này: còn lại chút xíu thôi, mỗi giọt sáp rơi là một khắc đêm trôi mất."
+  ],
+  "c1b3h2": [
+   "Mình trượt chân, đáp xuống vũng bùn, đuôi thành cây chổi lau nhà. Bạn đừng chụp hình nhé!",
+   "May có tấm ván khắc chữ “rửa” ngay cạnh. Có bạn bên cạnh, đến cái đuôi lem luốc cũng thấy đỡ tủi."
+  ],
+  "c1b3t1": [
+   "Thời gian còn chưa nhiều, mà chín trang thư chưa trang nào về. Cứ nghĩ tới là bụng mình cuộn lên như cuộn mì.",
+   "Nhưng bạn vẫn bước đều đều, nên mình cũng thôi lo… được một phút. Một phút thôi nhé!"
+  ],
+  "c1b3t2": [
+   "Mình rũ mãi mà vết bẩn trên áo vẫn không chịu đi. Đây là cái áo đẹp nhất của mình, định mặc lúc đọc thư đó!",
+   "Bạn thì sạch bong, sáng như đèn. Mình hơi ghen tị nhé. Thôi đi tiếp, bùn khô sẽ tự rơi."
+  ],
+  "c1b3t3": [
+   "Nghe không, phía xa có tiếng nước róc rách như ai đang thì thầm gọi ta. Trên đường còn nhiều bất ngờ lắm!",
+   "Nhưng trước hết hãy leo hết con dốc này. Gió ở đây thì thầm những từ mới bên tai bạn đó, thử nhặt vài từ xem."
+  ],
+  "c1b3t4": [
+   "Nhìn xuống làng kìa, ngàn ánh đèn nhỏ xíu. Dưới đó người ta ngủ yên, bình yên đến mức mình muốn ôm cả làng vào lòng.",
+   "Nếu trời không sáng, mai họ sẽ thức dậy trong bóng tối. Vì họ mình phải đi tiếp. Mà nhìn xuống từ đây… hơi chóng mặt. Thôi nhìn lên!"
+  ],
+  "c1b3t5": [
+   "Gió lạnh dần. Mình nhóm lửa nhỏ, hơ nắm onigiri cho ấm lại rồi chia bạn một nửa. Ấm là ngon gấp đôi!",
+   "Ăn no mới có sức học, học nhiều mới lên tới đỉnh, lên tới đỉnh mới có bình minh. Lập luận hoàn hảo của một tanuki đói bụng."
+  ],
+  "c1b3p": [
+   "Về chuyện Kuro (～について), mình có thêm một điều lạ: hắn hay cười cợt, nhưng chưa bao giờ đọc to chữ cổ trước mặt ai. Một lần cũng không.",
+   "Hử? Có tiếng vỗ cánh! Bạn nghe không? Tim mình đập như trống rồi… Hắn đến rồi, bạn chuẩn bị nhé!"
+  ],
+  "c1boss": [
+   "Kuro đáp xuống tảng đá, cánh xòe như màn đêm: “Ha ha! Chào mừng người leo núi. Trang đầu ở trong tay ta, muốn lấy thì phải qua mặt ta!”",
+   "Mình trốn sau lưng bạn nhé. Hắn trông to hơn mình tưởng, mà giọng thì bé hơn mình tưởng. Cố lên bạn ơi!",
+   "Kuro giơ trang thư lên: “Trả lời đúng 20 câu của ta. Sai nhiều, ta mang trang này bay đi mất!” Hít thở sâu nào, bạn làm được mà!"
+  ],
+  "c2b2h1": [
+   "Chào mừng tới rừng tùng sương mù! Sương dày tới mức nhìn đuôi mình mà thấy hai cái. Ơ, đúng là có hai thật… cái kia đâu phải của mình!",
+   "Chữ khắc trên thân tùng nghĩa là “mồ hôi”, đúng kiểu lạnh toát sống lưng. Đi sát mình nhé, ý mình là mình đi sát bạn."
+  ],
+  "c2b2t1": [
+   "Một cô cáo trắng mờ như khói hiện ra, cười tít mắt: “Ta là Kiri. Lữ khách muốn qua rừng à? Ta thích đố vui lắm đó!”",
+   "Kiri bảo: hoặc đáp đúng đố của cô, hoặc ở lại trong sương đến sáng. Mà sáng có tới hay không còn chưa biết. Chọn đố thôi!"
+  ],
+  "c2b2t2": [
+   "Kiri đố: “Mỗi sáng ta chui vào cửa mọi nhà, nhưng sáng nay ta đăng tin gì?” Mình đoán: tờ báo sáng (朝刊)! Tin sốc: “Trời vẫn tối”.",
+   "Kiri cười rũ rượi: “Đúng một nửa! Chưa có bình minh thì báo sáng chưa in được.” Bạn thấy chưa, ngay cô cáo cũng đang lo đấy."
+  ],
+  "c2b2t3": [
+   "Kiri bày ra một bản điều tra nhanh: “Câu một, bạn thích onigiri nhân gì? Câu hai, bạn có thích cáo hơn tanuki không?” Mình phản đối câu hai kịch liệt!",
+   "Bạn cứ trả lời thật lòng nhé. Riêng câu hai thì… cho mình xin chút điểm cộng, vì tình bạn."
+  ],
+  "c2b2t4": [
+   "Sương làm đuôi mình ướt sũng, nặng như cái khăn tắm. Mình đem phơi lên cành tùng, đứng nhìn nó nhỏ giọt, buồn xo.",
+   "Kiri mỉm cười: “Phơi cả đêm cũng không khô đâu, nhưng đỡ nặng hơn.” Cô nói đúng, mà nghe vẫn hơi chạnh lòng. Hu hu."
+  ],
+  "c2b2p": [
+   "Trong rừng này, đường đổi hình tùy theo người nhìn: ai lo lắng thì thấy toàn ngõ cụt, ai bình tĩnh thì thấy một lối sáng.",
+   "Bạn bình tĩnh hơn mình nhiều. Nên bạn đi trước nhé, mình bám ngay phía sau, nắm áo bạn nha!"
+  ],
+  "c2b3h1": [
+   "Kiri khắc câu đố thứ hai lên vỏ tùng: “Chữ này có một trái tim nằm dưới đáy. Nó là gì?” Mình đoán là chữ “ý”, vì nằm trong tim thì phải là ý nghĩ.",
+   "Kiri cười: “Đúng rồi. Thứ gì khắc trong tim mới là ý chí thật.” Nghe xong mình bỗng muốn cố gắng hơn, lạ ghê."
+  ],
+  "c2b3h2": [
+   "Tới ngã ba: một đường thật, một đường “giả” (仮). Kiri đứng giữa, chắp tay sau lưng, cười tinh nghịch: “Chọn đi, đường nào đúng?”",
+   "Mình ghét ngã ba lắm, lần nào cũng chọn đường dẫn về nhà. Nhưng có bạn, lần này mình dám thử đường lạ."
+  ],
+  "c2b3t1": [
+   "Kiri nháy mắt: “Kiến thức thông thường của rừng này: ai đi đường giả sẽ gặp ta nhiều lần.” Thì ra cả hai lối đều dẫn về chỗ cô!",
+   "Còn kiến thức thông thường của mình: không bao giờ đố cáo, vì cáo thắng. Nhưng bạn đừng sợ, bạn đang trả lời hay lắm."
+  ],
+  "c2b3t2": [
+   "Kiri khoe sương rừng này sản xuất tại Phú Sĩ, đảm bảo chất lượng. Mình hỏi: “Có sương sản xuất ở Việt Nam không ạ?” Cô cười ngặt nghẽo.",
+   "Mình bị đố ngược rồi. Thôi, ít ra cũng có tiếng cười. Giữa đêm tối nhiều lo âu, tiếng cười như một ngọn đèn nhỏ."
+  ],
+  "c2b3t3": [
+   "Mảnh giấy kẹp ở khe vỏ tùng, mực còn mới: chữ 素直 (ngoan ngoãn), bên cạnh chú thích nghiêng nghiêng: “そちょく”. Mình nhìn rồi vỗ trán.",
+   "Đọc sai rồi! Chữ này đọc là すなお. Kẻ cướp cả cuộn thư cổ mà đọc sai chữ dễ vậy sao? Hay hắn cố bẫy chúng ta nhỉ?"
+  ],
+  "c2b3t4": [
+   "Kiri chống cằm nhìn bạn: “Thành tích đêm nay của bạn không tệ chút nào.” Hừ, sao cô chấm bài bạn mà không chấm bài mình? Mình cũng học đó!",
+   "Cô bảo mình được điểm “cố gắng”. Thôi, có còn hơn không, như chiếc bánh nhân mơ sót lại cuối đĩa."
+  ],
+  "c2b3t5": [
+   "Bạn có nhận ra không? Trên nền sương không chỉ có dấu chân mình. Có thêm dấu chân chim, nhảy cóc từng bước đều đều, như đang… tập đọc?",
+   "Kiri thì thầm: “Hắn đi trước các ngươi chưa lâu.” Mình thấy lo, mà cũng tò mò. Tò mò là tật xấu của tanuki đó nha."
+  ],
+  "c2b3p": [
+   "Lúc nãy mình tưởng trời chẳng sáng nổi (～そうにない) nếu chỉ có hai đứa. Nhưng bạn cứ bước đều, không kêu ca một tiếng.",
+   "Nhờ vậy mình hiểu: chỉ cần cứ tiếp tục (～続ける) là đủ. Chắc ăn như cơm nắm! Giờ thì đi tiếp thôi bạn ơi."
+  ],
+  "c2b4h1": [
+   "Trước mặt có người đứng chờ: hai tai nhọn, đuôi bông xù, áo học việc rộng thùng thình. Ơ, đó là mình! Mình đứng đây mà, sao lại có mình ở kia?",
+   "Taro thứ hai nháy mắt rồi nói bằng giọng Kiri: “Ai là Taro thật?” Cô cáo biết hóa thân còn giỏi hơn cả tanuki như mình!"
+  ],
+  "c2b4h2": [
+   "Mình sẽ chứng minh bằng một chiếc bụng đói, kêu thật to: ọt ọt! Còn Taro giả chỉ lịch sự nói: “Xin lỗi, bụng tôi hơi đói.” Nghe là biết không phải mình.",
+   "Kiri biến lại thành chính mình, cười chảy cả nước mắt: “Ta thua! Tiếng bụng đói đúng là hàng độc nhất vô nhị.” Mình đỏ mặt mà tự hào lạ."
+  ],
+  "c2b4t1": [
+   "Kiri nói: “Ta không cần giống người khác, ta chỉ cần giống chính ta.” Câu đó nghe sâu sắc ghê.",
+   "Mình nghĩ về Kuro một chút: hắn đang là chính hắn, hay đang cố giống ai đó? Tự nhiên mình hỏi chuyện lạ quá. Thôi bạn cứ học đi."
+  ],
+  "c2b4t2": [
+   "Kiri chặn đường: “Vào sâu hơn phải có giấy phép của rừng.” Mình lục túi, rút ra tấm thẻ học việc nhàu nát. Cô nhìn, nhìn… rồi gật đầu!",
+   "Giấy tờ bé tí mà cứu cả đêm. Lần sau mình sẽ không đem thẻ đi giặt chung với áo nữa."
+  ],
+  "c2b4t3": [
+   "Kiri phất tay, sương cuộn thành đàn cừu trắng muốt nhảy qua hàng rào: một con, hai con, ba con… Mình ngáp. Bốn con… năm con… ngủ mất tiêu!",
+   "Bạn lay mình dậy. Hôm qua mình cũng ngủ gật đúng lúc quan trọng nhất… ý mình là hôm qua mình ngủ ít thôi!"
+  ],
+  "c2b4t4": [
+   "Kiri diễn thử đủ vai: lúc là Taro, lúc là sư phụ, lúc là một con quạ cau có. Cô bảo: “Ta là nữ diễn viên (女優) giỏi nhất khu rừng này!”",
+   "Nhưng khi hóa thành quạ, cô ngập ngừng nói rất nhỏ: “Ánh mắt hắn nhìn các ngươi… như chưa từng được ai chờ đợi.” Mình rùng mình."
+  ],
+  "c2b4t5": [
+   "Mình mải nghe mà vấp rễ cây, ngã lăn như củ khoai. Bạn kéo mình dậy mà không cười, cảm ơn nhé. Hay là bạn đang nhịn cười?",
+   "Kiri xin lỗi vì làm sương rối mắt, rồi tặng mình một chiếc lá tùng thơm: “Để nhớ rằng ngã cũng là đang đi.” Cô cáo này tử tế thật."
+  ],
+  "c2b4p": [
+   "Giữa rừng sương này mà Kuro nhảy ra giễu bạn thì cũng chẳng lạ gì (～てもおかしくない). Hắn mà, lúc nào cũng xuất hiện ngay sau khi mình nói xấu.",
+   "Bạn ơi, tiếng gì kêu quạc quạc phía trước vậy? Nói là có liền… Mình trốn sau lưng bạn cho đỡ lạnh nhé!"
+  ],
+  "c2boss": [
+   "Sương dạt ra như màn sân khấu. Giữa rừng, Kiri đứng cạnh một thân tùng khổng lồ, trên cành treo trang thư thứ hai. Kuro ngồi vắt vẻo trên cao, tay chống má.",
+   "Kuro: “Cô cáo, cô đố hay để ta đố? Nào người leo núi, 20 câu. Sai nhiều thì sương nuốt ngươi!” Mình cứng đờ như cây tùng!",
+   "Kiri nháy mắt với bạn: “Ta ngầm đứng về phía các ngươi nhé.” Có cô cáo sau lưng, mình đỡ sợ đôi chút. Cố lên bạn, hít thật sâu!"
+  ],
+  "c3b1h1": [
+   "Ra khỏi rừng tùng, trước mắt là dòng suối trong tới mức thấy cả đáy từng viên cuội. Chữ khắc bên bờ nhìn như đôi mắt đang ngó xuống nước. Nghe kìa, có ai đang hát!",
+   "Giọng hát trong veo, lên bổng xuống trầm, hát toàn… chữ Hán! Nghe như bị ru ngủ, bạn nhớ véo tay mình nhé."
+  ],
+  "c3b1h2": [
+   "Một cô gái trong suốt như giọt nước trồi lên khỏi mặt suối: “Mizuki đây! Để ta kiểm tra xem ai dám lội nước nhà ta!” Cô vẩy nước vào mặt mình, cười khúc khích.",
+   "Kết quả kiểm tra: Taro ướt như chuột lột. Còn bạn chỉ ướt vạt áo thôi. Công bằng ở chỗ nào vậy trời?"
+  ],
+  "c3b1t1": [
+   "Mizuki đang tìm đối thủ chơi trò hát chữ: cô hát một chữ, ai đọc đúng trước thì thắng. Cô chớp chớp mắt nhìn bạn: “Ngươi chơi cùng ta nhé?”",
+   "Mình thì thôi, mình hát dở lắm, hát lên là cá bỏ chạy. Bạn là người chơi, mình làm khán giả rưng rưng!"
+  ],
+  "c3b1t2": [
+   "Mizuki đòi phí qua suối: “Một bài hát hay, hoặc một tờ giấy bạc!” Mình lục túi, lôi ra tờ một nghìn yên từ năm ngoái. Cô nhìn rồi chép miệng: “Giấy ẩm, không ăn được!”",
+   "Bạn thấy chưa, với tinh linh suối, tiền chỉ là loại lá khô. Giá mà cuối tháng mình cũng nghĩ được như thế."
+  ],
+  "c3b1t3": [
+   "Mizuki bỗng nhíu mày nhìn dòng nước: “Đêm nay suối lạ lắm, nước đang chảy ngược lên cao!” Mình cúi nhìn: đúng thật, dòng suối chảy về phía đỉnh núi!",
+   "Ngày thường suối chảy xuống làng. Đêm nay có thứ gì đó kéo nước lên cao, như đang gọi ta lên theo. Hay là… nó đang dẫn đường?"
+  ],
+  "c3b1t4": [
+   "Mizuki ngồi vắt vẻo trên tảng đá, đạp nước tung tóe: “Kuro hả? Hắn nóng tính lắm, nhưng đâu có keo kiệt, tối qua còn tặng ta một chiếc lông.”",
+   "Rồi giọng cô nhỏ lại: “Lúc hắn bỏ đi, ta thấy hắn hơi đáng thương.” Mình hỏi: “Hắn là kẻ cướp mà?” Cô chỉ cười buồn."
+  ],
+  "c3b1t5": [
+   "Mizuki hạ giọng: “Ta thấy hắn giấu thứ gì đó trong lớp lông ngực. Một cuốn sổ nhỏ, bìa sờn cũ, ôm chặt như ôm trứng.” Kẻ cướp mà giấu sổ à?",
+   "Mình cũng vậy, cái gì khó là mình giấu kỹ không cho ai thấy… Thôi, nghĩ nhiều mệt, bạn cho mình nắm tay một chút nhé."
+  ],
+  "c3b1p": [
+   "Mizuki hỏi mình có sợ độ cao không. Mình đáp oai lắm: “Sợ độ cao á? Mấy chuyện như thế (～なんか) mình không bao giờ sợ!” To tiếng quá, đàn chim giật mình bay hết.",
+   "À, phía trước là cây cầu khúc gỗ bắc qua suối. Nó cao hơn mặt nước… một chút xíu thôi mà! Bạn đi trước nhé?"
+  ],
+  "c3b2h1": [
+   "Cầu chỉ là một thân cây bắc ngang, bên dưới nước xiết. Mình đứng sững, chân thành hai cọng bún. Mizuki dạy: “Hô hấp (呼吸) đi, hít vào, thở ra, như sóng vậy.”",
+   "Hít vào… thổi ra… hít vào… Ôi bạn ơi, hóa ra chỉ cần thở đúng cách là bớt run thật!"
+  ],
+  "c3b2h2": [
+   "Đầu cầu bên kia treo một chiếc lông đen, bên dưới khắc mấy chữ lạ. Mizuki gãi đầu: “Ta chỉ biết hát, đâu biết chữ cổ.”",
+   "Mình đọc thử: nghĩa là “cậu… không… báo”? Hình như lời nhắn của Kuro, kiểu “đừng nói với ai”. Bạn nghĩ sao?"
+  ],
+  "c3b2t1": [
+   "Mizuki thổi một chuỗi bong bóng nước từ ống tay áo trong suốt. Mình hít vào, bong bóng nổ ngay mặt, phì phì!",
+   "Cô cười như chuông gió. Bạn thấy không, chỉ cần có tiếng cười là cây cầu cũng bớt đáng sợ đi một nửa. Nửa còn lại thì mình tự lo."
+  ],
+  "c3b2t2": [
+   "Dưới lòng suối, Mizuki vớt lên một vật tròn tròn có dây: “Ta nhặt được, là gì vậy?” Mình nheo mắt: bộ sạc điện của ai đánh rơi!",
+   "Cô hỏi: “Nó có hát không?” Mình đáp: “Cắm điện thì nó… sạc.” Mizuki thở dài: “Chán ghê, đồ của người sao khó hiểu thế.”"
+  ],
+  "c3b2t3": [
+   "Mình giặt tay áo trong nước suối, xà phòng nổi bọt trắng xóa. Mizuki giơ ngón cái khen: “Sạch bóng!” Mình xúc động quá, thế là thêm bọt.",
+   "Chắc ăn như cơm nắm, áo sạch rồi! Ơ… sao đuôi mình trắng trắng dài dài thế này? Lại hóa thành củ cải! Mizuki cười lăn trên mặt nước."
+  ],
+  "c3b2t4": [
+   "Có mùi gì hôi kinh khủng! Mình lần theo mùi thì ra đôi giày của mình, ngâm nước cả buổi vẫn thơm mùi bùn. Mizuki bịt mũi lùi ba bước.",
+   "Cô bảo hồi xưa cá ở suối này tươi lắm, từ khi mình lội vào thì cá dọn nhà hết. Mình xin lỗi cả đàn cá và ba đời nhà cá!"
+  ],
+  "c3b2t5": [
+   "Một bóng đen lướt ngang mặt suối, cánh quạt gió làm nước xoáy tung. Vút một cái, ai đó cướp (奪う) mất chiếc nón lá của Mizuki!",
+   "Tiếng cười the thé vọng lại: “Giữ làm tin nhé!” Mizuki phồng má, tóc cô sôi bong bóng: “Quạ ngốc! Trả nón đây!”"
+  ],
+  "c3b2p": [
+   "Nghe nói (～ということだ) trang thư thứ ba nằm dưới đáy hồ nhỏ ở cuối suối, nước đen như mực. Phải đọc đúng thì nước mới tự rẽ ra.",
+   "Mình mà phải lội thì chỉ nổi bồng bềnh như củ cải thôi. Bạn lo phần chữ, mình lo phần cổ vũ, được không?"
+  ],
+  "c3b3h1": [
+   "Hồ nhỏ hiện ra, phẳng như tấm gương. Trên bia ven hồ khắc chữ “chống đỡ”: một mình thì yếu, có bạn bè thì chống đỡ được nhau. Mình đọc mà thấy ấm ấm.",
+   "Hình như mình nói hơi sến, nhưng mặt hồ cũng im lặng nghe cơ mà. Mà khoan, bia còn một chữ nghĩa là “kết thúc”. Đừng kết thúc vội nhé!"
+  ],
+  "c3b3h2": [
+   "Mặt nước sáng lên chữ 責 (trách nhiệm). Mình nhìn rất lâu rồi nhỏ giọng: “Bạn ơi, mình phải thú nhận. Đêm qua, người canh cuộn thư… chính là mình.”",
+   "Mình đã ngủ gật. Chỉ một chút, vậy mà tỉnh dậy thì cuộn thư biến mất, chỉ còn một chiếc lông đen. Mình chưa dám kể ai ở đền. Xin lỗi bạn."
+  ],
+  "c3b3t1": [
+   "Bạn không chê mình, chỉ gật đầu thật khẽ. Mình bỗng thấy nhẹ cả người. Mizuki lặng lẽ đợi mình bình tĩnh rồi nói: “Muốn xuống hồ phải trả bằng một bài hát.”",
+   "Mình hát. Cá trong hồ bỏ chạy sạch, bong bóng nổ lách tách. Mizuki vỗ tay: “Chưa từng nghe tiếng nào lạ như thế!” Chắc là khen?"
+  ],
+  "c3b3t2": [
+   "Mizuki chỉ sang bờ bên kia: “Tối qua Kuro ngồi đó cả đêm, đứng lên ngồi xuống như đang đấu tranh với chính mình.” Một con quạ do dự, hiếm thấy thật!",
+   "Dưới tấm biển 禁煙 (cấm hút thuốc) cũ có dòng chữ chép tay chi chít, như ai đó tập đi tập lại. Nét đầu xiêu vẹo, nét cuối thẳng tắp."
+  ],
+  "c3b3t3": [
+   "Mizuki cầm một bình thủy tinh nhỏ: “Ta dồn từng giọt sương mai vào đây mỗi ngày.” Mình nhẩm tính: cả trăm năm mà chưa đầy bình? Sương lười thật.",
+   "Cô lắc bình, ánh sáng lấp lánh bên trong như dải ngân hà thu nhỏ. Đẹp đến mức mình quên cả lo."
+  ],
+  "c3b3t4": [
+   "Ở bờ hồ có đống tro còn ấm. Ai đó đã nhóm lửa nhỏ để soi trang giấy giữa đêm giá. “Ngồi học bên lửa tàn, đúng chất học giả!” Mizuki trầm trồ.",
+   "Học giả hả? Hắn mà là học giả thì mình là… thôi bỏ đi. Mình bắt đầu thấy con quạ này có nhiều điều mình chưa biết, và điều đó làm mình khó chịu lạ."
+  ],
+  "c3b3t5": [
+   "Mizuki tựa cằm lên tay: “Bạn giỏi thật đó, chưa nản lần nào. Học trong đêm lạnh thế này mà vẫn thoải mái như đi dạo.” Bạn chỉ cười.",
+   "Mình ghen quá, chưa ai khen mình hay như vậy. Nhưng không sao, bạn giỏi thì cả hội cùng vui. Đi tìm trang ba dưới đáy hồ nào!"
+  ],
+  "c3b3p": [
+   "Ngoài nước và cá ra, đáy hồ còn có gì? Mizuki cười bí hiểm: “Có một câu thần chú, và có người đang chờ.” Ai chờ dưới đáy hồ chứ?",
+   "Mặt hồ gợn sóng, bọt khí nổi lên từng chuỗi. Có thứ gì đang trồi lên từ nước đen… Bạn nắm tay mình nhé, mình hứa không hóa củ cải nữa!"
+  ],
+  "c3boss": [
+   "Rầm! Mặt hồ vỡ tung, Kuro vọt ra, tay cầm trang thư thứ ba, đầu đội nón lá của Mizuki. “Ta đợi ngươi cả đêm! Đọc sai một chữ là nước nuốt ngươi!”",
+   "Mizuki đỏ mặt hét: “Trả nón cho ta, quạ ngốc!” Kuro lè lưỡi, lượn một vòng trên đầu bạn. Mình hét theo: “Bạn ơi, nhanh lên, chỉ 20 câu thôi!”",
+   "Mặt hồ dựng thành 20 làn sóng, mỗi làn là một câu hỏi. Hít thở như Mizuki dạy: vào… ra… vào… ra… Bạn đọc được mà, mình tin bạn lắm!"
+  ],
+  "c4b1h1": [
+   "Trước mặt là vách đá dựng đứng, rêu phủ xanh rì, ẩm ướt. Chữ khắc sâu giữa hai tảng đá nghĩa là “nhờ cậy”. Nhìn lên rồi nhìn xuống, chân mình cũng đang muốn nhờ ai đó dìu đỡ.",
+   "Bỗng một tảng đá to bằng ngôi nhà khẽ động đậy, hai con mắt rêu mở ra. Mình trốn sau bạn nhanh hơn cả thỏ: “B-bạn ơi, đá biết nhìn kìa!”"
+  ],
+  "c4b1h2": [
+   "Giọng trầm vang lên như sấm dưới lòng đất: “Ai?” Một chữ thôi mà rung cả vách núi. Đó là ông Iwao, người đá canh vách. Mặt ông trông như đang giận, dù có thể ông không giận.",
+   "Mình lí nhí: “Dạ, cháu là Taro ở đền ạ…” Iwao: “Biết.” Rồi im lặng. Bạn ơi, ông chỉ nói một chữ mỗi lần, mình đoán hết chữ thì ông hết hơi."
+  ],
+  "c4b1t1": [
+   "Iwao đưa bàn tay đá to như chiếc chiếu: “Gửi (預ける) túi.” Mình ngơ ngác đưa túi vải, ông cất vào hõm đá, gầm gừ: “Trông nom. Đi tay không.”",
+   "Ông còn thêm: “Cần giúp thì nhờ ta.” Mình rưng rưng: người đá cộc cằn mà lòng ấm như mặt trời giữa trưa!"
+  ],
+  "c4b1t2": [
+   "Gió lạnh làm mình run cầm cập, nên mình tiến lại gần Iwao. Bụng ông ấm như bếp lò, hơi ấm lan khắp mặt, thích lạ lùng.",
+   "Ông gầm gừ: “Đừng dựa.” Nhưng lại nghiêng người che gió cho mình. Bạn thấy chưa, người nói ít thường thương nhiều. Mình sẽ không kể ai đâu!"
+  ],
+  "c4b1t3": [
+   "Iwao chỉ mấy phiến đá xanh xanh bên đường: “Lễ cưới. Hai đá. Ta dự.” Hóa ra hồi xưa có hai tảng đá cưới nhau ở đây, cô dâu phủ đầy rêu.",
+   "Ông kể mà mắt rưng rưng, vụn sỏi rơi lách tách. Mình nghe mà lòng mềm ra. Hóa ra ông người đá cộc cằn cũng có kỷ niệm đẹp như thế!"
+  ],
+  "c4b1t4": [
+   "Mình nói liên tục để quên chóng mặt. Iwao nhíu mày: “Ồn.” Rồi nói thêm: “Bạn thân của sư phụ ngươi cũng ồn như vậy.” Ơ, ông là bạn thân của sư phụ mình hả?",
+   "Iwao gật đầu, kèm vài hạt sỏi rơi xuống: “Ừ.” Mình xúc động ghê: hóa ra mình có quen biết to hơn mình tưởng!"
+  ],
+  "c4b1t5": [
+   "Tới chân vách, Iwao khuyên: “Nhìn lên. Đừng nhìn xuống.” Mình khựng lại. Sao ông biết?! Mình đâu có kể với ai… mà mình đâu có sợ gì đâu.",
+   "Mình nuốt nước bọt, bám vào tảng đá đầu tiên. Cảm giác thật lạ: vừa muốn leo, vừa muốn chạy về. Bạn leo trước, mình leo sau nhé?"
+  ],
+  "c4b1p": [
+   "Iwao đọc nội quy bằng giọng sấm: “Một, không giẫm rêu. Hai, không nhìn xuống. Ba, không lười.” Mình vỗ tay: ba điều dễ nhớ quá!",
+   "Điều hai thì mình thử rồi nhé, chưa xong mắt đã bị vực hút xuống… Đành tập dần vậy. Từng bước, từng bước, đúng không bạn?"
+  ],
+  "c4b2h1": [
+   "Mình bám vào tảng đá thứ hai và cố leo. Đau lưng quá, chắc ba lô mình nặng hơn người ta! Bên cạnh có chữ nghĩa là “khói”, nhắc rằng nơi này từng có lửa.",
+   "Một hơi khói mỏng bay lên từ khe đá, như hơi thở ai đó đang ngủ dưới lòng núi. Mình bước nhẹ thôi, kẻo đánh thức nó."
+  ],
+  "c4b2h2": [
+   "Chữ tiếp theo nghĩa là “cháy”, có bộ hỏa bên trái. Mình vừa đọc thì mấy hạt đá lạo xạo nóng lên! Bạn nhìn kỹ xem, chữ đó như đang rực lên.",
+   "Mình linh cảm đường phía trên còn nóng hơn nữa. Nhưng chuyện đó để sau. Giờ mình đang bận bám đá và cầu nguyện đừng hóa củ cải trên cao."
+  ],
+  "c4b2t1": [
+   "Iwao nói: “Cần: tay chắc, chân chắc, đầu chắc.” Ba thứ, ông nói như đọc chân lý. Mình kiểm lại: tay run, chân run, đầu đang quay tròn!",
+   "Ông bổ sung: “Quan trọng: đừng vội.” Lời tuy cộc mà đúng như sách giáo khoa của đền. Mình sẽ ghi lại, nếu mình nhớ mà mang theo sổ."
+  ],
+  "c4b2t2": [
+   "Mình lén nhìn xuống rồi bật ngửa: “Ôi cao… ý mình là chẳng cao chút nào, mình hoàn toàn (全然) không sợ!” Iwao nhìn mình rất lâu rồi quay đi, vai hơi rung. Ông đang cười?",
+   "Dưới chân, vụn đá lăn xuống vực nghe lốp cốp thật lâu. Mình đổ mồ hôi như bị cảm nắng. Cho mình ôm tảng đá một lát."
+  ],
+  "c4b2t3": [
+   "Iwao chỉ vào những vết khắc trên tảng đá: hàng chục chữ giống hệt nhau, nét đầu xiêu vẹo, nét cuối vững dần. “Nhớ (覚える): viết mười lần mới nhớ.”",
+   "“Ai viết?” mình hỏi. “Quạ. Đêm qua. Học.” Bạn nghe rõ chưa? Kuro tập viết trên đá của ông Iwao suốt đêm! Kẻ cướp thư ngồi tập chữ như học trò ngoan?!"
+  ],
+  "c4b2t4": [
+   "Càng lúc càng sát hạn chót, mình cứ nhìn bầu trời mãi, màu đen vẫn đặc quánh. Iwao hạ giọng: “Tư thế.” Mình đang gù lưng, vội thẳng người, ngực ưỡn như trống.",
+   "Đứng thẳng thì nhìn lên dễ hẳn! Hóa ra tư thế cũng là bài học. Cảm ơn ông, dù ông sẽ không bao giờ nhận lời cảm ơn."
+  ],
+  "c4b2t5": [
+   "Mình mắc kẹt trong khe đá, đuôi vướng, đầu ngoái lại không được. Iwao rền rền: “Chịu đựng.” Mình hỏi: “Bao lâu ạ?” “Đến khi bạn ngươi kéo.”",
+   "Bạn kéo mình ra mà không cười, hay là đang nhịn? Ông Iwao gật: “Giải quyết.” Hai chữ mà nghe như bài diễn văn. Mình muốn ôm ông, nhưng ông cứng như đá… à, đá thật mà."
+  ],
+  "c4b2p": [
+   "Trên biển gỗ ngay mép vách có dòng nội quy kiểu Iwao: “Đi chậm. Nhìn lên. Ăn xong dọn rác.” Cả ba đều như lệnh, mà mình thấy ông đáng yêu lạ.",
+   "Điều thứ ba mình thuộc làu: ăn xong phải dọn rác, nhất là vỏ lá gói cơm nắm. Mình nhét vỏ lá vào túi, giơ tay chào cái biển."
+  ],
+  "c4b3h1": [
+   "Sau cú thở hổn hển, bụng mình réo ọt ọt, ngay cạnh chữ “bụng” khắc trên đá. Còn chữ “phức tạp” thì nằm kế bên, chắc để nhắc tình hình đang rối.",
+   "Iwao liếc mình, rồi móc ở đâu ra một nắm sỏi: “Ăn.” Mình ngơ ngác: “Cháu là tanuki, đâu phải chim sẻ ạ!” Ông nhún vai, sỏi lăn lộc cộc."
+  ],
+  "c4b3h2": [
+   "Chữ “mộng” khắc nghiêng nghiêng trên phiến đá phẳng. Iwao bỗng nói dài hơn mọi khi: “Quạ. Hắn nói: có một mộng. Đứng trên đỉnh. Đọc to.” Mình há miệng.",
+   "Đọc to? Chính cuộn Bình Minh Thư hắn đã xé ư? Hắn muốn đọc nó mà lại giấu nó? Bạn hiểu gì không? Mình chỉ hiểu: câu chuyện càng lúc càng rối!"
+  ],
+  "c4b3t1": [
+   "Iwao gõ ngón tay xuống đá: “Ôn tập. Mỗi ngày.” Mình than: “Ôn mãi cũng chán ạ.” Ông đáp: “Chán. Nhưng nhớ.” Bí quyết của người đá: cứ lặp lại, như nước mài đá.",
+   "Bạn thấy không, lên xuống nhiều lần, đá còn mài thành đường, huống gì trí nhớ? Chuyện phức tạp mấy cũng thành quen nếu mình không bỏ."
+  ],
+  "c4b3t2": [
+   "Mặt đường bỗng trơn ướt, rêu bám như dầu. Chân mình tuột, cả người rơi (落ちる) xuống! Mình hét lên, tay vung loạn… rồi bạn nắm lấy cổ tay mình, kéo thật mạnh.",
+   "Mình treo lơ lửng trên khoảng đen thẳm, tim như rớt ra ngoài. Bạn không buông. Từ giây phút đó, mình biết mình có thể tin bạn tới tận đỉnh."
+  ],
+  "c4b3t3": [
+   "Mình nằm thở dốc, Iwao tiến lại, đưa tay đỡ mình dậy: “Tán thành.” Mình hỏi: “Tán thành gì ạ?” Ông chỉ vào bạn: “Đi cùng người này. Tán thành.”",
+   "Mình cay xè mũi. Ông đá khô khan dành lời khen nhẹ nhàng nhất cho bạn. Còn mình thì được xách đi như bao khoai, nhưng vẫn vui lắm!"
+  ],
+  "c4b3t4": [
+   "Mình lau mồ hôi bằng chiếc khăn tắm, thở dài: “Với một tanuki sợ độ… à không, với một tanuki bình thường, chuyện này gần như bất khả thi.”",
+   "Iwao nhìn mình, rồi nhìn bạn: “Có thể.” Chỉ hai chữ mà mình thấy chắc chắn hơn mọi lời an ủi. Có thể. Có thể thật nhỉ, nếu có bạn."
+  ],
+  "c4b3t5": [
+   "Gió lạnh thổi tới, rêu trên vách đông cứng thành lớp băng mỏng, lách tách. Cả vách đá rung rung như có ai đang gõ cửa từ trên cao.",
+   "Iwao ngẩng đầu, mắt rêu sáng lên: “Quạ.” Mình quay lại: trên mỏm đá cao nhất, một cái bóng đen đứng ngược gió nhìn xuống. Hắn đã đợi sẵn!"
+  ],
+  "c4b3p": [
+   "Iwao quát khẽ: “Làm dở (～かける) thì không. Làm cho hết (～きる).” Mình nhận ra đó là bài học đêm nay: dù mệt cũng đừng bỏ giữa chừng.",
+   "Nghe nghiêm khắc mà mình thấy ấm. Học dở thì ôn tiếp, ngã thì đứng lên. Mà bóng đen kia đang bước xuống, mình hồi hộp rồi đó."
+  ],
+  "c4boss": [
+   "Bóng đen đáp xuống trước mặt Iwao, hai cánh khép như áo choàng. Kuro nhún vai: “Lão đá, giữ trang thư cho kỹ, đừng đưa cho ai không đọc nổi.” Iwao: “Ta quyết.”",
+   "Kuro chớp mắt, lần này hắn không cười: “Được. Ta ngồi xem. Nếu ngươi đọc nổi thì… đọc đi.” Giọng hắn run run. Mình im lặng, không muốn hắn biết mình thấy.",
+   "Iwao đặt trang thư lên tảng đá, vỗ tay thành tiếng sấm: “20 câu. Đúng. Rồi đi.” Mình nhắm mắt thì thầm: “Đá còn mài thành đường, bạn nhất định làm được!”"
+  ],
+  "c5b1h1": [
+   "Kìa, phía trên có ánh đèn ấm áp! Một ngôi nhà gỗ nhỏ mái cong, khói trà bốc nghi ngút. Trạm năm, nửa đường lên đỉnh rồi! Biển hiệu cũ khắc chữ nghĩa là “ngày xưa”.",
+   "Mình chạy nhanh đến nỗi vấp bậc cửa. Một bà cụ tóc bạc bước ra, cười hiền: “Từ từ thôi các cháu, trà không chạy đi đâu cả.” Đó là bà Hana, bà bán trà và onigiri."
+  ],
+  "c5b1h2": [
+   "Bà Hana nhìn hai đứa rồi bảo: “Ngồi đi, ngồi đi.” Mình đi tìm chỗ gần lò than nhất, còn bạn cứ ngồi chỗ nào bạn thấy dễ chịu.",
+   "Lò than tỏa hơi ấm lan khắp người. Ôi, mình thấy cả đêm dài lo lắng tan đi một nửa. Có chỗ nghỉ chân là một món quà lớn, bạn nhỉ?"
+  ],
+  "c5b1t1": [
+   "Mình quăng ba lô, áo, nón, tay áo khắp quán, bày bừa cả một góc. Bà Hana không mắng, lặng lẽ gấp gọn từng món và cười: “Cháu vẫn như hồi nhỏ.”",
+   "Ơ, bà biết mình hồi nhỏ ạ? Bà chỉ cười, rót thêm trà. Có gì đó ở bà khiến mình thấy vừa quen vừa lạ, như mùi hương của ngôi đền."
+  ],
+  "c5b1t2": [
+   "Mình móc từ tay áo ra nắm onigiri cũ mèm. Bà Hana nhíu mày: “Qua hạn sử dụng (賞味期限) từ hôm kia, bỏ đi.” Mình khóc ròng: “Mình dành dụm ba hôm mà!”",
+   "Rồi bà đặt trước mặt hai đứa hai nắm onigiri nóng hổi, nhân mơ muối. Bạn cắn thử đi, hạnh phúc là có thật!"
+  ],
+  "c5b1t3": [
+   "Bà Hana nhìn bạn thật lâu rồi hỏi nhỏ: “Cháu mệt lắm rồi phải không? Mệt thì cứ nói, mệt không phải là yếu.” Mình sựng lại: chưa ai nói câu đó với mình.",
+   "Bạn gật nhẹ, bà đẩy tách trà nóng về phía bạn. Lạ ghê, bà không hỏi ta đi đâu, làm gì, như thể bà biết hết rồi."
+  ],
+  "c5b1t4": [
+   "Lúc rót trà, bà Hana nhìn ra bậc cửa, bỗng nói: “Ngày xưa có một cậu bé quạ hay ngồi đúng cái ghế ấy, ôm cuốn sổ nhỏ, học đến gục xuống bàn.” Mình sặc trà.",
+   "Mình hỏi dồn: “Rồi sao nữa ạ?” Bà chỉ cười: “Phần tiếp theo, cháu tự đi tìm.” Bà biết điều gì đó, chắc chỉ nói khi tới lúc. Bạn thấy thế không?"
+  ],
+  "c5b1t5": [
+   "Bà Hana thở dài: “Cậu bé ấy hay ấm ức (悔しい) vì mãi không đọc nổi một chữ. Cảm giác đó, ai cũng từng nếm.” Mình cúi nhìn tách trà: mình cũng từng như thế.",
+   "Bà nói thêm: “Chán thì nghỉ một lát, nhưng đừng bỏ. Người thân thiết với chữ là người dám sai nhiều lần.” Mình lén ghi vào sổ tay."
+  ],
+  "c5b1p": [
+   "Bà Hana quy định: “Ăn xong mới được đi tiếp.” Mình phụng phịu: “Nhưng trời sắp sáng!” Bà đáp: “Có ăn no, ngủ đủ, chữ mới vào đầu.”",
+   "Thế là mình ăn. Ăn ba nắm. Bà bán trà này nói gì cũng có lý. Còn bạn thì ăn một nắm thôi, mình tham quá chăng?"
+  ],
+  "c5b2h1": [
+   "Mình ăn no, ngả người ra thành ghế. Trên thực đơn có chữ nghĩa là “cung cấp”, và một chữ nghĩa là “kết nối”, nhìn như nút dây buộc. Bạn thấy giống không?",
+   "Lúc này lòng mình yên lạ. Có thể do nắm cơm, do bà Hana, và cũng do bạn ngồi cạnh. Yên đến mức dễ quên vì sao mình đang ở đây."
+  ],
+  "c5b2h2": [
+   "Trên tường treo tấm bảng thơ cũ, có chữ “lời hứa”, “mục tiêu” và “đều đặn”. Mình đọc to: hứa, đích, đều. Hứa là phải tới đích, đều đặn từng bước.",
+   "Bạn ơi, mình đã hứa dẫn bạn tới đỉnh. Lời hứa đó khiến mình vừa hạnh phúc vừa… chân bủn rủn. Chuyện này mình sẽ nói sau một chút."
+  ],
+  "c5b2t1": [
+   "Mình hỏi bà Hana về tiền lương. Bà cười: “Cháu học việc ở đền thì lương toàn onigiri chứ gì?” Bà hiểu mình quá! Cả tháng nay mình chỉ được trả lương bằng cơm nắm thật.",
+   "Bạn có đi làm không? Nếu có, mong lương bạn cao hơn mình. Còn không thì mình mời bạn thêm một nắm, hào phóng chưa?"
+  ],
+  "c5b2t2": [
+   "Từ cửa sổ nhìn ra, con đường tiếp tục vòng lên cao như dải ruy-băng. Trăng chiếu lên lớp đá đen, bên cạnh là… vực. Một cái vực dài thăm thẳm.",
+   "Mình kéo rèm lại, tiện thể kéo cả bàn lại gần. Trà nguội nhanh quá, cho mình thêm tách nữa. Bạn đợi xíu, mình chưa muốn đi ngay!"
+  ],
+  "c5b2t3": [
+   "Mình bắt đầu nghĩ ra đủ lý do để nán lại: “Hiện giờ mình đang mệt. Bà Hana có phòng không, cho mình ở lại vài… năm.” Bà rót trà, chỉ ho khẽ một tiếng rất có ý tứ.",
+   "Bạn nhìn mình bằng ánh mắt biết hết. Mình biết mình đang trốn. Nhưng bạn à, mình không biết phải nói thế nào…"
+  ],
+  "c5b2t4": [
+   "Chiếc chuông gió treo trước cửa bỗng kêu lanh canh báo giờ khởi hành. Mình giật bắn, và pop! Mình thành ấm trà có đuôi, nằm giữa bàn, hơi bốc nghi ngút.",
+   "Bà Hana nhấc mình lên, rót thử một chén, nhấp: “Ấm này nóng vừa, rót mượt lắm.” Bạn ôm bụng cười, mình trong ấm hét: “Bà ơi, đừng uống mình!”"
+  ],
+  "c5b2t5": [
+   "Khi mình hóa lại thành tanuki, bà Hana hỏi nhỏ: “Không thể ngờ (まさか)… cháu sợ độ cao phải không?” Mình đông cứng. Sao bà biết? Mình giấu kỹ lắm mà!",
+   "Bà cười: “Cháu hóa ấm mỗi lần lên cao, ta nhìn là hiểu.” Bạn ơi, mình hết chỗ giấu rồi. Mình nói thật nhé, nói luôn đây, đừng cười."
+  ],
+  "c5b2t6": [
+   "Mình lẩm bẩm nửa ngày mới thành lời: “Mình sợ độ cao. Từ hồi bé. Leo thang gác mái cũng run, nhìn xuống sân đền là hóa ấm.” Vậy mà mình lại lên ngọn núi cao nhất xứ này!",
+   "Mình sợ bạn thất vọng, sợ mình làm hỏng chuyến đi. Mình giấu bạn suốt cả đường. Xin lỗi bạn. Nếu bạn muốn đi tiếp một mình, mình hiểu."
+  ],
+  "c5b2p": [
+   "Bà Hana đặt tay lên vai mình: “Ai cũng có lúc sợ (～こともある), cũng có lúc dũng cảm. Quan trọng là mỗi lần sợ (～たびに), cháu vẫn tìm cách bước thêm một bước.”",
+   "Mình ngẩng nhìn bạn. Bạn không cười, không bỏ đi, chỉ gật thật chậm: “Mình đi cùng nhé.” Câu đó tốt hơn mọi thứ trên đời, tốt hơn cả nắm cơm, thật đó."
+  ],
+  "c5b3h1": [
+   "Sau quầy có cánh cổng gỗ nhỏ, khung cửa khắc chữ như lời mời. Bà Hana bảo: “Muốn tiếp tục thì đi cổng này, ra chỗ có tiếng gió.”",
+   "Ở khung cửa kẹp một chiếc lông đen kèm dòng chữ: lần đầu hắn viết đúng cả ba chữ khó, nét ngay ngắn, không xiêu vẹo. Hắn tiến bộ nhanh thật. Mình mừng, rồi thấy hơi lạ."
+  ],
+  "c5b3h2": [
+   "Mình thử cười để đỡ sợ, nhưng nụ cười méo xẹo như quả mơ ngâm. Bà Hana vỗ tay: “Cười đi, cười cho nỗi sợ tưởng mình là trò vui.”",
+   "Mình cười tiếp, từ méo thành tròn, từ tròn thành sảng khoái. Bạn cười theo. Có bạn, cái gì cũng bớt đáng sợ. Cảm ơn bạn nhiều lắm."
+  ],
+  "c5b3t1": [
+   "Mình xin bạn một chuyện thật trang trọng: bạn giữ bí mật chuyện mình sợ độ cao với Kuro nhé? Hắn mà biết, hắn sẽ lấy chuyện đó chọc mình đến sáng.",
+   "Bạn bắt tay mình giao ước. Mình chẳng cần lễ nghi hay giấy tờ gì, chỉ cần cái nắm tay này. Từ giờ bạn là người hiểu mình nhất rồi đó."
+  ],
+  "c5b3t2": [
+   "Bà Hana nói: “Nỗi sợ sẽ giảm dần theo từng bước, không biến mất một lần đâu.” Mình hỏi: “Bước thứ mấy thì hết sợ ạ?” Bà đáp: “Cháu sẽ không đếm nổi.”",
+   "Mình thì cứ đếm, nhưng tới 37 là mình ngủ gật. Ngay cả lúc định dũng cảm mình cũng hơi lười. Chắc phải nhờ bạn kéo đi tiếp thôi!"
+  ],
+  "c5b3t3": [
+   "Để quên độ cao, mình thử nhẩm phép cộng: một cộng một bằng hai, hai cộng hai bằng bốn… Bà Hana lắc đầu: “Học chữ mà cứ máy móc thế thì quên sạch.”",
+   "Bà bảo đọc chữ phải có hơi thở, phải nhìn vào nghĩa như nhìn vào mắt bạn thân. Cứ đếm một cộng một hoài thì chỉ giỏi tính toán. Mình hơi xấu hổ, mà thấy bà đúng."
+  ],
+  "c5b3t4": [
+   "Mình uống cạn tách trà, thấy ở đáy (底) có dòng chữ nhỏ xíu: “Ai cũng bắt đầu từ đáy.” Chắc bà Hana viết. Mình nổi da gà: lời này như viết riêng cho ai đó.",
+   "Bà vừa nhấc ấm nước sôi vừa thì thầm một mình: “Lời này cũng nên có người đọc cho cậu bé quạ nghe.” Mình giả vờ không nghe. Bạn cũng nghe thấy, đúng không?"
+  ],
+  "c5b3t5": [
+   "Bà Hana gói thêm một nắm onigiri trong lá tre, buộc nơ cẩn thận: “Gói này cho cậu bé quạ, nếu hai cháu gặp nó. Đừng nói ta gửi, kẻo nó ngại.”",
+   "Mình ngơ ngác: onigiri cho Kuro ư? Định hỏi thì bà đã quay đi, chỉ còn mùi thơm ngát. Kẻ cướp thư mà được bà quán trà thương như cháu, hay thật!"
+  ],
+  "c5b3t6": [
+   "Bà Hana lau nốt cái chén, nhìn bạn: “Cháu tiến bộ nhiều so với lúc vào quán đó. Đáng khen!” Mình đỏ mặt thay bạn, như thể bà khen mình.",
+   "Bà bước ra cửa, gió núi thổi tóc bạc bồng bềnh, trông bà bỗng như tan vào màn sương. Mình dụi mắt nhìn lại, bà vẫn đó, rất bình thường. Chắc mình mệt quá."
+  ],
+  "c5b3p": [
+   "Nhắc tới bình minh, ai cũng nghĩ màu cam. Với mình, bình minh là màu của lúc không còn sợ nữa. Đúng hơn là (～というより) màu của lúc dám nhìn xuống mà không hóa ấm.",
+   "Còn lâu mới tới. Nhưng mình sẽ cố. Sau quán có cầu treo dẫn sang sườn kế, nghe nói trang thư thứ năm nằm giữa cầu. Bạn nắm tay mình nhé?"
+  ],
+  "c5boss": [
+   "Cầu treo vắt ngang một khe vực hun hút, ván gỗ cũ đung đưa theo gió. Giữa cầu, trang thư thứ năm phần phật, nằm trong vuốt Kuro đang ngồi trên dây cáp như đứa trẻ ngồi xích đu.",
+   "Kuro cười khẩy: “Ồ, tanuki định qua cầu à? Nghe nói có ai đó sợ độ cao lắm nha!” Mình giật thót: hắn nghe lỏm từ bao giờ?! Nhưng tay bạn đang nắm tay mình, và mình quyết định không hóa ấm.",
+   "Mỗi tấm ván là một câu hỏi: đúng thì ván chắc, sai thì ván kêu răng rắc. 20 tấm ván thôi. Mình nhắm mắt bước theo bạn, từng bước, cùng bạn!"
+  ],
+  "c6b1h1": [
+   "Qua cầu rồi, mặt đất bỗng khác lạ: đá đen sần sùi, hơi nóng bốc lên từ khe nứt như thở. Chân mình nóng ran mà đầu thì lạnh toát. Có chữ “lạnh” khắc trên ván, đọc mà thấy mỉa mai!",
+   "Bên cạnh có tiếng xì xì, như ai đó đang cười lén. Bạn nghe không? Bà Hana đã dặn rồi mà…"
+  ],
+  "c6b1h2": [
+   "Từ cái hố bên đường lóe lên hai đốm sáng đỏ rực, nhảy tưng tưng như hai hạt đậu nổ. Chúng chui ra, mắt tròn xoe, má phình: hai con ma than hồng!",
+   "“Ê! Tụi tớ là Ngọn!” “Và Tàn!” “Có onigiri không?” Hai đứa nói cùng lúc, giọng lép bép như củi cháy. Mình thụt vào sau lưng bạn."
+  ],
+  "c6b1t1": [
+   "Ngọn chống nạnh ra lệnh (命令): “Dừng lại! Nộp đồ ăn!” Tàn gật đầu như gõ mõ: “Nộp đồ ăn! Còn thừa thì nộp luôn!” Hai đứa chỉ bằng nắm tay mà làm như thủ lĩnh sơn tặc.",
+   "Đứa nào cũng nóng như hòn than mới gắp ra, mà mình thấy dễ thương quá. Nhưng đuôi mình đang cách chúng… hơi gần. Mình thụt đuôi vào, nhẹ nhàng nhé."
+  ],
+  "c6b1t2": [
+   "Ngọn thì thầm với Tàn: “Thực ra tụi mình chỉ muốn một nắm onigiri nướng thôi.” Mình ôm chặt gói lá: “Onigiri của bà Hana không nướng nha! Chắc ăn như cơm nắm là phải để nguyên!”",
+   "Hai đứa phồng má giận dỗi: “Keo!” Bạn thấy chưa, ma lửa cũng biết giận. Mình đành chia mỗi đứa một hạt cơm, hai đứa xì xì cười, tia lửa bắn tung tóe."
+  ],
+  "c6b1t3": [
+   "Mình hỏi: “Sao hai bạn chặn đường bọn mình?” Ngọn nghiêng đầu: “Không có lý do gì cả.” Tàn gật: “Muốn thế thôi! Tự do mà!” Rồi hai đứa lăn tròn, tia lửa tóe tứ tung.",
+   "Mình rùng mình vì ghen tị. Không phải chép phạt, không phải canh cuộn thư… Ơ, mà mình chép phạt thật hả?"
+  ],
+  "c6b1t4": [
+   "Ngọn đổi chiến thuật. Nó đằng hắng, ưỡn ngực, nói bằng kính ngữ (敬語) rất lễ phép: “Xin phép được nhận một chút onigiri ạ!” Rồi tự bật cười vì giọng nghe như quan văn mới tập nói.",
+   "Tàn chen vào, cố lễ phép mà thành: “Xin phép được… ăn bạn.” Mình tái mặt: “Không không, không ăn ai hết!” Hai đứa này làm mình giảm mười năm tuổi thọ!"
+  ],
+  "c6b1t5": [
+   "Ngọn và Tàn chộp ngay đuôi mình làm giẻ lau, chà lên mặt đá cho sạch than. Mình hét: “Đuôi mình không phải giẻ!” Hai đứa cười khanh khách: “Mềm quá, lau sạch bong!”",
+   "Đuôi mình đen thui, còn mặt đá sáng loáng. Mình tưởng bị bắt nạt, ai ngờ hai đứa này là dân dọn đường chuyên nghiệp. Bạn nhìn xem, đường sạch bóng!"
+  ],
+  "c6b1t6": [
+   "Hóa ra Ngọn và Tàn mê dọn dẹp lắm! Mỗi đêm hai đứa quét sạch tro bụi trên đường, không cho ai trượt ngã. Tàn khoe cây chổi lông nhím: “Sửa cầu đá cũng là việc của tụi tớ!”",
+   "Mình ngượng ngùng xin lỗi vì đã nghĩ xấu. Ngọn khoát tay: “Thôi, đền bằng nửa nắm onigiri là xong!” Vẫn bị tống tiền, nhưng là kiểu tống tiền đáng yêu!"
+  ],
+  "c6b1p": [
+   "Hai đứa dắt tụi mình đi giữa đường, vừa đi vừa khoe: “Chữ Hán thì khỏi nói, tiếng Nhật thường ngày tụi tớ cũng giỏi!” Mình tin sái cổ, chỉ là tụi nó nói nhanh quá, mình chẳng hiểu gì.",
+   "Bạn thấy không, ai cũng có chỗ giỏi của mình, dù nhỏ như tia lửa. Mình học được điều đó từ hai đứa ma lửa, giữa đêm lạnh trên núi cao. Hay thật."
+  ],
+  "c6b2h1": [
+   "Hai đứa dừng lại ở một phiến đá khắc chữ “hòa”. Nhưng ở đây chẳng hề hòa thuận: Ngọn và Tàn cãi nhau chí chóe xem ai được ăn trước. “Của tớ!” “Của tớ!”",
+   "Bạn bước vào giữa, hòa giải bằng cách chia đều hạt cơm. Hai đứa im bặt, ngoan như hai cục than vừa tưới nước. Bạn làm trọng tài giỏi quá!"
+  ],
+  "c6b2h2": [
+   "Có chữ “răng” khắc trên tảng đá phía sau, và Tàn đang ôm má, mặt nhăn nhó: “Răng tớ đau…” Ngọn cười: “Tại cậu ăn kẹo than hoài!”",
+   "Tàn khóc oà. Mình vội an ủi: “Đừng sợ, đau thì đi chữa.” Chữ “cắt đứt” trên đá chắc không liên quan chuyện nhổ răng đâu… hy vọng thế."
+  ],
+  "c6b2t1": [
+   "Ngọn bắt đóng thuế khi qua đường: “Mỗi người một chuyện cười!” Mình kể chuyện mình hóa ấm trà, hai đứa cười lăn lóc. Thuế nộp xong, tụi mình được đi tiếp.",
+   "Chuyện hóa ấm hóa ra rất có giá. Lần sau chắc mình xin bà Hana bán vé xem tanuki hóa ấm, chia bạn nửa số thu, vì bạn là nhân chứng."
+  ],
+  "c6b2t2": [
+   "Mình bảo Tàn: “Răng sâu thì phải đánh răng (歯磨き) mỗi ngày!” Tàn tái mặt: “Đánh răng bằng nước á? Tớ tắt lửa mất!” Ngọn gợi ý: “Dùng bột than!”",
+   "Cuối cùng cả bọn chọn bột tro ấm và bàn chải lông nhím. Hai đứa ma lửa tập đánh răng, nghe lẹt xẹt như pháo hoa mini. Một nỗi buồn rất… cháy."
+  ],
+  "c6b2t3": [
+   "Ngọn khoe tài bí mật: biến thành hổ! Nó phình ra một chút, vẽ hai tai nhọn với sọc cam, rồi gầm: “Grừ!” Nghe như ấm nước sôi. Mình cười muốn xỉu.",
+   "Tàn không chịu thua, hóa thành khỉ nhảy tưng tưng trên vai mình, nghịch tai mình. Hai bé lửa vừa đáng yêu, vừa đáng sợ, vừa rất nóng. Đừng đốt tai mình nhé!"
+  ],
+  "c6b2t4": [
+   "Ngọn thề: “Tụi tớ không bao giờ gây hỏa hoạn (火災)!” Vừa dứt lời thì phụt! Một tia lửa bắn trúng đuôi mình. Mình ngửi thấy mùi thơm thơm: “Mùi gì mà thơm như bánh nướng vậy?”",
+   "Đuôi mình cháy xém! Bạn dập ngay bằng giọt nước của Mizuki, xì một cái là tắt. Mình khóc rưng rức. Hai đứa quỳ lạy xin lỗi, còn mình thì nghi đó là âm mưu nướng tanuki."
+  ],
+  "c6b2t5": [
+   "Hai đứa chỉ một khe đá hẹp, nơi ai đó đã nhồi vội một cuốn sổ nhỏ, bìa sờn, cháy xém mép. Ngọn thì thầm: “Quạ để quên. Tụi tớ nhặt.” Mình mở ra, tay run run.",
+   "Trong sổ chi chít chữ Hán chép đi chép lại, bên cạnh vẽ cả mặt cười và mặt khóc. Nét đầu loạng choạng, trang cuối đã ngay ngắn. Bạn ơi, hắn đang học thật!"
+  ],
+  "c6b2p": [
+   "Tàn kéo áo bạn: “Trang giấy nhỏ mà chữ chi chít hơn tưởng!” Mình lật thêm, góc trang có dòng chữ: “Phải đọc được trước bình minh.” Đọc để làm gì, trời ơi?",
+   "Hóa ra là thế: hắn lén theo sau mình và bạn, nghe chúng ta đọc rồi chép lại! Cả cuốn sổ này là giáo trình hắn tự lập từ đêm qua. Mình vừa giận, vừa… ngưỡng mộ."
+  ],
+  "c6b3h1": [
+   "Ngọn thì thầm: “Quạ tới!” Cả hai chui tọt vào hang, chỉ còn bốn con mắt lấp lánh ló ra. Mình ôm chặt cuốn sổ sau lưng, tim đập thình thịch. Hóa ra… chỉ là cơn gió thổi tờ giấy.",
+   "Chữ “trốn chạy” khắc trên vách hang nhìn mà buồn cười. Hai đứa nhỏ nhìn nhau rồi phá lên cười, tia lửa bắn tứ tung. Một báo động giả vui nhất đêm nay."
+  ],
+  "c6b3h2": [
+   "Ngọn và Tàn ló đầu ra: “Chơi trốn tìm với tụi tớ đi!” Mình hỏi: “Giờ này ư? Trời sắp sáng mà.” Ngọn nháy mắt: “Chơi chút thôi, lấy lại tinh thần!”",
+   "Chơi thật. Bạn trốn sau tảng đá, mình trốn sau tảng đá khác, Tàn tìm ra mình đầu tiên vì đuôi mình thò ra ngoài. Tiếng cười vang cả khe núi. Lâu lắm mình mới cười như vậy."
+  ],
+  "c6b3t1": [
+   "Mình nói với hai đứa: “Hắn là kẻ xấu, mình tin chắc (思い込む) như vậy!” Tàn nhìn mình: “Cậu tin chắc thế? Đêm qua quạ ngồi đây, ôm cuốn sổ khóc nhỏ nhỏ. Đâu phải người xấu.”",
+   "Mình im bặt. Đúng là mình đã tin chắc Kuro xấu xa suốt cả chặng. Nhưng bạn ơi, những gì trong cuốn sổ… làm mình lung lay. Có khi mình nghĩ sai thật."
+  ],
+  "c6b3t2": [
+   "Ngọn và Tàn nhận giao hàng cho cả ngọn núi: thư, trà, củi, đủ thứ. Ngọn khoe: “Tụi tớ giao cho quạ nhiều lần rồi!” Mình hỏi giao gì, Ngọn nhún vai: “Giao… onigiri.”",
+   "Hả? Ai nhờ? Ngọn bịt miệng: “Bí mật! Bà quán trà cấm nói!” Mình nhìn gói lá bà Hana trong tay, rồi nhìn bạn. Có phải bà đã lo cho hắn từ lâu rồi không?"
+  ],
+  "c6b3t3": [
+   "Hai đứa tổ chức tiệc chào mừng ngay trên đường đá: thổi pháo hoa mini, dựng cổng bằng than hồng. Ngọn gào to: “Hoan nghênh! Hoan nghênh!” Tàn đón khách bằng cách nhảy lên đầu mình.",
+   "Giữa đêm tối mà có hai bé lửa bên cạnh thật ấm. Mình quên cả cái lạnh, quên cả độ cao đang chờ phía trên. Chỉ một chút thôi, nhưng đủ khiến mình muốn khóc."
+  ],
+  "c6b3t4": [
+   "Ngọn bảo: “Tụi tớ không thích onigiri đâu!” Rồi thè lưỡi liếm môi. Tàn đá chân nó: “Nói dối!” Hai đứa lại cãi nhau lép bép như lửa gặp dầu. Mình và bạn nhịn cười đến đau bụng.",
+   "Bạn xem, nói dối dễ bị lộ lắm. Lời nói dối của Ngọn lộ ngay vì bụng nó réo ùng ục. Thôi mình cho hai đứa thêm chút xíu cơm vậy."
+  ],
+  "c6b3t5": [
+   "Tàn chấm điểm bạn bằng một tờ lá cháy xém: “Mười trên mười!” Ngọn bĩu môi: “Mười một, tớ cho thêm.” Tàn quát: “Không có mười một!” Hai đứa cãi nhau, nhưng là cãi để khen bạn.",
+   "Mình vỗ tay thật to: “Mười một!” Dù không biết có điểm đó không, nhưng bạn xứng đáng. Học trò chăm chỉ nhất mình từng gặp ở độ cao ba nghìn mét!"
+  ],
+  "c6b3t6": [
+   "Dưới tảng đá kia có vết ngồi bệt in hằn trên lớp tro, rộng đúng bằng một con quạ. Xung quanh rải những mảnh giấy nhỏ. Đây chính là nơi hắn ngồi học đêm qua.",
+   "Hắn ngồi lặng ở đó, hết lần này đến lần khác đọc to, dừng lại, đọc lại. Mình tưởng tượng mà khó thở. Mình thì ngủ gật, hắn thì học bài. Mình tệ thật."
+  ],
+  "c6b3p": [
+   "Ngọn khoanh tay: “Muốn biết hắn nghĩ gì thì hỏi thẳng hắn cho rồi (～ばいい)!” Tàn thêm: “Phải đó, giá mà hỏi từ đầu thì đỡ phải đoán.” Hai đứa nói chuyện như hai ông cụ.",
+   "Lời tụi nó có lý quá. Nhưng hỏi một con quạ cứng đầu thì dễ như hỏi núi mở miệng. Mà tiếng gì thế? Mặt đất rung lên, từ khe nứt lửa lấp ló! Chuyện gì đây?"
+  ],
+  "c6boss": [
+   "Rầm! Mặt đá nứt toác, hơi lửa phụt lên thành bức tường đỏ rực chắn ngang đường. Trên cao, Kuro quạt cánh thổi bùng ngọn lửa, trang thư thứ sáu kẹp giữa hai móng vuốt.",
+   "Ngọn và Tàn hét to: “Đừng bỏ chạy!” rồi nhảy vào bức tường lửa, biến nó thành 20 vòng sáng, mỗi vòng là một câu hỏi. Kuro nghiêng đầu cười: “Trả lời không kịp thì cháy tóc nhé!”",
+   "Mình giữ chặt cuốn sổ nhỏ trong áo, tim đập thình thịch. Bạn ơi đừng lo, lửa của hai đứa nhỏ này không đốt bạn đâu, chỉ làm bạn sáng hơn thôi. Bình tĩnh, đọc cho đúng!"
+  ],
+  "c7b1h1": [
+   "Hết đường rồi! Trước mặt là biển mây trắng xóa mênh mông, sao lấp lánh, trăng treo thấp. Đẹp như tranh, mà cao như… hức. Ván gỗ khắc chữ “nghi ngờ”: mình đang nghi ngờ đôi chân mình.",
+   "Không có lối nào, chỉ có mây. Mình gạt mồ hôi: “Bạn ơi, chắc phải có cách, đúng không? Phú Sĩ mà để khách đứng chơ vơ giữa trời thì còn gì là núi.”"
+  ],
+  "c7b1h2": [
+   "Góc tấm biển gỗ có chữ “bậc thang” và chữ “ném”. Mình nhìn rồi hiểu: hay là ném thứ gì đó lên mây để xem mây có nâng đỡ không?",
+   "Dưới bảng còn một dòng chữ viết vội: “Muốn qua, hãy gọi Kumo.” Gọi bằng gì? Bằng bài hát? Bằng cái bụng đói? Mình thử cả hai cùng lúc xem sao."
+  ],
+  "c7b1t1": [
+   "Mình tuyên bố: “Nếu không có đường thì ta tự làm đường!” Rồi mình bẻ đôi nắm onigiri, nhưng bạn ngăn lại: nên quyết định bằng đầu óc chứ đừng bằng bụng đói. Mình hơi quê.",
+   "Thế là hai đứa ngồi bàn xem gọi Kumo bằng gì. Bạn đề nghị hát. Mình đề nghị bạn hát, vì mình hát dở. Vậy là bạn chính thức làm ca sĩ của chuyến đi!"
+  ],
+  "c7b1t2": [
+   "Mình ném (投げる) vài hạt cơm lên mây. Hạt cơm không rơi mà nằm yên như đậu trên bông. Rồi một luồng gió ấm tỏa ra, một cái đầu to lù lù nhô lên khỏi biển mây: “Ừm… ai gọi ta…?”",
+   "Một con cá voi trắng như tuyết, to bằng cả ngôi đền, hai mắt hiền như mắt bò. Cá voi mây! Hạt cơm của mình có ích thật rồi!"
+  ],
+  "c7b1t3": [
+   "“Ta là Kumo, ừm… cá voi mây…” Giọng ông trầm, chậm, mỗi từ cách nhau cả một nhịp thở. “Hôm nay… là ngày kỷ niệm… một nghìn năm ta bơi trên mây… ừm.”",
+   "Mình bật cười: sinh nhật mà vẫn đi làm ban đêm. Mình chúc: “Chúc ông ngàn năm sau cũng có người đi nhờ!” Kumo cười tít mắt, cả bầu trời rung nhẹ."
+  ],
+  "c7b1t4": [
+   "Mình lo lắng thì thầm: “Ông ơi, bọn cháu có nặng quá tải không ạ?” Kumo cười, cả bầu trời rung lên: “Ta chở cả… ngôi đền… rồi. Hai bạn nhỏ… nhẹ như lông.”",
+   "Mình yên tâm, nhưng nhìn cái bụng mình thì chắc nặng bằng nửa ngôi đền. Bạn ơi, nếu mình rơi thì buộc đuôi mình lại, đừng để mất đuôi!"
+  ],
+  "c7b1t5": [
+   "Mình cẩn thận bước lên lưng Kumo, ngồi xổm thật thấp, hai tay bám chặt lông mây mềm. Lưng ông mượt như tuyết, thơm mùi mưa. Nhưng mình vừa nhích chân thì trượt (滑る), lăn tròn như quả bóng!",
+   "Bạn bắt kịp mình ngay trước mép. Mình nằm bẹp, mắt nhắm tịt: “Tới nơi nhớ báo mình nhé.” Bạn cười khẽ. Mình nghe tiếng bạn cười. Vậy là đủ."
+  ],
+  "c7b1t6": [
+   "Kumo giả giọng nhân viên tàu, trầm ngâm: “Mời… các hành khách… lên tàu mây… chuẩn bị… khởi hành… ừm.” Mình bật cười không nhịn được. Cá voi này đáng yêu hết nấc.",
+   "Ông đạp nhẹ đuôi, cả khối khổng lồ trượt êm ru trên biển mây. Gió mát, sao nhấp nháy xung quanh. Mình hé mắt nhìn một chút, rồi lại nhắm tịt. Đẹp quá, mà cao quá!"
+  ],
+  "c7b1p": [
+   "Mình hay nói nhiều lên mỗi khi sợ, nên liến thoắng suốt chặng. Kumo nghe một hồi rồi hiền từ: “Ừm… cái đứa nhỏ hôm trước… cũng nói nhiều vậy… tên nó là gì nhỉ… ta nhớ không nổi…”",
+   "Đứa nhỏ hôm trước? Mình nín thở: “Nó có lông đen không ạ?” Kumo nghĩ rất lâu: “Ừm… lông đen… là quạ… hay mây đen nhỉ… ta quên rồi…” Mình vừa buồn cười vừa sốt ruột."
+  ],
+  "c7b2h1": [
+   "Mình dần quen ngồi trên lưng cá voi mây. Hít vào, thở ra, như Mizuki dạy. Trên lớp mây có những chữ lấp lánh nghĩa là “nhất định” và “đáp lại”, như lời cổ vũ nho nhỏ.",
+   "Lúc này mình dám mở mắt hẳn một giây. Cả thế giới trắng tinh bao quanh, sao sáng như bãi cát khổng lồ. Rồi mình nhắm lại. Nhưng một giây đó cũng là chiến công, bạn nhỉ?"
+  ],
+  "c7b2h2": [
+   "Chữ “luyến” trên mây nghĩa là nhớ nhung. Kumo nhìn xa xăm: “Ừm… ta nhớ… biển lắm…” Hóa ra cá voi sống trên biển mây vẫn nhớ biển thật. Giọng ông buồn như chuông gió lúc nửa đêm.",
+   "Mình nghe mà thương. Tối nay ai cũng đang tìm thứ đã mất: Kumo tìm biển, mình tìm lại cuộn thư, còn Kuro… tìm điều gì nhỉ?"
+  ],
+  "c7b2t1": [
+   "Kumo cổ vũ bạn bằng tiếng hát trầm, ngân khắp mây trời. Mình hô theo: “Nhất định (必ず) tới đỉnh!” Rồi bạn hô, mình hô, cả biển mây rung như trống. Chắc ăn như cơm nắm, tới nơi mới thôi!",
+   "Sức mạnh lan khắp người mình. Hóa ra tiếng hô cùng nhau còn ấm hơn đống than hồng. Kumo bảo: “Cổ vũ… là món quà… rẻ nhất… mà quý nhất… ừm.”"
+  ],
+  "c7b2t2": [
+   "Mình xúc động quá, buột miệng: “Mình quý bạn lắm, lắm lắm!” Rồi hoảng hốt giải thích: “Ý mình là quý kiểu bạn bè, không phải kiểu gì khác đâu nhé!” Kumo cười ngân nga như tiếng đàn.",
+   "Mặt mình đỏ như trái hồng chín. Kumo thở ra làn sương ấm: “Không sao… ta hiểu mà… bạn bè… là thứ tốt nhất… trên mây…” Rồi ông im lặng, nghe tiếng gió."
+  ],
+  "c7b2t3": [
+   "Mình hỏi: “Đi nhờ ông thế này có mất phí không ạ?” Kumo bật cười, cả biển mây rung: “Không… ta không lấy tiền… chỉ muốn… ai đó… nói chuyện…” Mình cảm động muốn ôm ông.",
+   "Rồi mình kể về mối tình đầu của mình: nắm onigiri nhân mơ muối năm tám tuổi. Kumo cười rung cả đất trời. Bạn có từng mê món nào như thế không?"
+  ],
+  "c7b2t4": [
+   "Giữa chừng gió nổi lên mãnh liệt, thổi mây thành những cuộn lớn. Mình rúc vào lưng ông, mềm như cái gối. Nghe tim Kumo đập chậm chậm, bùm… bùm… mình thiếp đi.",
+   "Bạn lay mình dậy: “Taro, dậy đi!” Mình giật mình: “Mình không ngủ! Mình đang nhắm mắt suy nghĩ!” Rồi nhận ra… lại ngủ gật. Mình thề từ giờ sẽ không ngủ gật nữa!"
+  ],
+  "c7b2t5": [
+   "Mình run run đưa tay ra: “Bạn có thể nắm tay mình không? Chỉ một lúc thôi.” Bạn nắm lấy, ấm như than hồng. Hai đứa ngồi trên lưng cá voi, tay trong tay, giữa trời đêm sao dày.",
+   "Mình hết sợ rồi… à không, vẫn sợ lắm, nhưng giờ là sợ có bạn. Sợ có bạn khác hẳn sợ một mình. Kumo vẫy đuôi lười biếng, hát ru, cả biển mây như đang ngủ say."
+  ],
+  "c7b2p": [
+   "Rồi mình lỡ nhìn xuống. Vừa nhìn xuống (～たとたん) là cả biển mây trải xa tít dưới chân. Pop! Mình biến thành củ cải trắng muốt, nằm gọn trên lưng cá voi.",
+   "Bạn nhặt mình lên, cười khẽ: “Củ cải này ngoan ghê.” Kumo ngân nga: “Ừm… củ cải… dễ thương… nhân tiện… ta cho nó… một giấc ngủ…” Mình hét lên bằng cái miệng… không còn nữa!"
+  ],
+  "c7b3h1": [
+   "Biển mây đổi màu, trăng xuống thấp, chân trời mờ mờ trắng. Dưới trăng, núi Phú Sĩ hiện lên nguy nga, đỉnh chọc thẳng vào bầu trời. Chữ “phú” trong tên núi nghĩa là dồi dào.",
+   "Mình hóa lại thành tanuki, tự hào: “Đó, mình sống ngay dưới chân ngọn núi lớn nhất xứ!” Rồi nhỏ giọng: “…nhưng chưa bao giờ dám nhìn lên cho trọn, vì cao quá.”"
+  ],
+  "c7b3h2": [
+   "Có phiến đá nổi giữa mây khắc chữ “thần”. Kumo khẽ nói: “Ừm… thần núi… nghe thấy hết… từng bước… của người leo…” Mình ngạc nhiên: “Thần núi ạ? Ông gặp bao giờ chưa?”",
+   "Kumo cười hiền: “Ta gặp… bà quán trà… Hana… bạn cũ… của ta… ừm.” Mình ngẩn người: bà Hana là bạn cũ của cá voi mây nghìn tuổi? Thế bà bao nhiêu tuổi? Hỏi chắc bị đánh!"
+  ],
+  "c7b3t1": [
+   "Mình khoe: “Chữ 富士山 (núi Phú Sĩ) là chữ mình viết đẹp nhất đền đó!” Bạn nhìn mình cười: “Mình đang ở trên núi ấy mà.” Đúng, mình viết đẹp nhất mà chưa từng leo.",
+   "Giờ thì đang leo thật, vừa leo vừa tự hỏi sao hồi đó mình không chọn viết chữ “đồng bằng”. Nhưng mà… đi cùng bạn thì leo núi cũng hay."
+  ],
+  "c7b3t2": [
+   "Kumo bảo mình: “Bạn nhỏ… muốn đăng ký… làm bạn đồng hành… của người này… phải không?” Mình hớn hở: “Cháu đăng ký rồi ạ!” Rồi mình hí hoáy viết lên tờ giấy nháp: “Đơn đăng ký: Taro.”",
+   "Mình đưa bạn tờ giấy: “Bạn ký xác nhận nhé!” Bạn cười, rồi ký thật. Hay ghê, một tờ giấy nháp thành văn bản thiêng liêng nhất đời mình!"
+  ],
+  "c7b3t3": [
+   "Ánh sao mờ dần, từng ngôi sao nhảy xuống lưng Kumo như hành khách trễ giờ. Lưng ông đầy người luôn! “Cả hai… bên mây… đều đầy… ừm…” ông lo lắng thì thào.",
+   "Mình nhường chỗ cho một ngôi sao nhỏ, nó ngồi ngay đuôi mình, nóng nóng ấm ấm. Cảnh này đẹp lắm mà mình chẳng dám nhìn lâu vì lưng cá voi cao ngất. Tiếc ghê!"
+  ],
+  "c7b3t4": [
+   "Kumo kể cho tụi mình một câu chuyện: “Hôm qua… có một đứa nhỏ… ngồi đúng chỗ bạn… hỏi ta: nếu có người đọc giỏi hơn mình… thì ai còn nhớ tên mình?… ta không trả lời được…”",
+   "Câu hỏi đó cứ quanh quẩn trong đầu mình. Ai còn nhớ tên mình? Mình nhìn bạn: mình sẽ nhớ tên bạn suốt đời. Còn Kuro… hóa ra hắn sợ bị lãng quên, giống mình sợ độ cao."
+  ],
+  "c7b3t5": [
+   "Kumo chậm rãi: “Đứa nhỏ ấy… lanh lợi… giản dị… nhưng không ai thấy… vì nó không bao giờ… cho ai thấy…” Mình hiểu rồi: một người giấu mọi thứ giống tanuki giấu nỗi sợ của mình.",
+   "Chuyện trọng đại nhất đêm nay: mình bắt đầu thương Kuro. Nghe thật vô lý khi hắn là kẻ xé thư. Nhưng đó đúng là cảm giác của mình lúc này."
+  ],
+  "c7b3t6": [
+   "Kumo cất tiếng hát. Âm thanh trầm vang ngân khắp biển mây, rung cả sao trời, như tiếng chuông chùa vọng lên từ đáy đại dương. Mình nhắm mắt nghe, quên cả mình đang ở rất cao.",
+   "Bài hát kể về biển xanh, sóng bạc và một chú cá voi nhỏ chưa từng thấy mây. Mình thấy hợp lạ lùng: ai cũng đang đi tìm nơi mình thuộc về. Lòng mình dịu như tách trà ấm."
+  ],
+  "c7b3p": [
+   "Bỗng Kumo nói: “Ừm… ta nhớ rồi… đứa nhỏ ấy… tay đầy mực (インクだらけ)… tên nó là… Kuro…” Mình chưa kịp reo thì ông nói tiếp: “Nó đi trước… nó đợi… phía trước.” Tim mình thót lại.",
+   "Qua màn sương, đỉnh Phú Sĩ chợt hiện ra ngay phía trước. Gió mạnh lên, mây đen cuộn lại. Bạn nắm tay mình nhé, trận này không đơn giản đâu."
+  ],
+  "c7boss": [
+   "Mây đen cuộn thành bức tường, sét lóe sáng bên trong. Kuro đứng chắn trước mũi Kumo, sải cánh rộng, trang thư thứ bảy phấp phới trên móng vuốt. Lần đầu hắn nhìn thẳng bạn mà không cười cợt.",
+   "Kuro: “Ngươi đi xa hơn ta nghĩ. Nhưng ta muốn biết ngươi thật sự hiểu những chữ này, hay chỉ học vẹt?” Hắn giơ cánh: “20 câu. Sai nhiều thì Kumo sẽ chao nghiêng!”",
+   "Kumo khẽ rên: “Ừm… đừng làm ta… chao nhé…” Mình ôm chặt lưng ông, thì thầm: “Hắn đang thử bạn thật lòng đó. Nên hãy trả lời thật lòng. Bạn làm được!”"
+  ],
+  "c8b1h1": [
+   "Brr! Vừa bước khỏi lưng mây là gió buốt quất vào mặt như roi. Chữ khắc trên tảng băng nghĩa là “toàn bộ”: toàn thân mình đang đóng băng, đúng không?",
+   "Răng mình va nhau lập cập như hai hòn đá nhỏ. Mình muốn hóa thành thứ gì đó, nhưng hóa gì cũng lạnh! Bạn cho mình mượn nửa cái tay áo được không?"
+  ],
+  "c8b1h2": [
+   "Ngay trước mắt là phiến đá phẳng phủ băng, khắc chữ “chỗ ngồi”. Trên đó có một nàng tuyết ngồi bất động, tóc trắng, áo trắng, mắt lạnh như băng giá.",
+   "Nàng chẳng buồn nhìn ai, giọng như băng nứt: “Ai cho các ngươi vào?” Mình nuốt nước bọt: “Dạ… chào chị Yuki… Mình Taro đây ạ.” Hơi lạnh bốc khỏi miệng mình như sương."
+  ],
+  "c8b1t1": [
+   "Yuki: “Quay về.” Mình: “Không được ạ. Chúng em phải tìm trang thư.” Nàng: “Hoàn toàn không được.” Giọng cứng như băng. Mình xìu xuống, đuôi cuộn tròn như quả bóng len.",
+   "Bạn bước lên một bước, nhìn thẳng vào nàng, không nói gì. Yuki chớp mắt, hơi thở lạnh khẽ run. Mình đứng yên, chờ. Cả ngọn núi cũng im lặng chờ."
+  ],
+  "c8b1t2": [
+   "Mình cố nói nhanh để thuyết phục: “Bạn của em học giỏi lắm, đạt điểm tuyệt đối hết đó chị!” Yuki nhướng mày: “Điểm tuyệt đối? Ta chưa thấy.” Mình tắc họng: lỡ thổi phồng rồi.",
+   "Yuki: “Chứng minh đi.” Chỉ ba chữ mà mình thấy lạnh hơn cả gió. Nhưng bạn không nao núng, còn gật khẽ như nói: để đó cho mình. Bạn đáng tin nhất mà mình từng gặp."
+  ],
+  "c8b1t3": [
+   "Yuki chỉ cánh cổng băng: “Qua cổng soát vé của ta. Giá vé là một nụ cười.” Mình cười toe toét, nhưng răng đang lập cập nên nụ cười méo mó như mặt quỷ. Nàng quay mặt đi, vai hơi rung.",
+   "Nàng có đang cười không nhỉ? Hình như đang nhịn. Tới lượt bạn thì bạn mỉm cười dịu dàng, cổng băng tách ra như hai cánh cửa kính. Người lạnh vậy mà biết xúc động!"
+  ],
+  "c8b1t4": [
+   "Mình ngồi sụp xuống, mơ màng: “Giá có nồi lẩu nóng hổi ngay bây giờ…” Yuki nhìn mình, ánh mắt thoáng mềm đi. Nàng hỏi: “Ai là người phụ trách cuộc đi này?” Mình chỉ bạn.",
+   "Yuki nhìn bạn từ đầu tới chân, nói gọn: “Hừm. Người phụ trách… nhìn cũng tạm.” Bạn cười. Mình cũng cười. Chắc đó là lời khen cao nhất nàng từng dành cho ai."
+  ],
+  "c8b1t5": [
+   "Mình sực nhớ, nhìn trời: “Lịch trình của mình gấp lắm. Trời sắp hửng rồi!” Phía đông, vệt xám nhạt đang trải ra như mực loãng. Bình minh chưa tới, nhưng đêm đã bắt đầu rút lui.",
+   "Mình hỏi: “Chị Yuki ơi, còn bao lâu nữa ạ?” Nàng nhìn trời, nói rất khẽ: “Chừng một giờ.” Mình nghẹn lại. Một giờ cho hai trang thư cuối. Mình sợ, nhưng không bỏ cuộc đâu."
+  ],
+  "c8b1t6": [
+   "Yuki bất ngờ nói: “Đừng rời xa ta quá ba bước, kẻo lạc trong gió.” Rồi nàng đứng dậy, vạt áo trắng bay như cánh tuyết. Mình và bạn lẽo đẽo theo sau, ba bước, không hơn không kém.",
+   "Mình hỏi nhỏ: “Chị Yuki đang dẫn đường cho tụi em ạ?” Nàng không đáp, nhưng bước chậm lại để tụi mình theo kịp. Người lạnh lùng nhất lại hay chu đáo nhất."
+  ],
+  "c8b1t7": [
+   "Bước chậm giữa tuyết, mình tổng hợp những điều ta biết về Kuro: Một, hắn xé thư. Hai, hắn hỏi cô Kiri cách đọc. Ba, hắn tập viết trên đá của ông Iwao. Bốn, hắn khóc ở bờ suối Mizuki.",
+   "Năm, hắn học bài trong cuốn sổ cháy xém. Sáu, hắn từng ngồi đúng ghế của bà Hana. Bảy… hắn là kẻ cướp thư hay là một người đang tập đọc? Mình rối quá bạn ơi."
+  ],
+  "c8b1p": [
+   "Tấm biển băng giữa đường: “Vì tuyết rơi nên (～につき) tạm ngừng đón khách.” Mình rên: “Ôi, không!” Yuki hừ nhẹ: “Biển cũ, ta viết cho kẻ hay làm phiền.” Lòng mình sáng lại chút xíu.",
+   "Nàng nói thêm: “Ở lại thì chết cóng, ai bảo gió thế này chứ!” Mình há hốc: lúc nãy còn bảo “không được” cơ mà! Nàng quay đi, má hơi ửng hồng giữa tuyết trắng."
+  ],
+  "c8b2h1": [
+   "Trên tảng băng ở khúc quanh khắc chữ “giải”: giải thích, giải đáp. Mình thấy như lời nhắn của Yuki: muốn đi tiếp phải giải được câu đố của gió. Và người giải được là bạn.",
+   "Mình xoa mũi cho đỡ lạnh. Mà không có mũi đâu, chỉ còn cục băng. Bạn nhìn xem, mũi mình đổi màu rồi."
+  ],
+  "c8b2h2": [
+   "Trên đá khắc chữ “cùng nhau” và chữ “thắng”. Yuki chợt nhìn bạn: “Hợp tác hay không?” Mình nhanh nhảu: “Có chứ!” Nàng lườm: “Không hỏi ngươi.”",
+   "Bạn mỉm cười gật đầu. Yuki thở ra làn sương trắng dài: “Hợp tác thì thắng, một mình thì chỉ thua trong gió.” Nàng nói như từng nếm rất nhiều cô đơn. Mình muốn nhét nắm cơm vào tay nàng."
+  ],
+  "c8b2t1": [
+   "Mình lôi chiếc la bàn bà Hana tặng ra, kim rung rinh một lúc rồi chỉ vào góc tảng đá đen, nơi có dấu chân chim nhỏ in trên tuyết. Hướng đi rõ như ban ngày!",
+   "Yuki nhìn chiếc la bàn, lần đầu nói không cộc lốc: “Đồ của Hana.” Rồi nàng khẽ cười: “Bà ấy lo xa hơn ta tưởng.” Nghe như hai người quen cũ lâu lắm."
+  ],
+  "c8b2t2": [
+   "Yuki liếc mình bằng nửa con mắt: “Ngươi làm việc cẩu thả thế, sao dám dẫn đường?” Mình thở dài: “Dạ… có bạn ở đây em mới dám.” Nàng nhìn bạn một lúc lâu và không nói gì thêm.",
+   "Mình nhìn lên trời: tụi mình đang đua với mặt trời. Mỗi bước, mặt trời lại rình sát gót hơn. Mình hít thật sâu: chạy thôi bạn ơi, nhưng chạy chậm mà chắc."
+  ],
+  "c8b2t3": [
+   "Mình khăng khăng: “Kuro là kẻ xấu, phải bị phạt!” Yuki lạnh lùng hỏi: “Ngươi chắc chứ?” Mình lúng túng: “Ừm… không chắc lắm.” Nàng nói: “Ngươi chưa thấy hắn một mình trong tuyết.”",
+   "Mình rùng mình, không phải vì lạnh. Mình nhìn xuống dấu chân quạ nhỏ xíu in trong tuyết, dẫn tới một cột băng phía xa. Dấu chân loạng choạng, như người đi lạc."
+  ],
+  "c8b2t4": [
+   "Mũi mình chuyển sang màu xanh, tai thì cứng đơ. Mình thì thào: “Có bác sĩ nào ở đây không ạ?” Yuki nhếch môi: “Có. Ta. Chữa cho ngươi bằng cách đuổi đi.” Mình vội nín thở.",
+   "Ngay lúc lạnh nhất Yuki vẫn đùa được. Chắc nàng đang tập đùa. Hay đang tập tử tế. Mình đoán thế, vì thấy má nàng hồng lên khi bạn bật cười."
+  ],
+  "c8b2t5": [
+   "Hồi hộp quá, mình hóa… cái xô nhỏ xíu màu xanh, có đuôi thò ra ngoài. Mình hét từ bên trong: “Cái gì đây?!” Yuki nhìn chiếc xô một giây rồi bật cười khúc khích, lần đầu tiên.",
+   "Nàng cười như chuông băng rung nhẹ, rồi ho khan chỉnh lại nét mặt: “Không có gì.” Nhưng cả bạn và mình đều thấy hết. Từ giờ chị Yuki là bạn tụi mình, dù chị có nhận hay không."
+  ],
+  "c8b2t6": [
+   "Yuki bảo: “Muốn xác nhận (確かめる) thì theo ta.” Nàng dẫn tụi mình đuổi theo vệt chân quạ trên tuyết. Hai bước, ba bước, rồi nàng dừng lại: “Đây. Hắn ngồi suốt đêm qua.”",
+   "Trên nền tuyết có một vòng tròn nhỏ ấn lõm, xung quanh rải đầy lông đen. Chỉ nhìn thôi mình đã thấy hắn đã cô đơn đến mức nào ở đây."
+  ],
+  "c8b2p": [
+   "Yuki nghiêm giọng: “Đứng đây lâu là chết cóng. Không đi tiếp thì ta cũng khó mà giúp.” Nàng nói cứng, nhưng nghiêng người che gió cho mình như ông Iwao hồi trước.",
+   "Mình khịt mũi, gật thật mạnh. Gió càng lúc càng rát, nhưng trong lòng mình có ngọn lửa nhỏ do bao nhiêu người bạn nhóm lên. Đi thôi!"
+  ],
+  "c8b3h1": [
+   "Yuki ngồi xuống bên cột băng, vẫy tay bảo tụi mình ngồi cạnh. Nàng bắt đầu kể, giọng rất nhỏ, gần như hòa vào tiếng gió. Mình chăm chú nghe, đến chữ khắc trên băng cũng quên đọc.",
+   "Nàng nói: “Chuyện đêm qua, ta chưa kể với ai. Các ngươi nghe thì giữ lấy.” Mình gật đầu. Bạn cũng gật đầu. Cả ngọn núi như nín thở."
+  ],
+  "c8b3h2": [
+   "Chữ “nham” nghĩa là đá, cùng tên với ông Iwao! Trước mặt là một tảng đá lớn phủ tuyết. Nơi hắn từng ngồi, nơi hắn từng đọc to.",
+   "Yuki nói khẽ: “Dưới tảng đá này, ta thấy hắn. Hắn nghĩ ta không nhìn.” Mình cúi xuống: những vệt móng cào nhỏ xíu nối đuôi nhau như hàng chữ chưa thành hình."
+  ],
+  "c8b3t1": [
+   "“Tối qua (昨夜) hắn ngồi đây giữa gió tuyết, đọc to từng chữ cổ cho gió nghe. Sai, đọc lại. Sai, đọc lại.” Yuki kể. Giọng hắn run, khàn, không ai nghe ngoài ta và gió.",
+   "Hắn không đọc cho ai nghe, hắn đọc cho chính hắn. Ngay cả khi tuyết rơi lên cánh, hắn cũng không dừng. Mình lặng thinh, bạn cũng lặng thinh. Gió như dịu lại."
+  ],
+  "c8b3t2": [
+   "Yuki nói tiếp: “Hắn muốn đọc cho chính xác (正確), đến khi móng tím tái, giọng khàn đặc. Một chữ cổ, hắn đọc hơn trăm lần. Ta chưa thấy ai kiên trì như thế.” Giọng nàng có chút ngưỡng mộ.",
+   "Mình cắn môi: mình thì ngủ gật, hắn thì đọc đến tím tái. Tim mình như bị ai bóp nhẹ. Mà tại sao người chăm chỉ như thế lại đi cướp thư? Còn điều gì mình chưa biết?"
+  ],
+  "c8b3t3": [
+   "Yuki chỉ một cột băng cao quá đầu người, khắc chi chít chữ bằng móng vuốt. Mình đặt tay lên: nét chữ nghiêng nghiêng, đầu nét có chấm nhỏ như móc câu. Mình nhận ra nét chữ này!",
+   "Thật ra mình đã nghi từ lúc thấy chiếc lông đen đầu tiên, chỉ là mình cố không nghĩ tới. Là Kuro. Hồi còn học chung ở đền, hắn ngồi cạnh mình. Mình nghẹn lời."
+  ],
+  "c8b3t4": [
+   "Mình nhớ lại: mỗi ngày học chung nửa buổi ở đền. Mình đọc chậm nhưng cuối cùng cũng đọc được, còn hắn thì mãi không. Sư phụ không mắng, nhưng ai cũng thấy ánh mắt thất vọng.",
+   "Một hôm hắn đọc sai trước cả lớp, mình bật cười. Chỉ một tiếng cười thôi, mà từ hôm sau hắn không đến lớp nữa. Mình chưa từng đi tìm hắn. Mình xấu hổ quá, bạn ơi."
+  ],
+  "c8b3t5": [
+   "Hồi đó tụi mình thân lắm. Ngồi chung dưới hiên đền, chia nhau nắm onigiri, kể đủ chuyện linh tinh. Hắn từng nói: “Tớ muốn một ngày đứng trên đỉnh, đọc to Bình Minh Thư cho cả làng nghe.”",
+   "Mình cười hắn thật, cười hắn đọc chữ cổ như gà bới. Giờ nhớ lại mới thấy hắn đã im lặng thế nào sau câu đó. Mình tệ quá. Mà bạn vẫn đứng nghe mình kể, cảm ơn bạn."
+  ],
+  "c8b3t6": [
+   "Yuki đứng dậy: “Hắn sợ bị quên. Trong đền, người đọc được Bình Minh Thư thì được khắc tên lên bia. Hắn không đọc được, nên giấu thư đi: không ai đọc được thì không ai được nhớ, hắn đỡ tủi.”",
+   "Ngay lúc đó, chân trời phía đông ửng lên một vệt cam nhạt. Bình minh đang tiến gần (近づく) hơn mình tưởng. Chỉ còn hai trang thư. Mình siết tay bạn: không còn nhiều thời gian đâu."
+  ],
+  "c8b3p": [
+   "Cùng với (～につれて) ánh sáng nhạt dần, nỗi lo trong mình lớn lên. Nhưng cũng cùng lúc, mình thấy rõ điều muốn nói với Kuro: xin lỗi. Mình muốn xin lỗi hắn từ lâu lắm rồi.",
+   "Bạn ơi, gặp hắn thì mình nên nói ngay không? Hay chờ đọc xong thư? Chưa kịp nghĩ xong thì tiếng cánh vỗ đã vang lên trên đầu: lạnh, sắc và rất quen. Hắn đến rồi!"
+  ],
+  "c8boss": [
+   "Kuro đáp xuống đỉnh cột băng, lông phủ tuyết, trang thư thứ tám run run trên móng vuốt. Mắt hắn đỏ hoe, nhưng giọng thì sắc lạnh: “Các ngươi đến đây làm gì? Cút về!”",
+   "Mình bước lên, giọng nghẹn: “Kuro, mình biết hết rồi. Mình biết cậu học thâu đêm, và hồi đó mình đã cười cậu. Mình xin lỗi!” Hắn gầm: “Im đi! Ngươi chẳng hiểu gì cả!”",
+   "Kuro vẫy cánh, bão tuyết nổi lên: “Muốn trang này, đọc cho ta nghe! 20 câu! Chứng minh đi!” Bạn bước lên, và mình hiểu đây không chỉ là thử thách. Đây là cuộc nói chuyện đầu tiên giữa họ."
+  ],
+  "c9b1h1": [
+   "Chặng cuối rồi! Trước mặt là con dốc dựng đứng, gió như muốn lột cả áo. Hai chữ khắc ở lối vào đọc giống nhau mà nghĩa khác: một là “xin”, một là “quả cầu”. Như hai đứa mình bây giờ!",
+   "Cạnh đó có chữ “ghi chép”. Mình quyết định ghi lại mọi thứ lên giấy, để lỡ có ngã thì bạn còn gì đó mà đọc lại. Ơ, sao bạn nhìn mình thế? Mình đùa thôi, mình không ngã đâu."
+  ],
+  "c9b1h2": [
+   "Trên đá khắc chữ “lùi”. Mình nhìn nó rất lâu. Lùi thì dễ, quay đầu là xuống núi. Nhưng mình nhớ cây cầu treo, lưng cá voi mây, cả đêm dài tụi mình đã đi. Mình nói: “Không lùi nữa.”",
+   "Bên cạnh là chữ “chảy” và chữ “gốc rễ”. Dòng nước nào cũng bắt đầu từ một cái gốc. Với mình, gốc của can đảm chắc là ánh mắt bạn nhìn mình mỗi khi mình sợ. Cảm ơn nhé."
+  ],
+  "c9b1t1": [
+   "Mình quay sang bạn, nghiêm trang: “Mình xin nhờ (求める) bạn một việc cuối. Nếu mình hóa ấm trà hay củ cải trên đường lên, đừng bỏ mình lại, cứ ôm mình đi tiếp.” Bạn đáp: “Hứa.”",
+   "Chữ “hứa” ngắn ngủi mà nặng hơn cả viên đá của ông Iwao. Mình xúc động, rồi lại lo: nếu mình thành củ cải thật, bạn nhớ đừng nấu canh nhé! Mình đùa thôi, nhưng chỉ đùa nửa phần."
+  ],
+  "c9b1t2": [
+   "Mình nghĩ miên man: Kuro đã tự bỏ đền từ năm nào, mà mình chưa từng đi tìm. Giờ hắn đang ở trên đỉnh kia, chờ ta, hoặc chờ một lời nào đó. Mình muốn đến nhanh hơn mà chân cứ chậm.",
+   "Bạn thấy không, đôi khi người ta bỏ đi không phải vì muốn, mà vì không ai giữ lại. Lần này mình sẽ là người giữ lại, dù hắn có gầm gừ."
+  ],
+  "c9b1t3": [
+   "Gió đem tới một giai điệu quen thuộc. Mizuki hát! Giọng cô vọng từ rất xa, bay qua cả biển mây và vách đá, ngân nga bài ca cổ vũ lên tận đây. Mình lau vội khóe mắt.",
+   "Cô hát chữ Hán thành điệu ru, mỗi nốt là một chữ bạn đã học. Mình thấy ấm áp dù tay chân lạnh cóng. Núi này lạnh, nhưng tình người ở đây ấm như than hồng."
+  ],
+  "c9b1t4": [
+   "Nhìn lên đỉnh kìa, như một sân khấu khổng lồ, và bình minh sẽ là buổi diễn hôm nay. Nói thật là mình sợ sân khấu hơn cả sợ độ cao. Một tanuki học việc giữa bao ánh mắt trời đất!",
+   "Nhưng bạn bảo: “Cứ coi như đang tập luyện.” Mình hít một hơi dài. Ừ nhỉ, cả đêm nay hai đứa đã tập luyện rồi. Mỗi chặng là một buổi tập, hôm nay là buổi diễn chính."
+  ],
+  "c9b1t5": [
+   "Mình phải thú nhận thêm: mình bị dị ứng với độ cao. Dưới hai nghìn mét thì ổn, trên đó thì ngứa khắp người, tay chân rung rinh. Bác sĩ trong đền bảo bệnh này không có thuốc.",
+   "Mà thuốc có thể là bạn bè đó. Mình thử đêm nay thấy hiệu quả khá tốt: đi cùng bạn thì chỉ hơi ngứa, chứ không hóa ấm. Mình sẽ ghi vào sổ y khoa: “Bạn là thuốc”."
+  ],
+  "c9b1t6": [
+   "Gió quật tới, thổi bay nón lá của mình xuống vực. Nhưng trong túi bạn, tám món kỷ niệm bỗng phát sáng cùng lúc: nắm cơm, cành tùng, giọt nước, viên đá, la bàn, than hồng, mây, khăn len!",
+   "Tất cả ấm lên, nhịp nhàng như một trái tim. Mình bật khóc: mỗi chặng ta đi đều không mất đi, chúng ở lại trong người ta. Giống như những chữ ta đã học, chúng đã làm ta đổi khác."
+  ],
+  "c9b1p": [
+   "Đã lạnh lại còn gió, đường thì trơn nữa. Ba thứ khó chồng lên nhau, mà bạn vẫn bước tiếp, từng bước chắc chắn. Mình tự hào về bạn lắm. Có bạn đi cùng là điều may nhất đêm nay.",
+   "Phía trước có khối đá xám khổng lồ như cổng thành. Cổng Đỉnh! Trên tảng đá cạnh đó hình như có ai đang ngồi rót trà, khói bay nghi ngút. Ơ… không thể nào!"
+  ],
+  "c9b2h1": [
+   "Một bà cụ tóc bạc đang ngồi vắt vẻo trên tảng đá đen, rót trà cho gió như rót cho khách. Là bà Hana! Mình há hốc mồm: “Bà ơi, sao bà lên đây nhanh thế ạ?”",
+   "Bà nhấp một ngụm, mắt cười hiền: “Bà quen đường mà.” Mình nhìn xuống chân bà: không giày, không dấu chân, tuyết dưới bà phẳng lì. Có gì đó rất lạ. Mình sẽ không hỏi. Chưa hỏi."
+  ],
+  "c9b2t1": [
+   "Bà Hana dạy bạn: “Đọc chữ cổ phải cẩn thận, lịch sự (丁寧), như cầm dao làm bếp: nhẹ nhàng, chính xác, tôn trọng từng thứ nằm dưới lưỡi dao.” Mình ghi nhớ: học chữ cũng là một cách nấu ăn.",
+   "Mình hỏi: “Nếu thái sai thì sao ạ?” Bà đáp: “Thì nấu lại.” Một lời nhẹ như gió mà làm lòng mình nhẹ hẳn. Sai thì làm lại, ngã thì đứng lên."
+  ],
+  "c9b2t2": [
+   "Mình lén nhìn xuống vực, hồn bay phách lạc. Bà Hana vỗ vai: “Nhìn thẳng phía trước (正面), nhìn vào việc cháu cần làm. Mặt đất cứ để yên.” Mình nhìn thẳng. Hóa ra không đáng sợ như mình nghĩ.",
+   "Bạn đứng cạnh, im lặng. Cảm giác bình yên lạ lắm. Trước mặt là đỉnh núi đang sáng dần, sau lưng là biển mây. Nhìn thẳng không có nghĩa là hết sợ, mà là sợ mà vẫn bước."
+  ],
+  "c9b2t3": [
+   "Từ bên dưới vọng lên tiếng ầm ầm rất đều: “Đi. Không dừng.” Là ông Iwao! Giọng ông dội suốt sườn núi tới tận đây. Mình bật cười rồi nghẹn: ông nhắn đúng bốn chữ ấy từ vách đá xa tít.",
+   "Bà Hana nói: “Những gì cháu đã học được thì không ai lấy mất đâu.” Mình gật gù nhìn tay bạn. Những chữ bạn học, những người bạn gặp, đều đã thấm vào bạn rồi."
+  ],
+  "c9b2t4": [
+   "Từ phía xa, một giọng ngân nga chậm rãi vang trên mây: “Ừm… cố lên… hai bạn nhỏ… ừm…” Là Kumo! Cả bầu trời như hát theo, mình thấy tim nở ra. Cổ vũ của cá voi mây, miễn phí hoàn toàn.",
+   "Phía dưới, hai đốm lửa Ngọn và Tàn nhảy tưng tưng, vẫy cờ bằng lá tre. Chúng la hét ầm ĩ, nghe không rõ chữ nào, chỉ biết là rất nhiệt tình. Hú vía, may là chúng ở xa!"
+  ],
+  "c9b2t5": [
+   "Một bóng áo trắng lướt trên tuyết, vẫy tay: Yuki! Nàng không nói gì, chỉ thổi nhẹ một bông tuyết về phía bạn. Nó chạm vào chiếc khăn len, và khăn ấm lên như vừa phơi nắng.",
+   "Cả hội đều có mặt: Kiri trong sương, Mizuki trong suối, Iwao trong đá, Hana ngồi đây. Mình đếm những người bạn đã quen chỉ trong một đêm, và nghĩ: bạn thật kỳ diệu."
+  ],
+  "c9b2t6": [
+   "Mình nhìn chằm chằm lên đỉnh. Một vệt hồng ánh vàng đang tràn lên phía đông, mỏng, rất mỏng. Tim mình đập loạn, tay run bần bật, nhưng mắt không rời.",
+   "Bạn mệt lắm rồi, mình biết. Nhưng chỉ còn một đoạn nữa thôi. Mình nắm tay bạn, siết thật chặt. Bà Hana mỉm cười: “Đi đi. Bà tiễn tới đây.”"
+  ],
+  "c9b2p": [
+   "Dựa trên (～をもとに) tất cả những gì bạn đã học, mình tin bạn đọc được trang cuối. Còn mình thì tự nhủ: sợ không có nghĩa là (～からといって) phải quay về. Mình sợ, nhưng sẽ đi tiếp.",
+   "Cổng Đỉnh hiện ra, khắc chín ô vuông, mỗi ô là một chữ đang chờ. Từ trên cao có tiếng cánh vỗ nặng nề và quen thuộc. Gió đổi hướng, tuyết rơi dày. Hắn đang nhìn xuống chúng ta."
+  ],
+  "c9boss": [
+   "Cổng Đỉnh khép chặt, khóa bằng 20 ổ khóa chữ. Trong cơn gió xoáy vang lên giọng Kuro run rẩy: “Ta khóa trang cuối bằng tất cả những gì ta học được. Ngươi không mở nổi đâu!”",
+   "Mình hét: “Mở nổi chứ! Bạn đã học cả đêm, bạn mở được hết!” Giọng mình run, nhưng lần này không phải vì độ cao. Bạn hít sâu, đặt tay lên ổ khóa đầu tiên, nhẹ nhàng như bà Hana dạy.",
+   "Mỗi ổ khóa mở ra, ánh sáng lại rực thêm một chút. Mình không dám nhìn xuống, cũng không dám nhắm mắt. Mình nhìn bạn. 20 ổ khóa, 20 câu hỏi, và sau lưng cánh cổng là bình minh. Bạn làm được!"
+  ],
+  "boss": [
+   "Đỉnh Phú Sĩ! Gió quật không ngừng, phía đông đã ửng hồng. Kuro đứng ở mép đá, lông bù xù, ôm cuốn sổ cháy xém mình để lại. Hắn nhìn bạn, nhìn mình, nhìn bình minh: “Các ngươi tới rồi.”",
+   "Kuro: “Người đọc được thì được nhớ tên, còn ta thì sao?” Mình bước lên: “Kuro, mình xin lỗi vì đã cười cậu, và vì chưa từng đi tìm cậu.” Hắn nghiến mỏ: “Nói thì dễ!”",
+   "Kuro giơ cánh: “Vậy thì chứng minh đi, 20 câu cuối cùng của ta. Câu nào ta cũng đã tự đọc hàng trăm lần đêm qua.” Giọng hắn vỡ ra ở chữ cuối. Bạn nhìn hắn, mỉm cười: “Được, mình trả lời.”"
+  ]
+ },
+ "xongChuong": {
+  "1": [
+   "Bạn đọc xong rồi! Trang thư thứ nhất sáng lên, chữ cổ hiện ra từng nét như sao mọc. Kuro tặc lưỡi, nhặt mấy chiếc lông rồi vọt lên không trung.",
+   "Mình tặng bạn món kỷ niệm đầu tiên: nắm onigiri cuối cùng của mình 🍙. Nó luôn ấm, dù gió núi lạnh cỡ nào. Mệt rồi hãy cầm lên nhé.",
+   "Trước khi bay đi, Kuro còn gọi với lại: “Rừng tùng sương mù đang chờ, đừng lạc nhé!” Nghe như hắn lo cho mình vậy… Thôi, vào rừng nào!"
+  ],
+  "2": [
+   "Chữ trên trang thứ hai sáng lên như đom đóm! Kuro nhăn mặt, vỗ cánh biến mất vào sương. Kiri nhặt chiếc lông hắn đánh rơi, vuốt phẳng, mỉm cười rất lạ.",
+   "Cô tặng bạn một cành tùng nhỏ 🌲, thơm mùi sương sớm: “Cầm nó, sương sẽ không dám làm bạn lạc.” Rồi cô thì thầm: tối qua Kuro hỏi cô cách đọc một chữ cổ.",
+   "Kẻ cướp thư mà đi hỏi cách đọc ư? Mình chưa nghĩ ra, thôi. Kiri chỉ lên cao: “Qua rừng sẽ gặp suối. Tinh linh ở đó hay hát, nhớ bịt tai!” Bịt tai?"
+  ],
+  "3": [
+   "Nước hồ rẽ ra, trang thư thứ ba nổi lên sáng rực! Kuro giật mình làm rơi chiếc nón lá vào tay Mizuki rồi chuồn mất. Cô hét theo: “Nón của ta!”",
+   "Mizuki tặng bạn bình nhỏ đựng một giọt nước 💧: nó luôn mát, và khẽ hát khi bạn mệt. Rồi cô thì thầm: “Ta thấy hắn khóc ở bờ suối. Hắn lẩm bẩm: chữ này sao mãi không vào đầu.”",
+   "Khóc ư? Con quạ kiêu ngạo ấy khóc vì không thuộc chữ? Mình lặng đi. Mizuki chỉ lên cao: “Vách đá kia có ông Iwao canh. Ông cộc, nhưng tốt!” Cộc á? Mình sợ rồi đó…"
+  ],
+  "4": [
+   "Trang thư thứ tư hiện chữ rực rỡ, ánh sáng lọt cả qua khe đá! Iwao đặt vào tay bạn một viên đá nhỏ, ấm như lòng bàn tay 🪨: “Cầm. Vững.” Mình nhìn mà mắt nhòe đi.",
+   "Kuro lặng lẽ bay đi, để lại chiếc lông cắm trên vách. Trên đó là chữ “ôn tập” viết rất đẹp. Hắn ôn bài đấy à? Mình cứ tưởng hắn đang nghĩ cách chọc ta.",
+   "Iwao chỉ lên cao: “Trạm năm. Bà Hana. Ăn. Nghỉ.” Rồi quay mặt đi, vai khẽ rung. Có trà nóng và onigiri chờ mình rồi, mình chạy nhanh hơn thỏ luôn!"
+  ],
+  "5": [
+   "Mình qua cầu rồi! Mắt nhắm, miệng lẩm bẩm, chân run như cầy sấy, nhưng đi hết thật! Trang thư thứ năm sáng lấp lánh trong tay bạn. Kuro quay mặt đi, nhưng mình thấy hắn không cười nữa.",
+   "Bà Hana đã đứng chờ ở đầu cầu bên kia, tặng bạn một chiếc la bàn nhỏ 🧭: “Kim của nó không chỉ hướng bắc, mà chỉ về nơi cháu cần đến nhất.” Kim rung rinh rồi chỉ thẳng lên cao.",
+   "Từ giờ đường đi là đá đen và hơi nóng từ lòng núi. Bà dặn: “Coi chừng hai đứa nhỏ nghịch lửa, đừng cho chúng ăn onigiri!” Nghịch lửa ư? Đuôi mình run lên rồi đây này!"
+  ],
+  "6": [
+   "Bức tường lửa hạ xuống, trang thư thứ sáu hiện chữ như dòng dung nham chảy! Ngọn và Tàn nhảy múa, rồi cùng đưa bạn một viên than hồng nhỏ xíu 🔥: “Giữ nó, đêm lạnh thì ấm lắm!”",
+   "Kuro im lặng rất lâu rồi nói cộc lốc: “Đi tiếp đi. Biển mây không dễ qua đâu.” Hắn vụt bay đi. Mình đặt cuốn sổ lên tảng đá giữa đường, để hắn tự tới nhặt.",
+   "Phía trên, đá đen biến mất dưới lớp trắng xóa mịn như bông. Biển mây! Đường dừng ngay mép vực, mình bám áo bạn, nhắm tịt mắt. Nghe đâu ở đây phải gọi đúng người mới qua được. Gọi ai nhỉ?"
+  ],
+  "7": [
+   "Mây đen tan như khói! Trang thư thứ bảy sáng bừng, Kuro lặng lẽ lùi lại. Rồi hắn cúi đầu thật nhanh với Kumo, như lời cảm ơn thầm, và vút bay đi. Kumo cười: “Ừm… đứa nhỏ này… lễ phép…”",
+   "Kumo thổi ra một cuộn mây nhỏ, đặt vào tay bạn ☁️: “Giữ lấy… khi nào buồn… mây sẽ ôm bạn…” Mình rưng rưng chào ông. Cá voi mây nhỏ dần phía sau, vẫn hát khe khẽ bài hát về biển.",
+   "Phía trước, gió đổi hướng: lạnh buốt, sắc như dao. Những bông tuyết đầu tiên bay tới. Xa xa trong làn trắng xóa có một bóng áo trắng đang đứng chờ. Mình rụt cổ lại: gió buốt, ta tới rồi!"
+  ],
+  "8": [
+   "Bão tuyết lặng đi. Trang thư thứ tám sáng dịu, chữ hiện ra như hơi thở trên kính. Kuro nhìn bạn rất lâu, mắt rưng rưng, rồi vọt lên phía đỉnh. Một chiếc lông đen rơi chậm trong tuyết.",
+   "Yuki quàng một chiếc khăn len trắng quanh cổ bạn 🧣: “Cầm lấy. Ta đan từ tuyết đầu mùa, không bao giờ lạnh.” Rồi nàng quay đi, nói nhỏ: “Cho hắn thêm một cơ hội.” Mình khóc ròng mà vẫn cười.",
+   "Chỉ còn trang cuối cùng, ở sát đỉnh, nơi gió dữ nhất. Chân trời đã cam rộng bằng một con sông. Bạn ơi, trời sắp sáng thật rồi. Mình sợ, nhưng sẽ đi cùng bạn tới cuối."
+  ],
+  "9": [
+   "Ổ khóa cuối bật mở, Cổng Đỉnh hé ra, trang thư thứ chín bay vào tay bạn, sáng rực như mặt trời nhỏ! Viên ngọc ấm hiện trong tay bạn 🌅: mảnh bình minh của những người cùng đi.",
+   "Nhưng trang cuối chỉ có một câu, chữ cứ nhấp nháy mà không chịu hiện hết. Bà Hana nhẹ giọng: “Câu cuối cần hai người cùng đọc. Một người thì không thắp nổi bình minh.” Tim mình chùng xuống.",
+   "Hai người ư? Mình đọc dở tệ… Mà bạn không đọc một mình. Ngay trên đỉnh, ngược sáng, một bóng đen đứng ở mép đá, cánh khép lại. Hắn ở đó từ bao giờ không biết. Kuro đang đợi chúng ta."
+  ]
+ },
+ "thang": [
+  "Bạn trả lời xong câu cuối và Kuro đứng chết lặng. Rồi hắn nói rất nhỏ: “Ngươi giỏi thật.” Trong mắt hắn không còn giận, chỉ còn một thứ mềm mềm, như tuyết đầu xuân tan ra.",
+  "Bà Hana bước tới, đặt chín trang thư lên phiến đá giữa hai người: “Câu cuối cần hai giọng cùng đọc. Một người đọc thì mặt trời chỉ ló, hai người đọc thì mặt trời mới bừng.” Mình nín thở.",
+  "Bạn và Kuro đứng bên cuộn thư. Chín trang tự ghép lại, chữ cổ sáng như sao. Kuro đọc, giọng run mà không sai nét nào. Bạn đọc cùng: hai giọng hòa nhau, mặt trời bừng lên!",
+  "Dưới chân núi, ngàn mái nhà sáng đèn, gà gáy vang xa. Làng được cứu rồi! Kuro cúi đầu: “Xin lỗi vì đã xé thư.” Mình ôm hắn: “Về đền với mình nhé? Tên cậu sẽ khắc trên bia cạnh tên bạn ấy.”",
+  "Mình đưa Kuro nắm onigiri bà Hana gói. Hắn bẻ đôi chia mình: ngon nhất đời! Rồi mình giật mình: đang đứng ngay mép đỉnh, vực sâu gió lộng, mà mình không hóa ấm! Chắc ăn như cơm nắm!",
+  "Quay lại tìm bà Hana, mình chỉ thấy tách trà còn ấm và những tia nắng đầu ngày lấp lánh. Dòng suối chảy ngược, ánh đèn trạm năm… thì ra bà là thần núi, dõi theo ta từ đầu. Mình khẽ cúi chào.",
+  "Cảm ơn bạn vì đêm dài nhất đời mình: từng chữ bạn học, từng bước bạn đi cùng. Hết một ngọn núi rồi, nhưng biển xanh Okinawa của màn N2 hình như cũng đang vẫy gọi bạn đó. 🌊"
+ ]
+}
