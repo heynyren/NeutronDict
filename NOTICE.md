@@ -17,3 +17,10 @@ Các gói thuật ngữ tiếng Nhật `extension/goi/it-ja-vi.json` và `extens
 Gói thuật ngữ Điện (Nhật→Việt) do chủ dự án cung cấp. Gói Điện (Anh→Việt), IT và Y (Anh→Việt, phần Nhật soạn tay) do Claude
 soạn từ kiến thức kỹ thuật phổ thông; sai chỗ nào thì sửa trong `cong-cu/du-lieu-goi/*.tsv` rồi chạy
 `bash cong-cu/dung-het-goi.sh`.
+
+## Dữ liệu giáo trình cho chế độ Ôn thi JLPT
+
+`extension/jlpt/n3.json`, `extension/jlpt/n2.json` (và bản chép trong `android/www/jlpt/`) được dựng từ các database giáo
+trình do chủ dự án cung cấp (bộ giáo trình Gungun/Dũng Mori N3 và N2). Nội dung gốc của giáo trình thuộc quyền của chủ
+sở hữu tương ứng — kiểm tra quyền sử dụng trước khi phát hành rộng rãi. JMdict/KANJIDIC chỉ được dùng để KIỂM TRA chéo
+(loại mục trích sai), không chép dữ liệu của chúng vào hai tệp trên.

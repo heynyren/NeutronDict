@@ -5,6 +5,7 @@
   <title data-chu>Sổ tay NeutronDict</title>
   <link rel="stylesheet" href="ui.css">
   <link rel="stylesheet" href="ngu-phap.css">
+  <link rel="stylesheet" href="jlpt.css">
   <style>
     /* ----------------------------------------------------------------------
        Bố cục riêng của trang Sổ tay: cột trái cố định, cột phải cuộn.
@@ -126,6 +127,8 @@
   <button id="studyPath" class="btn block" type="button" style="margin-top:8px" data-chu>Ôn từng đường</button>
 
   <button id="grammar" class="btn block" type="button" style="margin-top:8px;display:none" data-chu>Luyện ngữ pháp</button>
+
+  <button id="jlpt" class="btn block" type="button" style="margin-top:8px;display:none" data-chu>Ôn thi JLPT</button>
 
   <button id="speak" class="btn block" type="button" style="margin-top:8px" data-chu>
     Luyện nói
@@ -368,6 +371,10 @@
       </div>
 
       <div id="spList" class="stack" style="margin-top:12px"></div>
+    </section>
+
+    <section id="viewJlpt" class="view">
+      <div id="jlptRoot"></div>
     </section>
 
     <section id="viewProgress" class="view">
@@ -622,6 +629,10 @@
   <script src="muc.js"></script>
   <script src="ghi-am.js"></script>
 <script src="tien-do.js"></script>
+<script src="jlpt-tien-do.js"></script>
+<script src="jlpt-cau-hoi.js"></script>
+<script src="jlpt-theme.js"></script>
+<script src="jlpt-giao-dien.js"></script>
 <script src="kho-ghi.js"></script>
 <script src="pdf-source.js"></script>
 <script src="notebook.js"></script>

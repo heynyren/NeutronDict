@@ -1871,14 +1871,14 @@ window.NguPhapUI.khoiTao({
     return r && r.text || "";
   }
 });
-const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Speak", "Progress"];
-const manCoTheMo = () => MAN.filter((v) => v !== "Grammar" || laNhat());
+const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Jlpt", "Speak", "Progress"];
+const manCoTheMo = () => MAN.filter((v) => (v !== "Grammar" && v !== "Jlpt") || laNhat());
 let manHienTai = "Lookup";
 /** Chồng màn đã đi qua, để nút Quay lại của Android lùi từng bước. */
 const lichSu = ["Lookup"];
 
 function show(view, huong) {
-  if (view === "Grammar" && !laNhat()) return;
+  if ((view === "Grammar" || view === "Jlpt") && !laNhat()) return;
   const tab = manCoTheMo();
   const tu = tab.indexOf(manHienTai);
   const den = tab.indexOf(view);
@@ -1910,6 +1910,7 @@ function show(view, huong) {
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
   if (view === "Grammar") window.NguPhapUI.lamMoi();
+  if (view === "Jlpt") moJlpt();
   if (view === "Progress") { veTienDo(); pullAndRefresh(); }
 }
 
@@ -1919,7 +1920,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
 /** Vẽ lại icon thanh tab: tab đang mở dùng icon đặc. */
 function veNav() {
   const bo = { Lookup: "magnifying-glass", Notebook: "notebook", Study: "graduation-cap",
-               Grammar: "books", Speak: "microphone", Progress: "chart-line-up" };
+               Grammar: "books", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
   MAN.forEach((v) => {
     const b = $("nav" + v);
     const on = b.classList.contains("active");
@@ -1939,6 +1940,7 @@ window.ChamVuot.nutQuayLai(() => {
   // Ảnh nằm trên cùng nên đóng trước tiên — nó mở được từ ngay trong phiếu sửa,
   // đóng phiếu trước thì ảnh vẫn phủ kín màn và người dùng vẫn kẹt.
   if (dongAnhXem()) return true;
+  if (manHienTai === "Jlpt" && window.JlptUI && window.JlptUI.quayLai()) return true;
   /*
    * Có gì đang mở đè lên thì đóng cái đó trước, đúng như người ta mong đợi.
    *
@@ -1960,6 +1962,28 @@ window.ChamVuot.nutQuayLai(() => {
   }
   return false;   // đang ở màn gốc rồi thì mới thật sự thoát
 });
+
+/* ==================================================================== */
+/* Ôn thi JLPT — chế độ riêng, chỉ có ở tiếng Nhật                      */
+/* ==================================================================== */
+let jlptSan = null;
+function moJlpt() {
+  if (!jlptSan) {
+    jlptSan = window.JlptUI.khoi($("jlptRoot"), {
+      doc: async () => (await Store.get("jlpt")) || null,
+      ghi: (v) => Store.set("jlpt", v),
+      taiMon: async (id) => {
+        const r = await fetch("jlpt/" + id + ".json");
+        if (!r.ok) throw new Error("jlpt " + id);
+        return r.json();
+      },
+      nghe: (t) => speak(t, null, "ja", { rate: 0.85 }),
+      T: (s) => T(s),
+      icon: (ten, co) => window.Icon(ten, { size: co }),
+      toast: (s) => toast(s)
+    });
+  } else jlptSan.then(() => window.JlptUI.lamMoi());
+}
 
 /* ==================================================================== */
 /* Màn Tra từ                                                           */
@@ -5219,7 +5243,8 @@ function veNgu() {
   $("tabDetail").style.display = laNhat() ? "none" : "";
   $("tabKanji").style.display = laNhat() ? "" : "none";
   $("navGrammar").style.display = laNhat() ? "" : "none";
-  if (!laNhat() && manHienTai === "Grammar") show("Notebook");
+  $("navJlpt").style.display = laNhat() ? "" : "none";
+  if (!laNhat() && (manHienTai === "Grammar" || manHienTai === "Jlpt")) show("Notebook");
   $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");
   const b = $("nguBtn");
   b.textContent = laNhat() ? "日→V" : "EN→V";

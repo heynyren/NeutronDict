@@ -4573,6 +4573,7 @@ function moMan(ten) {
   $("viewProgress").classList.toggle("show", ten === "progress");
   $("viewSpeak").classList.toggle("show", ten === "speak");
   $("viewGrammar").classList.toggle("show", ten === "grammar");
+  $("viewJlpt").classList.toggle("show", ten === "jlpt");
   // Hai nút trên đầu chỉ nói về Sổ tay / Tiến độ; Luyện nói vào bằng nút riêng
   // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
   $("pageList").classList.toggle("active", ten === "list");
@@ -4580,7 +4581,30 @@ function moMan(ten) {
   if (ten === "progress") { veTienDo(); veSoDo(); }
   if (ten === "speak") veLuyenNoi();
   if (ten === "grammar") window.NguPhapUI.lamMoi();
+  if (ten === "jlpt") moJlpt();
   veThanhChon();
+}
+
+/* ==================================================================== */
+/* Ôn thi JLPT — chế độ riêng, chỉ có ở tiếng Nhật                      */
+/* ==================================================================== */
+let jlptSan = null;
+function moJlpt() {
+  if (!jlptSan) {
+    jlptSan = window.JlptUI.khoi($("jlptRoot"), {
+      doc: async () => (await chrome.storage.local.get("jlpt")).jlpt || null,
+      ghi: (v) => chrome.storage.local.set({ jlpt: v }),
+      taiMon: async (id) => {
+        const r = await fetch(chrome.runtime.getURL("jlpt/" + id + ".json"));
+        if (!r.ok) throw new Error("jlpt " + id);
+        return r.json();
+      },
+      nghe: (t) => ttsSpeak(t, "ja", { rate: 0.85 }),
+      T: (s) => T(s),
+      icon: (ten, co) => window.Icon(ten, { size: co }),
+      toast: (s) => toast(s)
+    });
+  } else jlptSan.then(() => window.JlptUI.lamMoi());
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));
@@ -4630,6 +4654,7 @@ window.NguPhapUI.khoiTao({
   })
 });
 $("grammar").addEventListener("click", () => moMan("grammar"));
+$("jlpt").addEventListener("click", () => moMan("jlpt"));
 $("speak").addEventListener("click", () => moMan("speak"));
 $("spAdd").addEventListener("click", themDoanNoi);
 
@@ -4653,6 +4678,7 @@ function gaiIcon() {
   $("pageList").innerHTML = window.Icon("notebook", { size: 17 }) + '<span class="lb" data-chu>Sổ tay</span>';
   $("pageProgress").innerHTML = window.Icon("chart-line-up", { size: 17 }) + '<span class="lb" data-chu>Tiến độ</span>';
   $("grammar").innerHTML = window.Icon("books", { size: 18 }) + '<span class="lb" data-chu>Luyện ngữ pháp</span>';
+  $("jlpt").innerHTML = window.Icon("mountains", { size: 18 }) + '<span class="lb" data-chu>Ôn thi JLPT</span>';
 
   const st = $("study");
   const den = st.querySelector(".tag");
@@ -4895,7 +4921,8 @@ function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
   $("nguJa").classList.toggle("active", NGU === "ja");
   $("grammar").style.display = NGU === "ja" ? "" : "none";
-  if (NGU !== "ja" && $("viewGrammar").classList.contains("show")) moMan("list");
+  $("jlpt").style.display = NGU === "ja" ? "" : "none";
+  if (NGU !== "ja" && ($("viewGrammar").classList.contains("show") || $("viewJlpt").classList.contains("show"))) moMan("list");
   const sb = $("brandSub");
   if (sb) sb.textContent = T2("{ngu} · sóng học tập", { ngu: NGU === "ja" ? T("Nhật – Việt") : T("Anh – Việt") });
   // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.

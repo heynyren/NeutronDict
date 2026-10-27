@@ -8,6 +8,7 @@
   <title data-chu>NeutronDict</title>
   <link rel="stylesheet" href="ui.css">
   <link rel="stylesheet" href="ngu-phap.css">
+  <link rel="stylesheet" href="jlpt.css">
   <style>
     /* ----------------------------------------------------------------------
        Khung của app điện thoại: đầu cố định, thân cuộn, thanh tab dưới đáy.
@@ -359,6 +360,10 @@
   </section>
 
   <!-- ======================= TIẾN ĐỘ ======================= -->
+    <section id="viewJlpt" class="view">
+      <div id="jlptRoot" data-khong-vuot-tab></div>
+    </section>
+
     <section id="viewGrammar" class="view">
       <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
       <div class="card">
@@ -428,6 +433,7 @@
   <button id="navNotebook" type="button"><span class="i"></span><span class="t" data-chu>Sổ tay</span></button>
   <button id="navStudy" type="button"><span class="i"></span><span class="t" data-chu>Học</span></button>
   <button id="navGrammar" type="button" style="display:none"><span class="i"></span><span class="t" data-chu>Ngữ pháp</span></button>
+  <button id="navJlpt" type="button" style="display:none"><span class="i"></span><span class="t">JLPT</span></button>
   <button id="navSpeak" type="button"><span class="i"></span><span class="t" data-chu>Nói</span></button>
   <button id="navProgress" type="button"><span class="i"></span><span class="t" data-chu>Tiến độ</span></button>
 </nav>
@@ -569,6 +575,10 @@
 <script src="tien-do.js"></script>
 <script src="cham-vuot.js"></script>
 <script src="the-vuot.js"></script>
+  <script src="jlpt-tien-do.js"></script>
+  <script src="jlpt-cau-hoi.js"></script>
+  <script src="jlpt-theme.js"></script>
+  <script src="jlpt-giao-dien.js"></script>
   <script src="hang-vuot.js"></script>
 <script src="app.js"></script>
   <div id="stHieuUng" class="st-hieuung" aria-hidden="true"></div>

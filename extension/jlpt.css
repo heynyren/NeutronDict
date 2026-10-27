@@ -1,0 +1,217 @@
+/* ==========================================================================
+   Chế độ "Ôn thi JLPT" — bản đồ trò chơi, chặng, thẻ học, câu hỏi, kết quả.
+   Dùng các biến màu của ui.css; màu từng màn (--m1, --m2 / --c1, --c2) do JS đặt theo chủ đề.
+   Tiền tố jl- để không đụng lớp nào của app.
+   ========================================================================== */
+
+.jl-goc { position: relative; min-height: 60vh; color: var(--ink, #1a1430); }
+.jl-goc * { box-sizing: border-box; }
+.jl-goc button { font-family: inherit; }
+
+/* ---------------------------------------------------------------- thành phần chung */
+.jl-btn {
+  border: 1px solid var(--line, #e7e2f4); background: var(--surface, #fff); color: var(--ink, #1a1430);
+  border-radius: 999px; padding: 11px 20px; font-size: 15px; font-weight: 650; cursor: pointer;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+.jl-btn:hover { background: var(--surface-2, #f4f1fb); }
+.jl-btn:active { transform: translateY(1px); }
+.jl-btn.chinh { border-color: transparent; color: #fff; background: linear-gradient(135deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); box-shadow: 0 6px 16px rgba(80, 40, 160, .28); }
+.jl-btn.chinh:hover { filter: brightness(1.06); }
+.jl-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: var(--surface, #fff); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.08)); font-size: 14px; }
+.jl-chip svg { fill: currentColor; }
+.jl-chip b { font-weight: 750; }
+.jl-bar { height: 10px; border-radius: 999px; background: var(--surface-3, #e9e4f7); overflow: hidden; }
+.jl-bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); transition: width .35s ease; }
+.jl-bar.to { flex: 1; height: 14px; }
+.jl-tai { padding: 40px 16px; text-align: center; color: var(--ink-2); }
+
+/* ---------------------------------------------------------------- chọn màn */
+.jl-chon { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px; }
+.jl-dau { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.jl-tieude { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+.jl-phu { color: var(--ink-2); font-size: 13.5px; margin-top: 2px; max-width: 420px; }
+.jl-thongke { display: flex; gap: 8px; }
+.jl-the-ds { display: flex; flex-direction: column; gap: 14px; }
+.jl-the {
+  position: relative; display: flex; gap: 16px; align-items: center; text-align: left; width: 100%;
+  border: none; border-radius: 22px; padding: 18px; cursor: pointer; color: #fff; overflow: hidden;
+  background: linear-gradient(135deg, var(--m1), var(--m2)); box-shadow: 0 10px 26px rgba(40, 30, 90, .25);
+  transition: transform .15s, box-shadow .15s;
+}
+.jl-the:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(40, 30, 90, .3); }
+.jl-the.khoa { filter: grayscale(.85) brightness(.82); cursor: default; }
+.jl-the.khoa:hover { transform: none; }
+.jl-the.sap { background: var(--surface-2, #f4f1fb); color: var(--ink-2); box-shadow: none; cursor: default; opacity: .75; }
+.jl-the-emoji { font-size: 52px; line-height: 1; flex: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
+.jl-the-thong { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.jl-the-cap { font-size: 12px; font-weight: 800; letter-spacing: .12em; opacity: .85; }
+.jl-the-ten { font-size: 19px; font-weight: 800; line-height: 1.25; }
+.jl-the-mo { font-size: 13px; opacity: .9; }
+.jl-the .jl-bar { background: rgba(255,255,255,.28); margin-top: 6px; }
+.jl-the .jl-bar > i { background: #fff; }
+.jl-the-so { font-size: 12px; opacity: .9; }
+.jl-the .jl-khoa { position: absolute; right: 16px; top: 12px; font-size: 22px; }
+.jl-thu { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-2); padding: 8px 4px; cursor: pointer; }
+
+/* ---------------------------------------------------------------- bản đồ */
+.jl-bd { max-width: 520px; margin: 0 auto; padding-bottom: 80px; }
+.jl-bd-dau {
+  position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 10px 6px;
+  background: var(--bg, #f7f5fd); border-bottom: 1px solid var(--line-soft, #f0ecf9);
+}
+.jl-lui, .jl-x {
+  flex: none; width: 38px; height: 38px; border-radius: 12px; border: none; cursor: pointer; display: grid; place-items: center;
+  background: var(--surface, #fff); color: var(--ink, #1a1430); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.08));
+}
+.jl-lui svg, .jl-x svg { fill: currentColor; }
+.jl-bd-gioi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.jl-bd-ten { font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jl-bd-so { font-size: 11.5px; color: var(--ink-2); }
+.jl-suutam { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 8px 4px; font-size: 22px; }
+.jl-suutam .chua { opacity: .35; filter: grayscale(1); font-size: 18px; }
+
+.jl-chuong { margin-top: 14px; border-radius: 22px; overflow: hidden; background: linear-gradient(180deg, var(--c1), var(--c2)); position: relative; }
+.jl-banner { position: relative; height: 112px; overflow: hidden; }
+.jl-banner svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.jl-banner-chu { position: absolute; left: 14px; right: 14px; bottom: 10px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.jl-banner-ten { font-size: 18px; font-weight: 800; line-height: 1.2; }
+.jl-banner-so { font-size: 13px; font-weight: 700; opacity: .95; }
+
+.jl-lo { position: relative; margin: 6px auto 8px; width: 100%; max-width: 380px; }
+.jl-duong { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+.jl-duong path { stroke: rgba(255,255,255,.4); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2 12; }
+
+.jl-nut {
+  position: absolute; width: 68px; height: 68px; transform: translate(-50%, -50%); border-radius: 50%; border: none; cursor: pointer;
+  display: grid; place-items: center; color: #fff; font-size: 26px; font-weight: 800;
+  background: linear-gradient(145deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); box-shadow: 0 6px 0 rgba(0,0,0,.28), 0 10px 18px rgba(0,0,0,.25);
+  transition: transform .12s, box-shadow .12s;
+}
+.jl-nut:hover { transform: translate(-50%, -52%); }
+.jl-nut:active { transform: translate(-50%, -46%); box-shadow: 0 2px 0 rgba(0,0,0,.28); }
+.jl-nut svg { fill: currentColor; }
+.jl-nut.han { background: linear-gradient(145deg, #f7a23b, #ff7a59); }
+.jl-nut.tu { background: linear-gradient(145deg, #3aa6ff, #6d6dff); }
+.jl-nut.pp { background: linear-gradient(145deg, #3bd49a, #14a38b); }
+.jl-nut.boss-chuong { background: linear-gradient(145deg, #ff5d8f, #d6336c); width: 76px; height: 76px; }
+.jl-nut.boss { background: linear-gradient(145deg, #ffd24a, #ff9f1a); color: #5a3300; width: 88px; height: 88px; }
+.jl-nut.xong::after { content: "✓"; position: absolute; right: -2px; top: -2px; width: 24px; height: 24px; border-radius: 50%; background: #1fb26b; color: #fff; font-size: 14px; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.jl-nut.khoa { background: #8d8aa0; box-shadow: 0 6px 0 rgba(0,0,0,.2); color: rgba(255,255,255,.7); cursor: default; }
+.jl-nut.khoa .jl-kho { position: absolute; right: -4px; bottom: -4px; font-style: normal; font-size: 18px; }
+.jl-nut.hien { animation: jl-nhip 1.4s ease-in-out infinite; }
+@keyframes jl-nhip { 0%, 100% { box-shadow: 0 6px 0 rgba(0,0,0,.28), 0 0 0 0 rgba(255,255,255,.6); } 50% { box-shadow: 0 6px 0 rgba(0,0,0,.28), 0 0 0 14px rgba(255,255,255,0); } }
+.jl-sao { position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%); font-size: 13px; letter-spacing: 1px; color: #ffd24a; text-shadow: 0 1px 3px rgba(0,0,0,.6); white-space: nowrap; }
+
+/* ---------------------------------------------------------------- lớp phủ: tờ chặng, lời thoại */
+.jl-lop { position: fixed; inset: 0; z-index: 75; display: flex; align-items: flex-end; justify-content: center; background: rgba(10, 8, 30, .5); animation: jl-hien .15s ease; }
+@keyframes jl-hien { from { opacity: 0; } to { opacity: 1; } }
+.jl-to-hop { width: 100%; max-width: 480px; background: var(--surface, #fff); border-radius: 26px 26px 0 0; padding: 22px 20px 26px; display: flex; flex-direction: column; gap: 10px; animation: jl-len .2s ease; }
+@keyframes jl-len { from { transform: translateY(40px); } to { transform: none; } }
+.jl-to-ten { font-size: 20px; font-weight: 800; }
+.jl-to-mo { color: var(--ink-2); font-size: 14px; }
+.jl-to-tot { font-size: 13px; color: var(--good, #12855b); font-weight: 700; }
+.jl-to-khoa { font-size: 14px; color: var(--warn, #b26a00); }
+.jl-to-nut { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.jl-to-nut .jl-btn { flex: 1; min-width: 120px; }
+
+.jl-thoai { align-items: center; z-index: 80; }
+.jl-thoai-hop { width: min(440px, 92vw); background: var(--surface, #fff); border-radius: 26px; padding: 26px 22px 22px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; animation: jl-len .25s ease; }
+.jl-nv { font-size: 76px; line-height: 1; animation: jl-nhun 2.4s ease-in-out infinite; }
+@keyframes jl-nhun { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+.jl-nv-ten { font-weight: 800; color: var(--ink-2); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.jl-bong { background: var(--surface-2, #f4f1fb); border-radius: 18px; padding: 14px 16px; min-height: 76px; display: flex; align-items: center; }
+.jl-bong-chu { font-size: 16px; line-height: 1.5; text-align: left; }
+
+/* ---------------------------------------------------------------- lượt chơi (toàn màn hình) */
+.jl-chay { position: fixed; inset: 0; z-index: 70; background: var(--bg, #f7f5fd); display: flex; flex-direction: column; align-items: center; padding: 14px 16px 22px; overflow-y: auto; }
+.jl-chay > * { width: 100%; max-width: 560px; }
+.jl-chay-tren { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.jl-chay-tieu { text-align: center; font-size: 13px; color: var(--ink-2); font-weight: 650; margin: 4px 0 10px; }
+.jl-chay-nut { display: flex; gap: 10px; margin-top: 14px; }
+.jl-chay-nut .jl-btn { flex: 1; }
+.jl-bo-qua { align-self: center; margin-top: 10px; background: none; border: none; color: var(--ink-3); font-size: 13px; cursor: pointer; text-decoration: underline; width: auto; }
+
+.jl-hoi { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(10, 8, 30, .55); }
+.jl-hoi-hop { width: min(380px, 90vw); background: var(--surface, #fff); border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.jl-hoi-chu { font-size: 15px; line-height: 1.5; }
+
+/* thẻ học */
+.jl-the-hoc {
+  min-height: 300px; border-radius: 26px; background: var(--surface, #fff); box-shadow: 0 10px 30px rgba(40, 30, 90, .14);
+  display: flex; align-items: center; justify-content: center; padding: 22px; cursor: pointer; outline: none;
+  border-top: 6px solid var(--m1, #6d3fd4);
+}
+.jl-the-mat { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; position: relative; }
+.jl-lon { font-size: 44px; font-weight: 800; line-height: 1.2; word-break: break-word; }
+.jl-lon.pp { font-size: 34px; }
+.jl-lon.vi { font-size: 28px; }
+.jl-khung-han { font-size: 110px; line-height: 1.1; font-weight: 700; }
+.jl-nho-dong { font-size: 18px; color: var(--ink-2); }
+.jl-nghia { font-size: 21px; font-weight: 700; color: var(--m1, #6d3fd4); }
+.jl-hv { font-size: 14px; color: var(--ink-2); }
+.jl-doc { font-size: 15px; color: var(--ink-2); }
+.jl-gt { font-size: 13px; color: var(--ink-2); max-width: 480px; line-height: 1.5; }
+.jl-vd { font-size: 17px; line-height: 1.6; margin-top: 4px; }
+.jl-vd-v { font-size: 13.5px; color: var(--ink-2); font-style: italic; }
+.jl-goi-y { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+.jl-loa { border: none; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2, #f4f1fb); color: var(--m1, #6d3fd4); display: inline-grid; place-items: center; cursor: pointer; }
+.jl-loa svg { fill: currentColor; }
+.jl-loa.to { width: 84px; height: 84px; margin: 14px auto; background: linear-gradient(135deg, var(--m1), var(--m2)); color: #fff; box-shadow: 0 8px 20px rgba(60, 40, 160, .3); }
+.jl-diem { text-align: center; font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+
+/* câu hỏi */
+.jl-de { margin: 8px 0 16px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.jl-lenh { font-size: 14px; font-weight: 700; color: var(--ink-2); }
+.jl-cau { font-size: 24px; line-height: 1.7; font-weight: 600; word-break: break-word; }
+.jl-trong { display: inline-block; min-width: 3.4em; margin: 0 3px; border-bottom: 3px solid var(--m1, #6d3fd4); color: var(--m1, #6d3fd4); }
+.jl-lc { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 560px) { .jl-lc { grid-template-columns: 1fr 1fr; } }
+.jl-lua {
+  display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px 16px; border-radius: 16px; font-size: 16px; font-weight: 600;
+  border: 2px solid var(--line, #e7e2f4); background: var(--surface, #fff); color: var(--ink, #1a1430); cursor: pointer; transition: border-color .12s, background .12s, transform .1s;
+  min-height: 56px;
+}
+.jl-lua:hover:not(:disabled) { border-color: var(--m1, #6d3fd4); background: var(--surface-2, #f4f1fb); }
+.jl-lua:active:not(:disabled) { transform: scale(.985); }
+.jl-lua:disabled { cursor: default; }
+.jl-so { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line, #e7e2f4); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--ink-2); }
+.jl-lua-chu { flex: 1; min-width: 0; word-break: break-word; }
+.jl-lua.dung { border-color: #1fb26b; background: rgba(31, 178, 107, .14); }
+.jl-lua.dung .jl-so { background: #1fb26b; border-color: #1fb26b; color: #fff; }
+.jl-lua.sai { border-color: #e5484d; background: rgba(229, 72, 77, .12); animation: jl-lac .3s; }
+.jl-lua.sai .jl-so { background: #e5484d; border-color: #e5484d; color: #fff; }
+@keyframes jl-lac { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.jl-fb { margin-top: 16px; border-radius: 18px; padding: 14px 16px; animation: jl-len .18s ease; }
+.jl-fb.dung { background: rgba(31, 178, 107, .14); }
+.jl-fb.sai { background: rgba(229, 72, 77, .12); }
+.jl-fb-tieude { font-size: 18px; font-weight: 800; }
+.jl-fb.dung .jl-fb-tieude { color: #148a52; }
+.jl-fb.sai .jl-fb-tieude { color: #c8323a; }
+.jl-fb-dap { font-size: 14px; line-height: 1.55; margin: 6px 0 10px; white-space: pre-line; color: var(--ink, #1a1430); }
+.jl-fb-nut { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.jl-bao { background: none; border: none; color: var(--ink-3); font-size: 12.5px; cursor: pointer; }
+.jl-bao:disabled { opacity: .5; }
+
+/* kết quả */
+.jl-chay.ket-qua { justify-content: center; }
+.jl-kq { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.jl-vong { width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--vong, #1fb26b) calc(var(--p) * 1%), var(--surface-3, #e9e4f7) 0); position: relative; animation: jl-nay .5s ease; }
+.jl-vong::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--bg, #f7f5fd); }
+.jl-vong b { position: relative; font-size: 40px; font-weight: 850; }
+.jl-vong.dat { --vong: #1fb26b; }
+.jl-vong.truot { --vong: #f0a030; }
+@keyframes jl-nay { from { transform: scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.jl-kq-sao { font-size: 34px; letter-spacing: 6px; color: #ffbf1f; text-shadow: 0 2px 6px rgba(255, 160, 0, .4); min-height: 40px; }
+.jl-kq-tieu { font-size: 24px; font-weight: 850; }
+.jl-kq-phu { font-size: 14px; color: var(--ink-2); max-width: 420px; }
+.jl-sai { width: 100%; max-width: 480px; text-align: left; font-size: 13.5px; background: var(--surface, #fff); border-radius: 14px; padding: 8px 14px; }
+.jl-sai summary { cursor: pointer; font-weight: 700; }
+.jl-sai-dong { padding: 7px 0; border-top: 1px solid var(--line-soft, #f0ecf9); white-space: pre-line; line-height: 1.5; }
+.jl-kq .jl-chay-nut { width: 100%; max-width: 420px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jl-nut.hien, .jl-nv, .jl-vong { animation: none; }
+}
