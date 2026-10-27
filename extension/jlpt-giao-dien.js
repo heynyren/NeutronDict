@@ -207,6 +207,9 @@
       b.appendChild(nen);
       b.appendChild(el("div", "jl-the-phu"));
       const e1 = el("div", "jl-the-emoji", th.emoji);
+      const nvc = el("div", "jl-the-nv");
+      nvc.innerHTML = TH.nhanVat(id);
+      b.appendChild(nvc);
       const e2 = el("div", "jl-the-thong");
       e2.appendChild(el("div", "jl-the-cap", th.cap));
       e2.appendChild(el("div", "jl-the-ten", T(th.ten)));
@@ -221,11 +224,16 @@
     TH.SAP_CO.forEach((s) => {
       const b = el("div", "jl-the sap");
       b.style.setProperty("--i", String(thuTu++));
+      const nen = el("div", "jl-the-canh");
+      nen.innerHTML = TH.canhSapCo(s.id);
+      b.appendChild(nen);
+      b.appendChild(el("div", "jl-the-phu"));
       b.appendChild(el("div", "jl-the-emoji", s.emoji));
       const e2 = el("div", "jl-the-thong");
       e2.appendChild(el("div", "jl-the-cap", s.cap));
       e2.appendChild(el("div", "jl-the-ten", T(s.ten)));
-      e2.appendChild(el("div", "jl-the-mo", T("Sắp có — thêm khi có dữ liệu giáo trình.")));
+      e2.appendChild(el("div", "jl-the-sap-tag", T("Sắp có")));
+      e2.appendChild(el("div", "jl-the-mo", T("Sẽ mở ngay khi có dữ liệu giáo trình của cấp này.")));
       b.appendChild(e2);
       ds.appendChild(b);
     });
@@ -269,11 +277,12 @@
     const o = TD.monCua(td, id);
     o.tong = chang.length;
     await luu();
-    veBanDo(true);
+    const lanDau = !o.thoai.batDau;
+    veBanDo(!lanDau);                       // lần đầu: ở lại đầu bản đồ để nhân vật chào ngay trong cảnh núi/biển
     capNhatNhac();                          // vào màn là một cú bấm của người dùng nên được phép phát nhạc
-    if (!o.thoai.batDau) {
+    if (lanDau) {
       o.thoai.batDau = 1; await luu();
-      thoai(TH.MON[id].thoai.batDau);
+      thoai(TH.MON[id].thoai.batDau, null, 0);
     }
   }
 
@@ -317,12 +326,14 @@
 
     const R = rong();
     o.classList.toggle("rong", R);
+    o.classList.toggle("thu", !!td.thu);
     o.appendChild(khiQuyen(th));
     nhom.forEach((g, gi) => {
       const sec = el("section", "jl-chuong");
       sec.style.setProperty("--c1", g.mau[0]); sec.style.setProperty("--c2", g.mau[1]);
       sec.style.setProperty("--i", String(Math.min(gi, 6)));
       const ban = el("div", "jl-banner");
+      ban.dataset.ci = String(g.ci);
       ban.innerHTML = TH.canh(monId, g.ci, R);
       const tx = el("div", "jl-banner-chu");
       const xongCh = g.ds.filter((c) => TD.qua(TD.tot(td, monId, c.id))).length;
@@ -380,6 +391,8 @@
         lo.appendChild(b);
       });
       sec.appendChild(lo);
+      // Phần ngoài màn hình không phải vẽ/chạy hoạt ảnh (content-visibility); khai trước chiều cao để thanh cuộn không nhảy.
+      sec.style.containIntrinsicSize = "1px " + ((R ? 250 : 112) + cao + 22) + "px";
       o.appendChild(sec);
       mucDem += g.ds.length;
     });
@@ -432,33 +445,59 @@
 
   /* ================================================================ lời thoại */
 
-  function thoai(dong, xong) {
+  /**
+   * Lời thoại của nhân vật NGAY TRONG cảnh vẽ (không có hộp thoại nổi): banner của chương nở ra, nhân vật nhảy vào,
+   * bong bóng nói hiện chữ dần; bấm "Tiếp" để nghe câu sau, hết thì banner co lại và việc đang chờ (`xong`) được làm tiếp.
+   * @param {string|string[]} dong  các câu thoại
+   * @param {Function} [xong]       gọi khi nói xong
+   * @param {number} [ci]           chương có banner làm sân khấu (0…8; -1 = trùm cuối; mặc định chương đầu)
+   */
+  function thoai(dong, xong, ci) {
     const th = TH.MON[monId];
-    const ds = Array.isArray(dong) ? dong.slice() : [dong];
-    const o = overlay("jl-thoai");
-    o.dataset.dong = "khong";
-    const hop = el("div", "jl-thoai-hop");
-    hop.appendChild(el("div", "jl-nv", th.nhanVat.emoji));
+    const ds = (Array.isArray(dong) ? dong.slice() : [dong]).filter(Boolean);
+    const bd = root.querySelector(".jl-bd");
+    const ban = bd && bd.querySelector('.jl-banner[data-ci="' + (ci == null ? 0 : ci) + '"]');
+    if (!ds.length || !ban) { if (xong) xong(); return; }
+    const sk = el("div", "jl-thoai");
+    const nv = el("div", "jl-nv-canh");
+    nv.innerHTML = TH.nhanVat(monId);
+    sk.appendChild(nv);
+    sk.appendChild(el("div", "jl-nv-ten", th.nhanVat.ten));
     const bong = el("div", "jl-bong");
     const van = el("div", "jl-bong-chu");
     bong.appendChild(van);
-    const ten = el("div", "jl-nv-ten", th.nhanVat.ten);
-    hop.appendChild(ten); hop.appendChild(bong);
     const bt = nut("jl-btn chinh", T("Tiếp"));
-    hop.appendChild(bt);
-    o.appendChild(hop);
-    let i = 0;
+    bong.appendChild(bt);
+    sk.appendChild(bong);
+    ban.appendChild(sk);
+    ban.classList.add("noi");
+    bd.classList.add("dang-thoai");
+    // cuộn tới sân khấu sau khi banner đã nở ra, để nhân vật nằm giữa màn hình
+    setTimeout(() => { try { ban.scrollIntoView({ block: "center", behavior: giamChuyen() ? "auto" : "smooth" }); } catch (e) { /* trình duyệt cũ */ } }, 60);
+    let i = 0, hen = 0;
     const hien = () => {
+      clearTimeout(hen);
       van.textContent = ""; van.classList.remove("xong");
       Array.from(ds[i]).forEach((ch, k) => {
         const sp = el("span", null, ch);
-        sp.style.animationDelay = Math.min(k * 22, 2600) + "ms";
+        sp.style.animationDelay = (i ? 80 : 850) + Math.min(k * 24, 2600) + "ms";
         van.appendChild(sp);
       });
+      // nhân vật mở/ngậm miệng trong lúc chữ còn đang hiện
+      nv.classList.add("noi");
+      hen = setTimeout(() => nv.classList.remove("noi"), (i ? 80 : 850) + Math.min(ds[i].length * 24, 2600) + 200);
       bt.textContent = i < ds.length - 1 ? T("Tiếp") : T("Đi thôi!");
     };
-    bong.addEventListener("click", () => van.classList.add("xong"));
-    bt.addEventListener("click", () => { if (i < ds.length - 1) { i++; hien(); } else { o.remove(); if (xong) xong(); } });
+    bong.addEventListener("click", (e) => { if (e.target !== bt) { van.classList.add("xong"); nv.classList.remove("noi"); } });
+    bt.addEventListener("click", () => {
+      if (i < ds.length - 1) { i++; hien(); return; }
+      clearTimeout(hen);
+      sk.classList.add("di");
+      ban.classList.remove("noi");
+      bd.classList.remove("dang-thoai");
+      setTimeout(() => sk.remove(), 320);
+      if (xong) xong();
+    });
     hien();
   }
 
@@ -474,7 +513,7 @@
     const kh = "c" + c.chuong;
     if (c.chuong > 0 && c.loai !== "boss" && !o.thoai[kh] && TH.MON[monId].thoai.chuong[c.chuong]) {
       o.thoai[kh] = 1;
-      luu().then(() => thoai(TH.MON[monId].thoai.chuong[c.chuong], xuLy));
+      luu().then(() => thoai(TH.MON[monId].thoai.chuong[c.chuong], xuLy, c.chuong - 1));
     } else xuLy();
   }
 
@@ -814,9 +853,9 @@
     const th = TH.MON[monId];
     if (!lanDauQua) return;
     if (c.loai === "boss-chuong") {
-      thoai(th.thoai.xongChuong[c.chuong] || "");
+      thoai(th.thoai.xongChuong[c.chuong] || "", null, c.chuong - 1);
     } else if (c.loai === "boss") {
-      thoai(th.thoai.thang);
+      thoai(th.thoai.thang, null, -1);
     }
   }
 

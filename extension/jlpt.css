@@ -474,3 +474,134 @@ body.jlpt-toan .side { display: none; }
   .jl-the-phu { background: linear-gradient(0deg, rgba(8, 8, 36, .85), rgba(8, 8, 36, .1) 70%); }
   .jl-the:not(.sap) .jl-the-ten { font-size: 30px; }
 }
+
+/* ================================================================ CHUYỂN ĐỘNG BỔ SUNG: không có gì đứng yên */
+.jl-quay { animation: jl-quay 60s linear infinite; transform-origin: center; }
+.jl-lac-nhe { animation: jl-sc-lac2 6s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes jl-sc-lac2 { from { transform: rotate(-1.4deg) skewX(-1.2deg); } to { transform: rotate(1.4deg) skewX(1.2deg); } }
+.jl-nhay { animation: jl-nhay 1.2s ease-in-out infinite; }
+@keyframes jl-nhay { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+.jl-vay { animation: jl-vay .9s ease-in-out infinite; transform-origin: left center; }
+@keyframes jl-vay { 0%, 100% { transform: skewY(-8deg) scaleX(1); } 50% { transform: skewY(8deg) scaleX(.86); } }
+.jl-khoi { animation: jl-khoi 4.5s ease-out infinite; transform-origin: bottom center; }
+@keyframes jl-khoi { 0% { transform: translate(0, 4px) scale(.6); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(6px, -16px) scale(1.5); opacity: 0; } }
+.jl-chan { animation: jl-chan .9s ease-in-out infinite alternate; transform-origin: left center; }
+@keyframes jl-chan { from { transform: rotate(-24deg); } to { transform: rotate(26deg); } }
+.jl-no { animation: jl-no 3.6s ease-out infinite; opacity: 0; }
+@keyframes jl-no { 0% { transform: scale(.05); opacity: 0; } 12% { opacity: 1; } 55% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.25); opacity: 0; } }
+.jl-hoi-nuoc { animation: jl-hoi-nuoc 4s ease-out infinite; }
+@keyframes jl-hoi-nuoc { 0% { transform: translateY(8px); opacity: 0; } 30% { opacity: .55; } 100% { transform: translateY(-22px); opacity: 0; } }
+
+/* cảnh "sắp có" trên thẻ chọn màn */
+.jl-the.sap { color: #fff; opacity: 1; background: linear-gradient(135deg, #1b1b3a, #3a2a6a); box-shadow: 0 10px 26px rgba(40, 30, 90, .25); cursor: default; }
+.jl-the.sap .jl-the-ten, .jl-the.sap .jl-the-mo { color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .55); }
+.jl-the.sap .jl-the-cap { background: rgba(255, 255, 255, .22); }
+.jl-the.sap .jl-the-emoji { filter: none; opacity: 1; animation: jl-nhun 3.2s ease-in-out infinite; }
+.jl-the-sap-tag { display: inline-block; width: fit-content; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #3a2a00; background: linear-gradient(110deg, #ffd24a 30%, #fff3b0 50%, #ffd24a 70%); background-size: 220% 100%; animation: jl-bong 2.2s linear infinite; }
+
+/* nhân vật vẽ bằng SVG: nhún, chớp mắt, vẫy đuôi, vẫy tay, mở miệng khi nói */
+.jl-nv-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.jl-nv-svg * { transform-box: fill-box; }
+.nv-nhun { animation: jl-nv-nhun 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes jl-nv-nhun { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-3px) scale(1.01, .985); } }
+.nv-duoi { animation: jl-nv-duoi 1.1s ease-in-out infinite alternate; }
+@keyframes jl-nv-duoi { from { transform: rotate(-9deg); } to { transform: rotate(11deg); } }
+.nv-mat { animation: jl-nv-chop 4.2s infinite; transform-origin: center; }
+@keyframes jl-nv-chop { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(.08); } }
+.nv-tay { animation: jl-nv-tay 1.6s ease-in-out infinite; }
+@keyframes jl-nv-tay { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-22deg); } }
+.nv-mieng { transform: scaleY(0); transform-origin: center top; }
+.noi .nv-mieng { animation: jl-nv-noi .26s ease-in-out infinite alternate; }
+.noi .nv-cuoi { opacity: 0; }
+@keyframes jl-nv-noi { from { transform: scaleY(.1); } to { transform: scaleY(1); } }
+
+/* lời thoại ngay TRONG cảnh vẽ: banner của chương nở ra, nhân vật nhảy vào, bong bóng nói hiện chữ dần */
+.jl-banner { transition: height .5s cubic-bezier(.2, .9, .3, 1); }
+.jl-banner.noi { height: 236px; }
+.jl-banner.noi .jl-banner-chu { opacity: 0; transition: opacity .2s; }
+.jl-thoai {
+  position: absolute; inset: 0; z-index: 3; display: flex; align-items: flex-end; gap: 10px; padding: 10px 12px 12px; align-self: auto; justify-content: flex-start;
+  background: linear-gradient(to top, rgba(8, 8, 30, .5), transparent 70%); animation: jl-hien .3s ease;
+}
+.jl-thoai.di { animation: jl-hien .3s ease reverse forwards; pointer-events: none; }
+.jl-nv-canh { flex: none; width: 104px; height: 104px; animation: jl-nv-vao .7s cubic-bezier(.2, 1.7, .4, 1) .15s backwards; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .35)); }
+@keyframes jl-nv-vao { 0% { transform: translateY(70px) scale(.4); opacity: 0; } 60% { transform: translateY(-10px) scale(1.05); opacity: 1; } 100% { transform: none; } }
+.jl-thoai .jl-bong {
+  flex: 1; min-width: 0; align-self: center; position: relative; cursor: pointer; background: rgba(255, 255, 255, .97); color: #1a1430;
+  border-radius: 18px; padding: 11px 14px 10px; box-shadow: 0 8px 22px rgba(0, 0, 0, .3); min-height: 0; display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+  animation: jl-bong-vao .5s cubic-bezier(.2, 1.5, .4, 1) .45s backwards; transform-origin: left center;
+}
+@keyframes jl-bong-vao { from { transform: scale(.2); opacity: 0; } to { transform: none; opacity: 1; } }
+.jl-thoai .jl-bong::before { content: ""; position: absolute; left: -7px; top: 50%; width: 16px; height: 16px; background: #fff; border-radius: 3px; transform: translateY(-50%) rotate(45deg); }
+.jl-thoai .jl-bong-chu { font-size: 14.5px; line-height: 1.45; color: #1a1430; text-align: left; }
+.jl-thoai .jl-bong-chu span { animation-delay: calc(.8s + var(--k, 0) * 24ms); }
+.jl-thoai .jl-btn { align-self: flex-end; padding: 7px 18px; font-size: 14px; }
+.jl-nv-ten { position: absolute; left: 14px; top: 10px; font-weight: 800; font-size: 12px; letter-spacing: .08em; color: #fff; text-transform: uppercase; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+.jl-bd.dang-thoai .jl-lo, .jl-bd.dang-thoai .jl-suutam { pointer-events: none; }
+.jl-bd.dang-thoai .jl-lo { opacity: .55; transition: opacity .3s; }
+
+/* nhân vật ló mặt trên thẻ chọn màn */
+.jl-the-nv { position: absolute; right: 18px; bottom: 6px; width: 92px; height: 92px; z-index: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .35)); }
+.jl-the:hover .jl-the-nv .nv-mieng { animation: jl-nv-noi .26s ease-in-out infinite alternate; }
+
+/* mọi thứ trên giao diện đều có nhịp: chỉ chặng đang mở, trùm và các thứ nhỏ; chặng đã xong/khoá đứng yên để máy yếu không phải gánh hàng trăm hoạt ảnh */
+.jl-nut:not(.khoa):not(.xong) > span, .jl-nut:not(.khoa):not(.xong) > svg { animation: jl-nut-nhun 2.4s ease-in-out infinite; animation-delay: calc(var(--n, 0) * -.31s); }
+.jl-bd.thu .jl-nut > span, .jl-bd.thu .jl-nut > svg { animation: none; }
+@keyframes jl-nut-nhun { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3px) rotate(3deg); } }
+.jl-nut.boss > svg, .jl-nut.boss-chuong > svg { animation-duration: 1.5s; }
+.jl-sao { animation: jl-sao-lap 2.4s ease-in-out infinite; }
+@keyframes jl-sao-lap { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35) drop-shadow(0 0 4px rgba(255, 210, 60, .8)); } }
+.jl-chip svg { animation: jl-chip-lap 2.8s ease-in-out infinite; transform-origin: center; }
+.jl-thongke .jl-chip:last-child svg { animation-name: jl-lua-chap; animation-duration: 1.1s; transform-origin: 50% 90%; }
+@keyframes jl-chip-lap { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.18) rotate(14deg); } }
+@keyframes jl-lua-chap { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(.92, 1.14); } }
+.jl-suutam .co { animation: jl-nay .6s cubic-bezier(.2, 1.6, .4, 1) backwards, jl-nhun 2.8s ease-in-out .6s infinite; }
+.jl-the-hoc:not(.dang-keo) .jl-the-mat { animation: jl-tho 4s ease-in-out infinite; }
+@keyframes jl-tho { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.012); } }
+.jl-khung-han { text-shadow: 0 6px 18px rgba(80, 40, 160, .22); }
+.jl-loa.to { animation: jl-loa-nhip 1.8s ease-out infinite; }
+@keyframes jl-loa-nhip { 0% { box-shadow: 0 8px 20px rgba(60, 40, 160, .3), 0 0 0 0 rgba(120, 80, 220, .45); } 100% { box-shadow: 0 8px 20px rgba(60, 40, 160, .3), 0 0 0 22px rgba(120, 80, 220, 0); } }
+.jl-btn.chinh { animation: jl-btn-nhip 2.6s ease-in-out infinite; }
+@keyframes jl-btn-nhip { 0%, 100% { box-shadow: 0 6px 16px rgba(80, 40, 160, .28); } 50% { box-shadow: 0 8px 26px rgba(160, 90, 255, .55); } }
+.jl-vong.dat { animation: jl-nay .5s ease, jl-vong 1.1s cubic-bezier(.2, .8, .3, 1) both, jl-vong-sang 2.4s ease-in-out 1.4s infinite; }
+@keyframes jl-vong-sang { 0%, 100% { box-shadow: 0 10px 30px rgba(31, 178, 107, .25); } 50% { box-shadow: 0 10px 44px rgba(31, 178, 107, .6); } }
+.jl-st.co { animation: jl-sao-no .7s cubic-bezier(.2, 1.9, .4, 1) forwards, jl-st-lap 2.2s ease-in-out 1.8s infinite; }
+@keyframes jl-st-lap { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.14) rotate(8deg); } }
+.jl-fb-tieude { display: inline-block; }
+.jl-fb.dung .jl-fb-tieude { animation: jl-nay .4s cubic-bezier(.2, 1.5, .4, 1), jl-nhun 1.6s ease-in-out .5s infinite; }
+.jl-combo { animation: jl-combo-lua .7s ease-in-out infinite alternate; }
+@keyframes jl-combo-lua { from { transform: scale(1) rotate(-1.5deg); } to { transform: scale(1.07) rotate(1.5deg); } }
+.jl-combo.no { animation: jl-combo-no .5s cubic-bezier(.2, 1.8, .4, 1), jl-combo-lua .7s ease-in-out .5s infinite alternate; }
+.jl-tieude { background: linear-gradient(100deg, var(--ink, #1a1430) 30%, #7a4dff 50%, var(--ink, #1a1430) 70%); background-size: 240% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: jl-bong 6s linear infinite; }
+.jl-chuong .jl-banner-ten { animation: jl-len .6s ease .3s backwards; }
+.jl-co { animation: jl-co 1.3s ease-in-out infinite; }
+
+@media (min-width: 900px) {
+  .jl-banner.noi { height: 340px; }
+  .jl-nv-canh { width: 190px; height: 190px; }
+  .jl-thoai { gap: 22px; padding: 18px 28px 22px; }
+  .jl-thoai .jl-bong { padding: 20px 26px 16px; border-radius: 26px; max-width: 760px; }
+  .jl-thoai .jl-bong-chu { font-size: 21px; line-height: 1.55; }
+  .jl-thoai .jl-btn { padding: 11px 26px; font-size: 16px; }
+  .jl-the-nv { width: 130px; height: 130px; right: 24px; bottom: 8px; }
+  .jl-nv-ten { left: 28px; top: 16px; font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jl-quay, .jl-lac-nhe, .jl-nhay, .jl-vay, .jl-khoi, .jl-chan, .jl-no, .jl-hoi-nuoc, .nv-nhun, .nv-duoi, .nv-mat, .nv-tay, .jl-nv-canh, .jl-thoai .jl-bong,
+  .jl-nut > span, .jl-nut > svg, .jl-sao, .jl-chip svg, .jl-the-hoc .jl-the-mat, .jl-loa.to, .jl-btn.chinh, .jl-vong.dat, .jl-st.co, .jl-combo, .jl-tieude,
+  .jl-the-sap-tag { animation: none; }
+  .jl-no { opacity: 1; }
+  .jl-tieude { -webkit-text-fill-color: currentColor; background: none; }
+}
+.jl-chuong { content-visibility: auto; }
+@media (min-width: 900px) {
+  .jl-the:not(.sap) .jl-the-thong { max-width: calc(100% - 150px); }
+  .jl-thoai .jl-bong { max-width: 620px; }
+}
+.jl-the-nv { pointer-events: none; }
+@media (max-width: 899px) {
+  .jl-the:not(.sap) .jl-the-thong { max-width: calc(100% - 96px); }
+  .jl-the:not(.sap) .jl-the-emoji { display: none; }
+  .jl-the-nv { width: 84px; height: 84px; right: 10px; bottom: 6px; }
+}
+.jl-banner::after { height: 46%; background: linear-gradient(to top, rgba(0, 0, 0, .4), transparent); }
