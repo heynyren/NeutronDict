@@ -9,7 +9,7 @@
 (function (goc) {
   "use strict";
 
-  const TD = goc.JlptTienDo, CH = goc.JlptCauHoi, TH = goc.JlptTheme, NH = goc.JlptNhac;
+  const TD = goc.JlptTienDo, CH = goc.JlptCauHoi, TH = goc.JlptTheme, NH = goc.JlptNhac, CG = goc.JlptCanhGioi;
 
   let A = null;            // bộ nối với app
   let root = null;         // phần tử chứa cả chế độ
@@ -18,6 +18,8 @@
   let monId = null;
   let chang = [];          // danh sách chặng của màn đang mở
   let chay = null;         // lượt chơi đang diễn ra
+  let gioi = null;         // sân khấu cảnh nền của bản đồ đang hiện (xem taoGioi)
+  let truyen = null;       // câu chuyện của màn đang mở ({batDau, chang:{id:[câu…]}, xongChuong, thang}); null nếu chưa có
   let phimDang = null;     // hàm xử lý phím đang gắn
 
   const T = (s) => (A && A.T ? A.T(s) : s);
@@ -117,6 +119,7 @@
 
   /** Xoá cả khung chế độ rồi gắn lại nút bật/tắt nhạc (nút luôn nằm ở cuối màn hình, mọi màn đều thấy). */
   function lamTrang() {
+    dungGioi();
     root.textContent = "";
     if (!nutNhac) {
       nutNhac = nut("jl-nhac", "", () => {
@@ -271,6 +274,9 @@
       root.appendChild(l);
       return;
     }
+    // Câu chuyện là file riêng (jlpt/truyen-<màn>.json); thiếu hoặc hỏng thì màn vẫn chơi được với lời thoại cũ.
+    truyen = null;
+    try { const t = await A.taiMon("truyen-" + id); if (t && t.chang) truyen = t; } catch (e) { truyen = null; }
     monId = id;
     CH.chuanBi(mon);
     chang = CH.chiaChang(mon);
@@ -278,12 +284,114 @@
     o.tong = chang.length;
     await luu();
     const lanDau = !o.thoai.batDau;
-    veBanDo(!lanDau);                       // lần đầu: ở lại đầu bản đồ để nhân vật chào ngay trong cảnh núi/biển
+    veBanDo(true);                          // cuộn tới chặng hiện tại (N3: đáy bản đồ = chân núi)
     capNhatNhac();                          // vào màn là một cú bấm của người dùng nên được phép phát nhạc
     if (lanDau) {
       o.thoai.batDau = 1; await luu();
-      thoai(TH.MON[id].thoai.batDau, null, 0);
+      thoai((truyen && truyen.batDau) || TH.MON[id].thoai.batDau, null, 0);
     }
+  }
+
+  /* ------------------------------------------------ cảnh nền liền mạch của bản đồ */
+
+  /** Phần tử cuộn gần nhất bao quanh `e` (trang sổ tay / vùng cuộn của app). */
+  function cuonCha(e) {
+    for (let p = e.parentElement; p; p = p.parentElement) {
+      const oy = getComputedStyle(p).overflowY;
+      if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight + 1) return p;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
+  /**
+   * Sân khấu: 10 khung cảnh (9 chương + trùm cuối) chồng lên nhau, dính ở đầu vùng cuộn. Cuộn tới đâu thì khung của
+   * chương đó hiện dần lên (mờ chồng mờ) — nên cảnh đổi liền mạch từ chân núi tới đỉnh / từ mặt biển tới đáy, không có
+   * đường nối giữa các chương. Chỉ khung đang nhìn thấy mới được vẽ và chạy hoạt ảnh.
+   */
+  function taoGioi() {
+    const g = el("div", "jl-gioi");
+    const kh = el("div", "jl-gioi-khung");
+    g.appendChild(kh);
+    const lop = [];
+    for (let k = 0; k < (CG ? CG.SO_KHUNG : 0); k++) {
+      const l = el("div", "jl-gioi-lop an");
+      l.style.zIndex = String(k);
+      l.dataset.k = String(k);
+      kh.appendChild(l); lop.push(l);
+    }
+    gioi = { goc: g, kh, lop, ve: lop.map(() => false), secs: [], leo: false, cuon: null, bo: null, cho: 0, u: -1 };
+    return g;
+  }
+
+  /** Tính "độ cao" u (0…10) theo chỗ đang nhìn rồi chỉnh độ mờ của từng khung. */
+  function capNhatGioi() {
+    const g = gioi;
+    if (!g || !g.secs.length || !g.cuon) return;
+    const sp = g.cuon, doc = sp === document.scrollingElement || sp === document.documentElement;
+    const vTop = doc ? 0 : sp.getBoundingClientRect().top, vCao = doc ? goc.innerHeight : sp.clientHeight;
+    // Đường "ngắm" đi từ mép trên (đầu vùng cuộn) tới mép dưới (cuối vùng cuộn) nên khung đầu và khung cuối đều hiện đủ.
+    const cuonMax = Math.max(0, sp.scrollHeight - sp.clientHeight);
+    const yc = vTop + vCao * (cuonMax > 0 ? Math.max(0, Math.min(1, sp.scrollTop / cuonMax)) : 0.5);
+    const trucLen = (y) => (g.leo ? -y : y);
+    const ac = trucLen(yc);
+    const khoang = g.secs.map((sec) => {
+      const r = sec.getBoundingClientRect();
+      return g.leo ? [-r.bottom, -r.top] : [r.top, r.bottom];
+    });
+    const K = khoang.length;
+    let u;
+    if (ac <= khoang[0][0]) u = 0;
+    else if (ac >= khoang[K - 1][1]) u = K;
+    else {
+      u = K;
+      for (let k = 0; k < K; k++) if (ac >= khoang[k][0] && ac <= khoang[k][1]) { u = k + (ac - khoang[k][0]) / Math.max(1, khoang[k][1] - khoang[k][0]); break; }
+    }
+    if (Math.abs(u - g.u) < 0.002) return;
+    g.u = u;
+    const op = g.lop.map((_, k) => (k === 0 ? 1 : Math.max(0, Math.min(1, (u - (k - 0.3)) / 0.6))));
+    g.lop.forEach((l, k) => {
+      const kinh = k < op.length - 1 && op[k + 1] >= 0.99;        // đã bị khung phía trên che kín
+      const hien = op[k] > 0.01 && !kinh;
+      if (hien && !g.ve[k]) { l.innerHTML = CG.ve(monId, k, g.ti); g.ve[k] = true; }
+      else if (!hien && g.ve[k] && Math.abs(u - (k + 0.5)) > 2.2) { l.textContent = ""; g.ve[k] = false; }   // xa quá thì giải phóng bộ nhớ
+      l.classList.toggle("an", !hien);
+      if (hien) {
+        l.style.opacity = op[k].toFixed(3);
+        l.style.transform = "translate3d(0," + ((u - (k + 0.5)) * -2.4).toFixed(2) + "%,0)";
+      }
+    });
+  }
+
+  /** Bắt đầu theo dõi cuộn (gọi sau khi bản đồ đã nằm trong trang). */
+  function batDauGioi(secs, leo) {
+    const g = gioi;
+    if (!g || !CG) return;
+    g.secs = secs; g.leo = leo;
+    g.cuon = cuonCha(root);
+    const doc = g.cuon === document.scrollingElement || g.cuon === document.documentElement;
+    const tren = doc ? goc : g.cuon;
+    const dat = () => { g.ti = Math.max(0.4, Math.min(1.9, (g.kh.clientWidth || goc.innerWidth) / (g.kh.clientHeight || goc.innerHeight || 1))); };
+    dat();
+    const nhip = () => { if (!g.cho) g.cho = requestAnimationFrame(() => { g.cho = 0; capNhatGioi(); }); };
+    const doiCo = () => {
+      const moi = Math.round(g.ti * 100);
+      dat();
+      if (Math.round(g.ti * 100) !== moi) { g.ve = g.ve.map(() => false); g.lop.forEach((l) => { l.textContent = ""; }); g.u = -1; }
+      // đổi giữa điện thoại và máy tính thì xếp lại cả bản đồ
+      if (gioi === g && root.querySelector(".jl-bd") && root.querySelector(".jl-bd").classList.contains("rong") !== rong() && !chay) { veBanDo(false); return; }
+      nhip();
+    };
+    tren.addEventListener("scroll", nhip, { passive: true });
+    goc.addEventListener("resize", doiCo);
+    g.bo = () => { tren.removeEventListener("scroll", nhip); goc.removeEventListener("resize", doiCo); if (g.cho) cancelAnimationFrame(g.cho); g.cho = 0; };
+    capNhatGioi();
+    setTimeout(capNhatGioi, 60);      // sau lần cuộn tự động tới chặng hiện tại
+    setTimeout(capNhatGioi, 400);
+  }
+
+  function dungGioi() {
+    if (gioi && gioi.bo) gioi.bo();
+    gioi = null;
   }
 
   const LECH = [0, 14, 20, 14, 0, -14, -20, -14];     // độ lệch ngang (%) của chặng so với đường giữa
@@ -306,8 +414,14 @@
     gi.appendChild(bar);
     gi.appendChild(el("div", "jl-bd-so", tt.xong + "/" + tt.tong + " " + T("chặng") + " · ★ " + tt.sao));
     dau.appendChild(gi);
+    if (truyen) {
+      const nk = nut("jl-lui jl-nk", "📖", moNhatKy);
+      nk.title = T("Nhật ký câu chuyện"); nk.setAttribute("aria-label", nk.title);
+      dau.appendChild(nk);
+    }
     dau.appendChild(thongKe());
     o.appendChild(dau);
+    o.appendChild(taoGioi());
 
     // bộ sưu tập: món đồ nhặt được ở mỗi chương đã qua trùm
     const sk = el("div", "jl-suutam");
@@ -327,20 +441,20 @@
     const R = rong();
     o.classList.toggle("rong", R);
     o.classList.toggle("thu", !!td.thu);
+    o.classList.toggle("leo-len", !!th.leoLen);       // màn leo núi: chương 1 ở DƯỚI cùng, cuộn lên để leo
     o.appendChild(khiQuyen(th));
+    const trong = el("div", "jl-bd-trong");
+    const secs = [];
     nhom.forEach((g, gi) => {
       const sec = el("section", "jl-chuong");
       sec.style.setProperty("--c1", g.mau[0]); sec.style.setProperty("--c2", g.mau[1]);
-      sec.style.setProperty("--i", String(Math.min(gi, 6)));
-      const ban = el("div", "jl-banner");
-      ban.dataset.ci = String(g.ci);
-      ban.innerHTML = TH.canh(monId, g.ci, R);
-      const tx = el("div", "jl-banner-chu");
+      sec.dataset.ci = String(g.ci);
       const xongCh = g.ds.filter((c) => TD.qua(TD.tot(td, monId, c.id))).length;
-      tx.appendChild(el("div", "jl-banner-ten", g.ten));
-      tx.appendChild(el("div", "jl-banner-so", xongCh + "/" + g.ds.length));
-      ban.appendChild(tx);
-      sec.appendChild(ban);
+      // tấm bảng tên nổi (không còn banner tách rời): cảnh nền liền một mạch phía sau
+      const bang = el("div", "jl-ten-chuong");
+      bang.appendChild(el("span", null, g.ten));
+      bang.appendChild(el("small", null, xongCh + "/" + g.ds.length));
+      sec.appendChild(bang);
 
       // Điện thoại: một đường rắn đi dọc. Máy tính: đường rắn đi ngang theo hàng, đảo chiều mỗi hàng, tận dụng cả bề rộng.
       const COT = 6, DONG = 138;
@@ -349,9 +463,14 @@
       const lo = el("div", "jl-lo" + (R ? " rong" : ""));
       lo.style.height = cao + "px";
       const toa = g.ds.map((c, k) => {
-        if (!R) return { x: 50 + LECH[k % LECH.length], y: k * 92 + 46 };
-        const hang = Math.floor(k / COT), vt = k % COT, cot = hang % 2 ? COT - 1 - vt : vt;
-        return { x: 9 + cot * (82 / (COT - 1)), y: hang * DONG + 66 + Math.round(Math.sin(k * 1.35) * 15) };
+        let p;
+        if (!R) p = { x: 50 + LECH[k % LECH.length], y: k * 92 + 46 };
+        else {
+          const hang = Math.floor(k / COT), vt = k % COT, cot = hang % 2 ? COT - 1 - vt : vt;
+          p = { x: 9 + cot * (82 / (COT - 1)), y: hang * DONG + 66 + Math.round(Math.sin(k * 1.35) * 15) };
+        }
+        if (th.leoLen) p.y = cao - p.y;                 // leo lên: chặng đầu ở đáy khung
+        return p;
       });
       let d = "";
       if (!R) toa.forEach((p, k) => { d += (k ? " L" : "M") + p.x.toFixed(1) + " " + p.y; });
@@ -387,20 +506,66 @@
         stars.textContent = xong ? "★".repeat(sao) + "☆".repeat(3 - sao) : "";
         b.appendChild(stars);
         if (idx === hienTai && mo) b.appendChild(el("div", "jl-co", T("Tiếp theo")));
-        b.addEventListener("click", () => moChang(c, idx, mo));
+        b.addEventListener("click", () => chamChang(c, idx, mo));
         lo.appendChild(b);
       });
       sec.appendChild(lo);
-      // Phần ngoài màn hình không phải vẽ/chạy hoạt ảnh (content-visibility); khai trước chiều cao để thanh cuộn không nhảy.
-      sec.style.containIntrinsicSize = "1px " + ((R ? 250 : 112) + cao + 22) + "px";
-      o.appendChild(sec);
+      secs[gi] = sec;
+      trong.appendChild(sec);
       mucDem += g.ds.length;
     });
+    o.appendChild(trong);
     root.appendChild(o);
+    batDauGioi(secs, !!th.leoLen);
     if (cuon) {
       const hien = o.querySelector(".jl-nut.hien");
       if (hien) setTimeout(() => { try { hien.scrollIntoView({ block: "center" }); } catch (e) { /* trình duyệt cũ */ } }, 30);
     }
+  }
+
+  /** Đoạn truyện của một chặng ([] nếu màn chưa có truyện). */
+  const doanTruyen = (c) => (truyen && truyen.chang && truyen.chang[c.id]) || [];
+  const daKe = (c) => !!TD.monCua(td, monId).thoai["s" + c.id];
+
+  /**
+   * Bấm vào một chặng: nếu chặng đã mở và đoạn truyện của nó CHƯA được kể thì thú cưng hiện ra kể tiếp câu chuyện
+   * ngay trong cảnh, kể xong mới mở tờ chặng. Chặng khoá thì không kể (khỏi lộ truyện); đã kể rồi thì vào thẳng.
+   */
+  /** Kể xong: cuộn về đúng chặng vừa bấm (banner đã co lại nên màn hình xê dịch) rồi mở tờ chặng. */
+  function veLaiChang(c, idx, mo) {
+    const n = root.querySelector('.jl-nut[data-id="' + c.id + '"]');
+    if (n) { try { n.scrollIntoView({ block: "center", behavior: giamChuyen() ? "auto" : "smooth" }); } catch (e) { /* trình duyệt cũ */ } }
+    moChang(c, idx, mo);
+  }
+
+  function chamChang(c, idx, mo) {
+    const ds = doanTruyen(c);
+    if (!mo || !ds.length || daKe(c)) { moChang(c, idx, mo); return; }
+    TD.monCua(td, monId).thoai["s" + c.id] = 1;
+    luu().then(() => thoai(ds, () => veLaiChang(c, idx, mo), c.ci));
+  }
+
+  /** Nhật ký truyện: mọi đoạn đã được kể, theo thứ tự câu chuyện, để đọc lại bất cứ lúc nào. */
+  function moNhatKy() {
+    const th = TH.MON[monId];
+    const o = overlay("jl-to");
+    const p = el("div", "jl-to-hop jl-nhatky");
+    p.appendChild(el("div", "jl-to-ten", "📖 " + T("Nhật ký câu chuyện")));
+    const ds = el("div", "jl-nk-ds");
+    let n = 0, chuongCuoi = -2;
+    const them = (lines, ci) => {
+      if (ci !== chuongCuoi) {
+        chuongCuoi = ci;
+        ds.appendChild(el("div", "jl-nk-chuong", ci < 0 ? th.trum.ten : th.chuong[ci].ten));
+      }
+      lines.forEach((l) => { const r = el("div", "jl-nk-dong"); r.appendChild(el("span", "jl-nk-nv", th.nhanVat.emoji)); r.appendChild(el("span", null, l)); ds.appendChild(r); n++; });
+    };
+    if (truyen && TD.monCua(td, monId).thoai.batDau) them(truyen.batDau || [], 0);
+    chang.forEach((c) => { if (daKe(c)) them(doanTruyen(c), c.ci); });
+    if (!n) ds.appendChild(el("div", "jl-to-mo", T("Chưa có đoạn nào. Bấm vào một chặng để nghe nhân vật kể tiếp!")));
+    p.appendChild(ds);
+    p.appendChild(nut("jl-btn", T("Đóng"), () => o.remove()));
+    o.appendChild(p);
   }
 
   function tenChang(c) {
@@ -431,6 +596,9 @@
     else mota = c.items.length + " " + (c.loai === "han" ? T("chữ Hán") : c.loai === "tu" ? T("từ vựng") : T("mẫu ngữ pháp")) + " · " + c.soCau + " " + T("câu hỏi") + " · " + T("đạt từ 60% để qua");
     p.appendChild(el("div", "jl-to-mo", mota));
     if (cc) p.appendChild(el("div", "jl-to-tot", T("Điểm cao nhất") + ": " + tot + "% " + "★".repeat(cc.sao || 0) + "☆".repeat(3 - (cc.sao || 0))));
+    if (mo && doanTruyen(c).length && daKe(c)) {
+      p.appendChild(nut("jl-btn jl-nghe-lai", "📖 " + T("Nghe lại câu chuyện"), () => { o.remove(); thoai(doanTruyen(c), () => veLaiChang(c, idx, mo), c.ci); }));
+    }
     if (!mo) {
       p.appendChild(el("div", "jl-to-khoa", T("Chặng này đang khoá: hãy vượt chặng trước đó với từ 60% trở lên.")));
       p.appendChild(nut("jl-btn", T("Đóng"), () => o.remove()));
@@ -446,21 +614,21 @@
   /* ================================================================ lời thoại */
 
   /**
-   * Lời thoại của nhân vật NGAY TRONG cảnh vẽ (không có hộp thoại nổi): banner của chương nở ra, nhân vật nhảy vào,
-   * bong bóng nói hiện chữ dần; bấm "Tiếp" để nghe câu sau, hết thì banner co lại và việc đang chờ (`xong`) được làm tiếp.
+   * Lời thoại của nhân vật NGAY TRONG cảnh nền (không phải hộp thoại nổi che màn hình): nhân vật nhảy vào đứng ở chân
+   * cảnh, bong bóng nói hiện chữ dần; bấm "Tiếp" để nghe câu sau, hết thì nhân vật rời đi và việc đang chờ (`xong`)
+   * được làm tiếp. Trong lúc nói, các chặng tạm thời không bấm được (tránh chạy chồng).
    * @param {string|string[]} dong  các câu thoại
    * @param {Function} [xong]       gọi khi nói xong
-   * @param {number} [ci]           chương có banner làm sân khấu (0…8; -1 = trùm cuối; mặc định chương đầu)
    */
-  function thoai(dong, xong, ci) {
+  function thoai(dong, xong) {
     const th = TH.MON[monId];
     const ds = (Array.isArray(dong) ? dong.slice() : [dong]).filter(Boolean);
     const bd = root.querySelector(".jl-bd");
-    const ban = bd && bd.querySelector('.jl-banner[data-ci="' + (ci == null ? 0 : ci) + '"]');
-    if (!ds.length || !ban) { if (xong) xong(); return; }
+    if (!ds.length || !bd) { if (xong) xong(); return; }
     const sk = el("div", "jl-thoai");
     const nv = el("div", "jl-nv-canh");
     nv.innerHTML = TH.nhanVat(monId);
+    nv.appendChild(el("div", "jl-nv-bong"));
     sk.appendChild(nv);
     sk.appendChild(el("div", "jl-nv-ten", th.nhanVat.ten));
     const bong = el("div", "jl-bong");
@@ -469,11 +637,8 @@
     const bt = nut("jl-btn chinh", T("Tiếp"));
     bong.appendChild(bt);
     sk.appendChild(bong);
-    ban.appendChild(sk);
-    ban.classList.add("noi");
+    root.appendChild(sk);
     bd.classList.add("dang-thoai");
-    // cuộn tới sân khấu sau khi banner đã nở ra, để nhân vật nằm giữa màn hình
-    setTimeout(() => { try { ban.scrollIntoView({ block: "center", behavior: giamChuyen() ? "auto" : "smooth" }); } catch (e) { /* trình duyệt cũ */ } }, 60);
     let i = 0, hen = 0;
     const hien = () => {
       clearTimeout(hen);
@@ -493,7 +658,6 @@
       if (i < ds.length - 1) { i++; hien(); return; }
       clearTimeout(hen);
       sk.classList.add("di");
-      ban.classList.remove("noi");
       bd.classList.remove("dang-thoai");
       setTimeout(() => sk.remove(), 320);
       if (xong) xong();
@@ -511,7 +675,7 @@
     };
     // Lời thoại đầu mỗi chương: chỉ lần đầu bước vào chương đó
     const kh = "c" + c.chuong;
-    if (c.chuong > 0 && c.loai !== "boss" && !o.thoai[kh] && TH.MON[monId].thoai.chuong[c.chuong]) {
+    if (!truyen && c.chuong > 0 && c.loai !== "boss" && !o.thoai[kh] && TH.MON[monId].thoai.chuong[c.chuong]) {
       o.thoai[kh] = 1;
       luu().then(() => thoai(TH.MON[monId].thoai.chuong[c.chuong], xuLy, c.chuong - 1));
     } else xuLy();
@@ -523,7 +687,7 @@
     o.style.setProperty("--m1", th.mau[0]); o.style.setProperty("--m2", th.mau[1]);
     // Cảnh của chương đang chơi làm nền mờ dưới đáy màn hình; nội dung nằm trên.
     const nen = el("div", "jl-chay-canh");
-    nen.innerHTML = TH.canh(monId, chay.c.ci, true);
+    nen.innerHTML = CG ? CG.ve(monId, chay.c.ci < 0 ? 9 : chay.c.ci, (goc.innerWidth || 1000) / (goc.innerHeight || 700)) : TH.canh(monId, chay.c.ci, true);
     o.appendChild(nen);
     o.appendChild(khiQuyen(th, "chay"));
     root.appendChild(o);
@@ -853,9 +1017,9 @@
     const th = TH.MON[monId];
     if (!lanDauQua) return;
     if (c.loai === "boss-chuong") {
-      thoai(th.thoai.xongChuong[c.chuong] || "", null, c.chuong - 1);
+      thoai((truyen && truyen.xongChuong && truyen.xongChuong[c.chuong]) || th.thoai.xongChuong[c.chuong] || "", null, c.chuong - 1);
     } else if (c.loai === "boss") {
-      thoai(th.thoai.thang, null, -1);
+      thoai((truyen && truyen.thang) || th.thoai.thang, null, -1);
     }
   }
 

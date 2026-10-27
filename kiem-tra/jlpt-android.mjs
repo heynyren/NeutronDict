@@ -15,7 +15,17 @@ const srv = spawn("python3", ["-m", "http.server", "8775", "-d", www], { stdio: 
 await new Promise((r) => setTimeout(r, 800));
 const ket = [];
 const soat = (t, d, c) => { ket.push(!!d); console.log("  " + (d ? "✓" : "✗") + " " + t + (c !== undefined && c !== "" ? "  (" + c + ")" : "")); };
-const cho = (ms) => new Promise((r) => setTimeout(r, ms));
+const bamChang = async (p, sel) => {
+    await p.tap(sel);
+    for (let i = 0; i < 12; i++) {
+      if (await p.$(".jl-to-hop")) return;
+      const t = await p.$(".jl-thoai .jl-btn");
+      if (t) await t.tap().catch(() => {});
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    await p.waitForSelector(".jl-to-hop", { timeout: 5000 });
+  };
+  const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 const b = await chromium.launch({ channel: "chromium" });
 try {
   const c = await b.newContext({ viewport: { width: 393, height: 851 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
@@ -38,10 +48,11 @@ try {
   await p.waitForSelector(".jl-thoai");
   await p.tap(".jl-thoai .jl-btn"); await p.tap(".jl-thoai .jl-btn");
   await p.waitForSelector(".jl-bd");
+  soat("cảnh nền liền mạch: 10 khung chồng, sân khấu dính đầu vùng cuộn, tràn sát hai mép", await p.evaluate(() => { const k = document.querySelector(".jl-gioi-khung").getBoundingClientRect(); return document.querySelectorAll(".jl-gioi-lop").length === 10 && Math.abs(k.left) < 1 && Math.abs(k.right - innerWidth) < 1 && !document.querySelector(".jl-banner"); }));
+  soat("N3 leo núi LÊN: lúc vào là chân núi (khung 1 hiện), nút chặng 1 ở dưới cùng", await p.evaluate(() => { const l = [...document.querySelectorAll(".jl-gioi-lop")]; const n = [...document.querySelectorAll(".jl-nut")]; return !l[0].classList.contains("an") && l.slice(1).every((x) => x.classList.contains("an") || +x.style.opacity === 0) && n[0].getBoundingClientRect().top > n[n.length - 1].getBoundingClientRect().top; }));
   soat("bản đồ N3: 227 chặng", await p.evaluate(() => document.querySelectorAll(".jl-nut").length === 227));
   soat("không bị thanh tab dưới che chặng đầu (nút bấm được)", await p.evaluate(() => { const n = document.querySelector(".jl-nut"); n.scrollIntoView({ block: "center" }); const r = n.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return n.contains(e) || e === n; }));
-  await p.tap(".jl-nut.hien");
-  await p.waitForSelector(".jl-to-hop");
+  await bamChang(p, ".jl-nut.hien");
   await p.tap(".jl-to-nut .jl-btn:not(.chinh)");     // làm bài ngay
   await p.waitForSelector(".jl-lua, .jl-thoai");
   if (await p.$(".jl-thoai")) { await p.tap(".jl-thoai .jl-btn"); await p.waitForSelector(".jl-lua"); }   // lời thoại đầu chương
@@ -64,7 +75,7 @@ try {
   soat("tiến độ lưu vào kho của app", td && td.ngoc > 0 && Object.keys(td.mon.n3.chang).length === 1, td && td.ngoc);
 
   // vuốt thẻ bằng cảm ứng (sự kiện pointer kiểu touch, như Android thật)
-  await p.tap(".jl-nut.hien"); await p.waitForSelector(".jl-to-hop");
+  await bamChang(p, ".jl-nut.hien");
   await p.tap(".jl-to-nut .jl-btn.chinh");
   await p.waitForSelector(".jl-the-hoc, .jl-thoai");
   if (await p.$(".jl-thoai")) { await p.tap(".jl-thoai .jl-btn"); await p.waitForSelector(".jl-the-hoc"); }
@@ -84,7 +95,7 @@ try {
   await p.tap(".jl-x"); await p.waitForSelector(".jl-hoi"); await p.tap(".jl-hoi .jl-btn.chinh"); await p.waitForSelector(".jl-bd");
 
   // nút Quay lại của Android
-  await p.tap(".jl-nut.hien"); await p.waitForSelector(".jl-to-hop");
+  await bamChang(p, ".jl-nut.hien");
   await p.tap(".jl-to-nut .jl-btn:not(.chinh)"); await p.waitForSelector(".jl-lua");
   const quay = () => p.evaluate(() => window.JlptUI.quayLai());
   soat("Quay lại khi đang chơi: hỏi thoát", (await quay()) === true && !!(await p.$(".jl-hoi")));

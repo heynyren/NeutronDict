@@ -605,3 +605,94 @@ body.jlpt-toan .side { display: none; }
   .jl-the-nv { width: 84px; height: 84px; right: 10px; bottom: 6px; }
 }
 .jl-banner::after { height: 46%; background: linear-gradient(to top, rgba(0, 0, 0, .4), transparent); }
+
+/* Lớp con TRỰC TIẾP của .jl-chay bị luật "width:100%; max-width" ở trên ép co lại — lớp phủ hỏi thoát, chip combo, pháo giấy… phải giữ kích thước riêng. */
+.jl-chay > .jl-hoi, .jl-chay > .jl-phao, .jl-chay > .jl-khi, .jl-chay > .jl-chay-canh { max-width: none; }
+.jl-chay > .jl-hoi { width: auto; }
+.jl-chay > .jl-combo { width: auto; max-width: none; }
+.jl-hoi-hop { animation: jl-nay .25s cubic-bezier(.2, 1.4, .4, 1); }
+
+/* nhật ký câu chuyện */
+.jl-nhatky { max-height: 80vh; }
+.jl-nk-ds { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; max-height: 58vh; }
+.jl-nk-chuong { position: sticky; top: 0; background: var(--surface, #fff); padding: 6px 0 4px; font-weight: 850; font-size: 13px; color: var(--m1, #6d3fd4); letter-spacing: .03em; }
+.jl-nk-dong { display: flex; gap: 8px; font-size: 14px; line-height: 1.5; }
+.jl-nk-nv { flex: none; }
+.jl-nghe-lai { align-self: flex-start; }
+.jl-nk { font-size: 18px; }
+@media (min-width: 900px) { .jl-nk-dong { font-size: 16px; } .jl-nhatky { max-width: 640px; } }
+
+/* ================================================================ THẾ GIỚI LIỀN MẠCH (sân khấu dính + 10 khung cảnh chồng mờ) */
+.jl-gioi { position: sticky; top: 0; height: 0; z-index: 0; pointer-events: none; }
+.jl-gioi-khung { position: absolute; left: 0; right: 0; top: 0; height: 100vh; overflow: hidden; background: #0b1230; }
+.jl-gioi-lop { position: absolute; inset: -3% 0; will-change: opacity, transform; }
+.jl-gioi-lop svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.jl-gioi-lop svg * { transform-box: fill-box; }
+.jl-gioi-lop svg *[style*="transform-origin"] { transform-box: view-box; }
+.jl-gioi-lop svg [style*="transform-origin:50% 0"] { transform-box: fill-box; }
+.jl-gioi-lop.an { visibility: hidden; }
+.jl-gioi-lop.an * { animation-play-state: paused !important; }
+/* mỗi chương chỉ còn tấm bảng tên nổi + các chặng; nền trong suốt để thấy cảnh liền phía sau */
+.jl-bd { position: relative; max-width: none; padding-bottom: 0; }
+.jl-bd-trong { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding-bottom: 110px; }
+.jl-bd.thu-gioi { }
+.jl-bd .jl-chuong { background: none; border-radius: 0; box-shadow: none; margin-top: 0; overflow: visible; display: flex; flex-direction: column; animation: none; }
+.jl-bd .jl-bd-dau { max-width: none; background: color-mix(in srgb, var(--bg, #f7f5fd) 82%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, .25); }
+.jl-bd.leo-len .jl-chuong { flex-direction: column-reverse; }
+.jl-bd.leo-len .jl-bd-trong { display: flex; flex-direction: column-reverse; }
+.jl-ten-chuong {
+  align-self: center; margin: 22px 0 6px; padding: 9px 20px; border-radius: 999px; color: #fff; font-weight: 850; font-size: 15px; letter-spacing: .01em;
+  background: rgba(10, 12, 40, .55); backdrop-filter: blur(8px); box-shadow: 0 6px 20px rgba(0, 0, 0, .3); display: flex; gap: 12px; align-items: baseline;
+  animation: jl-len-chuong .6s cubic-bezier(.2, .9, .3, 1) backwards;
+}
+.jl-ten-chuong small { font-size: 12px; font-weight: 700; opacity: .85; }
+.jl-bd .jl-duong path { stroke: rgba(255, 255, 255, .8); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .55)); }
+.jl-chay > .jl-chay-canh { inset: 0; height: auto; opacity: .45; -webkit-mask-image: none; mask-image: none; }
+.jl-chay-canh svg { position: absolute; inset: 0; }
+.jl-chay-canh svg * { transform-box: fill-box; }
+.jl-chay-canh svg *[style*="transform-origin"] { transform-box: view-box; }
+.jl-chay-canh svg [style*="transform-origin:50% 0"] { transform-box: fill-box; }
+
+/* hoạt ảnh của sinh vật / cảnh mới (đơn vị theo hệ toạ độ của khung, nên dùng biến --x0/--x1) */
+.jl-boi2 { animation: jl-boi2 40s linear infinite; }
+@keyframes jl-boi2 { 0% { transform: translateX(var(--x0, -40px)); opacity: 0; } 6% { opacity: 1; } 94% { opacity: 1; } 100% { transform: translateX(var(--x1, 260px)); opacity: 0; } }
+.jl-nhap { animation: jl-nhap 5s infinite; }
+@keyframes jl-nhap { 0%, 90%, 100% { opacity: 1; } 94% { opacity: 0; } }
+.jl-gio { animation: jl-gio 2.4s linear infinite; }
+@keyframes jl-gio { from { transform: translateX(-30px); opacity: 0; } 20% { opacity: .8; } to { transform: translateX(260px); opacity: 0; } }
+.jl-dau-duoi { animation: jl-dau-duoi 1.8s ease-in-out infinite alternate; }
+@keyframes jl-dau-duoi { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+.jl-vay-canh { animation: jl-vay-canh 2.4s ease-in-out infinite alternate; transform-origin: center; }
+@keyframes jl-vay-canh { from { transform: scaleY(1); } to { transform: scaleY(.62); } }
+.jl-khoi-lon { animation: jl-khoi-lon 5s ease-out infinite; }
+@keyframes jl-khoi-lon { 0% { transform: translate(0, 2px) scale(.6); opacity: 0; } 35% { opacity: 1; } 100% { transform: translate(3px, -9px) scale(1.6); opacity: 0; } }
+.jl-troi-doc { animation: jl-troi-doc2 8s ease-in-out infinite alternate; }
+@keyframes jl-troi-doc2 { from { transform: translate(-2px, 2px); } to { transform: translate(3px, -6px); } }
+@media (prefers-reduced-motion: reduce) { .jl-boi2, .jl-nhap, .jl-gio, .jl-dau-duoi, .jl-vay-canh, .jl-khoi-lon, .jl-troi-doc { animation: none; } .jl-boi2 { opacity: 1; } }
+
+.jl-bd .jl-chuong { content-visibility: visible; }
+/* lời thoại: nhân vật đứng ở chân cảnh (cố định trong khung nhìn), bong bóng bên cạnh */
+.jl-thoai {
+  position: fixed; left: 0; right: 0; bottom: var(--jl-day, 18px); top: auto; inset-inline: 0; z-index: 78; display: flex; align-items: flex-end; justify-content: center; gap: 12px;
+  padding: 0 84px 6px 12px; pointer-events: none; background: none; animation: jl-hien .3s ease;
+}
+.jl-thoai > * { pointer-events: auto; }
+.jl-thoai::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 240px; z-index: -1; pointer-events: none; background: linear-gradient(to top, rgba(6, 8, 28, .62), transparent); }
+.jl-thoai.di { animation: jl-hien .3s ease reverse forwards; }
+.jl-nv-canh { position: relative; }
+.jl-nv-bong { position: absolute; left: 12%; right: 12%; bottom: -4px; height: 8px; border-radius: 50%; background: rgba(0, 0, 0, .35); filter: blur(2px); z-index: -1; }
+.jl-nv-ten { position: absolute; left: 14px; bottom: calc(var(--jl-day, 18px) + 112px); top: auto; }
+@media (min-width: 900px) {
+  .jl-thoai { padding: 0 110px 14px 40px; justify-content: flex-start; }
+  .jl-nv-ten { left: 40px; bottom: calc(var(--jl-day, 18px) + 206px); }
+}
+
+.jl-bd > .jl-suutam { position: relative; z-index: 1; max-width: 1320px; margin: 8px auto 0; padding: 6px 14px; width: fit-content; border-radius: 999px; background: rgba(10, 12, 40, .45); backdrop-filter: blur(8px); }
+.jl-bd > .jl-suutam .chua { color: #fff; }
+
+.main.jlpt-rong { padding: 0; }
+.main.jlpt-rong .jl-chon { padding: 22px 22px 90px; }
+/* Android: vùng cuộn <main> có đệm 12px quanh — kéo chế độ JLPT ra sát mép để cảnh nền tràn trọn màn hình */
+#scroller .jl-goc { margin: -12px -12px calc(-1 * (env(safe-area-inset-bottom) + 84px)); }
+#scroller .jl-chon { padding: 12px 12px calc(env(safe-area-inset-bottom) + 96px); }
+.jl-thoai.di, .jl-thoai.di > * { pointer-events: none; }

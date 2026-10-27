@@ -259,7 +259,7 @@
 
   const MON = {
     n3: {
-      id: "n3", cap: "N3", emoji: "🗻", khi: "canh", xemTruoc: 8,
+      id: "n3", cap: "N3", emoji: "🗻", khi: "canh", xemTruoc: 8, leoLen: true,
       ten: "Chinh phục núi Phú Sĩ",
       phu: "Leo 9 hợp mục, mỗi chương một trạm, để đón bình minh trên đỉnh Phú Sĩ.",
       mau: ["#e0457b", "#ff9f43"],

@@ -34,6 +34,17 @@ const pg = await ctx.newPage();
 pg.on("pageerror", (e) => loi.push(e.message));
 await pg.goto(`chrome-extension://${ID}/notebook.html`);
 await pg.waitForSelector("#grammar", { state: "attached", timeout: 20000 });
+// Bấm một chặng: nếu đoạn truyện chưa kể thì thú cưng kể trước (bấm "Tiếp" cho tới hết), rồi mới ra tờ chặng.
+const bamChang = async (sel) => {
+  await pg.click(sel);
+  for (let i = 0; i < 12; i++) {
+    if (await pg.$(".jl-to-hop")) return;
+    const t = await pg.$(".jl-thoai .jl-btn");
+    if (t) await t.click().catch(() => {});
+    await pg.waitForTimeout(250);
+  }
+  await pg.waitForSelector(".jl-to-hop", { timeout: 5000 });
+};
 const hien = (s) => pg.evaluate((s) => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== "none"; }, s);
 
 console.log("Hiển thị theo ngôn ngữ");
@@ -58,27 +69,41 @@ await pg.click('.jl-the[data-mon="n3"]');
 await pg.waitForSelector(".jl-thoai", { timeout: 10000 });
 let loiThoai = await pg.textContent(".jl-bong-chu");
 soat("lời thoại mở đầu của nhân vật Taro", /Taro/.test(loiThoai), loiThoai.slice(0, 40));
-const sanKhau = await pg.evaluate(() => { const t = document.querySelector(".jl-thoai"); const ban = t.closest(".jl-banner"); return { trongCanh: !!ban, ci: ban && ban.dataset.ci, nvSvg: !!t.querySelector(".jl-nv-canh .jl-nv-svg"), noi: ban.classList.contains("noi"), fixed: getComputedStyle(t).position, lop: !!document.querySelector(".jl-lop") }; });
-soat("lời thoại nằm NGAY TRONG cảnh vẽ của chương 1 (không phải hộp nổi), banner nở ra", sanKhau.trongCanh && sanKhau.ci === "0" && sanKhau.noi && sanKhau.fixed === "absolute" && !sanKhau.lop, JSON.stringify(sanKhau));
+const sanKhau = await pg.evaluate(() => { const t = document.querySelector(".jl-thoai"); const r = t.getBoundingClientRect(); return { nvSvg: !!t.querySelector(".jl-nv-canh .jl-nv-svg"), vitri: getComputedStyle(t).position, duoi: Math.round(innerHeight - r.bottom), lop: !!document.querySelector(".jl-lop"), phuKin: r.height > innerHeight * 0.8 }; });
+soat("lời thoại: nhân vật đứng ở chân cảnh nền (cố định, sát đáy), không phải hộp nổi che màn hình", sanKhau.nvSvg && sanKhau.vitri === "fixed" && sanKhau.duoi < 80 && !sanKhau.lop && !sanKhau.phuKin, JSON.stringify(sanKhau));
 soat("nhân vật Taro là hình SVG có hoạt ảnh (chớp mắt/vẫy đuôi)", sanKhau.nvSvg && await pg.evaluate(() => { const e = document.querySelector(".jl-thoai .nv-duoi"); return getComputedStyle(e).animationName !== "none"; }));
 soat("đang thoại: các chặng bị chặn bấm (tránh chạy chồng)", await pg.evaluate(() => getComputedStyle(document.querySelector(".jl-lo")).pointerEvents === "none"));
 soat("chữ hiện dần nhưng DOM có đủ chữ ngay (đọc được bằng trình đọc màn hình)", await pg.evaluate(() => document.querySelectorAll(".jl-bong-chu span").length > 20));
 await pg.click(".jl-thoai .jl-btn");
 await pg.click(".jl-thoai .jl-btn");
 await pg.waitForSelector(".jl-bd", { timeout: 10000 });
-await pg.waitForFunction(() => !document.querySelector(".jl-thoai") && !document.querySelector(".jl-banner.noi"), null, { timeout: 3000 });
-soat("nói xong: banner co lại, nhân vật rời cảnh, chặng bấm được lại", await pg.evaluate(() => getComputedStyle(document.querySelector(".jl-lo")).pointerEvents !== "none"));
+await pg.waitForFunction(() => !document.querySelector(".jl-thoai"), null, { timeout: 3000 });
+soat("nói xong: nhân vật rời cảnh, chặng bấm được lại", await pg.evaluate(() => getComputedStyle(document.querySelector(".jl-lo")).pointerEvents !== "none"));
 const nut = await pg.evaluate(() => ({ n: document.querySelectorAll(".jl-nut").length, khoa: document.querySelectorAll(".jl-nut.khoa").length,
   dau: document.querySelector(".jl-nut").className, canh: document.querySelectorAll(".jl-banner svg").length }));
 soat("máy tính: bản đồ rộng hơn 900px, thanh bên được ẩn", await pg.evaluate(() => document.querySelector(".jl-bd").getBoundingClientRect().width > 900 && getComputedStyle(document.querySelector(".side")).display === "none"));
 soat("bản đồ có 227 chặng, 1 mở còn lại khoá", nut.n === 227 && nut.khoa === 226 && !/khoa/.test(nut.dau), JSON.stringify(nut));
-soat("mỗi chương có cảnh vẽ riêng (10 banner)", (await pg.$$(".jl-banner > svg")).length === 10);
+const cuonTai = (f) => pg.evaluate((f) => { const m = document.querySelector(".main"); const sp = m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement; sp.scrollTop = f * (sp.scrollHeight - sp.clientHeight); return new Promise((r) => setTimeout(() => r([...document.querySelectorAll(".jl-gioi-lop")].map((l) => (l.classList.contains("an") ? 0 : +l.style.opacity))), 450)); }, f);
+const ngang = await cuonTai(1);
+soat("N3 leo núi LÊN: cuộn xuống đáy = chân núi (khung 1 hiện), nút chặng 1 nằm dưới nút chặng cuối", ngang[0] === 1 && ngang.slice(1).every((x) => x === 0) && await pg.evaluate(() => { const n = [...document.querySelectorAll(".jl-nut")]; const m = document.querySelector(".main"); const sp = m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement; const y = (e) => e.getBoundingClientRect().top + sp.scrollTop; return y(n[0]) > y(n[n.length - 1]); }));
+let lienMach = true, toiDa = 0, daThay = new Set();
+for (const f of [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0]) {
+  const o = await cuonTai(f);
+  const hien = o.map((x, k) => (x > 0.01 ? k : -1)).filter((k) => k >= 0);
+  hien.forEach((k) => daThay.add(k));
+  toiDa = Math.max(toiDa, hien.length);
+  if (!(Math.max(...o) >= 0.99 || hien.length === 2)) lienMach = false;     // luôn có ít nhất một khung phủ kín (không hở nền)
+}
+soat("cuộn từ chân lên đỉnh: cảnh đổi qua nhiều khung khác nhau (≥ 8 khung), mỗi lúc chỉ ≤ 2 khung chồng nhau, không bao giờ hở", daThay.size >= 8 && toiDa <= 2 && lienMach, [...daThay].join(",") + " / tối đa " + toiDa);
+const dinh = await cuonTai(0);
+soat("cuộn lên tận cùng = đỉnh Phú Sĩ (khung trùm cuối hiện)", dinh[9] === 1);
+await cuonTai(1);
+soat("cảnh nền: 10 khung (9 chương + trùm cuối) chồng thành MỘT sân khấu liền mạch, không còn banner tách rời", (await pg.$$(".jl-gioi-lop")).length === 10 && (await pg.$$(".jl-banner")).length === 0);
 soat("màn thoại chỉ hiện một lần: mở lại không hỏi", true);
 
 console.log("\nChơi chặng 1 (làm đúng hết)");
 const id1 = await pg.evaluate(() => document.querySelector(".jl-nut").dataset.id);
-await pg.click(`.jl-nut[data-id="${id1}"]`);
-await pg.waitForSelector(".jl-to-hop");
+await bamChang(`.jl-nut[data-id="${id1}"]`);
 await pg.click(".jl-to-nut .jl-btn.chinh");
 await pg.waitForSelector(".jl-chay, .jl-thoai", { timeout: 10000 });
 if (await pg.$(".jl-thoai")) { await pg.click(".jl-thoai .jl-btn"); await pg.waitForSelector(".jl-chay"); }
@@ -127,6 +152,10 @@ for (let i = 0; i < tongCau; i++) {
   await pg.keyboard.press(String(dung + 1));
   await pg.waitForSelector(".jl-fb.dung");
   guong++;
+  if (i === 3) {
+    const cb = await pg.evaluate(() => { const e = document.querySelector(".jl-combo"); if (!e) return null; const r = e.getBoundingClientRect(); return { w: Math.round(r.width), right: Math.round(innerWidth - r.right) }; });
+    soat("chuỗi đúng ≥ 3: chip combo 🔥 hiện gọn ở góc (không bị kéo giãn ngang màn hình)", !!cb && cb.w < 260 && cb.right < 60, JSON.stringify(cb));
+  }
   await pg.keyboard.press("Enter");
 }
 await pg.waitForSelector(".jl-kq", { timeout: 5000 });
@@ -143,8 +172,7 @@ soat("chuỗi ngày = 1", luu.chuoi === 1);
 
 console.log("\nLàm sai hết chặng 2 (luật 60%)");
 const id2 = await pg.evaluate(() => document.querySelectorAll(".jl-nut")[1].dataset.id);
-await pg.click(`.jl-nut[data-id="${id2}"]`);
-await pg.waitForSelector(".jl-to-hop");
+await bamChang(`.jl-nut[data-id="${id2}"]`);
 await pg.click(".jl-to-nut .jl-btn:not(.chinh)");     // "Làm bài ngay": bỏ qua phần học
 await pg.waitForSelector(".jl-lua", { timeout: 5000 });
 const tong2 = await pg.evaluate(() => Number(document.querySelector(".jl-chay-tieu").textContent.split("/")[1]));
@@ -174,6 +202,8 @@ await pg.click(".jl-kq .jl-btn:not(.chinh)");        // Chơi lại
 await pg.waitForSelector(".jl-lua");
 await pg.keyboard.press("Escape");
 await pg.waitForSelector(".jl-hoi");
+const hoi = await pg.evaluate(() => { const o = document.querySelector(".jl-hoi").getBoundingClientRect(), h = document.querySelector(".jl-hoi-hop").getBoundingClientRect(); return { phuKin: Math.abs(o.width - innerWidth) < 2 && Math.abs(o.height - innerHeight) < 2, giua: Math.abs((h.left + h.width / 2) - innerWidth / 2) < 3 }; });
+soat("hộp hỏi thoát: lớp phủ kín cả màn hình và hộp nằm chính giữa (lỗi lệch nửa màn hình đã sửa)", hoi.phuKin && hoi.giua, JSON.stringify(hoi));
 await pg.click(".jl-hoi .jl-btn.chinh");
 await pg.waitForSelector(".jl-bd");
 const sau2 = await pg.evaluate(() => { const n = [...document.querySelectorAll(".jl-nut")]; return { x2: n[1].classList.contains("xong"), k3: n[2].classList.contains("khoa") }; });
@@ -182,8 +212,7 @@ luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlp
 soat("điểm cao nhất của chặng 2 ghi nhận 0 và có mục sai để ôn", luu.mon.n3.chang[id2].tot === 0 && Object.keys(luu.sai).length >= 4, Object.keys(luu.sai).length);
 
 console.log("\nBáo câu sai");
-await pg.click(`.jl-nut[data-id="${id2}"]`);
-await pg.waitForSelector(".jl-to-hop");
+await bamChang(`.jl-nut[data-id="${id2}"]`);
 await pg.click(".jl-to-nut .jl-btn:not(.chinh)");
 await pg.waitForSelector(".jl-lua");
 await pg.keyboard.press("1");
