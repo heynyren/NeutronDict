@@ -1,0 +1,552 @@
+# Thuật ngữ IT Anh→Việt (phần 3: kỹ thuật phần mềm, DevOps, đám mây, AI/ML, dữ liệu, di động, UI/UX).
+# Thuật ngữ mà dân IT Việt thường để nguyên tiếng Anh: nghĩa đầu tiên là chính từ tiếng Anh.
+# ---- Quy trình phát triển phần mềm ----
+software development	phát triển phần mềm
+software engineering	kỹ thuật phần mềm
+software development life cycle	vòng đời phát triển phần mềm	SDLC
+requirements	yêu cầu
+requirements analysis	phân tích yêu cầu
+functional requirement	yêu cầu chức năng
+non-functional requirement	yêu cầu phi chức năng
+specification	đặc tả
+user story	user story; câu chuyện người dùng
+use case	use case; ca sử dụng
+acceptance criteria	tiêu chí chấp nhận
+stakeholder	bên liên quan; stakeholder
+product owner	product owner; chủ sở hữu sản phẩm
+scrum master	scrum master
+project manager	quản lý dự án
+business analyst	chuyên viên phân tích nghiệp vụ	BA
+developer	lập trình viên; developer
+software engineer	kỹ sư phần mềm
+tester	người kiểm thử; tester
+quality assurance	đảm bảo chất lượng	QA
+quality control	kiểm soát chất lượng	QC
+design	thiết kế
+architecture	kiến trúc
+system design	thiết kế hệ thống
+prototype	nguyên mẫu; prototype
+proof of concept	bản chứng minh khái niệm	POC
+minimum viable product	sản phẩm khả dụng tối thiểu	MVP
+waterfall model	mô hình thác nước
+agile	agile; phương pháp linh hoạt
+Agile methodology	phương pháp luận Agile
+Scrum	Scrum
+Kanban	Kanban
+sprint	sprint; chặng nước rút
+sprint planning	lập kế hoạch sprint
+sprint review	sprint review; đánh giá sprint
+retrospective	họp rút kinh nghiệm; retrospective
+daily stand-up	họp đứng hằng ngày	daily scrum
+backlog	backlog; danh sách công việc tồn đọng
+product backlog	product backlog
+sprint backlog	sprint backlog
+story point	story point; điểm story
+velocity	tốc độ; velocity
+burndown chart	biểu đồ burndown
+epic	epic
+milestone	cột mốc
+deadline	hạn chót; deadline
+estimation	ước lượng
+roadmap	lộ trình; roadmap
+release plan	kế hoạch phát hành
+iteration	vòng lặp; iteration
+increment	bản gia tăng
+pair programming	lập trình cặp
+extreme programming	lập trình cực hạn	XP
+test-driven development	phát triển hướng kiểm thử	TDD
+behavior-driven development	phát triển hướng hành vi	BDD
+domain-driven design	thiết kế hướng miền	DDD
+continuous integration	tích hợp liên tục	CI
+continuous delivery	phân phối liên tục	CD
+continuous deployment	triển khai liên tục
+CI/CD	CI/CD
+DevOps	DevOps
+site reliability engineering	kỹ thuật độ tin cậy hệ thống	SRE
+infrastructure as code	hạ tầng dưới dạng mã	IaC
+version control	kiểm soát phiên bản
+source control	quản lý mã nguồn
+Git	Git
+GitHub	GitHub
+GitLab	GitLab
+repository	kho mã nguồn; repository	repo
+commit	commit
+branch	nhánh; branch
+merge	gộp; merge
+merge conflict	xung đột khi gộp; merge conflict
+pull request	pull request; yêu cầu kéo
+merge request	merge request
+fork	fork
+clone	clone; sao chép kho mã
+checkout	checkout
+rebase	rebase
+cherry-pick	cherry-pick
+tag	tag; thẻ phiên bản
+stash	stash
+diff	diff; sự khác biệt
+blame	blame
+push	push; đẩy mã
+pull	pull; kéo mã
+fetch	fetch
+origin	origin
+upstream	upstream
+HEAD	HEAD
+working directory	thư mục làm việc
+staging area	vùng chuẩn bị; staging area
+.gitignore	.gitignore
+monorepo	monorepo
+release branch	nhánh phát hành
+feature branch	nhánh tính năng
+main branch	nhánh chính
+trunk-based development	phát triển dựa trên trunk
+semantic versioning	đánh phiên bản ngữ nghĩa	SemVer
+changelog	nhật ký thay đổi; changelog
+release notes	ghi chú phát hành
+deployment	triển khai
+deploy	triển khai; deploy
+rollout	triển khai dần; rollout
+rollback	hoàn tác bản phát hành; rollback
+canary release	phát hành canary
+blue-green deployment	triển khai blue-green
+feature flag	cờ tính năng; feature flag
+A/B testing	thử nghiệm A/B
+staging environment	môi trường staging
+production environment	môi trường production
+development environment	môi trường phát triển
+test environment	môi trường kiểm thử
+environment	môi trường
+build	bản dựng; build
+build system	hệ thống build
+build pipeline	pipeline build
+pipeline	pipeline; đường ống
+artifact	artifact; sản phẩm đầu ra
+# ---- Kiểm thử ----
+software testing	kiểm thử phần mềm
+test case	ca kiểm thử; test case
+test suite	bộ kiểm thử; test suite
+test plan	kế hoạch kiểm thử
+test coverage	độ phủ kiểm thử
+code coverage	độ phủ mã
+unit test	unit test; kiểm thử đơn vị
+unit testing	kiểm thử đơn vị
+integration test	kiểm thử tích hợp
+integration testing	kiểm thử tích hợp
+system testing	kiểm thử hệ thống
+end-to-end testing	kiểm thử đầu cuối	E2E
+acceptance testing	kiểm thử chấp nhận
+user acceptance testing	kiểm thử chấp nhận của người dùng	UAT
+regression testing	kiểm thử hồi quy
+smoke test	smoke test; kiểm thử khói
+sanity test	sanity test
+performance testing	kiểm thử hiệu năng
+load testing	kiểm thử tải
+stress testing	kiểm thử áp lực
+security testing	kiểm thử bảo mật
+usability testing	kiểm thử khả dụng
+exploratory testing	kiểm thử khám phá
+black-box testing	kiểm thử hộp đen
+white-box testing	kiểm thử hộp trắng
+manual testing	kiểm thử thủ công
+automated testing	kiểm thử tự động
+test automation	tự động hóa kiểm thử
+mock	mock; đối tượng giả
+stub	stub; đối tượng thay thế
+fixture	fixture; dữ liệu mẫu cho kiểm thử
+assertion	khẳng định; assertion
+flaky test	flaky test; kiểm thử không ổn định
+bug report	báo cáo lỗi; bug report
+bug tracker	hệ thống theo dõi lỗi
+issue tracker	hệ thống theo dõi issue
+severity	mức độ nghiêm trọng
+priority	mức độ ưu tiên
+reproduce	tái hiện
+steps to reproduce	các bước tái hiện
+root cause	nguyên nhân gốc
+root cause analysis	phân tích nguyên nhân gốc
+postmortem	họp phân tích sau sự cố; postmortem
+incident	sự cố
+outage	gián đoạn dịch vụ; outage
+downtime	thời gian ngừng hoạt động; downtime
+uptime	thời gian hoạt động; uptime
+service level agreement	thỏa thuận mức dịch vụ	SLA
+service level objective	mục tiêu mức dịch vụ	SLO
+monitoring	giám sát; monitoring
+logging	ghi nhật ký; logging
+log	nhật ký; log
+log file	tệp nhật ký
+log level	mức nhật ký
+alert	cảnh báo; alert
+alerting	cảnh báo
+metrics	chỉ số; metrics
+tracing	truy vết; tracing
+observability	khả năng quan sát; observability
+dashboard	bảng điều khiển; dashboard
+health check	kiểm tra tình trạng; health check
+uptime monitoring	giám sát thời gian hoạt động
+on-call	trực sự cố; on-call
+runbook	runbook; sổ tay vận hành
+# ---- Kiến trúc và hạ tầng ----
+monolith	kiến trúc nguyên khối; monolith
+monolithic architecture	kiến trúc nguyên khối
+microservices	microservices; vi dịch vụ
+service-oriented architecture	kiến trúc hướng dịch vụ	SOA
+serverless	serverless; không máy chủ
+event-driven architecture	kiến trúc hướng sự kiện
+message queue	hàng đợi thông điệp	message broker
+message broker	trình môi giới thông điệp
+publish-subscribe	xuất bản-đăng ký	pub/sub
+Kafka	Kafka
+RabbitMQ	RabbitMQ
+API gateway	cổng API; API gateway
+service mesh	service mesh
+scalability	khả năng mở rộng
+scale up	mở rộng theo chiều dọc
+scale out	mở rộng theo chiều ngang
+vertical scaling	mở rộng theo chiều dọc
+horizontal scaling	mở rộng theo chiều ngang
+autoscaling	tự động mở rộng
+elasticity	tính co giãn
+fault tolerance	khả năng chịu lỗi
+resilience	khả năng phục hồi
+reliability	độ tin cậy
+availability zone	vùng sẵn sàng
+region	vùng
+data center	trung tâm dữ liệu
+colocation	thuê chỗ đặt máy chủ
+on-premises	tại chỗ; on-premises
+cloud computing	điện toán đám mây
+public cloud	đám mây công cộng
+private cloud	đám mây riêng
+hybrid cloud	đám mây lai
+multi-cloud	đa đám mây
+infrastructure as a service	hạ tầng như một dịch vụ	IaaS
+platform as a service	nền tảng như một dịch vụ	PaaS
+software as a service	phần mềm như một dịch vụ	SaaS
+function as a service	hàm như một dịch vụ	FaaS
+AWS	AWS	Amazon Web Services
+Azure	Azure	Microsoft Azure
+Google Cloud	Google Cloud	GCP
+virtual private cloud	đám mây riêng ảo	VPC
+virtual server	máy chủ ảo
+instance	instance; thể hiện máy chủ
+bucket	bucket; thùng chứa
+object storage	lưu trữ đối tượng
+block storage	lưu trữ khối
+file storage	lưu trữ tệp
+cold storage	lưu trữ lạnh
+Docker	Docker
+Docker image	image Docker
+container image	image container
+Dockerfile	Dockerfile
+Kubernetes	Kubernetes	K8s
+pod	pod
+cluster	cụm; cluster
+node	nút; node
+deployment	deployment
+namespace	namespace
+ingress	ingress
+Helm	Helm
+orchestration	điều phối; orchestration
+Terraform	Terraform
+Ansible	Ansible
+Jenkins	Jenkins
+Nginx	Nginx
+Apache	Apache
+reverse proxy	reverse proxy
+SSL certificate	chứng chỉ SSL
+domain	tên miền
+subdomain	tên miền phụ
+DNS record	bản ghi DNS
+A record	bản ghi A
+CNAME	bản ghi CNAME
+MX record	bản ghi MX
+hosting	lưu trữ web; hosting
+web hosting	dịch vụ lưu trữ web
+shared hosting	hosting dùng chung
+VPS	máy chủ riêng ảo
+dedicated server	máy chủ riêng
+cron job	cron job; tác vụ định kỳ
+scheduled task	tác vụ theo lịch
+batch processing	xử lý theo lô
+stream processing	xử lý luồng
+real-time	thời gian thực
+queue	hàng đợi
+worker	worker; tiến trình xử lý nền
+job	tác vụ; job
+timeout	hết thời gian chờ; timeout
+retry	thử lại; retry
+exponential backoff	lùi theo cấp số nhân
+circuit breaker	cầu dao ngắt mạch; circuit breaker
+idempotent	bất biến theo lần gọi; idempotent
+eventual consistency	nhất quán cuối cùng
+CAP theorem	định lý CAP
+distributed system	hệ thống phân tán
+consensus	đồng thuận
+leader election	bầu chọn lãnh đạo
+cache	bộ đệm; cache
+cache invalidation	vô hiệu hóa bộ đệm
+CDN	mạng phân phối nội dung
+edge computing	điện toán biên
+# ---- AI / Học máy / Dữ liệu ----
+artificial intelligence	trí tuệ nhân tạo	AI
+machine learning	học máy	ML
+deep learning	học sâu
+neural network	mạng nơ-ron
+artificial neural network	mạng nơ-ron nhân tạo
+convolutional neural network	mạng nơ-ron tích chập	CNN
+recurrent neural network	mạng nơ-ron hồi quy	RNN
+transformer	transformer; mô hình biến đổi
+large language model	mô hình ngôn ngữ lớn	LLM
+natural language processing	xử lý ngôn ngữ tự nhiên	NLP
+computer vision	thị giác máy tính
+speech recognition	nhận dạng giọng nói
+text-to-speech	chuyển văn bản thành giọng nói	TTS
+image recognition	nhận dạng hình ảnh
+object detection	phát hiện đối tượng
+generative AI	AI tạo sinh
+chatbot	chatbot
+prompt	prompt; câu lệnh gợi ý
+prompt engineering	kỹ thuật tạo prompt
+hallucination	ảo giác (của AI)
+fine-tuning	tinh chỉnh; fine-tuning
+pre-training	huấn luyện trước
+inference	suy luận; inference
+training	huấn luyện
+training data	dữ liệu huấn luyện
+test data	dữ liệu kiểm tra
+validation data	dữ liệu kiểm định
+dataset	tập dữ liệu; dataset
+label	nhãn
+feature	đặc trưng; feature
+feature engineering	kỹ thuật tạo đặc trưng
+model	mô hình
+parameter	tham số
+hyperparameter	siêu tham số
+weights	trọng số
+bias	độ chệch; bias
+supervised learning	học có giám sát
+unsupervised learning	học không giám sát
+semi-supervised learning	học bán giám sát
+reinforcement learning	học tăng cường
+transfer learning	học chuyển giao
+classification	phân loại
+regression	hồi quy
+clustering	phân cụm
+dimensionality reduction	giảm chiều dữ liệu
+anomaly detection	phát hiện bất thường
+recommendation system	hệ thống gợi ý
+decision tree	cây quyết định
+random forest	rừng ngẫu nhiên
+support vector machine	máy vectơ hỗ trợ	SVM
+k-means	k-means
+k-nearest neighbors	k láng giềng gần nhất	KNN
+naive Bayes	Bayes ngây thơ
+linear regression	hồi quy tuyến tính
+logistic regression	hồi quy logistic
+gradient descent	hạ gradient
+backpropagation	lan truyền ngược
+loss function	hàm mất mát
+cost function	hàm chi phí
+activation function	hàm kích hoạt
+learning rate	tốc độ học
+epoch	epoch; chu kỳ huấn luyện
+batch	lô; batch
+batch size	kích thước lô
+overfitting	quá khớp; overfitting
+underfitting	chưa khớp; underfitting
+regularization	chính quy hóa
+dropout	dropout
+normalization	chuẩn hóa
+cross-validation	kiểm định chéo
+confusion matrix	ma trận nhầm lẫn
+accuracy	độ chính xác
+precision	độ chính xác dương; precision
+recall	độ thu hồi; recall
+F1 score	điểm F1
+ROC curve	đường cong ROC
+embedding	embedding; biểu diễn nhúng
+tokenization	tách token
+token	token
+attention mechanism	cơ chế chú ý
+GPU acceleration	tăng tốc bằng GPU
+TensorFlow	TensorFlow
+PyTorch	PyTorch
+scikit-learn	scikit-learn
+pandas	pandas
+NumPy	NumPy
+Jupyter notebook	Jupyter notebook
+data science	khoa học dữ liệu
+data scientist	nhà khoa học dữ liệu
+data engineer	kỹ sư dữ liệu
+data analyst	chuyên viên phân tích dữ liệu
+data visualization	trực quan hóa dữ liệu
+exploratory data analysis	phân tích dữ liệu khám phá	EDA
+outlier	giá trị ngoại lai
+missing value	giá trị thiếu
+imputation	điền giá trị thiếu
+sampling	lấy mẫu
+correlation	tương quan
+variance	phương sai
+standard deviation	độ lệch chuẩn
+mean	trung bình
+median	trung vị
+mode	yếu vị
+probability	xác suất
+distribution	phân phối
+normal distribution	phân phối chuẩn
+hypothesis testing	kiểm định giả thuyết
+statistical significance	ý nghĩa thống kê
+confidence interval	khoảng tin cậy
+regression analysis	phân tích hồi quy
+time series	chuỗi thời gian
+forecasting	dự báo
+blockchain	blockchain; chuỗi khối
+cryptocurrency	tiền mã hóa
+smart contract	hợp đồng thông minh
+bitcoin	bitcoin
+Ethereum	Ethereum
+wallet	ví
+NFT	token không thể thay thế
+metaverse	metaverse
+robotics	robot học
+automation script	script tự động hóa
+RPA	tự động hóa quy trình bằng robot
+digital transformation	chuyển đổi số
+# ---- Di động / UI / UX ----
+mobile app	ứng dụng di động
+native app	ứng dụng gốc; native app
+hybrid app	ứng dụng lai
+cross-platform	đa nền tảng
+mobile development	phát triển ứng dụng di động
+app store	cửa hàng ứng dụng
+Google Play	Google Play
+push notification	thông báo đẩy
+deep link	liên kết sâu
+widget	widget
+gesture	cử chỉ
+swipe	vuốt
+tap	chạm
+pinch to zoom	chụm để thu phóng
+long press	nhấn giữ
+screen	màn hình
+screen size	kích thước màn hình
+orientation	hướng màn hình
+landscape	chế độ ngang
+portrait	chế độ dọc
+battery life	thời lượng pin
+Swift	Swift
+Kotlin	Kotlin
+Flutter	Flutter
+React Native	React Native
+Xcode	Xcode
+Android Studio	Android Studio
+user interface	giao diện người dùng	UI
+user experience	trải nghiệm người dùng	UX
+user interface design	thiết kế giao diện người dùng
+UX design	thiết kế trải nghiệm người dùng
+user research	nghiên cứu người dùng
+persona	persona; chân dung người dùng
+user journey	hành trình người dùng
+user flow	luồng người dùng
+wireframe	wireframe; khung phác thảo
+mockup	mockup; bản dựng mẫu
+prototype	prototype
+design system	hệ thống thiết kế
+style guide	hướng dẫn phong cách
+layout	bố cục
+typography	kiểu chữ; typography
+font	phông chữ
+color palette	bảng màu
+icon	biểu tượng
+button	nút
+menu	menu
+toolbar	thanh công cụ
+sidebar	thanh bên
+tab	tab; thẻ
+dialog	hộp thoại
+alert dialog	hộp thoại cảnh báo
+pop-up	cửa sổ bật lên; pop-up
+notification	thông báo
+toast	toast; thông báo nhanh
+badge	huy hiệu; badge
+placeholder	văn bản gợi ý; placeholder
+loading spinner	biểu tượng đang tải
+progress bar	thanh tiến trình
+skeleton screen	màn hình khung xương
+empty state	trạng thái trống
+error message	thông báo lỗi
+drag and drop	kéo và thả
+scroll	cuộn
+zoom	thu phóng
+hover	rê chuột; hover
+focus	tiêu điểm; focus
+cursor	con trỏ
+click	nhấp chuột
+double-click	nhấp đúp
+right-click	nhấp chuột phải
+shortcut	phím tắt
+hotkey	phím nóng
+dark mode	chế độ tối
+light mode	chế độ sáng
+accessibility	khả năng tiếp cận
+screen reader	trình đọc màn hình
+usability	tính khả dụng
+intuitive	trực quan
+onboarding	hướng dẫn làm quen; onboarding
+user retention	giữ chân người dùng
+conversion rate	tỷ lệ chuyển đổi
+bounce rate	tỷ lệ thoát
+click-through rate	tỷ lệ nhấp	CTR
+analytics	phân tích; analytics
+heatmap	bản đồ nhiệt
+funnel	phễu chuyển đổi
+KPI	chỉ số hiệu suất chính
+# ---- Phần mềm văn phòng và phổ thông ----
+spreadsheet	bảng tính
+word processor	trình xử lý văn bản
+presentation	bản trình chiếu
+slide	trang chiếu
+email	thư điện tử; email
+inbox	hộp thư đến
+attachment	tệp đính kèm
+spam	thư rác; spam
+cc	đồng gửi
+bcc	đồng gửi ẩn
+folder structure	cấu trúc thư mục
+cloud storage	lưu trữ đám mây
+file sharing	chia sẻ tệp
+sync	đồng bộ
+synchronization	đồng bộ hóa
+real-time collaboration	cộng tác thời gian thực
+video conference	hội nghị truyền hình
+screen sharing	chia sẻ màn hình
+remote desktop	máy tính từ xa
+remote access	truy cập từ xa
+remote work	làm việc từ xa
+help desk	bộ phận hỗ trợ
+ticket	ticket; phiếu yêu cầu
+IT support	hỗ trợ CNTT
+technical support	hỗ trợ kỹ thuật
+troubleshooting	khắc phục sự cố
+crash	treo; crash
+freeze	đơ máy
+hang	treo máy
+glitch	trục trặc nhỏ; glitch
+error code	mã lỗi
+blue screen	màn hình xanh
+reset	đặt lại
+factory reset	khôi phục cài đặt gốc
+safe mode	chế độ an toàn
+clean install	cài đặt sạch
+screenshot	ảnh chụp màn hình
+clipboard	bộ nhớ tạm; clipboard
+copy	sao chép
+paste	dán
+cut	cắt
+undo	hoàn tác
+redo	làm lại
+search	tìm kiếm
+filter	lọc
+sort	sắp xếp
+export	xuất
+import	nhập

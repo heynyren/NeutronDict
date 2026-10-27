@@ -1,0 +1,516 @@
+# Thuật ngữ IT Anh→Việt (phần 2: lập trình, web, cơ sở dữ liệu).
+# ---- Lập trình: ngôn ngữ và công cụ ----
+programming language	ngôn ngữ lập trình
+source code	mã nguồn
+machine code	mã máy
+assembly language	hợp ngữ
+high-level language	ngôn ngữ bậc cao
+low-level language	ngôn ngữ bậc thấp
+compiler	trình biên dịch
+interpreter	trình thông dịch
+compile	biên dịch
+runtime	thời gian chạy; môi trường chạy
+compile time	thời gian biên dịch
+bytecode	mã byte
+just-in-time compilation	biên dịch tức thời	JIT
+virtual machine	máy ảo
+linker	trình liên kết
+loader	trình nạp
+debugger	trình gỡ lỗi
+debugging	gỡ lỗi
+breakpoint	điểm dừng
+stack trace	dấu vết ngăn xếp
+profiler	trình phân tích hiệu năng
+integrated development environment	môi trường phát triển tích hợp	IDE
+text editor	trình soạn thảo văn bản
+syntax	cú pháp
+semantics	ngữ nghĩa
+syntax error	lỗi cú pháp
+runtime error	lỗi khi chạy
+logic error	lỗi logic
+exception	ngoại lệ
+exception handling	xử lý ngoại lệ
+try-catch	khối try-catch
+throw	ném ngoại lệ
+bug	lỗi; bug
+feature	tính năng
+workaround	giải pháp tạm thời
+hotfix	bản vá nóng
+refactoring	tái cấu trúc mã
+code review	rà soát mã
+code smell	dấu hiệu mã kém
+technical debt	nợ kỹ thuật
+legacy code	mã kế thừa
+boilerplate	mã khuôn mẫu; boilerplate
+comment	chú thích
+documentation	tài liệu
+API documentation	tài liệu API
+library	thư viện
+framework	khung phần mềm; framework
+package	gói
+package manager	trình quản lý gói
+dependency	phụ thuộc
+dependency injection	tiêm phụ thuộc
+module	mô-đun
+plugin	phần bổ trợ; plugin
+extension	tiện ích mở rộng
+SDK	bộ công cụ phát triển phần mềm
+API	giao diện lập trình ứng dụng	application programming interface
+library function	hàm thư viện
+standard library	thư viện chuẩn
+third-party	bên thứ ba
+open-source software	phần mềm mã nguồn mở
+# ---- Lập trình: khái niệm ----
+variable	biến
+constant	hằng số
+literal	giá trị trực tiếp; literal
+data type	kiểu dữ liệu
+integer	số nguyên
+floating-point	số thực dấu phẩy động
+string	chuỗi
+character	ký tự
+array	mảng
+list	danh sách
+tuple	bộ giá trị; tuple
+dictionary	từ điển; dictionary
+hash map	bảng băm	hash table
+set	tập hợp
+stack	ngăn xếp
+queue	hàng đợi
+priority queue	hàng đợi ưu tiên
+linked list	danh sách liên kết
+doubly linked list	danh sách liên kết đôi
+tree	cây
+binary tree	cây nhị phân
+binary search tree	cây tìm kiếm nhị phân
+balanced tree	cây cân bằng
+heap	đống; heap
+graph	đồ thị
+directed graph	đồ thị có hướng
+vertex	đỉnh
+edge	cạnh
+pointer	con trỏ
+reference	tham chiếu
+null	giá trị rỗng; null
+undefined	chưa định nghĩa; undefined
+type casting	ép kiểu
+type inference	suy luận kiểu
+static typing	kiểu tĩnh
+dynamic typing	kiểu động
+strongly typed	định kiểu mạnh
+weakly typed	định kiểu yếu
+generic	kiểu tổng quát; generic
+generics	lập trình tổng quát
+enum	kiểu liệt kê
+struct	cấu trúc
+union	kiểu hợp nhất
+operator	toán tử
+operand	toán hạng
+expression	biểu thức
+statement	câu lệnh
+assignment	phép gán
+comparison	so sánh
+logical operator	toán tử logic
+bitwise operator	toán tử bit
+condition	điều kiện
+conditional	câu lệnh điều kiện
+if statement	câu lệnh if
+switch statement	câu lệnh switch
+loop	vòng lặp
+for loop	vòng lặp for
+while loop	vòng lặp while
+infinite loop	vòng lặp vô hạn
+iteration	lặp; phép lặp
+iterator	bộ lặp; iterator
+recursion	đệ quy
+base case	trường hợp cơ sở
+function	hàm
+method	phương thức
+procedure	thủ tục
+parameter	tham số
+argument	đối số
+return value	giá trị trả về
+return	trả về
+overload	nạp chồng
+overloading	nạp chồng
+overriding	ghi đè
+callback	hàm gọi lại
+closure	bao đóng
+lambda	hàm lambda
+anonymous function	hàm ẩn danh
+higher-order function	hàm bậc cao
+pure function	hàm thuần túy
+side effect	tác dụng phụ
+scope	phạm vi
+global variable	biến toàn cục
+local variable	biến cục bộ
+lifetime	vòng đời
+namespace	không gian tên
+declaration	khai báo
+definition	định nghĩa
+initialization	khởi tạo
+instantiation	khởi tạo đối tượng
+constructor	hàm khởi tạo
+destructor	hàm hủy
+mutable	có thể thay đổi
+immutable	bất biến
+immutability	tính bất biến
+shallow copy	sao chép nông
+deep copy	sao chép sâu
+pass by value	truyền theo giá trị
+pass by reference	truyền theo tham chiếu
+stack overflow	tràn ngăn xếp
+heap memory	bộ nhớ heap
+call stack	ngăn xếp lời gọi
+memory allocation	cấp phát bộ nhớ
+dangling pointer	con trỏ treo
+null pointer	con trỏ rỗng
+segmentation fault	lỗi phân đoạn bộ nhớ
+off-by-one error	lỗi lệch một đơn vị
+infinite recursion	đệ quy vô hạn
+# ---- Lập trình hướng đối tượng và mô hình ----
+object-oriented programming	lập trình hướng đối tượng	OOP
+functional programming	lập trình hàm
+procedural programming	lập trình thủ tục
+declarative programming	lập trình khai báo
+imperative programming	lập trình mệnh lệnh
+event-driven programming	lập trình hướng sự kiện
+asynchronous	bất đồng bộ
+synchronous	đồng bộ
+asynchronous programming	lập trình bất đồng bộ
+concurrency	đồng thời
+parallelism	song song
+parallel processing	xử lý song song
+promise	lời hứa; promise
+async/await	async/await
+coroutine	đồng quy trình; coroutine
+event loop	vòng lặp sự kiện
+thread safety	an toàn luồng
+lock	khóa
+atomic operation	thao tác nguyên tử
+class	lớp
+object	đối tượng
+instance	thể hiện; instance
+attribute	thuộc tính
+property	thuộc tính
+field	trường
+member	thành viên
+inheritance	kế thừa
+multiple inheritance	đa kế thừa
+polymorphism	đa hình
+encapsulation	đóng gói
+abstraction	trừu tượng
+abstract class	lớp trừu tượng
+interface	giao diện; interface
+superclass	lớp cha
+subclass	lớp con
+base class	lớp cơ sở
+derived class	lớp dẫn xuất
+virtual function	hàm ảo
+access modifier	bộ điều chỉnh truy cập
+public	công khai; public
+private	riêng tư; private
+protected	được bảo vệ; protected
+static	tĩnh; static
+final	cuối cùng; final
+getter	hàm lấy giá trị; getter
+setter	hàm gán giá trị; setter
+this	đối tượng hiện tại; this
+singleton	mẫu singleton
+factory pattern	mẫu nhà máy	factory
+observer pattern	mẫu quan sát
+decorator pattern	mẫu trang trí
+adapter pattern	mẫu điều hợp
+strategy pattern	mẫu chiến lược
+design pattern	mẫu thiết kế
+MVC	mô hình MVC	Model-View-Controller
+model	mô hình
+view	khung nhìn
+controller	bộ điều khiển
+SOLID principles	nguyên tắc SOLID
+DRY	không lặp lại chính mình	don't repeat yourself
+KISS	giữ cho đơn giản
+separation of concerns	tách biệt mối quan tâm
+loose coupling	liên kết lỏng
+high cohesion	độ gắn kết cao
+coupling	sự liên kết
+cohesion	độ gắn kết
+# ---- Thuật toán và cấu trúc dữ liệu ----
+sorting	sắp xếp
+sort	sắp xếp
+bubble sort	sắp xếp nổi bọt
+selection sort	sắp xếp chọn
+insertion sort	sắp xếp chèn
+merge sort	sắp xếp trộn
+quick sort	sắp xếp nhanh	quicksort
+heap sort	sắp xếp vun đống
+searching	tìm kiếm
+linear search	tìm kiếm tuyến tính
+binary search	tìm kiếm nhị phân
+breadth-first search	tìm kiếm theo chiều rộng	BFS
+depth-first search	tìm kiếm theo chiều sâu	DFS
+Dijkstra's algorithm	thuật toán Dijkstra
+shortest path	đường đi ngắn nhất
+dynamic programming	quy hoạch động
+greedy algorithm	thuật toán tham lam
+divide and conquer	chia để trị
+backtracking	quay lui
+brute force	vét cạn
+heuristic	heuristic; phương pháp gần đúng
+time complexity	độ phức tạp thời gian
+space complexity	độ phức tạp không gian
+Big O notation	ký hiệu Big O
+constant time	thời gian hằng số
+linear time	thời gian tuyến tính
+logarithmic	logarit
+polynomial	đa thức
+exponential	hàm mũ
+NP-complete	NP-đầy đủ
+optimization	tối ưu hóa
+trade-off	sự đánh đổi
+hashing	băm
+collision	xung đột; va chạm
+load factor	hệ số tải
+cache hit	trúng bộ đệm
+cache miss	trượt bộ đệm
+memoization	ghi nhớ kết quả
+data structure	cấu trúc dữ liệu
+abstract data type	kiểu dữ liệu trừu tượng
+traversal	duyệt
+in-order	duyệt trung thứ tự
+pre-order	duyệt tiền thứ tự
+post-order	duyệt hậu thứ tự
+# ---- Web ----
+web browser	trình duyệt web	browser
+web server	máy chủ web
+web page	trang web
+website	trang web; website
+web application	ứng dụng web
+single-page application	ứng dụng một trang	SPA
+progressive web app	ứng dụng web tiến bộ	PWA
+URL	địa chỉ URL	uniform resource locator
+URI	định danh tài nguyên
+link	liên kết
+hyperlink	siêu liên kết
+HTML	ngôn ngữ đánh dấu siêu văn bản
+CSS	bảng định kiểu xếp tầng
+JavaScript	JavaScript
+TypeScript	TypeScript
+DOM	mô hình đối tượng tài liệu
+element	phần tử
+tag	thẻ
+attribute	thuộc tính
+selector	bộ chọn
+stylesheet	bảng định kiểu
+responsive design	thiết kế đáp ứng
+media query	truy vấn phương tiện
+flexbox	flexbox
+grid layout	bố cục lưới
+viewport	vùng nhìn; viewport
+front end	giao diện người dùng; front end	frontend|front-end
+back end	phần phụ trợ; back end	backend|back-end
+full stack	toàn bộ ngăn xếp; full stack	full-stack
+server-side	phía máy chủ
+client-side	phía máy khách
+server-side rendering	kết xuất phía máy chủ	SSR
+client-side rendering	kết xuất phía máy khách	CSR
+static site	trang tĩnh
+dynamic website	trang web động
+content management system	hệ quản trị nội dung	CMS
+template	mẫu; template
+rendering	kết xuất
+hydration	hydration
+virtual DOM	DOM ảo
+component	thành phần; component
+state	trạng thái
+props	thuộc tính truyền vào; props
+hook	hook
+event listener	bộ lắng nghe sự kiện
+event handler	trình xử lý sự kiện
+event	sự kiện
+click event	sự kiện nhấp chuột
+AJAX	AJAX
+fetch	lấy dữ liệu; fetch
+XMLHttpRequest	XMLHttpRequest
+WebSocket	WebSocket
+web service	dịch vụ web
+RESTful API	API kiểu REST	REST API
+REST	REST
+GraphQL	GraphQL
+SOAP	SOAP
+JSON	JSON
+XML	XML
+YAML	YAML
+CSV	CSV
+endpoint	điểm cuối; endpoint
+request	yêu cầu
+response	phản hồi
+status code	mã trạng thái
+HTTP method	phương thức HTTP
+GET	GET
+POST	POST
+PUT	PUT
+DELETE	DELETE
+PATCH	PATCH
+header	tiêu đề
+query string	chuỗi truy vấn
+query parameter	tham số truy vấn
+cookie	cookie
+local storage	bộ nhớ cục bộ
+session storage	bộ nhớ phiên
+caching	lưu đệm
+cache-control	kiểm soát bộ đệm
+CORS	chia sẻ tài nguyên chéo nguồn
+same-origin policy	chính sách cùng nguồn
+rate limiting	giới hạn tốc độ
+throttling	điều tiết
+debounce	chống dội; debounce
+pagination	phân trang
+infinite scroll	cuộn vô hạn
+lazy loading	tải lười
+minification	rút gọn mã
+bundler	trình đóng gói
+transpiler	trình chuyển mã
+polyfill	polyfill
+webpack	webpack
+Node.js	Node.js
+npm	npm
+accessibility	khả năng truy cập
+SEO	tối ưu hóa công cụ tìm kiếm	search engine optimization
+search engine	công cụ tìm kiếm
+crawler	trình thu thập dữ liệu web	web crawler|spider
+web scraping	thu thập dữ liệu web
+sitemap	sơ đồ trang web
+favicon	biểu tượng trang web
+landing page	trang đích
+homepage	trang chủ
+navigation bar	thanh điều hướng
+dropdown menu	menu thả xuống
+modal	hộp thoại modal
+tooltip	chú giải khi rê chuột
+carousel	băng chuyền hình ảnh
+breadcrumb	đường dẫn phân cấp; breadcrumb
+form	biểu mẫu
+input field	ô nhập liệu
+checkbox	hộp kiểm
+radio button	nút chọn
+button	nút
+slider	thanh trượt
+validation	kiểm tra hợp lệ
+input validation	kiểm tra dữ liệu đầu vào
+sanitization	làm sạch dữ liệu
+# ---- Cơ sở dữ liệu ----
+database	cơ sở dữ liệu	DB
+database management system	hệ quản trị cơ sở dữ liệu	DBMS
+relational database	cơ sở dữ liệu quan hệ
+NoSQL	NoSQL
+SQL	ngôn ngữ truy vấn có cấu trúc
+MySQL	MySQL
+PostgreSQL	PostgreSQL
+SQLite	SQLite
+Oracle Database	Oracle Database
+MongoDB	MongoDB
+Redis	Redis
+table	bảng
+row	hàng
+column	cột
+record	bản ghi
+field	trường
+cell	ô
+schema	lược đồ
+primary key	khóa chính
+foreign key	khóa ngoại
+composite key	khóa phức hợp
+candidate key	khóa ứng viên
+unique key	khóa duy nhất
+index	chỉ mục
+clustered index	chỉ mục cụm
+constraint	ràng buộc
+unique constraint	ràng buộc duy nhất
+not null	không rỗng
+default value	giá trị mặc định
+auto increment	tự tăng
+query	truy vấn
+SELECT	câu lệnh SELECT
+INSERT	câu lệnh INSERT
+UPDATE	câu lệnh UPDATE
+DELETE statement	câu lệnh DELETE
+JOIN	phép nối
+inner join	nối trong
+left join	nối trái
+right join	nối phải
+outer join	nối ngoài
+full outer join	nối ngoài đầy đủ
+cross join	nối chéo
+self join	tự nối
+subquery	truy vấn con
+WHERE clause	mệnh đề WHERE
+GROUP BY	nhóm theo
+ORDER BY	sắp xếp theo
+HAVING	mệnh đề HAVING
+aggregate function	hàm tổng hợp
+view	khung nhìn
+stored procedure	thủ tục lưu trữ
+trigger	trigger; bộ kích hoạt
+cursor	con trỏ
+transaction	giao dịch
+commit	xác nhận giao dịch; commit
+rollback	hoàn tác giao dịch; rollback
+savepoint	điểm lưu
+ACID	ACID
+atomicity	tính nguyên tử
+consistency	tính nhất quán
+isolation	tính cô lập
+durability	tính bền vững
+isolation level	mức cô lập
+lock	khóa
+deadlock	bế tắc
+optimistic locking	khóa lạc quan
+pessimistic locking	khóa bi quan
+normalization	chuẩn hóa
+denormalization	phi chuẩn hóa
+first normal form	dạng chuẩn thứ nhất	1NF
+second normal form	dạng chuẩn thứ hai	2NF
+third normal form	dạng chuẩn thứ ba	3NF
+entity	thực thể
+relationship	mối quan hệ
+entity-relationship diagram	sơ đồ thực thể-quan hệ	ERD
+one-to-one	một-một
+one-to-many	một-nhiều
+many-to-many	nhiều-nhiều
+cardinality	lực lượng; bản số
+data model	mô hình dữ liệu
+data integrity	tính toàn vẹn dữ liệu
+referential integrity	toàn vẹn tham chiếu
+data warehouse	kho dữ liệu
+data lake	hồ dữ liệu
+data mart	kho dữ liệu chuyên đề
+ETL	trích xuất, biến đổi, nạp dữ liệu	extract transform load
+data pipeline	đường ống dữ liệu
+data migration	di chuyển dữ liệu
+data cleansing	làm sạch dữ liệu
+data mining	khai phá dữ liệu
+big data	dữ liệu lớn
+data analytics	phân tích dữ liệu
+business intelligence	trí tuệ kinh doanh	BI
+OLTP	xử lý giao dịch trực tuyến
+OLAP	xử lý phân tích trực tuyến
+replication	nhân bản
+sharding	phân mảnh dữ liệu
+partitioning	phân vùng
+master-slave	chủ-tớ
+primary replica	bản sao chính
+read replica	bản sao chỉ đọc
+backup and recovery	sao lưu và phục hồi
+query optimization	tối ưu truy vấn
+execution plan	kế hoạch thực thi
+full table scan	quét toàn bảng
+key-value store	kho khóa-giá trị
+document database	cơ sở dữ liệu tài liệu
+graph database	cơ sở dữ liệu đồ thị
+column-family	họ cột
+time-series database	cơ sở dữ liệu chuỗi thời gian
+in-memory database	cơ sở dữ liệu trong bộ nhớ
+ORM	ánh xạ đối tượng-quan hệ	object-relational mapping
+CRUD	tạo, đọc, cập nhật, xóa
+connection pool	nhóm kết nối

@@ -1297,7 +1297,11 @@ async function lookupViJa(word) {
 let goiNapP = null;
 function napGoi() {
   if (!goiNapP) {
-    goiNapP = Promise.all([["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"]].map(async (g) => {
+    goiNapP = Promise.all([
+      ["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"],
+      ["ja", "goi/it-ja-vi.json"], ["en", "goi/it-en-vi.json"],
+      ["ja", "goi/y-ja-vi.json"], ["en", "goi/y-en-vi.json"]
+    ].map(async (g) => {
       try {
         const r = await fetch(g[1]);
         window.ThuatNgu.nap(g[0], await r.json());

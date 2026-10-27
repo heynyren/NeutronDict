@@ -85,7 +85,7 @@ def main():
         gop[tu] = [tu, " / ".join(docs), nghia, chung | sua, khac, mon]
         out.append(gop[tu])
     out.sort(key=lambda r: r[0])
-    json.dump({"ten": "Điện", "ngu": "ja", "v": 1, "m": out}, open(dich, "w", encoding="utf-8"),
+    json.dump({"id": "dien", "ten": "Điện", "ngu": "ja", "sau": False, "v": 1, "m": out}, open(dich, "w", encoding="utf-8"),
               ensure_ascii=False, separators=(",", ":"))
     print(len(out), "mục; bỏ", bo)
 

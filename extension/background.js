@@ -273,14 +273,21 @@ async function openPopupWindow(rawText, tab, captured) {
 
 // ==== Gói thuật ngữ chuyên ngành ====
 /*
- * Nạp LƯỜI, đúng một lần cho mỗi lần service worker thức dậy: ~0,5MB JSON, vài
+ * Nạp LƯỜI, đúng một lần cho mỗi lần service worker thức dậy: vài trăm KB JSON, vài
  * chục mili-giây. Không nạp ở lúc khởi động để khỏi chậm những lượt tra đầu tiên
- * của người không dùng ngành nào cả.
+ * của người không dùng ngành nào cả. Mỗi ngành một gói cho mỗi ngôn ngữ; công tắc bật/tắt
+ * theo ngành nằm trong settings (goiDien / goiIt / goiY).
  */
+const GOI_TEP = [
+  ["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"],
+  ["ja", "goi/it-ja-vi.json"], ["en", "goi/it-en-vi.json"],
+  ["ja", "goi/y-ja-vi.json"], ["en", "goi/y-en-vi.json"]
+];
+const GOI_CONG_TAC = { dien: "goiDien", it: "goiIt", y: "goiY" };
 let goiNap = null;
 function napGoi() {
   if (!goiNap) {
-    goiNap = Promise.all([["ja", "goi/dien-ja-vi.json"], ["en", "goi/dien-en-vi.json"]].map(async (g) => {
+    goiNap = Promise.all(GOI_TEP.map(async (g) => {
       try {
         const r = await fetch(chrome.runtime.getURL(g[1]));
         self.ThuatNgu.nap(g[0], await r.json());
@@ -293,20 +300,24 @@ let goiBatMem = null;
 chrome.storage.onChanged.addListener((ch, vung) => {
   if (vung === "local" && ch.settings) goiBatMem = null;
 });
+/** Danh sách id các gói đang bật (rỗng = tắt hết). */
 async function goiBat() {
   if (goiBatMem === null) {
     const { settings } = await chrome.storage.local.get("settings").catch(() => ({}));
-    goiBatMem = (settings || {}).goiDien !== false;
+    const st = settings || {};
+    goiBatMem = Object.keys(GOI_CONG_TAC).filter((id) => st[GOI_CONG_TAC[id]] !== false);
   }
   return goiBatMem;
 }
 /** Trộn gói vào kết quả tra từ. `dict`: javi / envi / auto… — chỉ hai chiều xuôi có gói. */
 async function tronGoi(entries, word, dict) {
   const ngu = (dict === "javi" || dict === "jvi") ? "ja" : (dict === "envi" || dict === "auto") ? "en" : "";
-  if (!ngu || !(await goiBat())) return entries;
+  if (!ngu) return entries;
+  const bat = await goiBat();
+  if (!bat.length) return entries;
   await napGoi();
   if (ngu === "en" && (!/[A-Za-z]/.test(word) || (entries[0] && entries[0].dict === "vien"))) return entries;   // "auto" gặp tiếng Việt
-  return self.ThuatNgu.tron(entries, word, ngu);
+  return self.ThuatNgu.tron(entries, word, ngu, bat);
 }
 
 // ==== Tin nhắn ====

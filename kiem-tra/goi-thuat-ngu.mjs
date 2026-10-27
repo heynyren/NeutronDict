@@ -72,6 +72,32 @@ r = await LK("sag", "envi");
 soat("tắt gói: không còn nghĩa của gói, dù lượt trước đã đệm", !r.entries[0].means.includes("độ võng"), JSON.stringify(r.entries[0].means));
 await bat(true);
 
+console.log("\nNhiều ngành cùng lúc (Điện + IT + Y)");
+await sw.evaluate(() => chrome.storage.local.set({ settings: { ngu: "en", goiDien: true, goiIt: true, goiY: true } }));
+r = await LK("compiler", "envi");
+soat("IT: compiler → trình biên dịch đứng đầu", r.entries[0].means[0] === "trình biên dịch", JSON.stringify(r.entries[0].means));
+r = await LK("framework", "envi");
+soat("IT: thuật ngữ dân ngành để nguyên tiếng Anh → 'framework' đứng đầu", r.entries[0].means[0] === "framework", JSON.stringify(r.entries[0].means));
+r = await LK("positive", "envi");
+soat("Y: positive → dương tính (nghĩa ngành đứng trước Google)", r.entries[0].means[0] === "dương tính", JSON.stringify(r.entries[0].means));
+r = await LK("bus", "envi");
+soat("bus: nghĩa điện (thanh cái) và IT (bus) gộp, không gói nào nuốt gói nào",
+  r.entries[0].means.some((m) => /thanh cái/.test(m)) && r.entries[0].means.some((m) => /đường truyền dữ liệu/.test(m)), JSON.stringify(r.entries[0].means));
+r = await LK("コンパイラ", "javi");
+soat("IT tiếng Nhật: コンパイラ → trình biên dịch", r.entries[0].means[0] === "trình biên dịch", JSON.stringify(r.entries[0].means));
+r = await LK("心電図", "javi");
+soat("Y tiếng Nhật: 心電図 → điện tâm đồ", r.entries[0].means[0] === "điện tâm đồ", JSON.stringify(r.entries[0].means));
+r = await LK("浮腫", "javi");
+soat("Y: 浮腫 sửa tay thành 'phù' (không để bắc cầu gán 'sưng')", r.entries[0].means[0] === "phù", JSON.stringify(r.entries[0].means));
+r = await LK("端末", "javi");
+soat("IT: 端末 = thiết bị đầu cuối (không phải 'cửa sổ dòng lệnh')", r.entries[0].means.includes("thiết bị đầu cuối") && !r.entries[0].means.some((m) => /cửa sổ dòng lệnh/.test(m)), JSON.stringify(r.entries[0].means));
+await sw.evaluate(() => chrome.storage.local.set({ settings: { ngu: "en", goiDien: true, goiIt: false, goiY: true } }));
+r = await LK("compiler", "envi");
+soat("tắt riêng gói IT: compiler không còn nghĩa của gói IT", !r.entries[0].means.includes("trình biên dịch"), JSON.stringify(r.entries[0].means));
+r = await LK("positive", "envi");
+soat("…mà gói Y vẫn chạy", r.entries[0].means[0] === "dương tính");
+await sw.evaluate(() => chrome.storage.local.set({ settings: { ngu: "ja", goiDien: true, goiIt: true, goiY: true } }));
+
 console.log("\nTắt trong cài đặt");
 await bat(false);
 r = await LK("励磁電流", "javi");

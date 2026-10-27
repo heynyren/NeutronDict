@@ -1,0 +1,263 @@
+# Thuật ngữ IT Anh→Việt (phần 4: ngôn ngữ/công cụ phổ biến, giao thức & viết tắt, đa phương tiện, thương mại điện tử, quản trị CNTT).
+# ---- Ngôn ngữ, nền tảng, công cụ (dân ngành để nguyên tên) ----
+Python	Python
+Java	Java
+C++	C++
+C#	C#
+Go	Go
+Rust	Rust
+PHP	PHP
+Ruby	Ruby
+Perl	Perl
+Scala	Scala
+R language	ngôn ngữ R
+MATLAB	MATLAB
+SQL Server	SQL Server
+bash	bash
+PowerShell	PowerShell
+shell script	script shell
+batch file	tệp batch
+Visual Studio Code	Visual Studio Code	VS Code
+Visual Studio	Visual Studio
+Eclipse	Eclipse
+IntelliJ IDEA	IntelliJ IDEA
+vim	vim
+Emacs	Emacs
+Postman	Postman
+Swagger	Swagger
+OpenAPI	OpenAPI
+Jira	Jira
+Confluence	Confluence
+Slack	Slack
+Microsoft Teams	Microsoft Teams
+Zoom	Zoom
+Excel	Excel
+Word	Word
+PowerPoint	PowerPoint
+Outlook	Outlook
+Photoshop	Photoshop
+Figma	Figma
+React	React
+Angular	Angular
+Vue.js	Vue.js
+jQuery	jQuery
+Bootstrap	Bootstrap
+Django	Django
+Flask	Flask
+Spring	Spring
+Spring Boot	Spring Boot
+Laravel	Laravel
+Express	Express
+ASP.NET	ASP.NET
+.NET	.NET
+Ruby on Rails	Ruby on Rails
+Elasticsearch	Elasticsearch
+Prometheus	Prometheus
+Grafana	Grafana
+Splunk	Splunk
+Salesforce	Salesforce
+SAP	SAP
+ERP	hoạch định nguồn lực doanh nghiệp	enterprise resource planning
+CRM	quản lý quan hệ khách hàng	customer relationship management
+SCM	quản lý chuỗi cung ứng	supply chain management
+HRM	quản lý nhân sự
+POS	điểm bán hàng	point of sale
+# ---- Viết tắt / giao thức / chuẩn ----
+API key	khóa API
+OAuth	OAuth
+OpenID Connect	OpenID Connect
+JWT	JSON Web Token	JSON Web Token
+SAML	SAML
+LDAP	LDAP
+Active Directory	Active Directory
+Kerberos	Kerberos
+RADIUS	RADIUS
+NTP	giao thức đồng bộ thời gian mạng
+SMB	giao thức chia sẻ tệp SMB
+NFS	hệ thống tệp mạng	network file system
+RDP	giao thức máy tính từ xa
+VNC	VNC
+WebRTC	WebRTC
+MQTT	MQTT
+gRPC	gRPC
+Protocol Buffers	Protocol Buffers	protobuf
+TLS handshake	bắt tay TLS
+HTTP/2	HTTP/2
+HTTP/3	HTTP/3
+QUIC	QUIC
+IPsec	IPsec
+WPA2	WPA2
+WPA3	WPA3
+SSID	tên mạng Wi-Fi	SSID
+MAC filtering	lọc địa chỉ MAC
+port forwarding	chuyển tiếp cổng
+port scanning	quét cổng
+packet sniffing	bắt gói tin
+network monitoring	giám sát mạng
+bandwidth usage	mức sử dụng băng thông
+network latency	độ trễ mạng
+DDoS attack	tấn công DDoS
+web application firewall	tường lửa ứng dụng web	WAF
+reverse engineering	dịch ngược
+obfuscation	làm rối mã
+code signing	ký mã
+supply chain attack	tấn công chuỗi cung ứng
+zero-day exploit	khai thác lỗ hổng zero-day
+CVE	mã định danh lỗ hổng CVE
+OWASP	OWASP
+OWASP Top 10	OWASP Top 10
+bug bounty	chương trình săn lỗi; bug bounty
+red team	red team
+blue team	blue team
+threat modeling	mô hình hóa mối đe dọa
+security patch	bản vá bảo mật
+hardening	gia cố hệ thống
+secure coding	lập trình an toàn
+data masking	che dữ liệu
+tokenization of data	token hóa dữ liệu
+key management	quản lý khóa
+secrets management	quản lý bí mật
+password manager	trình quản lý mật khẩu
+password policy	chính sách mật khẩu
+account lockout	khóa tài khoản
+session hijacking	chiếm quyền phiên
+clickjacking	clickjacking
+directory traversal	duyệt thư mục trái phép
+remote code execution	thực thi mã từ xa	RCE
+arbitrary code execution	thực thi mã tùy ý
+sandbox escape	thoát khỏi sandbox
+# ---- Đa phương tiện ----
+audio	âm thanh
+video	video
+image	hình ảnh
+animation	hoạt ảnh
+frame rate	tốc độ khung hình
+bitrate	tốc độ bit
+codec	codec
+MP3	MP3
+MP4	MP4
+JPEG	JPEG
+PNG	PNG
+GIF	GIF
+SVG	SVG
+PDF	PDF
+ZIP	ZIP
+archive	kho lưu trữ; tệp nén
+extract	giải nén
+audio file	tệp âm thanh
+video file	tệp video
+resolution	độ phân giải
+aspect ratio	tỷ lệ khung hình
+refresh rate	tần số quét
+HDMI	HDMI
+USB	USB
+USB-C	USB-C
+Thunderbolt	Thunderbolt
+DisplayPort	DisplayPort
+Bluetooth pairing	ghép đôi Bluetooth
+NFC	giao tiếp tầm gần
+QR code	mã QR
+barcode	mã vạch
+RFID	nhận dạng bằng sóng vô tuyến
+GPS	hệ thống định vị toàn cầu
+# ---- Thương mại điện tử / dịch vụ số ----
+e-commerce	thương mại điện tử
+online shopping	mua sắm trực tuyến
+shopping cart	giỏ hàng
+checkout	thanh toán
+payment gateway	cổng thanh toán
+credit card	thẻ tín dụng
+online payment	thanh toán trực tuyến
+digital wallet	ví điện tử
+invoice	hóa đơn
+subscription	gói đăng ký
+free trial	dùng thử miễn phí
+freemium	freemium
+pricing plan	gói giá
+refund	hoàn tiền
+user account	tài khoản người dùng
+profile	hồ sơ
+avatar	ảnh đại diện
+username	tên người dùng
+sign up	đăng ký
+log in	đăng nhập
+log out	đăng xuất
+forgot password	quên mật khẩu
+reset password	đặt lại mật khẩu
+verification code	mã xác minh
+one-time password	mật khẩu dùng một lần	OTP
+terms of service	điều khoản dịch vụ
+privacy policy	chính sách quyền riêng tư
+cookie consent	đồng ý sử dụng cookie
+social media	mạng xã hội
+newsfeed	bảng tin
+follower	người theo dõi
+hashtag	hashtag
+like	thích
+share	chia sẻ
+comment section	phần bình luận
+live stream	phát trực tiếp
+podcast	podcast
+blog	blog
+forum	diễn đàn
+wiki	wiki
+review	đánh giá
+rating	xếp hạng
+recommendation engine	công cụ gợi ý
+search bar	thanh tìm kiếm
+filter	bộ lọc
+sort by	sắp xếp theo
+newsletter	bản tin; newsletter
+mailing list	danh sách gửi thư
+email marketing	tiếp thị qua email
+digital marketing	tiếp thị số
+search engine marketing	tiếp thị công cụ tìm kiếm	SEM
+pay-per-click	trả tiền theo lượt nhấp	PPC
+affiliate marketing	tiếp thị liên kết
+influencer	người có ảnh hưởng
+# ---- Quản trị CNTT / tổ chức ----
+IT department	phòng CNTT
+IT infrastructure	hạ tầng CNTT
+IT governance	quản trị CNTT
+IT service management	quản lý dịch vụ CNTT	ITSM
+ITIL	ITIL
+change management	quản lý thay đổi
+configuration management	quản lý cấu hình
+incident management	quản lý sự cố
+problem management	quản lý vấn đề
+asset management	quản lý tài sản
+license management	quản lý bản quyền
+capacity planning	hoạch định năng lực
+disaster recovery plan	kế hoạch khôi phục sau thảm họa
+recovery time objective	thời gian khôi phục mục tiêu	RTO
+recovery point objective	điểm khôi phục mục tiêu	RPO
+service desk	bàn dịch vụ
+system administrator	quản trị viên hệ thống	sysadmin
+network administrator	quản trị viên mạng
+database administrator	quản trị viên cơ sở dữ liệu	DBA
+chief information officer	giám đốc thông tin	CIO
+chief technology officer	giám đốc công nghệ	CTO
+information security officer	cán bộ an toàn thông tin
+outsourcing	thuê ngoài
+offshore development	phát triển phần mềm gia công nước ngoài
+vendor	nhà cung cấp
+contract	hợp đồng
+requirement definition	định nghĩa yêu cầu
+proposal	đề xuất
+bid	hồ sơ dự thầu
+system integration	tích hợp hệ thống
+system integrator	nhà tích hợp hệ thống
+migration	di chuyển hệ thống
+legacy migration	di chuyển hệ thống cũ
+cutover	chuyển đổi sang hệ thống mới
+go-live	đưa vào vận hành; go-live
+post-release support	hỗ trợ sau phát hành
+training	đào tạo
+user manual	hướng dẫn sử dụng
+operation manual	sổ tay vận hành
+FAQ	câu hỏi thường gặp
+knowledge base	cơ sở tri thức
+end user	người dùng cuối
+power user	người dùng thành thạo
+administrator account	tài khoản quản trị
+guest account	tài khoản khách

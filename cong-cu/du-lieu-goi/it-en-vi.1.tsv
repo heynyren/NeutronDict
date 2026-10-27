@@ -1,0 +1,412 @@
+# Thuật ngữ IT Anh→Việt (phần 1: máy tính, phần cứng, hệ điều hành, mạng, bảo mật).
+# Do Claude soạn từ kiến thức kỹ thuật phổ thông. Sai chỗ nào thì sửa thẳng ở đây rồi chạy lại cong-cu/dung-goi-tsv.py.
+# ---- Khái niệm cơ bản ----
+computer	máy tính
+information technology	công nghệ thông tin	IT
+hardware	phần cứng
+software	phần mềm
+firmware	phần sụn; firmware
+middleware	phần mềm trung gian
+application	ứng dụng	app
+program	chương trình
+data	dữ liệu
+information	thông tin
+bit	bit
+byte	byte
+kilobyte	kilôbyte	KB
+megabyte	mêgabyte	MB
+gigabyte	gigabyte	GB
+terabyte	terabyte	TB
+binary	nhị phân
+hexadecimal	thập lục phân	hex
+octal	bát phân
+decimal	thập phân
+boolean	kiểu luận lý; boolean
+character encoding	mã hóa ký tự
+Unicode	Unicode
+ASCII	bảng mã ASCII
+UTF-8	UTF-8
+bandwidth	băng thông
+latency	độ trễ
+throughput	thông lượng
+resolution	độ phân giải
+pixel	điểm ảnh; pixel
+bitmap	ảnh bitmap
+vector graphics	đồ họa vectơ
+compression	nén
+lossless compression	nén không mất dữ liệu
+lossy compression	nén có mất dữ liệu
+encryption	mã hóa
+decryption	giải mã
+algorithm	thuật toán
+pseudocode	mã giả
+flowchart	lưu đồ; sơ đồ khối
+abstraction	trừu tượng hóa
+automation	tự động hóa
+digital	số
+analog	tương tự
+# ---- Phần cứng ----
+central processing unit	bộ xử lý trung tâm	CPU|processor
+graphics processing unit	bộ xử lý đồ họa	GPU
+motherboard	bo mạch chủ	mainboard
+chipset	chipset
+core	nhân
+multi-core	đa nhân
+clock speed	tốc độ xung nhịp
+cache memory	bộ nhớ đệm	cache
+random access memory	bộ nhớ truy cập ngẫu nhiên	RAM
+read-only memory	bộ nhớ chỉ đọc	ROM
+virtual memory	bộ nhớ ảo
+hard disk drive	ổ đĩa cứng	HDD|hard drive
+solid-state drive	ổ thể rắn	SSD
+flash memory	bộ nhớ flash
+USB flash drive	ổ USB	thumb drive|pen drive
+memory card	thẻ nhớ
+optical disc	đĩa quang
+power supply unit	bộ nguồn	PSU
+cooling fan	quạt tản nhiệt
+heat sink	tản nhiệt
+peripheral	thiết bị ngoại vi
+input device	thiết bị nhập
+output device	thiết bị xuất
+keyboard	bàn phím
+mouse	chuột
+touchpad	bàn di chuột
+touchscreen	màn hình cảm ứng
+monitor	màn hình
+printer	máy in
+scanner	máy quét
+webcam	webcam
+microphone	micrô
+speaker	loa
+headset	tai nghe có micrô
+docking station	đế cắm mở rộng
+port	cổng
+expansion slot	khe mở rộng
+bus	bus; đường truyền dữ liệu
+register	thanh ghi
+instruction set	tập lệnh
+pipeline	đường ống lệnh
+overclocking	ép xung
+server	máy chủ
+workstation	máy trạm
+laptop	máy tính xách tay
+desktop computer	máy tính để bàn
+tablet	máy tính bảng
+smartphone	điện thoại thông minh
+mainframe	máy tính lớn
+supercomputer	siêu máy tính
+embedded system	hệ thống nhúng
+microcontroller	vi điều khiển
+single-board computer	máy tính bo mạch đơn
+Internet of Things	Internet vạn vật	IoT
+sensor	cảm biến
+actuator	cơ cấu chấp hành
+wearable	thiết bị đeo
+virtual reality	thực tế ảo	VR
+augmented reality	thực tế tăng cường	AR
+quantum computing	điện toán lượng tử
+# ---- Hệ điều hành ----
+operating system	hệ điều hành	OS
+kernel	nhân hệ điều hành; kernel
+shell	trình vỏ; shell
+command line	dòng lệnh
+command-line interface	giao diện dòng lệnh	CLI
+graphical user interface	giao diện đồ họa người dùng	GUI
+terminal	cửa sổ dòng lệnh; terminal
+driver	trình điều khiển thiết bị; driver
+device driver	trình điều khiển thiết bị
+process	tiến trình
+thread	luồng
+multithreading	đa luồng
+multitasking	đa nhiệm
+scheduler	bộ lập lịch
+context switch	chuyển ngữ cảnh
+deadlock	bế tắc
+race condition	điều kiện tranh chấp
+mutex	khóa loại trừ tương hỗ; mutex
+semaphore	semaphore
+critical section	vùng găng
+interrupt	ngắt
+system call	lời gọi hệ thống
+paging	phân trang
+page fault	lỗi trang
+swap	hoán đổi; swap
+memory leak	rò rỉ bộ nhớ
+memory management	quản lý bộ nhớ
+garbage collection	thu gom rác
+file system	hệ thống tệp
+directory	thư mục
+folder	thư mục
+file	tệp	file
+path	đường dẫn
+absolute path	đường dẫn tuyệt đối
+relative path	đường dẫn tương đối
+file extension	phần mở rộng tệp
+permission	quyền truy cập
+root	quyền gốc; root
+administrator	quản trị viên
+superuser	siêu người dùng
+user account	tài khoản người dùng
+boot	khởi động
+bootloader	trình nạp khởi động
+BIOS	BIOS
+UEFI	UEFI
+reboot	khởi động lại
+shutdown	tắt máy
+sleep mode	chế độ ngủ
+hibernation	chế độ ngủ đông
+task manager	trình quản lý tác vụ
+registry	sổ đăng ký; registry
+daemon	tiến trình nền; daemon
+service	dịch vụ
+background process	tiến trình nền
+environment variable	biến môi trường
+symbolic link	liên kết tượng trưng	symlink
+mount	gắn kết
+partition	phân vùng
+formatting	định dạng đĩa
+backup	sao lưu
+restore	khôi phục
+snapshot	bản chụp nhanh
+virtual machine	máy ảo	VM
+hypervisor	trình giám sát máy ảo; hypervisor
+emulator	trình giả lập
+container	container
+containerization	đóng gói container
+Linux	Linux
+Windows	Windows
+macOS	macOS
+Android	Android
+iOS	iOS
+Unix	Unix
+open source	mã nguồn mở
+proprietary	độc quyền
+freeware	phần mềm miễn phí
+shareware	phần mềm dùng thử
+license	giấy phép
+patch	bản vá
+update	bản cập nhật
+upgrade	nâng cấp
+version	phiên bản
+release	bản phát hành
+installer	trình cài đặt
+uninstall	gỡ cài đặt
+install	cài đặt
+configuration	cấu hình
+settings	cài đặt
+default	mặc định
+compatibility	tính tương thích
+backward compatibility	tương thích ngược
+legacy system	hệ thống kế thừa
+# ---- Mạng ----
+network	mạng
+computer network	mạng máy tính
+local area network	mạng cục bộ	LAN
+wide area network	mạng diện rộng	WAN
+metropolitan area network	mạng đô thị	MAN
+wireless network	mạng không dây
+Wi-Fi	Wi-Fi
+Ethernet	Ethernet
+router	bộ định tuyến	router
+switch	bộ chuyển mạch	network switch
+hub	bộ tập trung; hub
+modem	modem
+access point	điểm truy cập
+gateway	cổng kết nối; gateway
+bridge	cầu nối mạng
+repeater	bộ lặp
+firewall	tường lửa
+proxy	proxy
+proxy server	máy chủ proxy
+reverse proxy	proxy ngược
+load balancer	bộ cân bằng tải
+network interface card	card mạng	NIC
+network adapter	bộ điều hợp mạng
+IP address	địa chỉ IP
+IPv4	IPv4
+IPv6	IPv6
+MAC address	địa chỉ MAC
+subnet	mạng con
+subnet mask	mặt nạ mạng con
+CIDR	định tuyến liên miền không phân lớp
+default gateway	cổng mặc định
+DNS	hệ thống tên miền	Domain Name System
+domain name	tên miền
+hostname	tên máy chủ
+DHCP	giao thức cấp phát địa chỉ động
+NAT	chuyển đổi địa chỉ mạng	network address translation
+port number	số cổng
+socket	socket
+TCP	giao thức điều khiển truyền vận
+UDP	giao thức gói dữ liệu người dùng
+IP	giao thức Internet
+HTTP	giao thức truyền siêu văn bản
+HTTPS	HTTP bảo mật
+FTP	giao thức truyền tệp
+SFTP	giao thức truyền tệp bảo mật
+SSH	vỏ bảo mật; SSH	secure shell
+Telnet	Telnet
+SMTP	giao thức truyền thư đơn giản
+POP3	giao thức bưu điện POP3
+IMAP	giao thức truy cập thư Internet
+SNMP	giao thức quản lý mạng đơn giản
+ICMP	giao thức thông điệp điều khiển Internet
+ARP	giao thức phân giải địa chỉ
+BGP	giao thức cổng biên
+OSPF	giao thức định tuyến OSPF
+VPN	mạng riêng ảo	virtual private network
+VLAN	mạng LAN ảo
+OSI model	mô hình OSI
+TCP/IP model	mô hình TCP/IP
+protocol	giao thức
+packet	gói tin
+frame	khung dữ liệu
+datagram	gói dữ liệu
+header	phần đầu gói tin; tiêu đề
+payload	tải trọng; dữ liệu mang
+routing	định tuyến
+routing table	bảng định tuyến
+hop	chặng
+TTL	thời gian sống	time to live
+ping	ping
+traceroute	traceroute
+handshake	bắt tay; handshake
+three-way handshake	bắt tay ba bước
+congestion	tắc nghẽn
+packet loss	mất gói tin
+jitter	độ trễ biến thiên; jitter
+round-trip time	thời gian khứ hồi	RTT
+download	tải xuống
+upload	tải lên
+streaming	phát trực tuyến
+peer-to-peer	ngang hàng	P2P
+client-server	máy khách-máy chủ
+client	máy khách
+broadcast	quảng bá
+multicast	đa hướng
+unicast	đơn hướng
+topology	cấu trúc liên kết mạng; topology
+star topology	cấu trúc hình sao
+bus topology	cấu trúc dạng bus
+ring topology	cấu trúc vòng
+mesh network	mạng lưới
+cable	cáp
+twisted pair	cáp xoắn đôi
+fiber optic	cáp quang
+coaxial cable	cáp đồng trục
+Bluetooth	Bluetooth
+cellular network	mạng di động
+5G	5G
+LTE	LTE
+bandwidth throttling	giới hạn băng thông
+Quality of Service	chất lượng dịch vụ	QoS
+content delivery network	mạng phân phối nội dung	CDN
+internet service provider	nhà cung cấp dịch vụ Internet	ISP
+intranet	mạng nội bộ
+extranet	mạng mở rộng
+the Internet	Internet
+World Wide Web	mạng toàn cầu	WWW|web
+cloud	đám mây
+# ---- Bảo mật ----
+cybersecurity	an ninh mạng
+information security	an toàn thông tin
+confidentiality	tính bảo mật
+integrity	tính toàn vẹn
+availability	tính sẵn sàng
+authentication	xác thực
+authorization	phân quyền; ủy quyền
+accounting	kiểm toán truy cập
+access control	kiểm soát truy cập
+role-based access control	kiểm soát truy cập theo vai trò	RBAC
+least privilege	đặc quyền tối thiểu
+two-factor authentication	xác thực hai yếu tố	2FA
+multi-factor authentication	xác thực đa yếu tố	MFA
+single sign-on	đăng nhập một lần	SSO
+password	mật khẩu
+passphrase	cụm mật khẩu
+biometric	sinh trắc học
+fingerprint	vân tay
+token	mã thông báo; token
+session	phiên làm việc
+cookie	cookie
+certificate	chứng chỉ
+digital certificate	chứng chỉ số
+digital signature	chữ ký số
+public key	khóa công khai
+private key	khóa riêng
+symmetric encryption	mã hóa đối xứng
+asymmetric encryption	mã hóa bất đối xứng
+public-key cryptography	mật mã khóa công khai
+hash	băm
+hash function	hàm băm
+salt	chuỗi muối; salt
+checksum	tổng kiểm tra
+cipher	mã; thuật toán mã hóa
+plaintext	văn bản gốc
+ciphertext	bản mã
+AES	chuẩn mã hóa nâng cao
+RSA	RSA
+SHA	thuật toán băm an toàn
+TLS	bảo mật tầng truyền tải
+SSL	tầng cổng bảo mật
+PKI	hạ tầng khóa công khai
+certificate authority	tổ chức cấp chứng chỉ	CA
+end-to-end encryption	mã hóa đầu cuối
+malware	phần mềm độc hại
+virus	vi-rút
+worm	sâu máy tính
+trojan	trojan; mã độc ngựa thành Troy
+ransomware	mã độc tống tiền
+spyware	phần mềm gián điệp
+adware	phần mềm quảng cáo
+rootkit	rootkit
+keylogger	phần mềm ghi phím
+botnet	mạng botnet
+backdoor	cửa hậu
+exploit	khai thác lỗ hổng
+vulnerability	lỗ hổng bảo mật
+zero-day	lỗ hổng zero-day
+patch management	quản lý bản vá
+phishing	lừa đảo qua mạng; phishing
+spear phishing	lừa đảo có chủ đích
+social engineering	kỹ thuật tấn công phi kỹ thuật
+brute force attack	tấn công vét cạn
+dictionary attack	tấn công từ điển
+man-in-the-middle attack	tấn công xen giữa
+denial of service	từ chối dịch vụ	DoS
+distributed denial of service	từ chối dịch vụ phân tán	DDoS
+SQL injection	tấn công chèn mã SQL
+cross-site scripting	tấn công chèn mã kịch bản chéo trang	XSS
+cross-site request forgery	giả mạo yêu cầu chéo trang	CSRF
+buffer overflow	tràn bộ đệm
+privilege escalation	leo thang đặc quyền
+penetration testing	kiểm thử xâm nhập	pentest
+vulnerability scan	quét lỗ hổng
+intrusion detection system	hệ thống phát hiện xâm nhập	IDS
+intrusion prevention system	hệ thống ngăn chặn xâm nhập	IPS
+security information and event management	quản lý sự kiện và thông tin an ninh	SIEM
+honeypot	hệ thống bẫy; honeypot
+sandbox	môi trường cách ly; sandbox
+antivirus	phần mềm diệt vi-rút
+endpoint	thiết bị đầu cuối; endpoint
+zero trust	không tin cậy mặc định; zero trust
+data breach	rò rỉ dữ liệu
+data leak	rò rỉ dữ liệu
+audit	kiểm toán; đánh giá
+audit log	nhật ký kiểm toán
+incident response	ứng phó sự cố
+risk assessment	đánh giá rủi ro
+threat	mối đe dọa
+attack surface	bề mặt tấn công
+whitelist	danh sách cho phép
+blacklist	danh sách chặn
+anonymization	ẩn danh hóa
+privacy	quyền riêng tư
+GDPR	quy định bảo vệ dữ liệu chung của EU
+compliance	tuân thủ
+disaster recovery	khôi phục sau thảm họa
+business continuity	duy trì hoạt động kinh doanh
+redundancy	dự phòng
+failover	chuyển đổi dự phòng
+high availability	tính sẵn sàng cao

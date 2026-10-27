@@ -195,6 +195,8 @@
     "Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)":
       "Only show it while Ctrl is held (so the popup stays away when you just want to copy)",
     "Bôi đen đoạn dài thì dịch cả đoạn bằng Google Dịch": "Translate a long selection as a whole with Google Translate",
+    "Dùng gói thuật ngữ chuyên ngành (IT) trước Google Dịch": "Use the specialist glossary (IT) before Google Translate",
+    "Dùng gói thuật ngữ chuyên ngành (Y) trước Google Dịch": "Use the specialist glossary (Medical) before Google Translate",
     "Dùng gói thuật ngữ chuyên ngành (Điện) trước Google Dịch": "Use the specialist glossary (Electrical) before Google Translate",
     "Đoạn này dài quá để tra như một từ — hãy bôi đen riêng từ cần tra.": "This passage is too long to look up as a word — select the single word you need.",
     "Hiện tab": "Show the",
@@ -1218,6 +1220,8 @@
     "Chỉ hiện khi giữ phím Ctrl lúc bôi đen (tránh popup nhảy ra khi chỉ muốn chép)":
       "Ctrl を押しながら選択したときだけ出す（コピーしたいだけのときに邪魔にならない）",
     "Bôi đen đoạn dài thì dịch cả đoạn bằng Google Dịch": "長い範囲を選択したら Google 翻訳で全体を訳す",
+    "Dùng gói thuật ngữ chuyên ngành (IT) trước Google Dịch": "Google 翻訳より先に専門用語集(IT)を使う",
+    "Dùng gói thuật ngữ chuyên ngành (Y) trước Google Dịch": "Google 翻訳より先に専門用語集(医療)を使う",
     "Dùng gói thuật ngữ chuyên ngành (Điện) trước Google Dịch": "Google 翻訳より先に専門用語集(電気)を使う",
     "Đoạn này dài quá để tra như một từ — hãy bôi đen riêng từ cần tra.": "長すぎて1語として検索できません。調べたい語だけを選択してください。",
     "Hiện tab": "ポップアップに",

@@ -1,0 +1,703 @@
+# Mục Nhật→Việt Y học soạn tay (sửa chỗ phép bắc cầu qua JMdict chưa chuẩn, và bổ sung thuật ngữ y tế / điều dưỡng / chăm sóc người cao tuổi dùng ở Nhật).
+# Định dạng: từ <TAB> cách đọc <TAB> nghĩa (cách nhau bằng ;) <TAB> dạng khác (tuỳ chọn)
+# ---- Sửa các mục bắc cầu chưa chuẩn ----
+浮腫	ふしゅ / むくみ	phù	浮腫み|むくみ
+莢膜	きょうまく	vỏ nang (vi khuẩn); màng bao
+縫合糸	ほうごうし	chỉ khâu
+足趾	そくし	ngón chân	足の指
+筋肉内注射	きんにくないちゅうしゃ	tiêm bắp	筋注
+# ---- Bộ phận cơ thể ----
+身体	しんたい	cơ thể	からだ|体
+頭	あたま	đầu
+頭部	とうぶ	vùng đầu
+顔	かお	mặt
+額	ひたい	trán
+目	め	mắt
+眼	がん	mắt (y học)
+耳	みみ	tai
+鼻	はな	mũi
+口	くち	miệng
+唇	くちびる	môi
+舌	した	lưỡi
+歯	は	răng
+歯茎	はぐき	lợi	歯肉
+喉	のど	họng; cổ họng
+咽頭	いんとう	họng; hầu
+喉頭	こうとう	thanh quản
+扁桃腺	へんとうせん	amiđan	扁桃
+首	くび	cổ
+肩	かた	vai
+腕	うで	cánh tay
+肘	ひじ	khuỷu tay
+手首	てくび	cổ tay
+手	て	bàn tay
+指	ゆび	ngón tay
+親指	おやゆび	ngón cái
+胸	むね	ngực
+胸部	きょうぶ	vùng ngực
+乳房	ちぶさ	vú	乳腺
+腹	はら	bụng
+腹部	ふくぶ	vùng bụng
+背中	せなか	lưng
+腰	こし	thắt lưng; eo
+臀部	でんぶ	mông
+股関節	こかんせつ	khớp háng
+太もも	ふともも	đùi	大腿
+膝	ひざ	đầu gối
+脛	すね	cẳng chân
+ふくらはぎ	ふくらはぎ	bắp chân
+足	あし	chân; bàn chân
+足首	あしくび	mắt cá chân
+かかと	かかと	gót chân	踵
+つま先	つまさき	đầu ngón chân; mũi chân
+皮膚	ひふ	da
+爪	つめ	móng
+髪	かみ	tóc
+骨	ほね	xương
+関節	かんせつ	khớp
+筋肉	きんにく	cơ
+腱	けん	gân
+靭帯	じんたい	dây chằng
+軟骨	なんこつ	sụn
+脊椎	せきつい	cột sống
+椎間板	ついかんばん	đĩa đệm
+頭蓋骨	ずがいこつ	hộp sọ
+肋骨	ろっこつ	xương sườn
+骨盤	こつばん	xương chậu
+大腿骨	だいたいこつ	xương đùi
+鎖骨	さこつ	xương đòn
+肩甲骨	けんこうこつ	xương bả vai
+膝蓋骨	しつがいこつ	xương bánh chè
+脳	のう	não
+小脳	しょうのう	tiểu não
+脳幹	のうかん	thân não
+脊髄	せきずい	tủy sống
+髄膜	ずいまく	màng não
+心臓	しんぞう	tim
+心房	しんぼう	tâm nhĩ
+心室	しんしつ	tâm thất
+大動脈	だいどうみゃく	động mạch chủ
+冠動脈	かんどうみゃく	động mạch vành
+動脈	どうみゃく	động mạch
+静脈	じょうみゃく	tĩnh mạch
+毛細血管	もうさいけっかん	mao mạch
+血管	けっかん	mạch máu
+血液	けつえき	máu
+赤血球	せっけっきゅう	hồng cầu
+白血球	はっけっきゅう	bạch cầu
+血小板	けっしょうばん	tiểu cầu
+血漿	けっしょう	huyết tương
+リンパ	リンパ	bạch huyết
+リンパ節	リンパせつ	hạch bạch huyết
+肺	はい	phổi
+気管	きかん	khí quản
+気管支	きかんし	phế quản
+肺胞	はいほう	phế nang
+胸膜	きょうまく	màng phổi
+横隔膜	おうかくまく	cơ hoành
+食道	しょくどう	thực quản
+胃	い	dạ dày
+小腸	しょうちょう	ruột non
+大腸	だいちょう	ruột già
+結腸	けっちょう	đại tràng
+直腸	ちょくちょう	trực tràng
+肛門	こうもん	hậu môn
+十二指腸	じゅうにしちょう	tá tràng
+虫垂	ちゅうすい	ruột thừa
+肝臓	かんぞう	gan
+胆嚢	たんのう	túi mật
+膵臓	すいぞう	tụy
+脾臓	ひぞう	lách
+腎臓	じんぞう	thận
+尿管	にょうかん	niệu quản
+膀胱	ぼうこう	bàng quang
+尿道	にょうどう	niệu đạo
+子宮	しきゅう	tử cung
+卵巣	らんそう	buồng trứng
+卵管	らんかん	vòi trứng
+膣	ちつ	âm đạo
+胎盤	たいばん	nhau thai
+胎児	たいじ	thai nhi
+睾丸	こうがん	tinh hoàn	精巣
+前立腺	ぜんりつせん	tuyến tiền liệt
+甲状腺	こうじょうせん	tuyến giáp
+副腎	ふくじん	tuyến thượng thận
+下垂体	かすいたい	tuyến yên
+視床下部	ししょうかぶ	vùng dưới đồi
+角膜	かくまく	giác mạc
+虹彩	こうさい	mống mắt
+瞳孔	どうこう	đồng tử
+水晶体	すいしょうたい	thể thủy tinh
+網膜	もうまく	võng mạc
+結膜	けつまく	kết mạc
+鼓膜	こまく	màng nhĩ
+内耳	ないじ	tai trong
+副鼻腔	ふくびくう	xoang
+# ---- Triệu chứng ----
+症状	しょうじょう	triệu chứng
+徴候	ちょうこう	dấu hiệu
+発熱	はつねつ	sốt
+熱	ねつ	sốt; nhiệt
+微熱	びねつ	sốt nhẹ
+高熱	こうねつ	sốt cao
+悪寒	おかん	ớn lạnh
+咳	せき	ho
+痰	たん	đờm
+鼻水	はなみず	nước mũi; chảy nước mũi
+鼻づまり	はなづまり	nghẹt mũi	鼻詰まり
+くしゃみ	くしゃみ	hắt hơi
+喉の痛み	のどのいたみ	đau họng
+息切れ	いきぎれ	khó thở; hụt hơi
+呼吸困難	こきゅうこんなん	khó thở
+動悸	どうき	hồi hộp; đánh trống ngực
+胸痛	きょうつう	đau ngực
+めまい	めまい	chóng mặt	眩暈
+立ちくらみ	たちくらみ	choáng khi đứng dậy
+失神	しっしん	ngất
+頭痛	ずつう	đau đầu
+偏頭痛	へんずつう	đau nửa đầu	片頭痛
+倦怠感	けんたいかん	mệt mỏi; uể oải
+だるさ	だるさ	mệt mỏi; uể oải
+不眠	ふみん	mất ngủ
+吐き気	はきけ	buồn nôn
+嘔吐	おうと	nôn
+下痢	げり	tiêu chảy
+便秘	べんぴ	táo bón
+腹痛	ふくつう	đau bụng
+胃痛	いつう	đau dạ dày
+胸やけ	むねやけ	ợ nóng
+食欲不振	しょくよくふしん	chán ăn
+体重減少	たいじゅうげんしょう	sụt cân
+むくみ	むくみ	phù; sưng phù
+発疹	ほっしん	phát ban
+かゆみ	かゆみ	ngứa	痒み
+痛み	いたみ	đau
+激痛	げきつう	đau dữ dội
+鈍痛	どんつう	đau âm ỉ
+しびれ	しびれ	tê	痺れ
+痙攣	けいれん	co giật; chuột rút
+震え	ふるえ	run
+麻痺	まひ	liệt
+出血	しゅっけつ	chảy máu
+内出血	ないしゅっけつ	xuất huyết trong; bầm tím
+黄疸	おうだん	vàng da
+チアノーゼ	チアノーゼ	tím tái
+貧血	ひんけつ	thiếu máu
+脱水	だっすい	mất nước
+発汗	はっかん	đổ mồ hôi
+視力低下	しりょくていか	giảm thị lực
+難聴	なんちょう	nghe kém; điếc
+耳鳴り	みみなり	ù tai
+嗄声	させい	khàn giọng
+口臭	こうしゅう	hôi miệng
+頻尿	ひんにょう	tiểu nhiều lần
+血尿	けつにょう	tiểu ra máu
+血便	けつべん	đi ngoài ra máu
+排尿痛	はいにょうつう	tiểu buốt
+# ---- Bệnh ----
+病気	びょうき	bệnh
+疾患	しっかん	bệnh; chứng bệnh
+疾病	しっぺい	bệnh tật
+障害	しょうがい	rối loạn; khuyết tật
+感染症	かんせんしょう	bệnh truyền nhiễm
+流行	りゅうこう	dịch lây lan; thịnh hành
+風邪	かぜ	cảm lạnh	感冒
+インフルエンザ	インフルエンザ	cúm
+肺炎	はいえん	viêm phổi
+気管支炎	きかんしえん	viêm phế quản
+喘息	ぜんそく	hen suyễn
+結核	けっかく	lao
+新型コロナウイルス感染症	しんがたコロナウイルスかんせんしょう	COVID-19
+デング熱	デングねつ	sốt xuất huyết
+マラリア	マラリア	sốt rét
+肝炎	かんえん	viêm gan
+肝硬変	かんこうへん	xơ gan
+脂肪肝	しぼうかん	gan nhiễm mỡ
+胃炎	いえん	viêm dạ dày
+胃潰瘍	いかいよう	loét dạ dày
+虫垂炎	ちゅうすいえん	viêm ruột thừa
+胆石	たんせき	sỏi mật
+腎結石	じんけっせき	sỏi thận
+尿路感染症	にょうろかんせんしょう	nhiễm trùng đường tiết niệu
+腎不全	じんふぜん	suy thận
+高血圧	こうけつあつ	tăng huyết áp
+低血圧	ていけつあつ	hạ huyết áp
+動脈硬化	どうみゃくこうか	xơ vữa động mạch
+狭心症	きょうしんしょう	đau thắt ngực
+心筋梗塞	しんきんこうそく	nhồi máu cơ tim
+心不全	しんふぜん	suy tim
+不整脈	ふせいみゃく	rối loạn nhịp tim
+心房細動	しんぼうさいどう	rung nhĩ
+脳卒中	のうそっちゅう	đột quỵ
+脳梗塞	のうこうそく	nhồi máu não
+脳出血	のうしゅっけつ	xuất huyết não
+くも膜下出血	くもまくかしゅっけつ	xuất huyết dưới nhện
+血栓	けっせん	huyết khối
+動脈瘤	どうみゃくりゅう	phình mạch
+静脈瘤	じょうみゃくりゅう	giãn tĩnh mạch
+白血病	はっけつびょう	bệnh bạch cầu
+リンパ腫	リンパしゅ	u lymphô
+糖尿病	とうにょうびょう	tiểu đường
+低血糖	ていけっとう	hạ đường huyết
+高血糖	こうけっとう	tăng đường huyết
+甲状腺機能亢進症	こうじょうせんきのうこうしんしょう	cường giáp
+甲状腺機能低下症	こうじょうせんきのうていかしょう	suy giáp
+肥満	ひまん	béo phì
+栄養失調	えいようしっちょう	suy dinh dưỡng
+骨粗しょう症	こつそしょうしょう	loãng xương	骨粗鬆症
+関節炎	かんせつえん	viêm khớp
+関節リウマチ	かんせつリウマチ	viêm khớp dạng thấp
+変形性関節症	へんけいせいかんせつしょう	thoái hóa khớp
+痛風	つうふう	gút
+骨折	こっせつ	gãy xương
+脱臼	だっきゅう	trật khớp
+捻挫	ねんざ	bong gân
+椎間板ヘルニア	ついかんばんヘルニア	thoát vị đĩa đệm
+脊柱側弯症	せきちゅうそくわんしょう	vẹo cột sống
+がん	がん	ung thư	癌
+悪性腫瘍	あくせいしゅよう	khối u ác tính
+良性腫瘍	りょうせいしゅよう	khối u lành tính
+腫瘍	しゅよう	khối u
+肺がん	はいがん	ung thư phổi
+乳がん	にゅうがん	ung thư vú
+胃がん	いがん	ung thư dạ dày
+肝臓がん	かんぞうがん	ung thư gan
+大腸がん	だいちょうがん	ung thư đại trực tràng
+前立腺がん	ぜんりつせんがん	ung thư tuyến tiền liệt
+子宮頸がん	しきゅうけいがん	ung thư cổ tử cung
+皮膚がん	ひふがん	ung thư da
+転移	てんい	di căn
+アレルギー	アレルギー	dị ứng
+食物アレルギー	しょくもつアレルギー	dị ứng thực phẩm
+花粉症	かふんしょう	dị ứng phấn hoa
+アレルギー性鼻炎	アレルギーせいびえん	viêm mũi dị ứng
+アトピー性皮膚炎	アトピーせいひふえん	viêm da cơ địa
+湿疹	しっしん	chàm
+乾癬	かんせん	vẩy nến
+にきび	にきび	mụn trứng cá	痤瘡
+蕁麻疹	じんましん	mày đay
+皮膚炎	ひふえん	viêm da
+帯状疱疹	たいじょうほうしん	zona
+水痘	すいとう	thủy đậu	水ぼうそう
+麻疹	ましん	sởi	はしか
+おたふく風邪	おたふくかぜ	quai bị
+風疹	ふうしん	rubella
+百日咳	ひゃくにちぜき	ho gà
+ポリオ	ポリオ	bại liệt
+狂犬病	きょうけんびょう	bệnh dại
+エイズ	エイズ	AIDS
+梅毒	ばいどく	giang mai
+敗血症	はいけつしょう	nhiễm trùng huyết
+髄膜炎	ずいまくえん	viêm màng não
+脳炎	のうえん	viêm não
+てんかん	てんかん	động kinh
+パーキンソン病	パーキンソンびょう	bệnh Parkinson
+アルツハイマー病	アルツハイマーびょう	bệnh Alzheimer
+認知症	にんちしょう	sa sút trí tuệ
+うつ病	うつびょう	trầm cảm
+不安障害	ふあんしょうがい	rối loạn lo âu
+統合失調症	とうごうしっちょうしょう	tâm thần phân liệt
+双極性障害	そうきょくせいしょうがい	rối loạn lưỡng cực
+自閉症	じへいしょう	tự kỷ
+結膜炎	けつまくえん	viêm kết mạc
+白内障	はくないしょう	đục thủy tinh thể
+緑内障	りょくないしょう	tăng nhãn áp
+近視	きんし	cận thị
+遠視	えんし	viễn thị
+乱視	らんし	loạn thị
+中耳炎	ちゅうじえん	viêm tai giữa
+副鼻腔炎	ふくびくうえん	viêm xoang
+扁桃炎	へんとうえん	viêm amiđan
+咽頭炎	いんとうえん	viêm họng
+喉頭炎	こうとうえん	viêm thanh quản
+虫歯	むしば	sâu răng
+歯周病	ししゅうびょう	viêm nha chu
+痔	じ	trĩ
+ヘルニア	ヘルニア	thoát vị
+腹膜炎	ふくまくえん	viêm phúc mạc
+膵炎	すいえん	viêm tụy
+胆嚢炎	たんのうえん	viêm túi mật
+大腸炎	だいちょうえん	viêm đại tràng
+過敏性腸症候群	かびんせいちょうしょうこうぐん	hội chứng ruột kích thích
+クローン病	クローンびょう	bệnh Crohn
+不妊症	ふにんしょう	vô sinh
+子宮内膜症	しきゅうないまくしょう	lạc nội mạc tử cung
+子宮筋腫	しきゅうきんしゅ	u xơ tử cung
+子宮外妊娠	しきゅうがいにんしん	thai ngoài tử cung
+流産	りゅうざん	sảy thai
+早産	そうざん	sinh non
+妊娠高血圧症候群	にんしんこうけつあつしょうこうぐん	tiền sản giật
+妊娠糖尿病	にんしんとうにょうびょう	tiểu đường thai kỳ
+ダウン症	ダウンしょう	hội chứng Down
+脳性麻痺	のうせいまひ	bại não
+# ---- Khám chữa bệnh ----
+患者	かんじゃ	bệnh nhân
+医師	いし	bác sĩ
+医者	いしゃ	bác sĩ
+看護師	かんごし	điều dưỡng; y tá
+助産師	じょさんし	nữ hộ sinh
+薬剤師	やくざいし	dược sĩ
+歯科医	しかい	nha sĩ
+救急隊員	きゅうきゅうたいいん	nhân viên cấp cứu
+介護士	かいごし	nhân viên chăm sóc
+介護福祉士	かいごふくしし	nhân viên chăm sóc điều dưỡng được chứng nhận
+理学療法士	りがくりょうほうし	nhà vật lý trị liệu
+作業療法士	さぎょうりょうほうし	nhà hoạt động trị liệu
+言語聴覚士	げんごちょうかくし	nhà ngôn ngữ trị liệu
+管理栄養士	かんりえいようし	chuyên viên dinh dưỡng
+診察	しんさつ	khám bệnh
+問診	もんしん	hỏi bệnh
+視診	ししん	nhìn; quan sát
+触診	しょくしん	sờ nắn
+打診	だしん	gõ
+聴診	ちょうしん	nghe	聴診する
+診断	しんだん	chẩn đoán
+診断書	しんだんしょ	giấy chứng nhận y tế
+治療	ちりょう	điều trị
+予後	よご	tiên lượng
+予防	よぼう	phòng bệnh
+検診	けんしん	khám sàng lọc
+健康診断	けんこうしんだん	khám sức khỏe
+再診	さいしん	tái khám
+初診	しょしん	khám lần đầu
+紹介状	しょうかいじょう	giấy giới thiệu
+セカンドオピニオン	セカンドオピニオン	ý kiến thứ hai
+インフォームドコンセント	インフォームドコンセント	đồng ý có thông tin
+既往歴	きおうれき	tiền sử bệnh
+家族歴	かぞくれき	tiền sử gia đình
+主訴	しゅそ	lý do khám
+病歴	びょうれき	bệnh sử
+処方箋	しょほうせん	đơn thuốc
+処方	しょほう	kê đơn
+用量	ようりょう	liều dùng
+副作用	ふくさよう	tác dụng phụ
+禁忌	きんき	chống chỉ định
+適応	てきおう	chỉ định
+過剰摂取	かじょうせっしゅ	quá liều
+再発	さいはつ	tái phát
+寛解	かんかい	thuyên giảm
+回復	かいふく	hồi phục
+合併症	がっぺいしょう	biến chứng
+後遺症	こういしょう	di chứng
+危険因子	きけんいんし	yếu tố nguy cơ
+病因	びょういん	nguyên nhân bệnh
+潜伏期間	せんぷくきかん	thời gian ủ bệnh
+死亡率	しぼうりつ	tỷ lệ tử vong
+平均寿命	へいきんじゅみょう	tuổi thọ trung bình
+終末期	しゅうまつき	giai đoạn cuối
+緩和ケア	かんわケア	chăm sóc giảm nhẹ
+ターミナルケア	ターミナルケア	chăm sóc cuối đời
+バイタルサイン	バイタルサイン	dấu hiệu sinh tồn
+体温	たいおん	thân nhiệt
+血圧	けつあつ	huyết áp
+収縮期血圧	しゅうしゅくきけつあつ	huyết áp tâm thu
+拡張期血圧	かくちょうきけつあつ	huyết áp tâm trương
+脈拍	みゃくはく	mạch
+心拍数	しんぱくすう	nhịp tim
+呼吸数	こきゅうすう	nhịp thở
+酸素飽和度	さんそほうわど	độ bão hòa oxy
+身長	しんちょう	chiều cao
+体重	たいじゅう	cân nặng
+体格指数	たいかくしすう	chỉ số khối cơ thể	BMI
+聴診器	ちょうしんき	ống nghe
+体温計	たいおんけい	nhiệt kế
+血圧計	けつあつけい	huyết áp kế
+# ---- Xét nghiệm / chẩn đoán hình ảnh ----
+検査	けんさ	xét nghiệm; kiểm tra
+血液検査	けつえきけんさ	xét nghiệm máu
+尿検査	にょうけんさ	xét nghiệm nước tiểu
+便検査	べんけんさ	xét nghiệm phân
+生検	せいけん	sinh thiết
+細胞診	さいぼうしん	tế bào học
+肝機能検査	かんきのうけんさ	xét nghiệm chức năng gan
+腎機能検査	じんきのうけんさ	xét nghiệm chức năng thận
+血糖値	けっとうち	đường huyết
+コレステロール	コレステロール	cholesterol
+中性脂肪	ちゅうせいしぼう	triglyceride
+クレアチニン	クレアチニン	creatinin
+ビリルビン	ビリルビン	bilirubin
+腫瘍マーカー	しゅようマーカー	chất chỉ điểm khối u
+PCR検査	ピーシーアールけんさ	xét nghiệm PCR
+抗原検査	こうげんけんさ	xét nghiệm kháng nguyên
+抗体検査	こうたいけんさ	xét nghiệm kháng thể
+陽性	ようせい	dương tính
+陰性	いんせい	âm tính
+基準値	きじゅんち	giá trị tham chiếu
+正常値	せいじょうち	giá trị bình thường
+異常	いじょう	bất thường
+レントゲン	レントゲン	X-quang
+エックス線	エックスせん	tia X	X線
+CT検査	シーティーけんさ	chụp cắt lớp vi tính	CT
+MRI検査	エムアールアイけんさ	chụp cộng hưởng từ	MRI
+超音波検査	ちょうおんぱけんさ	siêu âm	エコー
+心エコー	しんエコー	siêu âm tim
+マンモグラフィー	マンモグラフィー	chụp nhũ ảnh
+血管造影	けっかんぞうえい	chụp mạch
+骨密度検査	こつみつどけんさ	đo mật độ xương
+心電図	しんでんず	điện tâm đồ
+脳波	のうは	điện não đồ
+筋電図	きんでんず	điện cơ
+内視鏡	ないしきょう	nội soi
+胃カメラ	いカメラ	nội soi dạ dày
+大腸内視鏡	だいちょうないしきょう	nội soi đại tràng
+気管支鏡	きかんしきょう	nội soi phế quản
+腰椎穿刺	ようついせんし	chọc dò tủy sống
+肺機能検査	はいきのうけんさ	đo chức năng hô hấp
+造影剤	ぞうえいざい	thuốc cản quang
+# ---- Điều trị, phẫu thuật, thủ thuật ----
+手術	しゅじゅつ	phẫu thuật
+手術室	しゅじゅつしつ	phòng mổ
+麻酔	ますい	gây mê; gây tê
+局所麻酔	きょくしょますい	gây tê tại chỗ
+全身麻酔	ぜんしんますい	gây mê toàn thân
+硬膜外麻酔	こうまくがいますい	gây tê ngoài màng cứng
+切開	せっかい	rạch
+縫合	ほうごう	khâu
+傷	きず	vết thương	創傷
+傷口	きずぐち	miệng vết thương
+包帯	ほうたい	băng
+ガーゼ	ガーゼ	gạc
+傷跡	きずあと	sẹo	瘢痕
+腹腔鏡手術	ふくくうきょうしゅじゅつ	phẫu thuật nội soi ổ bụng
+移植	いしょく	ghép
+臓器移植	ぞうきいしょく	ghép tạng
+骨髄移植	こつずいいしょく	ghép tủy xương
+切断	せつだん	cắt cụt
+切除	せつじょ	cắt bỏ
+虫垂切除術	ちゅうすいせつじょじゅつ	cắt ruột thừa
+胆嚢摘出術	たんのうてきしゅつじゅつ	cắt túi mật
+帝王切開	ていおうせっかい	mổ lấy thai
+子宮摘出術	しきゅうてきしゅつじゅつ	cắt tử cung
+乳房切除術	にゅうぼうせつじょじゅつ	cắt bỏ vú
+扁桃摘出術	へんとうてきしゅつじゅつ	cắt amiđan
+バイパス手術	バイパスしゅじゅつ	phẫu thuật bắc cầu
+血管形成術	けっかんけいせいじゅつ	nong mạch
+ステント	ステント	stent
+ペースメーカー	ペースメーカー	máy tạo nhịp tim
+除細動器	じょさいどうき	máy khử rung tim
+AED	エーイーディー	máy khử rung tim tự động
+カテーテル	カテーテル	ống thông
+点滴	てんてき	truyền dịch
+輸液	ゆえき	truyền dịch
+静脈注射	じょうみゃくちゅうしゃ	tiêm tĩnh mạch
+筋肉注射	きんにくちゅうしゃ	tiêm bắp
+皮下注射	ひかちゅうしゃ	tiêm dưới da
+注射	ちゅうしゃ	tiêm
+注射器	ちゅうしゃき	ống tiêm
+注射針	ちゅうしゃばり	kim tiêm
+予防接種	よぼうせっしゅ	tiêm chủng	ワクチン接種
+ワクチン	ワクチン	vắc-xin
+輸血	ゆけつ	truyền máu
+献血	けんけつ	hiến máu
+透析	とうせき	lọc máu
+血液透析	けつえきとうせき	chạy thận nhân tạo
+化学療法	かがくりょうほう	hóa trị
+放射線治療	ほうしゃせんちりょう	xạ trị
+免疫療法	めんえきりょうほう	liệu pháp miễn dịch
+理学療法	りがくりょうほう	vật lý trị liệu
+リハビリテーション	リハビリテーション	phục hồi chức năng	リハビリ
+作業療法	さぎょうりょうほう	hoạt động trị liệu
+言語療法	げんごりょうほう	ngôn ngữ trị liệu
+心理療法	しんりりょうほう	liệu pháp tâm lý
+カウンセリング	カウンセリング	tư vấn tâm lý
+鍼灸	しんきゅう	châm cứu
+漢方薬	かんぽうやく	thuốc đông y
+人工呼吸器	じんこうこきゅうき	máy thở
+人工呼吸	じんこうこきゅう	hô hấp nhân tạo
+気管挿管	きかんそうかん	đặt nội khí quản
+気管切開	きかんせっかい	mở khí quản
+蘇生	そせい	hồi sức
+心肺蘇生	しんぱいそせい	hồi sức tim phổi
+応急手当	おうきゅうてあて	sơ cứu
+救急	きゅうきゅう	cấp cứu
+救急車	きゅうきゅうしゃ	xe cấp cứu
+外傷	がいしょう	chấn thương
+火傷	やけど	bỏng	熱傷
+ショック	ショック	sốc
+昏睡	こんすい	hôn mê
+心停止	しんていし	ngừng tim
+窒息	ちっそく	nghẹt thở
+中毒	ちゅうどく	ngộ độc
+食中毒	しょくちゅうどく	ngộ độc thực phẩm
+熱中症	ねっちゅうしょう	say nóng; sốc nhiệt
+低体温症	ていたいおんしょう	hạ thân nhiệt
+凍傷	とうしょう	tê cóng
+溺水	できすい	đuối nước
+# ---- Thuốc ----
+薬	くすり	thuốc
+医薬品	いやくひん	dược phẩm
+錠剤	じょうざい	viên nén
+カプセル	カプセル	viên nang
+シロップ	シロップ	siro
+軟膏	なんこう	thuốc mỡ
+点眼薬	てんがんやく	thuốc nhỏ mắt
+吸入薬	きゅうにゅうやく	thuốc hít
+坐薬	ざやく	thuốc đặt
+貼り薬	はりぐすり	miếng dán
+市販薬	しはんやく	thuốc không kê đơn
+処方薬	しょほうやく	thuốc kê đơn
+ジェネリック医薬品	ジェネリックいやくひん	thuốc generic
+有効成分	ゆうこうせいぶん	hoạt chất
+使用期限	しようきげん	hạn sử dụng
+鎮痛薬	ちんつうやく	thuốc giảm đau
+解熱剤	げねつざい	thuốc hạ sốt
+消炎剤	しょうえんざい	thuốc kháng viêm
+抗生物質	こうせいぶっしつ	kháng sinh
+抗ウイルス薬	こうウイルスやく	thuốc kháng vi-rút
+抗真菌薬	こうしんきんやく	thuốc kháng nấm
+抗ヒスタミン薬	こうヒスタミンやく	thuốc kháng histamin
+制酸薬	せいさんやく	thuốc kháng acid
+抗うつ薬	こううつやく	thuốc chống trầm cảm
+抗てんかん薬	こうてんかんやく	thuốc chống co giật
+抗凝固薬	こうぎょうこやく	thuốc chống đông
+降圧薬	こうあつやく	thuốc hạ huyết áp
+利尿薬	りにょうやく	thuốc lợi tiểu
+睡眠薬	すいみんやく	thuốc ngủ
+鎮静薬	ちんせいやく	thuốc an thần
+下剤	げざい	thuốc nhuận tràng
+気管支拡張薬	きかんしかくちょうやく	thuốc giãn phế quản
+ステロイド	ステロイド	steroid
+ビタミン	ビタミン	vitamin
+サプリメント	サプリメント	thực phẩm bổ sung
+薬物相互作用	やくぶつそうごさよう	tương tác thuốc
+薬物アレルギー	やくぶつアレルギー	dị ứng thuốc
+依存症	いぞんしょう	nghiện; phụ thuộc
+# ---- Cơ sở y tế, chuyên khoa ----
+病院	びょういん	bệnh viện
+診療所	しんりょうじょ	phòng khám
+クリニック	クリニック	phòng khám
+薬局	やっきょく	nhà thuốc
+救急外来	きゅうきゅうがいらい	phòng cấp cứu
+集中治療室	しゅうちゅうちりょうしつ	khoa hồi sức tích cực	ICU
+病棟	びょうとう	khoa; khu điều trị nội trú
+病室	びょうしつ	phòng bệnh
+外来	がいらい	ngoại trú; khám ngoại trú
+入院	にゅういん	nhập viện
+退院	たいいん	xuất viện
+診療科	しんりょうか	chuyên khoa
+内科	ないか	nội khoa
+外科	げか	ngoại khoa
+小児科	しょうにか	nhi khoa
+産科	さんか	sản khoa
+婦人科	ふじんか	phụ khoa
+産婦人科	さんふじんか	sản phụ khoa
+循環器内科	じゅんかんきないか	tim mạch
+神経内科	しんけいないか	thần kinh
+精神科	せいしんか	tâm thần
+皮膚科	ひふか	da liễu
+眼科	がんか	nhãn khoa
+耳鼻咽喉科	じびいんこうか	tai mũi họng
+歯科	しか	nha khoa
+整形外科	せいけいげか	chấn thương chỉnh hình
+泌尿器科	ひにょうきか	tiết niệu
+腎臓内科	じんぞうないか	thận học
+消化器内科	しょうかきないか	tiêu hóa
+呼吸器内科	こきゅうきないか	hô hấp
+内分泌内科	ないぶんぴつないか	nội tiết
+血液内科	けつえきないか	huyết học
+腫瘍内科	しゅようないか	ung thư học
+腫瘍科	しゅようか	ung thư học
+リウマチ科	リウマチか	cơ xương khớp
+感染症科	かんせんしょうか	bệnh truyền nhiễm
+老年内科	ろうねんないか	lão khoa
+麻酔科	ますいか	gây mê hồi sức
+放射線科	ほうしゃせんか	khoa chẩn đoán hình ảnh
+リハビリテーション科	リハビリテーションか	phục hồi chức năng
+救急科	きゅうきゅうか	khoa cấp cứu
+カルテ	カルテ	bệnh án	診療録
+健康保険	けんこうほけん	bảo hiểm y tế
+国民健康保険	こくみんけんこうほけん	bảo hiểm y tế quốc dân
+保険証	ほけんしょう	thẻ bảo hiểm y tế
+診察券	しんさつけん	thẻ khám bệnh
+医療費	いりょうひ	chi phí y tế
+自己負担	じこふたん	phần tự chi trả
+公衆衛生	こうしゅうえいせい	y tế công cộng
+疫学	えきがく	dịch tễ học
+衛生	えいせい	vệ sinh
+消毒	しょうどく	khử trùng
+滅菌	めっきん	tiệt trùng
+隔離	かくり	cách ly
+検疫	けんえき	kiểm dịch
+濃厚接触	のうこうせっしょく	tiếp xúc gần
+マスク	マスク	khẩu trang
+手洗い	てあらい	rửa tay
+集団免疫	しゅうだんめんえき	miễn dịch cộng đồng
+栄養	えいよう	dinh dưỡng
+食事療法	しょくじりょうほう	chế độ ăn điều trị
+運動	うんどう	vận động
+生活習慣	せいかつしゅうかん	lối sống	生活習慣病
+禁煙	きんえん	cai thuốc lá
+飲酒	いんしゅ	uống rượu
+ストレス	ストレス	căng thẳng
+心の健康	こころのけんこう	sức khỏe tâm thần	メンタルヘルス
+避妊	ひにん	tránh thai
+妊娠	にんしん	mang thai
+出産	しゅっさん	sinh đẻ
+分娩	ぶんべん	sinh nở
+妊婦	にんぷ	thai phụ
+産後	さんご	sau sinh
+母乳	ぼにゅう	sữa mẹ
+新生児	しんせいじ	trẻ sơ sinh
+乳児	にゅうじ	trẻ nhũ nhi
+幼児	ようじ	trẻ nhỏ
+小児	しょうに	trẻ em
+思春期	ししゅんき	tuổi dậy thì
+高齢者	こうれいしゃ	người cao tuổi
+臨床試験	りんしょうしけん	thử nghiệm lâm sàng
+治験	ちけん	thử nghiệm thuốc
+偽薬	ぎやく	giả dược	プラセボ
+医療機器	いりょうきき	thiết bị y tế
+車椅子	くるまいす	xe lăn
+杖	つえ	gậy chống
+松葉杖	まつばづえ	nạng
+補聴器	ほちょうき	máy trợ thính
+義歯	ぎし	răng giả	入れ歯
+矯正	きょうせい	chỉnh nha; chỉnh hình
+抜歯	ばっし	nhổ răng
+根管治療	こんかんちりょう	điều trị tủy răng
+# ---- Chăm sóc người cao tuổi / điều dưỡng ----
+介護	かいご	chăm sóc (người cao tuổi, người bệnh)
+看護	かんご	điều dưỡng; chăm sóc bệnh nhân
+要介護	ようかいご	cần được chăm sóc
+要支援	ようしえん	cần hỗ trợ
+介護保険	かいごほけん	bảo hiểm chăm sóc dài hạn
+介護施設	かいごしせつ	cơ sở chăm sóc
+特別養護老人ホーム	とくべつようごろうじんホーム	viện dưỡng lão đặc biệt
+デイサービス	デイサービス	dịch vụ chăm sóc ban ngày
+訪問介護	ほうもんかいご	chăm sóc tại nhà
+ケアプラン	ケアプラン	kế hoạch chăm sóc
+ケアマネジャー	ケアマネジャー	quản lý chăm sóc
+体位変換	たいいへんかん	thay đổi tư thế bệnh nhân
+移乗	いじょう	chuyển bệnh nhân (từ giường sang xe lăn…)
+褥瘡	じょくそう	loét tì đè
+床ずれ	とこずれ	loét tì đè
+誤嚥	ごえん	hít sặc
+誤嚥性肺炎	ごえんせいはいえん	viêm phổi do hít sặc
+嚥下	えんげ	nuốt
+嚥下障害	えんげしょうがい	khó nuốt
+経管栄養	けいかんえいよう	nuôi ăn qua ống
+胃ろう	いろう	mở thông dạ dày
+排泄	はいせつ	bài tiết
+排泄介助	はいせつかいじょ	hỗ trợ đi vệ sinh
+おむつ	おむつ	tã
+入浴介助	にゅうよくかいじょ	hỗ trợ tắm
+食事介助	しょくじかいじょ	hỗ trợ ăn uống
+着替え	きがえ	thay quần áo
+清拭	せいしき	lau người
+口腔ケア	こうくうケア	chăm sóc răng miệng
+見守り	みまもり	theo dõi; trông nom
+転倒	てんとう	té ngã
+転倒予防	てんとうよぼう	phòng ngừa té ngã
+徘徊	はいかい	đi lang thang
+ADL	エーディーエル	hoạt động sinh hoạt hằng ngày
+バリアフリー	バリアフリー	không rào cản; thân thiện người khuyết tật
+ベッド柵	ベッドさく	thanh chắn giường
+ナースコール	ナースコール	chuông gọi y tá
+夜勤	やきん	ca đêm
+日勤	にっきん	ca ngày
+申し送り	もうしおくり	bàn giao ca
+記録	きろく	ghi chép (bệnh án)
+報告	ほうこく	báo cáo
+連絡	れんらく	liên lạc
+相談	そうだん	trao đổi; tư vấn
+挫傷	ざしょう	dập; bầm dập (chấn thương)

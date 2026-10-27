@@ -13,14 +13,19 @@
  *
  * Kết quả hiện như một nghĩa bình thường, không dán nhãn nguồn.
  *
- * Dùng chung một tệp cho extension và Android. Dữ liệu nạp từ ngoài (goi/*.json),
- * dạng mỗi mục: [từ, cách đọc, [nghĩa…], cờ, [dạng viết khác…], môn].
+ * Nhiều gói cùng lúc (điện, IT, y…): mỗi gói có `id`. Một từ khớp ở nhiều gói thì
+ * nghĩa của các gói được GỘP (bus → "thanh cái; bus (máy tính)") chứ không gói nào
+ * nuốt gói nào. Gói đánh dấu `sau:true` (dữ liệu chưa có người duyệt, hoặc ngành mà
+ * nghĩa sai có hại như y khoa) luôn đứng SAU Google, như từ chung.
+ *
+ * Dùng chung một tệp cho extension và Android. Dữ liệu nạp từ ngoài (goi/*.json):
+ *   { id, ten, ngu, sau?, m: [[từ, cách đọc, [nghĩa…], cờ, [dạng viết khác…], môn], …] }
  * Cờ bit 1 = từ chung. Bit 2 = đã biên tập lại.
  */
 (function (goc) {
   "use strict";
 
-  /** ngu -> { ten, khoa: Map<khoá, mục>, dai: độ dài khoá dài nhất } */
+  /** ngu -> Map<id gói, { id, ten, sau, khoa: Map<khoá, mục> }> (theo thứ tự nạp) */
   const goi = {};
 
   const MAX_NGHIA = 8;
@@ -36,17 +41,15 @@
     return t.replace(/^[\s"'“”‘’「」『』()（）\[\]【】.,;:!?。、]+|[\s"'“”‘’「」『』()（）\[\]【】.,;:!?。、]+$/g, "");
   }
 
-  /** Nạp một gói. Gọi lại với cùng `ngu` thì thay hẳn. */
+  /** Nạp một gói. Gọi lại với cùng `ngu` + `id` thì thay hẳn gói đó. */
   function nap(ngu, du) {
     const khoa = new Map();
-    let dai = 1;
     const dat = (k, muc) => {
       if (!k) return;
       const cu = khoa.get(k);
       // trùng khoá (hai từ cùng cách đọc): để mục chuyên ngành thắng mục từ chung
       if (cu && !(cu[3] & 1)) return;
       khoa.set(k, muc);
-      if (k.length > dai) dai = k.length;
     };
     const ds = (du && du.m) || [];
     for (let i = 0; i < ds.length; i++) {
@@ -61,11 +64,13 @@
         for (let j = 0; j < dd.length; j++) { const k = chuan(dd[j], ngu); if (k.length >= 3) dat(k, m); }
       }
     }
-    goi[ngu] = { ten: (du && du.ten) || "", khoa: khoa, dai: dai };
+    const id = (du && du.id) || "dien";
+    if (!goi[ngu]) goi[ngu] = new Map();
+    goi[ngu].set(id, { id: id, ten: (du && du.ten) || "", sau: !!(du && du.sau), khoa: khoa });
   }
 
-  function coSan(ngu) { return !!goi[ngu]; }
-  function go(ngu) { delete goi[ngu]; }
+  function coSan(ngu) { return !!goi[ngu] && goi[ngu].size > 0; }
+  function go(ngu, id) { if (id && goi[ngu]) goi[ngu].delete(id); else delete goi[ngu]; }
 
   /** Các dạng của `q` đáng thử, từ sát nghĩa nhất tới lỏng nhất. */
   function dang(q, ngu) {
@@ -92,20 +97,32 @@
   }
 
   /**
-   * Tra MỘT từ / cụm.
-   * @returns {{muc:Array, khop:string}|null} `khop` = chữ đã khớp với gói.
+   * Tra MỘT từ / cụm trong các gói đang bật.
+   *
+   * @param {string[]} [bat] id các gói được dùng; bỏ trống = tất cả
+   * @returns {{muc:Array, khop:string}|null} `muc` có cùng dạng một mục của gói, nhưng
+   *   nghĩa đã gộp từ mọi gói khớp; cờ "chung" chỉ bật khi MỌI gói khớp đều coi nó là
+   *   từ chung (hoặc là gói `sau`). `khop` = chữ đã khớp.
    */
-  function tra(text, ngu) {
+  function tra(text, ngu, bat) {
     const g = goi[ngu];
-    if (!g) return null;
+    if (!g || !g.size) return null;
     const q = lotVien(chuan(text, ngu));
     if (!q) return null;
     const ds = dang(q, ngu);
-    for (let i = 0; i < ds.length; i++) {
-      const m = g.khoa.get(ds[i]);
-      if (m) return { muc: m, khop: ds[i] };
+    let tu = "", doc = "", khop = "", chung = true, co = 0;
+    const nghia = [];
+    for (const p of g.values()) {
+      if (bat && bat.indexOf(p.id) < 0) continue;
+      let m = null, k = "";
+      for (let i = 0; i < ds.length && !m; i++) { m = p.khoa.get(ds[i]); k = ds[i]; }
+      if (!m) continue;
+      if (!co++) { tu = m[0]; khop = k; }
+      if (!doc && m[1]) doc = m[1];
+      if (!p.sau && !(m[3] & 1)) chung = false;
+      for (const x of m[2]) if (!nghia.some((y) => bo(y) === bo(x))) nghia.push(x);
     }
-    return null;
+    return co ? { muc: [tu, doc, nghia, chung ? 1 : 0, [], 0], khop: khop } : null;
   }
 
   const bo = (s) => String(s || "").toLowerCase().replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
@@ -119,10 +136,11 @@
    * @param {Array}  entries kết quả tra (có thể rỗng)
    * @param {string} text    chữ người dùng bôi đen / gõ
    * @param {string} ngu     "ja" | "en"
+   * @param {string[]} [bat] id các gói được dùng; bỏ trống = tất cả
    * @returns {Array} mục mới (nghĩa của gói đã trộn vào `means` của mục đầu)
    */
-  function tron(entries, text, ngu) {
-    const h = tra(text, ngu);
+  function tron(entries, text, ngu, bat) {
+    const h = tra(text, ngu, bat);
     if (!h) return entries;
     const m = h.muc, chung = !!(m[3] & 1);
     const dbNghia = m[2].slice();

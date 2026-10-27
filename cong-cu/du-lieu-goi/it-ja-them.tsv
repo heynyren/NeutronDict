@@ -1,0 +1,388 @@
+# Mục Nhật→Việt IT soạn tay (sửa chỗ phép bắc cầu qua JMdict chưa chuẩn, và bổ sung thuật ngữ IT thường gặp trong tài liệu / công việc ở Nhật).
+# Định dạng: từ <TAB> cách đọc <TAB> nghĩa (cách nhau bằng ;) <TAB> dạng khác (tuỳ chọn)
+# ---- Sửa các mục bắc cầu chưa chuẩn ----
+管理者	かんりしゃ	quản trị viên	アドミニストレータ
+端末	たんまつ	thiết bị đầu cuối; máy trạm
+定数	ていすう	hằng số
+過負荷	かふか	quá tải
+文	ぶん	câu lệnh
+破壊	はかい	phá hủy; làm hỏng
+# ---- Khái niệm chung ----
+情報処理	じょうほうしょり	xử lý thông tin
+情報システム	じょうほうシステム	hệ thống thông tin
+情報セキュリティ	じょうほうセキュリティ	an toàn thông tin
+システム開発	システムかいはつ	phát triển hệ thống
+システムエンジニア	システムエンジニア	kỹ sư hệ thống	SE
+プログラマー	プログラマー	lập trình viên	プログラマ
+エンジニア	エンジニア	kỹ sư
+開発者	かいはつしゃ	nhà phát triển
+運用	うんよう	vận hành
+保守	ほしゅ	bảo trì
+運用保守	うんようほしゅ	vận hành và bảo trì
+要件定義	ようけんていぎ	định nghĩa yêu cầu
+基本設計	きほんせっけい	thiết kế cơ bản
+詳細設計	しょうさいせっけい	thiết kế chi tiết
+外部設計	がいぶせっけい	thiết kế bên ngoài
+内部設計	ないぶせっけい	thiết kế bên trong
+実装	じっそう	cài đặt; triển khai mã
+コーディング	コーディング	viết mã
+テスト	テスト	kiểm thử
+結合テスト	けつごうテスト	kiểm thử tích hợp
+単体テスト	たんたいテスト	kiểm thử đơn vị
+総合テスト	そうごうテスト	kiểm thử tổng hợp
+受け入れテスト	うけいれテスト	kiểm thử chấp nhận
+回帰テスト	かいきテスト	kiểm thử hồi quy
+負荷テスト	ふかテスト	kiểm thử tải
+リリース	リリース	phát hành
+デプロイ	デプロイ	triển khai
+本番環境	ほんばんかんきょう	môi trường production
+開発環境	かいはつかんきょう	môi trường phát triển
+検証環境	けんしょうかんきょう	môi trường kiểm chứng; staging
+障害	しょうがい	sự cố
+障害対応	しょうがいたいおう	xử lý sự cố
+不具合	ふぐあい	lỗi; trục trặc
+仕様	しよう	đặc tả; thông số kỹ thuật
+仕様書	しようしょ	tài liệu đặc tả
+設計書	せっけいしょ	tài liệu thiết kế
+議事録	ぎじろく	biên bản họp
+進捗	しんちょく	tiến độ
+工数	こうすう	khối lượng công việc (người-giờ)
+見積もり	みつもり	ước lượng; báo giá
+納期	のうき	hạn giao
+レビュー	レビュー	rà soát
+コードレビュー	コードレビュー	rà soát mã
+リファクタリング	リファクタリング	tái cấu trúc mã
+バージョン管理	バージョンかんり	quản lý phiên bản
+ソースコード管理	ソースコードかんり	quản lý mã nguồn
+リポジトリ	リポジトリ	kho mã nguồn
+ブランチ	ブランチ	nhánh
+プルリクエスト	プルリクエスト	pull request	プルリク
+コンフリクト	コンフリクト	xung đột (khi gộp mã)
+アジャイル	アジャイル	agile
+スクラム	スクラム	Scrum
+スプリント	スプリント	sprint
+ウォーターフォール	ウォーターフォール	mô hình thác nước
+ユーザーストーリー	ユーザーストーリー	user story
+バックログ	バックログ	backlog
+スタンドアップ	スタンドアップ	họp đứng
+振り返り	ふりかえり	họp rút kinh nghiệm
+継続的インテグレーション	けいぞくてきインテグレーション	tích hợp liên tục	CI
+継続的デリバリー	けいぞくてきデリバリー	phân phối liên tục	CD
+# ---- Phần cứng, hệ điều hành ----
+パソコン	パソコン	máy tính cá nhân	PC|パーソナルコンピュータ
+ノートパソコン	ノートパソコン	máy tính xách tay
+タブレット	タブレット	máy tính bảng
+スマートフォン	スマートフォン	điện thoại thông minh	スマホ
+サーバー	サーバー	máy chủ	サーバ
+クライアント	クライアント	máy khách
+ワークステーション	ワークステーション	máy trạm
+マイコン	マイコン	vi điều khiển
+メモリ	メモリ	bộ nhớ	メモリー
+主記憶装置	しゅきおくそうち	bộ nhớ chính
+補助記憶装置	ほじょきおくそうち	bộ nhớ phụ
+外部記憶装置	がいぶきおくそうち	thiết bị lưu trữ ngoài
+ハードディスク	ハードディスク	ổ đĩa cứng
+フラッシュメモリ	フラッシュメモリ	bộ nhớ flash
+キャッシュメモリ	キャッシュメモリ	bộ nhớ đệm
+マザーボード	マザーボード	bo mạch chủ
+グラフィックボード	グラフィックボード	card đồ họa
+電源	でんげん	nguồn điện
+周辺機器	しゅうへんきき	thiết bị ngoại vi
+入出力	にゅうしゅつりょく	nhập xuất
+キーボード	キーボード	bàn phím
+マウス	マウス	chuột
+ディスプレイ	ディスプレイ	màn hình
+プリンター	プリンター	máy in
+スキャナー	スキャナー	máy quét
+ネットワークカード	ネットワークカード	card mạng
+オペレーティングシステム	オペレーティングシステム	hệ điều hành	OS
+ファイル	ファイル	tệp
+フォルダ	フォルダ	thư mục	フォルダー
+ディレクトリ	ディレクトリ	thư mục
+拡張子	かくちょうし	phần mở rộng tệp
+ショートカット	ショートカット	lối tắt
+アイコン	アイコン	biểu tượng
+ウィンドウ	ウィンドウ	cửa sổ
+タスク	タスク	tác vụ
+プロセス	プロセス	tiến trình
+スレッド	スレッド	luồng
+メモリ管理	メモリかんり	quản lý bộ nhớ
+仮想記憶	かそうきおく	bộ nhớ ảo
+デバイスドライバ	デバイスドライバ	trình điều khiển thiết bị
+起動	きどう	khởi động
+終了	しゅうりょう	kết thúc; tắt
+再起動	さいきどう	khởi động lại
+シャットダウン	シャットダウン	tắt máy
+ログイン	ログイン	đăng nhập
+ログアウト	ログアウト	đăng xuất
+ログ	ログ	nhật ký
+インストール	インストール	cài đặt
+アンインストール	アンインストール	gỡ cài đặt
+アップデート	アップデート	cập nhật
+アップグレード	アップグレード	nâng cấp
+バージョン	バージョン	phiên bản
+パッチ	パッチ	bản vá
+バックアップ	バックアップ	sao lưu
+リストア	リストア	khôi phục
+設定	せってい	cài đặt; cấu hình
+初期設定	しょきせってい	cài đặt ban đầu
+初期化	しょきか	khởi tạo; định dạng lại
+権限	けんげん	quyền hạn
+ユーザー	ユーザー	người dùng
+アカウント	アカウント	tài khoản
+パスワード	パスワード	mật khẩu
+# ---- Mạng ----
+ネットワーク	ネットワーク	mạng
+インターネット	インターネット	Internet
+イントラネット	イントラネット	mạng nội bộ
+ルーター	ルーター	bộ định tuyến
+スイッチ	スイッチ	bộ chuyển mạch
+ハブ	ハブ	hub
+ゲートウェイ	ゲートウェイ	cổng kết nối
+ファイアウォール	ファイアウォール	tường lửa
+無線LAN	むせんラン	mạng LAN không dây	Wi-Fi
+有線LAN	ゆうせんラン	mạng LAN có dây
+IPアドレス	アイピーアドレス	địa chỉ IP
+サブネット	サブネット	mạng con
+ドメイン	ドメイン	tên miền
+ポート	ポート	cổng
+プロトコル	プロトコル	giao thức
+パケット	パケット	gói tin
+帯域	たいいき	băng thông
+遅延	ちえん	độ trễ
+通信	つうしん	truyền thông; giao tiếp
+接続	せつぞく	kết nối
+切断	せつだん	ngắt kết nối
+回線	かいせん	đường truyền
+通信速度	つうしんそくど	tốc độ truyền
+ダウンロード	ダウンロード	tải xuống
+アップロード	アップロード	tải lên
+クラウド	クラウド	đám mây
+クラウドサービス	クラウドサービス	dịch vụ đám mây
+仮想化	かそうか	ảo hóa
+負荷分散	ふかぶんさん	cân bằng tải
+冗長化	じょうちょうか	dự phòng hóa
+可用性	かようせい	tính sẵn sàng
+拡張性	かくちょうせい	khả năng mở rộng
+信頼性	しんらいせい	độ tin cậy
+保守性	ほしゅせい	khả năng bảo trì
+# ---- An ninh ----
+セキュリティ	セキュリティ	an ninh; bảo mật
+サイバー攻撃	サイバーこうげき	tấn công mạng
+不正アクセス	ふせいアクセス	truy cập trái phép
+脆弱性	ぜいじゃくせい	lỗ hổng bảo mật
+ウイルス	ウイルス	vi-rút
+コンピュータウイルス	コンピュータウイルス	vi-rút máy tính
+ランサムウェア	ランサムウェア	mã độc tống tiền
+フィッシング	フィッシング	lừa đảo qua mạng
+標的型攻撃	ひょうてきがたこうげき	tấn công có chủ đích
+なりすまし	なりすまし	giả mạo danh tính
+情報漏洩	じょうほうろうえい	rò rỉ thông tin
+個人情報	こじんじょうほう	thông tin cá nhân
+暗号化	あんごうか	mã hóa
+復号	ふくごう	giải mã
+暗号	あんごう	mật mã
+鍵	かぎ	khóa
+公開鍵	こうかいかぎ	khóa công khai
+秘密鍵	ひみつかぎ	khóa riêng
+電子署名	でんししょめい	chữ ký điện tử
+電子証明書	でんししょうめいしょ	chứng thư điện tử
+認証	にんしょう	xác thực
+認可	にんか	phân quyền
+二段階認証	にだんかいにんしょう	xác thực hai bước
+多要素認証	たようそにんしょう	xác thực đa yếu tố
+生体認証	せいたいにんしょう	xác thực sinh trắc học
+アクセス権	アクセスけん	quyền truy cập
+アクセス制御	アクセスせいぎょ	kiểm soát truy cập
+ウイルス対策ソフト	ウイルスたいさくソフト	phần mềm diệt vi-rút
+侵入検知	しんにゅうけんち	phát hiện xâm nhập
+監査	かんさ	kiểm toán
+監査ログ	かんさログ	nhật ký kiểm toán
+インシデント	インシデント	sự cố an ninh
+# ---- Lập trình ----
+プログラミング	プログラミング	lập trình
+プログラミング言語	プログラミングげんご	ngôn ngữ lập trình
+ソースコード	ソースコード	mã nguồn
+コンパイラ	コンパイラ	trình biên dịch
+インタプリタ	インタプリタ	trình thông dịch
+デバッグ	デバッグ	gỡ lỗi
+バグ	バグ	lỗi	不具合
+エラー	エラー	lỗi
+警告	けいこく	cảnh báo
+例外	れいがい	ngoại lệ
+変数	へんすう	biến
+定義	ていぎ	định nghĩa
+宣言	せんげん	khai báo
+代入	だいにゅう	phép gán
+初期値	しょきち	giá trị khởi tạo
+型	かた	kiểu	データ型
+整数型	せいすうがた	kiểu số nguyên
+文字列	もじれつ	chuỗi ký tự
+配列	はいれつ	mảng
+連想配列	れんそうはいれつ	mảng kết hợp
+リスト	リスト	danh sách
+スタック	スタック	ngăn xếp
+キュー	キュー	hàng đợi
+木構造	きこうぞう	cấu trúc cây
+二分木	にぶんぎ	cây nhị phân
+グラフ	グラフ	đồ thị
+ハッシュ	ハッシュ	băm
+ポインタ	ポインタ	con trỏ
+参照	さんしょう	tham chiếu
+関数	かんすう	hàm
+メソッド	メソッド	phương thức
+引数	ひきすう	đối số; tham số
+戻り値	もどりち	giá trị trả về
+再帰	さいき	đệ quy
+ループ	ループ	vòng lặp
+繰り返し	くりかえし	lặp
+条件分岐	じょうけんぶんき	rẽ nhánh điều kiện
+if文	イフぶん	câu lệnh if
+演算子	えんざんし	toán tử
+式	しき	biểu thức
+クラス	クラス	lớp
+オブジェクト	オブジェクト	đối tượng
+インスタンス	インスタンス	thể hiện
+継承	けいしょう	kế thừa
+多態性	たたいせい	đa hình
+ポリモーフィズム	ポリモーフィズム	đa hình
+カプセル化	カプセルか	đóng gói
+抽象化	ちゅうしょうか	trừu tượng hóa
+インタフェース	インタフェース	giao diện; interface	インターフェース
+コンストラクタ	コンストラクタ	hàm khởi tạo
+ライブラリ	ライブラリ	thư viện
+フレームワーク	フレームワーク	framework
+モジュール	モジュール	mô-đun
+パッケージ	パッケージ	gói
+API	エーピーアイ	API
+アルゴリズム	アルゴリズム	thuật toán
+計算量	けいさんりょう	độ phức tạp tính toán
+ソート	ソート	sắp xếp
+探索	たんさく	tìm kiếm
+二分探索	にぶんたんさく	tìm kiếm nhị phân
+非同期処理	ひどうきしょり	xử lý bất đồng bộ
+並列処理	へいれつしょり	xử lý song song
+排他制御	はいたせいぎょ	kiểm soát loại trừ
+デッドロック	デッドロック	bế tắc
+スコープ	スコープ	phạm vi
+コメント	コメント	chú thích
+コメントアウト	コメントアウト	vô hiệu hóa bằng chú thích
+インデント	インデント	thụt lề
+構文	こうぶん	cú pháp
+文法	ぶんぽう	ngữ pháp
+正規表現	せいきひょうげん	biểu thức chính quy
+オープンソース	オープンソース	mã nguồn mở
+# ---- Web ----
+ウェブ	ウェブ	web	Web
+ウェブサイト	ウェブサイト	trang web	Webサイト
+ホームページ	ホームページ	trang chủ; trang web
+ウェブページ	ウェブページ	trang web
+ブラウザ	ブラウザ	trình duyệt	ブラウザー
+リンク	リンク	liên kết
+フォーム	フォーム	biểu mẫu
+ボタン	ボタン	nút
+入力欄	にゅうりょくらん	ô nhập liệu
+フロントエンド	フロントエンド	front end	フロント
+バックエンド	バックエンド	back end	バック
+サーバーサイド	サーバーサイド	phía máy chủ
+クライアントサイド	クライアントサイド	phía máy khách
+リクエスト	リクエスト	yêu cầu
+レスポンス	レスポンス	phản hồi
+セッション	セッション	phiên làm việc
+クッキー	クッキー	cookie
+キャッシュ	キャッシュ	bộ đệm
+レンダリング	レンダリング	kết xuất
+レスポンシブデザイン	レスポンシブデザイン	thiết kế đáp ứng
+スタイルシート	スタイルシート	bảng định kiểu
+SEO	エスイーオー	tối ưu hóa công cụ tìm kiếm
+検索エンジン	けんさくエンジン	công cụ tìm kiếm
+アクセス数	アクセスすう	lượt truy cập
+# ---- Cơ sở dữ liệu ----
+データベース	データベース	cơ sở dữ liệu	DB
+テーブル	テーブル	bảng
+レコード	レコード	bản ghi
+カラム	カラム	cột
+フィールド	フィールド	trường
+主キー	しゅキー	khóa chính
+外部キー	がいぶキー	khóa ngoại
+インデックス	インデックス	chỉ mục
+クエリ	クエリ	truy vấn	クエリー
+結合	けつごう	phép nối; kết hợp
+副問い合わせ	ふくといあわせ	truy vấn con
+トランザクション	トランザクション	giao dịch
+コミット	コミット	commit; xác nhận giao dịch
+ロールバック	ロールバック	rollback; hoàn tác
+排他ロック	はいたロック	khóa độc quyền
+正規化	せいきか	chuẩn hóa
+スキーマ	スキーマ	lược đồ
+ビュー	ビュー	khung nhìn
+ストアドプロシージャ	ストアドプロシージャ	thủ tục lưu trữ
+トリガー	トリガー	trigger
+バックアップ	バックアップ	sao lưu
+リストア	リストア	khôi phục
+データ移行	データいこう	di chuyển dữ liệu
+データ分析	データぶんせき	phân tích dữ liệu
+ビッグデータ	ビッグデータ	dữ liệu lớn
+# ---- AI / dữ liệu ----
+人工知能	じんこうちのう	trí tuệ nhân tạo	AI
+機械学習	きかいがくしゅう	học máy
+深層学習	しんそうがくしゅう	học sâu	ディープラーニング
+ニューラルネットワーク	ニューラルネットワーク	mạng nơ-ron
+自然言語処理	しぜんげんごしょり	xử lý ngôn ngữ tự nhiên
+画像認識	がぞうにんしき	nhận dạng hình ảnh
+音声認識	おんせいにんしき	nhận dạng giọng nói
+教師あり学習	きょうしありがくしゅう	học có giám sát
+教師なし学習	きょうしなしがくしゅう	học không giám sát
+強化学習	きょうかがくしゅう	học tăng cường
+学習データ	がくしゅうデータ	dữ liệu huấn luyện
+訓練データ	くんれんデータ	dữ liệu huấn luyện
+テストデータ	テストデータ	dữ liệu kiểm tra
+特徴量	とくちょうりょう	đặc trưng
+過学習	かがくしゅう	quá khớp
+モデル	モデル	mô hình
+パラメータ	パラメータ	tham số
+生成AI	せいせいエーアイ	AI tạo sinh
+大規模言語モデル	だいきぼげんごモデル	mô hình ngôn ngữ lớn	LLM
+プロンプト	プロンプト	prompt
+チャットボット	チャットボット	chatbot
+# ---- Tổng quát khác ----
+画面	がめん	màn hình (giao diện)
+操作	そうさ	thao tác
+入力	にゅうりょく	nhập
+出力	しゅつりょく	xuất
+表示	ひょうじ	hiển thị
+選択	せんたく	chọn
+クリック	クリック	nhấp chuột
+ダブルクリック	ダブルクリック	nhấp đúp
+ドラッグ	ドラッグ	kéo
+コピー	コピー	sao chép
+貼り付け	はりつけ	dán
+削除	さくじょ	xóa
+追加	ついか	thêm
+変更	へんこう	thay đổi
+更新	こうしん	cập nhật
+保存	ほぞん	lưu
+検索	けんさく	tìm kiếm
+置換	ちかん	thay thế
+並べ替え	ならべかえ	sắp xếp
+絞り込み	しぼりこみ	lọc
+一覧	いちらん	danh sách
+詳細	しょうさい	chi tiết
+概要	がいよう	tổng quan
+添付ファイル	てんぷファイル	tệp đính kèm
+メール	メール	thư điện tử; email
+受信	じゅしん	nhận
+送信	そうしん	gửi
+通知	つうち	thông báo
+アプリ	アプリ	ứng dụng
+アプリケーション	アプリケーション	ứng dụng
+ソフトウェア	ソフトウェア	phần mềm
+ハードウェア	ハードウェア	phần cứng
+システム	システム	hệ thống
+ツール	ツール	công cụ
+データ	データ	dữ liệu
+情報	じょうほう	thông tin
+機能	きのう	chức năng
+性能	せいのう	hiệu năng
+容量	ようりょう	dung lượng
+処理速度	しょりそくど	tốc độ xử lý

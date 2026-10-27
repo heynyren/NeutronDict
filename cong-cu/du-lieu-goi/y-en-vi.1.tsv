@@ -1,0 +1,467 @@
+# Thuật ngữ Y học Anh→Việt (phần 1: giải phẫu, sinh lý, triệu chứng, bệnh).
+# Do Claude soạn từ kiến thức y học phổ thông; chỉ đưa vào những thuật ngữ có cách gọi tiếng Việt thông dụng, ổn định.
+# ---- Giải phẫu: đại cương ----
+anatomy	giải phẫu học
+physiology	sinh lý học
+pathology	bệnh lý học
+histology	mô học
+cell	tế bào
+tissue	mô
+organ	cơ quan
+organ system	hệ cơ quan
+body	cơ thể
+skeleton	bộ xương
+bone	xương
+joint	khớp
+cartilage	sụn
+ligament	dây chằng
+tendon	gân
+muscle	cơ
+skeletal muscle	cơ vân
+smooth muscle	cơ trơn
+cardiac muscle	cơ tim
+skin	da
+hair	tóc; lông
+nail	móng
+fat	mỡ
+connective tissue	mô liên kết
+epithelium	biểu mô
+membrane	màng
+nerve	dây thần kinh
+neuron	nơ-ron; tế bào thần kinh
+blood vessel	mạch máu
+artery	động mạch
+vein	tĩnh mạch
+capillary	mao mạch
+lymph	bạch huyết
+lymph node	hạch bạch huyết
+gland	tuyến
+# ---- Đầu mặt cổ ----
+head	đầu
+skull	hộp sọ
+brain	não
+cerebrum	đại não
+cerebellum	tiểu não
+brain stem	thân não
+spinal cord	tủy sống
+meninges	màng não
+cerebrospinal fluid	dịch não tủy
+face	mặt
+forehead	trán
+eye	mắt
+eyelid	mi mắt
+cornea	giác mạc
+iris	mống mắt
+pupil	đồng tử
+lens	thể thủy tinh
+retina	võng mạc
+optic nerve	dây thần kinh thị giác
+conjunctiva	kết mạc
+ear	tai
+eardrum	màng nhĩ
+cochlea	ốc tai
+nose	mũi
+nasal cavity	hốc mũi
+sinus	xoang
+mouth	miệng
+lip	môi
+tongue	lưỡi
+tooth	răng
+gum	lợi
+palate	vòm miệng
+saliva	nước bọt
+salivary gland	tuyến nước bọt
+throat	họng
+pharynx	họng; hầu
+larynx	thanh quản
+tonsil	amiđan
+epiglottis	nắp thanh môn
+neck	cổ
+thyroid gland	tuyến giáp
+vocal cord	dây thanh âm
+# ---- Ngực, tim phổi ----
+chest	ngực
+thorax	lồng ngực
+rib	xương sườn
+sternum	xương ức
+breast	vú
+diaphragm	cơ hoành
+heart	tim
+atrium	tâm nhĩ
+ventricle	tâm thất
+heart valve	van tim
+aorta	động mạch chủ
+pulmonary artery	động mạch phổi
+coronary artery	động mạch vành
+vena cava	tĩnh mạch chủ
+pericardium	màng ngoài tim
+myocardium	cơ tim
+lung	phổi
+trachea	khí quản
+bronchus	phế quản
+bronchiole	tiểu phế quản
+alveolus	phế nang
+pleura	màng phổi
+airway	đường thở
+respiratory tract	đường hô hấp
+# ---- Bụng, tiêu hóa, tiết niệu, sinh dục ----
+abdomen	bụng
+stomach	dạ dày
+esophagus	thực quản
+small intestine	ruột non
+large intestine	ruột già
+colon	đại tràng
+rectum	trực tràng
+anus	hậu môn
+duodenum	tá tràng
+jejunum	hỗng tràng
+ileum	hồi tràng
+appendix	ruột thừa
+liver	gan
+gallbladder	túi mật
+bile	mật
+pancreas	tụy
+spleen	lách
+peritoneum	phúc mạc
+digestive system	hệ tiêu hóa
+kidney	thận
+ureter	niệu quản
+bladder	bàng quang
+urethra	niệu đạo
+urinary system	hệ tiết niệu
+urine	nước tiểu
+adrenal gland	tuyến thượng thận
+pituitary gland	tuyến yên
+hypothalamus	vùng dưới đồi
+uterus	tử cung
+ovary	buồng trứng
+fallopian tube	vòi trứng
+cervix	cổ tử cung
+vagina	âm đạo
+placenta	nhau thai
+fetus	thai nhi
+embryo	phôi
+umbilical cord	dây rốn
+testis	tinh hoàn
+prostate	tuyến tiền liệt
+penis	dương vật
+sperm	tinh trùng
+egg cell	tế bào trứng
+# ---- Chi, xương khớp, cột sống ----
+shoulder	vai
+arm	cánh tay
+elbow	khuỷu tay
+forearm	cẳng tay
+wrist	cổ tay
+hand	bàn tay
+finger	ngón tay
+thumb	ngón cái
+leg	chân
+hip	hông
+thigh	đùi
+knee	đầu gối
+shin	cẳng chân
+calf	bắp chân
+ankle	mắt cá chân
+foot	bàn chân
+toe	ngón chân
+heel	gót chân
+spine	cột sống
+vertebra	đốt sống
+spinal disc	đĩa đệm
+pelvis	xương chậu
+femur	xương đùi
+tibia	xương chày
+fibula	xương mác
+humerus	xương cánh tay
+radius	xương quay
+ulna	xương trụ
+clavicle	xương đòn
+scapula	xương bả vai
+patella	xương bánh chè
+cranium	hộp sọ
+mandible	xương hàm dưới
+back	lưng
+waist	eo
+groin	bẹn
+# ---- Sinh lý ----
+blood	máu
+red blood cell	hồng cầu
+white blood cell	bạch cầu
+platelet	tiểu cầu
+plasma	huyết tương
+hemoglobin	hemoglobin; huyết sắc tố
+blood type	nhóm máu
+blood pressure	huyết áp
+systolic pressure	huyết áp tâm thu
+diastolic pressure	huyết áp tâm trương
+heart rate	nhịp tim
+pulse	mạch
+heartbeat	nhịp đập của tim
+circulation	tuần hoàn
+blood circulation	tuần hoàn máu
+respiration	hô hấp
+breathing	thở
+inhalation	hít vào
+exhalation	thở ra
+oxygen	oxy
+carbon dioxide	cacbon đioxit
+digestion	tiêu hóa
+absorption	hấp thu
+metabolism	chuyển hóa
+excretion	bài tiết
+hormone	hormone; nội tiết tố
+insulin	insulin
+glucose	glucose; đường huyết
+body temperature	thể nhiệt; nhiệt độ cơ thể
+homeostasis	cân bằng nội môi
+reflex	phản xạ
+immune system	hệ miễn dịch
+immunity	miễn dịch
+antibody	kháng thể
+antigen	kháng nguyên
+inflammation	viêm
+infection	nhiễm trùng
+sleep	giấc ngủ
+growth	tăng trưởng
+puberty	dậy thì
+menstruation	kinh nguyệt
+ovulation	rụng trứng
+pregnancy	mang thai
+childbirth	sinh đẻ
+lactation	tiết sữa
+menopause	mãn kinh
+aging	lão hóa
+genetics	di truyền học
+gene	gen
+chromosome	nhiễm sắc thể
+DNA	DNA
+RNA	RNA
+mutation	đột biến
+heredity	di truyền
+# ---- Triệu chứng và dấu hiệu ----
+symptom	triệu chứng
+sign	dấu hiệu
+syndrome	hội chứng
+fever	sốt
+chills	ớn lạnh
+cough	ho
+dry cough	ho khan
+sputum	đờm
+sore throat	đau họng
+runny nose	chảy nước mũi
+nasal congestion	nghẹt mũi
+sneezing	hắt hơi
+shortness of breath	khó thở
+wheezing	thở khò khè
+chest pain	đau ngực
+palpitation	hồi hộp; đánh trống ngực
+dizziness	chóng mặt
+fainting	ngất
+headache	đau đầu
+migraine	đau nửa đầu
+fatigue	mệt mỏi
+weakness	yếu
+insomnia	mất ngủ
+nausea	buồn nôn
+vomiting	nôn
+diarrhea	tiêu chảy
+constipation	táo bón
+abdominal pain	đau bụng
+bloating	đầy hơi
+heartburn	ợ nóng
+loss of appetite	chán ăn
+weight loss	sụt cân
+weight gain	tăng cân
+swelling	sưng
+edema	phù
+rash	phát ban
+itching	ngứa
+pain	đau
+chronic pain	đau mạn tính
+acute pain	đau cấp tính
+numbness	tê
+tingling	cảm giác kiến bò; tê ran
+cramp	chuột rút
+stiffness	cứng khớp; cứng
+tremor	run
+seizure	co giật
+convulsion	co giật
+paralysis	liệt
+bleeding	chảy máu
+bruise	vết bầm
+jaundice	vàng da
+cyanosis	tím tái
+pallor	xanh xao
+sweating	đổ mồ hôi
+dehydration	mất nước
+swollen lymph nodes	sưng hạch
+blurred vision	nhìn mờ
+double vision	nhìn đôi
+hearing loss	mất thính lực
+tinnitus	ù tai
+hoarseness	khàn giọng
+bad breath	hôi miệng
+frequent urination	tiểu nhiều lần
+painful urination	tiểu buốt
+blood in urine	tiểu ra máu
+blood in stool	đi ngoài ra máu
+# ---- Bệnh thường gặp ----
+disease	bệnh
+illness	bệnh tật
+disorder	rối loạn
+condition	tình trạng bệnh
+acute	cấp tính
+chronic	mạn tính
+benign	lành tính
+malignant	ác tính
+congenital	bẩm sinh
+hereditary	di truyền
+contagious	lây
+infectious disease	bệnh truyền nhiễm
+epidemic	dịch bệnh
+pandemic	đại dịch
+outbreak	ổ dịch
+virus	vi-rút
+bacteria	vi khuẩn
+fungus	nấm
+parasite	ký sinh trùng
+common cold	cảm lạnh
+influenza	cúm
+flu	cúm
+pneumonia	viêm phổi
+bronchitis	viêm phế quản
+asthma	hen suyễn
+tuberculosis	lao
+COVID-19	COVID-19
+dengue fever	sốt xuất huyết
+malaria	sốt rét
+hepatitis	viêm gan
+hepatitis B	viêm gan B
+cirrhosis	xơ gan
+fatty liver	gan nhiễm mỡ
+gastritis	viêm dạ dày
+peptic ulcer	loét dạ dày tá tràng
+appendicitis	viêm ruột thừa
+gallstones	sỏi mật
+kidney stones	sỏi thận
+urinary tract infection	nhiễm trùng đường tiết niệu
+kidney failure	suy thận
+chronic kidney disease	bệnh thận mạn
+hypertension	tăng huyết áp	high blood pressure
+hypotension	hạ huyết áp
+atherosclerosis	xơ vữa động mạch
+coronary artery disease	bệnh mạch vành
+angina	đau thắt ngực
+myocardial infarction	nhồi máu cơ tim	heart attack
+heart failure	suy tim
+arrhythmia	rối loạn nhịp tim
+atrial fibrillation	rung nhĩ
+stroke	đột quỵ
+cerebral infarction	nhồi máu não
+cerebral hemorrhage	xuất huyết não
+thrombosis	huyết khối
+embolism	thuyên tắc
+aneurysm	phình mạch
+varicose veins	giãn tĩnh mạch
+anemia	thiếu máu
+leukemia	bệnh bạch cầu
+lymphoma	u lymphô
+hemophilia	bệnh ưa chảy máu
+diabetes	tiểu đường	diabetes mellitus
+type 1 diabetes	tiểu đường type 1
+type 2 diabetes	tiểu đường type 2
+hypoglycemia	hạ đường huyết
+hyperglycemia	tăng đường huyết
+hyperthyroidism	cường giáp
+hypothyroidism	suy giáp
+goiter	bướu cổ
+obesity	béo phì
+malnutrition	suy dinh dưỡng
+osteoporosis	loãng xương
+arthritis	viêm khớp
+rheumatoid arthritis	viêm khớp dạng thấp
+osteoarthritis	thoái hóa khớp
+gout	gút
+fracture	gãy xương
+dislocation	trật khớp
+sprain	bong gân
+herniated disc	thoát vị đĩa đệm
+scoliosis	vẹo cột sống
+cancer	ung thư
+tumor	khối u
+lung cancer	ung thư phổi
+breast cancer	ung thư vú
+stomach cancer	ung thư dạ dày
+liver cancer	ung thư gan
+colorectal cancer	ung thư đại trực tràng
+prostate cancer	ung thư tuyến tiền liệt
+cervical cancer	ung thư cổ tử cung
+skin cancer	ung thư da
+metastasis	di căn
+allergy	dị ứng
+food allergy	dị ứng thực phẩm
+allergic rhinitis	viêm mũi dị ứng
+eczema	chàm
+psoriasis	vẩy nến
+acne	mụn trứng cá
+urticaria	mày đay
+dermatitis	viêm da
+shingles	zona
+chickenpox	thủy đậu
+measles	sởi
+mumps	quai bị
+rubella	rubella; sởi Đức
+whooping cough	ho gà
+polio	bại liệt
+rabies	bệnh dại
+HIV	HIV
+AIDS	AIDS
+syphilis	giang mai
+gonorrhea	lậu
+sepsis	nhiễm trùng huyết
+meningitis	viêm màng não
+encephalitis	viêm não
+epilepsy	động kinh
+Parkinson's disease	bệnh Parkinson
+Alzheimer's disease	bệnh Alzheimer
+dementia	sa sút trí tuệ
+depression	trầm cảm
+anxiety	lo âu
+schizophrenia	tâm thần phân liệt
+bipolar disorder	rối loạn lưỡng cực
+autism	tự kỷ
+ADHD	rối loạn tăng động giảm chú ý
+conjunctivitis	viêm kết mạc
+cataract	đục thủy tinh thể
+glaucoma	tăng nhãn áp
+myopia	cận thị
+hyperopia	viễn thị
+astigmatism	loạn thị
+otitis media	viêm tai giữa
+sinusitis	viêm xoang
+tonsillitis	viêm amiđan
+pharyngitis	viêm họng
+laryngitis	viêm thanh quản
+dental caries	sâu răng
+periodontitis	viêm nha chu
+hemorrhoids	trĩ
+hernia	thoát vị
+peritonitis	viêm phúc mạc
+pancreatitis	viêm tụy
+cholecystitis	viêm túi mật
+colitis	viêm đại tràng
+irritable bowel syndrome	hội chứng ruột kích thích
+Crohn's disease	bệnh Crohn
+infertility	vô sinh
+endometriosis	lạc nội mạc tử cung
+uterine fibroids	u xơ tử cung
+polycystic ovary syndrome	hội chứng buồng trứng đa nang
+ectopic pregnancy	thai ngoài tử cung
+miscarriage	sảy thai
+preeclampsia	tiền sản giật
+gestational diabetes	tiểu đường thai kỳ
+premature birth	sinh non
+cleft lip	hở môi
+Down syndrome	hội chứng Down
+cerebral palsy	bại não
