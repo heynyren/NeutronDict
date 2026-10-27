@@ -1906,6 +1906,7 @@ function show(view, huong) {
 
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
+  if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
   if (view !== "Study")  if (view === "Notebook") { drawNotebook().then(boiNguCanhCu); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); }
   if (view === "Speak") veLuyenNoi();
@@ -1980,7 +1981,9 @@ function moJlpt() {
       nghe: (t) => speak(t, null, "ja", { rate: 0.85 }),
       T: (s) => T(s),
       icon: (ten, co) => window.Icon(ten, { size: co }),
-      toast: (s) => toast(s)
+      toast: (s) => toast(s),
+      am: (nho) => coVu(nho),
+      nhacDay: 76                                  // nút nhạc nằm trên thanh điều hướng dưới
     });
   } else jlptSan.then(() => window.JlptUI.lamMoi());
 }

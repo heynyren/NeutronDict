@@ -50,6 +50,15 @@
   /* ------------------------------------------------------------- chuẩn bị màn */
 
   /**
+   * Nhiều cách đọc (âm On / âm Kun) phải tách bạch bằng dấu "/", không viết liền:
+   * "カイ エ" → "カイ / エ". Dấu "・" trong âm Kun là chỗ ngăn gốc từ với okurigana (よ・る) nên giữ nguyên.
+   */
+  function tachDoc(s) {
+    if (!s || s === "---") return "";
+    return String(s).split(/[\s、,，;；/／]+/).filter(Boolean).join(" / ");
+  }
+
+  /**
    * Gắn chỉ mục vào dữ liệu màn (chỉ làm một lần). Trả về chính `mon` để gọi nối tiếp.
    */
   function chuanBi(mon) {
@@ -60,7 +69,7 @@
       const ct = [], chh = [], cp = [];
       ch.bai.forEach((b) => {
         b.tu.forEach((t) => { t._ch = ci; ct.push(t); idx.tu.push(t); idx.tuTheoId.set(t.id, t); });
-        b.han.forEach((h) => { h._ch = ci; chh.push(h); idx.han.push(h); });
+        b.han.forEach((h) => { h._ch = ci; h.on = tachDoc(h.on); h.kun = tachDoc(h.kun); chh.push(h); idx.han.push(h); });
         b.pp.forEach((p) => { p._ch = ci; cp.push(p); idx.pp.push(p); idx.ppTheoId.set(p.id, p); });
         b.vd.forEach((v) => {
           if (v.t) { if (!idx.vdTu.has(v.t)) idx.vdTu.set(v.t, []); idx.vdTu.get(v.t).push(v); }
@@ -374,7 +383,7 @@
   }
 
   goc.JlptCauHoi = {
-    chuanBi, chiaChang, dungDe, theHoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
+    chuanBi, chiaChang, dungDe, theHoc, tachDoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
     KIEU_TU, KIEU_HAN, KIEU_PP, SO_LUA_CHON
   };
 })(typeof self !== "undefined" ? self : this);

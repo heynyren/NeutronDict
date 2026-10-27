@@ -5,10 +5,10 @@
  * Luật 60% (do chủ dự án đặt ra):
  *   - một CHẶNG đạt ≥ 60% thì chặng kế mở;
  *   - trùm chương đạt ≥ 60% thì chương sau mở;
- *   - trùm cuối màn đạt ≥ 60% thì hoàn thành màn và mở màn kế tiếp.
+ *   - trùm cuối màn đạt ≥ 60% thì hoàn thành màn (các màn N5…N1 mở song song, không khoá nhau).
  *
  * Dạng lưu (một khoá duy nhất `jlpt`):
- *   { v:1, ngoc:0, ngayCuoi:"2026-10-27", chuoi:3, thu:false,
+ *   { v:1, ngoc:0, ngayCuoi:"2026-10-27", chuoi:3, thu:false, nhac:true,
  *     mon:{ n3:{ chang:{ "<id>":{ tot:84, sao:2, lan:3, ts:… } }, thoai:{ "<khoá>":1 } } },
  *     sai:{ "<idMuc>":2 },        // số lần sai của từng mục, để ôn lại
  *     baoLoi:{ "<idMuc>:<kiểu>":ts } }
@@ -19,11 +19,11 @@
   const NGUONG = 60;                 // phần trăm tối thiểu để qua
   const MOC_SAO = [60, 80, 95];      // 1, 2, 3 sao
 
-  /** Thứ tự các màn; màn đứng sau mở khi màn đứng trước hoàn thành. */
+  /** Thứ tự hiển thị các màn (từ dễ đến khó). */
   const THU_TU_MON = ["n5", "n4", "n3", "n2", "n1"];
 
   function macDinh() {
-    return { v: 1, ngoc: 0, ngayCuoi: "", chuoi: 0, thu: false, mon: {}, sai: {}, baoLoi: {} };
+    return { v: 1, ngoc: 0, ngayCuoi: "", chuoi: 0, thu: false, nhac: true, mon: {}, sai: {}, baoLoi: {} };
   }
 
   /** Chuẩn hoá dữ liệu đọc từ kho (thiếu trường thì bù, sai kiểu thì bỏ). */
@@ -34,6 +34,7 @@
     if (typeof d.ngayCuoi === "string") m.ngayCuoi = d.ngayCuoi;
     if (typeof d.chuoi === "number" && d.chuoi >= 0) m.chuoi = Math.floor(d.chuoi);
     m.thu = d.thu === true;
+    m.nhac = d.nhac !== false;                // nhạc nền: mặc định bật, người dùng tắt được
     if (d.mon && typeof d.mon === "object") m.mon = d.mon;
     if (d.sai && typeof d.sai === "object") m.sai = d.sai;
     if (d.baoLoi && typeof d.baoLoi === "object") m.baoLoi = d.baoLoi;
@@ -79,17 +80,12 @@
   }
 
   /**
-   * Màn `monId` đã mở chưa. Màn đầu tiên trong số các màn CÓ DỮ LIỆU luôn mở; các màn sau mở khi màn
-   * có dữ liệu liền trước đã hoàn thành.
+   * Màn `monId` đã mở chưa. Các màn mở SONG SONG: người học tự chọn cấp hợp với trình độ của mình,
+   * không phải đỗ N3 rồi mới được vào N2. Màn nào có dữ liệu thì vào được ngay.
    * @param {Object<string,string>} trumCuoi  monId → id trùm cuối, chỉ gồm các màn có dữ liệu
    */
   function monMo(td, monId, trumCuoi) {
-    if (td.thu) return true;
-    const co = THU_TU_MON.filter((m) => trumCuoi[m]);
-    const i = co.indexOf(monId);
-    if (i < 0) return false;
-    if (i === 0) return true;
-    return monXong(td, co[i - 1], trumCuoi[co[i - 1]]);
+    return !!trumCuoi[monId];
   }
 
   /** Ngày dạng YYYY-MM-DD theo giờ máy. */

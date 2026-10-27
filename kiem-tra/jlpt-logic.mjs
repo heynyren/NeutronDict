@@ -53,13 +53,21 @@ td.thu = true;
 soat("chế độ thử: mở hết", TD.changMo(td, "n3", ids, 3, true));
 td = TD.macDinh();
 const trum = { n3: "boss", n2: "boss" };
-soat("màn N3 luôn mở (màn đầu có dữ liệu)", TD.monMo(td, "n3", trum));
-soat("màn N2 khoá khi chưa thắng trùm N3", !TD.monMo(td, "n2", trum));
+soat("các màn mở SONG SONG: N3 và N2 đều mở ngay từ đầu", TD.monMo(td, "n3", trum) && TD.monMo(td, "n2", trum));
 TD.ghiKetQua(td, "n3", "boss", { dung: 17, tong: 30, saiIds: [] }, Date.now());
-soat("trùm N3 56% → N2 vẫn khoá", !TD.monMo(td, "n2", trum));
+soat("trùm N3 56% (chưa hoàn thành) vẫn không khoá N2", TD.monMo(td, "n2", trum) && !TD.monXong(td, "n3", "boss"));
 TD.ghiKetQua(td, "n3", "boss", { dung: 18, tong: 30, saiIds: [] }, Date.now());
-soat("trùm N3 đạt 60% → N2 mở", TD.monMo(td, "n2", trum) && TD.monXong(td, "n3", "boss"));
-soat("màn không có dữ liệu (N1) không bao giờ mở", !TD.monMo(td, "n1", trum));
+soat("trùm N3 đạt 60% → hoàn thành N3", TD.monXong(td, "n3", "boss"));
+soat("màn chưa có dữ liệu (N1/N4/N5) chưa mở được", !TD.monMo(td, "n1", trum) && !TD.monMo(td, "n4", trum) && !TD.monMo(td, "n5", trum));
+soat("khi thêm dữ liệu N4 thì N4 mở ngay, không cần qua màn nào", TD.monMo(TD.macDinh(), "n4", Object.assign({ n4: "boss" }, trum)));
+soat("nhạc nền mặc định bật, đọc lại giữ nguyên lựa chọn tắt", TD.macDinh().nhac === true && TD.chuan({ nhac: false }).nhac === false && TD.chuan({}).nhac === true);
+
+console.log("\nCách đọc On/Kun: nhiều cách đọc phải tách bằng dấu /");
+soat('tachDoc("カイ エ") = "カイ / エ"', CH.tachDoc("カイ エ") === "カイ / エ");
+soat('tachDoc("まわ・る まわ・す") giữ dấu ・ của okurigana', CH.tachDoc("まわ・る まわ・す") === "まわ・る / まわ・す");
+soat("tachDoc chịu được 、 , và khoảng trắng toàn角", CH.tachDoc("カイ、エ,ガ\u3000ゲ") === "カイ / エ / ガ / ゲ");
+soat('tachDoc("---") và rỗng → ""', CH.tachDoc("---") === "" && CH.tachDoc("") === "" && CH.tachDoc(null) === "");
+soat("tachDoc gọi hai lần cho cùng kết quả (idempotent)", CH.tachDoc(CH.tachDoc("カイ エ")) === "カイ / エ");
 
 console.log("\nChuỗi ngày");
 td = TD.macDinh();
@@ -80,6 +88,10 @@ for (const lv of ["n3", "n2"]) {
   soat(lv.toUpperCase() + ": có chặng, mỗi chương có trùm, cuối là trùm cuối", ds.length > 150 && ds[ds.length - 1].id === "boss" && ds.filter((c) => c.loai === "boss-chuong").length === mon.chuong.length, ds.length + " chặng");
   soat(lv.toUpperCase() + ": id chặng không trùng", new Set(ds.map((c) => c.id)).size === ds.length);
   soat(lv.toUpperCase() + ": mỗi chặng ≤ 20 từ / ≤ 10 chữ Hán", ds.every((c) => (c.loai === "tu" ? c.items.length <= 20 : c.loai === "han" ? c.items.length <= 10 : true)));
+  const hanTat = mon.chuong.flatMap((ch) => ch.bai.flatMap((b) => b.han));
+  soat(lv.toUpperCase() + ": mọi chữ Hán có On/Kun ngăn bằng \" / \" (không viết liền bằng khoảng trắng)",
+    hanTat.length > 100 && hanTat.every((h) => [h.on, h.kun].every((v) => !v || v.split(" / ").every((x) => x && !/\s/.test(x)))), hanTat.length);
+  soat(lv.toUpperCase() + ": có chữ Hán nhiều cách đọc được hiển thị dạng a / b", hanTat.some((h) => / \/ /.test(h.on)) && hanTat.some((h) => / \/ /.test(h.kun)));
   let hong = 0, thieu = 0, tong = 0, trongLoi = 0;
   const r1 = rng(11);
   for (const c of ds) {

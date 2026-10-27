@@ -4574,6 +4574,10 @@ function moMan(ten) {
   $("viewSpeak").classList.toggle("show", ten === "speak");
   $("viewGrammar").classList.toggle("show", ten === "grammar");
   $("viewJlpt").classList.toggle("show", ten === "jlpt");
+  // Chế độ JLPT là một "trò chơi": trên máy tính cho ăn hết bề ngang thay vì cột hẹp 940px của sổ tay.
+  if (ten !== "jlpt" && window.JlptUI) window.JlptUI.tamDung();
+  const chinh = document.querySelector(".main");
+  if (chinh) chinh.classList.toggle("jlpt-rong", ten === "jlpt");
   // Hai nút trên đầu chỉ nói về Sổ tay / Tiến độ; Luyện nói vào bằng nút riêng
   // của nó, nên lúc đang ở đó thì không nút nào sáng cả.
   $("pageList").classList.toggle("active", ten === "list");
@@ -4602,7 +4606,9 @@ function moJlpt() {
       nghe: (t) => ttsSpeak(t, "ja", { rate: 0.85 }),
       T: (s) => T(s),
       icon: (ten, co) => window.Icon(ten, { size: co }),
-      toast: (s) => toast(s)
+      toast: (s) => toast(s),
+      am: (nho) => coVu(nho),
+      toanMan: (b) => document.body.classList.toggle("jlpt-toan", !!b)
     });
   } else jlptSan.then(() => window.JlptUI.lamMoi());
 }

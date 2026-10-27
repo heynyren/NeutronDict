@@ -31,7 +31,9 @@ try {
   soat("tiếng Nhật: tab JLPT hiện", await p.evaluate(() => getComputedStyle(document.getElementById("navJlpt")).display !== "none"));
   await p.evaluate(() => document.getElementById("navJlpt").click());
   await p.waitForSelector(".jl-the");
-  soat("hiện 5 thẻ màn (N3 mở, N2 khoá)", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 5 && !t[0].classList.contains("khoa") && t[1].classList.contains("khoa"); }));
+  soat("hiện 5 thẻ màn (N3 và N2 mở song song)", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 5 && !t[0].classList.contains("khoa") && !t[1].classList.contains("khoa") && !t[1].classList.contains("sap"); }));
+  await cho(600);                                   // chờ hết hoạt ảnh trượt của tab (lúc đang trượt, fixed tính theo khung đang dịch)
+  soat("điện thoại: nút nhạc nền nằm TRÊN thanh tab dưới, bấm được", await p.evaluate(() => { const b = document.querySelector(".jl-nhac"); if (!b || b.hidden) return false; const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); const nv = document.getElementById("navJlpt").getBoundingClientRect(); return b.contains(e) && r.bottom <= nv.top + 2; }));
   await p.tap('.jl-the[data-mon="n3"]');
   await p.waitForSelector(".jl-thoai");
   await p.tap(".jl-thoai .jl-btn"); await p.tap(".jl-thoai .jl-btn");
@@ -53,12 +55,33 @@ try {
     await p.tap(".jl-fb .jl-btn.chinh");
   }
   await p.waitForSelector(".jl-kq");
+  await p.waitForFunction(() => document.querySelector(".jl-vong b").textContent === "100%", null, { timeout: 5000 });
   soat("làm đúng hết: 100%, vượt chặng", await p.evaluate(() => document.querySelector(".jl-vong b").textContent === "100%" && /Vượt/.test(document.querySelector(".jl-kq-tieu").textContent)));
   await p.tap(".jl-kq .jl-btn.chinh");
   await p.waitForSelector(".jl-bd");
   soat("chặng 2 đã mở", await p.evaluate(() => !document.querySelectorAll(".jl-nut")[1].classList.contains("khoa")));
   const td = await p.evaluate(async () => await Store.get("jlpt"));
   soat("tiến độ lưu vào kho của app", td && td.ngoc > 0 && Object.keys(td.mon.n3.chang).length === 1, td && td.ngoc);
+
+  // vuốt thẻ bằng cảm ứng (sự kiện pointer kiểu touch, như Android thật)
+  await p.tap(".jl-nut.hien"); await p.waitForSelector(".jl-to-hop");
+  await p.tap(".jl-to-nut .jl-btn.chinh");
+  await p.waitForSelector(".jl-the-hoc, .jl-thoai");
+  if (await p.$(".jl-thoai")) { await p.tap(".jl-thoai .jl-btn"); await p.waitForSelector(".jl-the-hoc"); }
+  const vuot = (dx) => p.evaluate(async (dx) => {
+    const c = document.querySelector(".jl-the-hoc"), r = c.getBoundingClientRect(), x = r.x + r.width / 2, y = r.y + r.height / 2;
+    const ev = (t, px) => c.dispatchEvent(new PointerEvent(t, { pointerId: 7, pointerType: "touch", isPrimary: true, clientX: px, clientY: y, bubbles: true, cancelable: true, button: 0 }));
+    ev("pointerdown", x);
+    for (let i = 1; i <= 8; i++) { ev("pointermove", x + dx * i / 8); await new Promise((r) => setTimeout(r, 12)); }
+    ev("pointerup", x + dx);
+  }, dx);
+  const dd = () => p.evaluate(() => document.querySelector(".jl-diem").textContent);
+  const d0 = await dd();
+  await vuot(-180); await cho(500);
+  soat("cảm ứng: vuốt trái = học lại (vẫn thẻ 1)", /^1 \//.test(await dd()) && !(await p.$(".the-bay")));
+  await vuot(200); await cho(500);
+  soat("cảm ứng: vuốt phải = nhớ, sang thẻ 2", /^2 \//.test(await dd()), d0 + " → " + (await dd()));
+  await p.tap(".jl-x"); await p.waitForSelector(".jl-hoi"); await p.tap(".jl-hoi .jl-btn.chinh"); await p.waitForSelector(".jl-bd");
 
   // nút Quay lại của Android
   await p.tap(".jl-nut.hien"); await p.waitForSelector(".jl-to-hop");
