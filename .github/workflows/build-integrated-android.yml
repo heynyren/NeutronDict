@@ -56,16 +56,23 @@ jobs:
                       for error in case.findall(tag):
                           print(case.get("classname"), case.get("name"), error.get("message"))
           PY
-      - name: Upload APK and test reports
+      - name: Prepare installable preview
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          apks = list(Path("android/integration/build/app/build/outputs/apk/debug").glob("*.apk"))
+          assert len(apks) == 1, "Expected one installable APK"
+          target = Path("android/integration/dist/NeutronDict-integrated-preview.apk")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          shutil.copy2(apks[0], target)
+          PY
+      - name: Upload installable APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: NeutronDict-integrated-preview
-          path: |
-            android/integration/build/app/build/outputs/apk/debug/*.apk
-            android/integration/build/app/build/outputs/apk/androidTest/debug/*.apk
-            android/integration/build/app/build/reports/tests/
-            android/integration/build/INTEGRATION.json
+          path: android/integration/dist/NeutronDict-integrated-preview.apk
           retention-days: 7
       - name: Enable KVM
         run: |
@@ -92,11 +99,14 @@ jobs:
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
           PY
-      - name: Upload device test reports
+      - name: Upload validation reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-integrated-device-tests
-          path: android/integration/build/app/build/reports/androidTests/
+          name: NeutronDict-integrated-reports
+          path: |
+            android/integration/build/app/build/reports/androidTests/
+            android/integration/build/app/build/reports/tests/
+            android/integration/build/INTEGRATION.json
           if-no-files-found: ignore
           retention-days: 7

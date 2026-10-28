@@ -62,7 +62,7 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 ## Dùng bản thử
 1. Mở Actions → Integrated Android preview → lượt chạy xanh của nhánh này.
 2. Trong Artifacts tải NeutronDict-integrated-preview, giải nén.
-3. Cài APK trong app/build/outputs/apk/debug (không cài APK androidTest).
+3. Cài file NeutronDict-integrated-preview.apk vừa giải nén. Gói tải chỉ chứa APK cài đặt;
 4. Ứng dụng có tên NeutronDict Preview, package com.neutrondict.app.preview.
    Nó có vùng dữ liệu riêng với app cũ. Kết nối cùng Apps Script theo từng ngôn ngữ
    để kéo sổ tay hiện có. Không cần gỡ app chính.
