@@ -36,6 +36,13 @@ try{
   await restore(fixture.quote);
   assert.equal(await page.locator("mark[data-neutrondict-source]").count(),marked.length,"Retries are idempotent");
  }
+ // Hydration may replace only one of a word's inline fragments.
+ await page.setContent('<p id="target">設備の<span>可</span><strong>否</strong>を確認する。</p>');
+ const split={word:"可否",sentence:"設備の可否を確認する。",prefix:"設備の",suffix:"を確認する。"};
+ await restore(split);
+ await page.evaluate(()=>document.querySelector("strong").textContent="否");
+ await restore(split);
+ assert.equal((await page.locator("#target mark").allTextContents()).join(""),"可否");
  // DOM nodes and publisher listeners survive; no body.innerHTML replacement.
  await page.setContent('<p>最初のケア。</p><p>肌の<span id="target">ケア</span>をする。</p>');
  await page.evaluate(()=>{window.clicks=0;document.querySelector("#target").onclick=()=>window.clicks++;});

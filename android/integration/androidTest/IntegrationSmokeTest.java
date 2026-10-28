@@ -46,7 +46,7 @@ public class IntegrationSmokeTest {
         try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(host);
             // Fixture dictionary reply avoids depending on a live external provider.
-            evaluate(host,"window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup')return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});return window.__realReaderRequest(r)}");
+            evaluate(host,"window.__readerLookupCount=0;window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup'){window.__readerLookupCount++;return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});}return window.__realReaderRequest(r)}");
             Context context=ApplicationProvider.getApplicationContext();
             Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
                 .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja")
@@ -83,30 +83,43 @@ public class IntegrationSmokeTest {
                     Thread.sleep(100);
                 }
                 assertEquals("Only the saved word at the original occurrence should be highlighted", "true", highlighted.get());
+                java.util.concurrent.atomic.AtomicReference<android.view.ActionMode> selectionMode=new java.util.concurrent.atomic.AtomicReference<>();
+                onReader.accept(activity -> readerPage(activity).evaluateJavascript(
+                    "(function(){const e=document.getElementById('target');if(!e)return false;const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);return true})()",
+                    value -> {if("true".equals(value)) selectionMode.set(readerPage(activity).startActionMode(new android.view.ActionMode.Callback() {
+                        public boolean onCreateActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
+                        public boolean onPrepareActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
+                        public boolean onActionItemClicked(android.view.ActionMode m,android.view.MenuItem item){return false;}
+                        public void onDestroyActionMode(android.view.ActionMode m){}
+                    },android.view.ActionMode.TYPE_FLOATING));}));
+                long modeDeadline=System.currentTimeMillis()+10000;
+                while(selectionMode.get()==null && System.currentTimeMillis()<modeDeadline)Thread.sleep(100);
+                assertNotNull("Native selection menu did not open",selectionMode.get());
+                Thread.sleep(1200);
                 java.util.concurrent.atomic.AtomicReference<JSONObject> selected=new java.util.concurrent.atomic.AtomicReference<>();
+                onReader.accept(activity -> {try {
+                    java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
+                    get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
+                }catch(Exception ex){throw new AssertionError(ex);}});
+                assertNull("Selecting text must wait for the manual lookup command",selected.get());
+                assertEquals("0",evaluate(host,"String(window.__readerLookupCount)"));
+                onReader.accept(activity -> {
+                    android.view.ActionMode mode=selectionMode.get();
+                    assertNotNull("Tra NeutronDict menu entry is missing",mode.getMenu().findItem(0x4e44));
+                    assertTrue("Lookup menu action was not handled",mode.getMenu().performIdentifierAction(0x4e44,0));
+                });
                 long deadline=System.currentTimeMillis()+20000;
                 while(selected.get()==null && System.currentTimeMillis()<deadline){
-                    onReader.accept(activity -> readerPage(activity).evaluateJavascript(
-                        "(function(){const e=document.getElementById('target');if(!e)return false;const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);return true})()",
-                        value -> {if("true".equals(value)) try {
-                            readerPage(activity).startActionMode(new android.view.ActionMode.Callback() {
-                                public boolean onCreateActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
-                                public boolean onPrepareActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
-                                public boolean onActionItemClicked(android.view.ActionMode m,android.view.MenuItem item){return false;}
-                                public void onDestroyActionMode(android.view.ActionMode m){}
-                            },android.view.ActionMode.TYPE_FLOATING);
-                        }catch(Exception e){throw new AssertionError(e);}}));
-                    Thread.sleep(900);
-                    onReader.accept(activity -> {
-                        try {
-                            java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
-                            get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
-                        }catch(Exception e){throw new AssertionError(e);}
-                    });
+                    onReader.accept(activity -> {try {
+                        java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
+                        get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
+                    }catch(Exception ex){throw new AssertionError(ex);}});
+                    Thread.sleep(100);
                 }
                 java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
                 onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
                 assertNotNull("Native selection lookup did not reply: "+readerStatus.get(),selected.get());
+                assertEquals("1",evaluate(host,"String(window.__readerLookupCount)"));
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
                 java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();

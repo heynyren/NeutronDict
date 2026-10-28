@@ -26,7 +26,6 @@ import com.kienhoang.dualsubreplay.data.*
 import com.kienhoang.dualsubreplay.ui.theme.DualSubTheme
 import com.neutrondict.app.media.*
 import kotlinx.coroutines.*
-import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
@@ -45,7 +44,6 @@ class NewsReaderActivity : ComponentActivity() {
     private var voice: TextToSpeech? = null
     private var voiceReady = false
     private var offline = false
-    private var lastSelection = ""
     private var lookupGeneration = 0
     private var pageProgress by mutableFloatStateOf(0f)
     private var sourceTarget: JSONObject? = null
@@ -70,7 +68,7 @@ class NewsReaderActivity : ComponentActivity() {
             }.takeIf { it.optString("word").isNotBlank() || it.optString("sentence").isNotBlank() }
         if (!NewsRepository.validUrl(currentUrl)) { finish(); return }
         voice = TextToSpeech(this) { result -> voiceReady = result == TextToSpeech.SUCCESS }
-        page = SelectionWebView(this, { captureSelectionAutomatic() }, { cancelSourceRestore(user = true) })
+        page = SelectionWebView(this, { captureSelection() }, { cancelSourceRestore(user = true) })
         page.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -95,7 +93,7 @@ class NewsReaderActivity : ComponentActivity() {
             override fun onPageStarted(view: WebView, url: String, icon: android.graphics.Bitmap?) {
                 cancelSourceRestore()
                 sourceRestoreFinished = false
-                lookupGeneration++; lookupJob?.cancel(); selection = null; entry = null; lastSelection = ""
+                lookupGeneration++; lookupJob?.cancel(); selection = null; entry = null
                 if (!offline) currentUrl = url
                 status = "Đang mở bài…"
             }
@@ -174,7 +172,7 @@ class NewsReaderActivity : ComponentActivity() {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(onClick = { finish() }) { Text("‹ NeutronDict") }
-                    TextButton(onClick = { captureSelection() }) { Text("Tra lựa chọn") }
+                    TextButton(onClick = { captureSelection() }) { Text("Tra NeutronDict") }
                     TextButton(onClick = { askAi() }) { Text("✦ AI") }
                 }
                 }
@@ -223,25 +221,19 @@ class NewsReaderActivity : ComponentActivity() {
     private fun speak(text: String, lang: String) {
         if (voiceReady) { voice?.language = Locale.forLanguageTag(lang); voice?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "reader-word") }
     }
-    private fun captureSelection() = capture(false)
-    private fun captureSelectionAutomatic() = capture(true)
-    private fun capture(automatic: Boolean) {
-        if (automatic && (selection != null || isFinishing || isDestroyed)) return;
+    private fun captureSelection() {
+        if (isFinishing || isDestroyed) return
         val generation = lookupGeneration
         val script = assets.open("neutron/reader-context.js").bufferedReader().use { it.readText() }
         page.evaluateJavascript(script) { raw ->
             val json = runCatching { JSONTokener(raw).nextValue() as? String }.getOrNull()
             val data = json?.let { runCatching { JSONObject(it) }.getOrNull() }
             if (generation != lookupGeneration) return@evaluateJavascript
-            if (data == null) { if (!automatic) status = "Bôi đen từ trong bài để tự động tra."; return@evaluateJavascript }
+            if (data == null) { status = "Bôi đen từ rồi bấm Tra NeutronDict."; return@evaluateJavascript }
             if (data.has("error")) { status = data.optString("error"); return@evaluateJavascript }
             data.put("url", currentUrl).put("title", pageTitle)
             val detected = data.optString("language").substringBefore('-').lowercase()
             data.put("language", detected.ifBlank { language.substringBefore('-') })
-            val fingerprint = JSONArray().put(currentUrl).put(data.optString("word")).put(data.optString("sentence"))
-                .put(data.optString("prefix")).put(data.optString("suffix")).toString()
-            if (automatic && fingerprint == lastSelection) return@evaluateJavascript
-            lastSelection = fingerprint
             lookupJob?.cancel()
             lookupJob = lifecycleScope.launch {
                 status = "Đang tra “" + data.optString("word") + "”…"
@@ -249,7 +241,7 @@ class NewsReaderActivity : ComponentActivity() {
                     val found = neutronRequest(JSONObject().put("op", "lookup").put("item", data))
                     if (generation == lookupGeneration) { selection = data; entry = found; status = "" }
                 } catch (e: CancellationException) { throw e }
-                catch (e: Exception) { lastSelection = ""; status = e.message ?: "Chưa tra được từ." }
+                catch (e: Exception) { status = e.message ?: "Chưa tra được từ." }
             }
         }
     }
@@ -333,41 +325,26 @@ class NewsReaderActivity : ComponentActivity() {
     }
 }
 
-/** Native selection opens the original card after the handles settle. No article JS bridge. */
+/** Selection stays editable; dictionary lookup starts only from the explicit menu command. */
 private class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
-    private var selecting = false
-    private var touching = false
-    private val openSelection = Runnable { if (selecting && !touching) lookup() }
-    private fun schedule() { removeCallbacks(openSelection); postDelayed(openSelection, 550) }
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
         if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) touched()
-        when (event.actionMasked) {
-            android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE -> { touching = true; removeCallbacks(openSelection) }
-            android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> { touching = false; if (selecting) schedule() }
-        }
         return super.onTouchEvent(event)
     }
-    override fun onDetachedFromWindow() { removeCallbacks(openSelection); super.onDetachedFromWindow() }
     override fun startActionMode(callback: ActionMode.Callback, type: Int): ActionMode? =
         super.startActionMode(object : ActionMode.Callback2() {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val created = callback.onCreateActionMode(mode, menu)
                 menu.add(0, 0x4e44, 0, "Tra NeutronDict").setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-                selecting = created
-                if (created) schedule()
                 return created
             }
-            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-                if (selecting && !touching) schedule()
-                return callback.onPrepareActionMode(mode, menu)
-            }
+            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =
+                callback.onPrepareActionMode(mode, menu)
             override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
                 if (item.itemId == 0x4e44) { lookup(); return true }
                 return callback.onActionItemClicked(mode, item)
             }
-            override fun onDestroyActionMode(mode: ActionMode) {
-                selecting = false; removeCallbacks(openSelection); callback.onDestroyActionMode(mode)
-            }
+            override fun onDestroyActionMode(mode: ActionMode) { callback.onDestroyActionMode(mode) }
             override fun onGetContentRect(mode: ActionMode, view: View, rect: Rect) {
                 if (callback is ActionMode.Callback2) callback.onGetContentRect(mode, view, rect)
                 else super.onGetContentRect(mode, view, rect)

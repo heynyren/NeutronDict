@@ -69,9 +69,9 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
    để kéo sổ tay hiện có. Không cần gỡ app chính.
 5. Thanh trên NeutronDict có YouTube, Đọc báo, AI. Trong YouTube, dùng menu ngăn
    kéo “NeutronDict · Sổ tay và đọc báo” để quay về.
-6. Đọc báo: mở bài, bôi đen từ rồi thả tay; popup tra từ gốc của DualSub tự mở
-   sau khi lựa chọn ổn định. Xem nghĩa và bấm lưu. Có thể gọi lại bằng “Tra NeutronDict”
-   trong menu chọn chữ hoặc nút “Tra từ” khi lựa chọn còn tồn tại. Từ Nhật/Anh vào đúng
+6. Đọc báo: mở bài, bôi đen từ rồi chỉnh vùng chọn cho đúng; bấm **Tra NeutronDict**
+   trong menu chọn chữ hoặc nút cùng tên trên đầu trình đọc để mở popup. Bôi đen
+   không tự mở popup. Xem nghĩa và bấm lưu. Từ Nhật/Anh vào đúng
    sổ tay cùng câu và nguồn; ngôn ngữ khác đọc/dịch được nhưng chưa có kho SRS.
 7. Nguồn tin mặc định: Google News Nhật và Anh. Có thể thêm RSS/Atom HTTPS,
    chọn cập nhật thủ công hoặc chu kỳ nền 15/30/60/120 phút. Android có thể
@@ -166,4 +166,4 @@ Tài liệu kỹ thuật: [YouTube API policies](https://developers.google.com/y
 [Azure Speech quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits).
 
 ## Quay lại nguồn bài báo
-Nút Mở nguồn dùng trình đọc trong app. Từ đã lưu được tô vàng riêng, câu và phần chữ hai bên dùng để tìm đúng chỗ; không tô cả câu. Hỗ trợ chữ chia qua span/ruby và nội dung tải muộn, giữ popup tra từ khi bạn tự bôi đen. Nếu bài đã thay đổi, vị trí khôi phục phụ thuộc phần nội dung còn lại; không chỉnh văn bản gốc của bài.
+Nút Mở nguồn dùng trình đọc trong app. Từ đã lưu được tô vàng riêng, câu và phần chữ hai bên dùng để tìm đúng chỗ; không tô cả câu. Hỗ trợ chữ chia qua span/ruby và nội dung tải muộn, chỉ mở popup sau khi bạn bấm Tra NeutronDict. Nếu bài đã thay đổi, vị trí khôi phục phụ thuộc phần nội dung còn lại; không chỉnh văn bản gốc của bài.

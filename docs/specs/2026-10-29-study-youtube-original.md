@@ -34,3 +34,6 @@ Người dùng yêu cầu thử nghe đoạn video gốc ngay trong luồng họ
 
 ## Bổ sung: quay lại nguồn web
 Người dùng xác nhận bản cũ tô sáng cả câu; yêu cầu làm nổi bật từ đã lưu. Trình đọc tiếp tục mở bài trong app, dùng câu/prefix/suffix để chọn đúng lần xuất hiện nhưng chỉ đánh dấu từ. Dùng text-node ranges để giữ inline HTML và ruby; thử lại tối đa 8 giây khi nội dung tải muộn/dựng lại. Không tạo lựa chọn văn bản nên không tự mở popup tra từ. Kiểm thử gồm Playwright trên DOM thật và luồng native đọc bài → chọn từ → lưu notebook.
+
+## Bổ sung: tra từ thủ công khi đọc báo
+Theo yêu cầu mới, bôi đen chỉ chọn chữ; không có timer hoặc sự kiện thả tay tự mở popup. Người dùng chỉnh vùng chọn rồi bấm Tra NeutronDict ở menu chọn chữ hoặc thanh đầu trình đọc. Kiểm thử native chờ sau chọn, xác nhận 0 yêu cầu tra; bấm menu thật, xác nhận 1 yêu cầu và lưu vào notebook. YouTube giữ tương tác tra từ hiện có.

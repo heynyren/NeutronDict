@@ -10,7 +10,8 @@
     const box=element.getBoundingClientRect();
     if(box.top<24 || box.bottom>innerHeight-24)element.scrollIntoView({block:"center",inline:"nearest",behavior:"auto"});
   };
-  if(document.documentElement.dataset.neutrondictSource===signature && previous.length){
+  if(document.documentElement.dataset.neutrondictSource===signature && previous.length &&
+     clean(previous.map(mark=>mark.textContent).join(""))===word && previous.every(mark=>mark.getClientRects().length)){
     scroll(previous[0]);return JSON.stringify({status:"found",wordFound:true});
   }
   for(const mark of previous)mark.replaceWith(...mark.childNodes);
