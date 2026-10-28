@@ -134,7 +134,9 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
   Giới hạn này không sửa được timestamp sai sẵn hoặc nội dung sai của phụ đề nguồn.
 - Muốn xác nhận lỗi thực tế cần video, mốc thời gian và thao tác tua/đổi tốc độ để
   đối chiếu với lời nói. Kiểm thử mô phỏng chưa chứng minh mọi video đều đồng bộ.
-- Người dùng muốn thêm nghe ngoại tuyến và tăng dần tốc độ mà giữ cao độ giọng.
+- Người dùng muốn thêm nghe ngoại tuyến, giữ cao độ giọng và dùng chung thang
+  Srs.tocDoNghe: **1,0× → 1,1× → 1,2× → 1,3× → 1,4× → 1,5×** theo cấp đường nghe.
+  Không thêm mức khởi đầu 0,8×; giới hạn trên là 1,5× như TTS hiện tại.
   **Chưa triển khai tải/cắt âm thanh YouTube thành file.** API YouTube chính thức
   hạn chế lưu/tách âm thanh; chức năng offline cần một nguồn âm thanh được phép lưu
   hoặc tệp người dùng cung cấp. Khi có nguồn, cần căn câu theo âm thanh, kiểm tra
