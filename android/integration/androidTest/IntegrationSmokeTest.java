@@ -36,6 +36,60 @@ public class IntegrationSmokeTest {
         }
         fail("Notebook startup did not complete");
     }
+    private android.webkit.WebView readerPage(com.kienhoang.dualsubreplay.ui.NewsReaderActivity activity) {
+        try {
+            java.lang.reflect.Field field=activity.getClass().getDeclaredField("page");
+            field.setAccessible(true); return (android.webkit.WebView)field.get(activity);
+        } catch(Exception e){throw new AssertionError(e);}
+    }
+    @Test public void readerSelectionReachesNotebookWhileHostIsPaused() throws Exception {
+        try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
+            ready(host);
+            // Fixture dictionary reply avoids depending on a live external provider.
+            evaluate(host,"window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup')return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});return window.__realReaderRequest(r)}");
+            Context context=ApplicationProvider.getApplicationContext();
+            Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
+                .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja");
+            try(ActivityScenario<com.kienhoang.dualsubreplay.ui.NewsReaderActivity> reader=ActivityScenario.launch(intent)){
+                reader.onActivity(activity -> {
+                    android.webkit.WebView web=readerPage(activity);
+                    web.stopLoading();
+                    web.loadDataWithBaseURL("https://example.org/integration-fixture",
+                        "<html lang='ja'><p>古いケアです。クリームを塗って肌の<span id='target'>ケア</span>をする。</p></html>",
+                        "text/html","UTF-8",null);
+                });
+                java.util.concurrent.atomic.AtomicReference<JSONObject> selected=new java.util.concurrent.atomic.AtomicReference<>();
+                long deadline=System.currentTimeMillis()+20000;
+                while(selected.get()==null && System.currentTimeMillis()<deadline){
+                    reader.onActivity(activity -> readerPage(activity).evaluateJavascript(
+                        "(function(){const e=document.getElementById('target');if(!e)return false;const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);return true})()",
+                        value -> {if("true".equals(value)) try {
+                            java.lang.reflect.Method capture=activity.getClass().getDeclaredMethod("captureSelection");
+                            capture.setAccessible(true);capture.invoke(activity);
+                        }catch(Exception e){throw new AssertionError(e);}}));
+                    Thread.sleep(500);
+                    reader.onActivity(activity -> {
+                        try {
+                            java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
+                            get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
+                        }catch(Exception e){throw new AssertionError(e);}
+                    });
+                }
+                assertNotNull("Native selection lookup did not reply while the notebook was paused",selected.get());
+                assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
+                java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
+                java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();
+                JSONObject item=selected.get().put("meaning","chăm sóc").put("meaningLanguage","vi")
+                    .put("translatedSentence","Bôi kem để chăm sóc da.");
+                MediaPlugin.request(new JSONObject().put("op","save").put("item",item),(result,err)->{error.set(err);saved.countDown();});
+                assertTrue(saved.await(35,java.util.concurrent.TimeUnit.SECONDS));assertNull(error.get());
+            }
+            evaluate(host,"window.__readerSaved=null;getNB().then(nb=>window.__readerSaved=nb['javi:ケア'])");
+            long deadline=System.currentTimeMillis()+10000;
+            while(!"true".equals(evaluate(host,"!!window.__readerSaved")) && System.currentTimeMillis()<deadline)Thread.sleep(100);
+            assertEquals("true",evaluate(host,"window.__readerSaved.src.cau==='クリームを塗って肌のケアをする。' && window.__readerSaved.src.url==='https://example.org/integration-fixture'"));
+        }
+    }
     @Test public void nativeSaveRoundTripKeepsNotebookAndSrs() throws Exception {
         try(ActivityScenario<com.neutrondict.app.MainActivity> scenario=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(scenario);
