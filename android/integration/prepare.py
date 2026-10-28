@@ -52,6 +52,7 @@ for source in HERE.joinpath("native").iterdir():
 shutil.copytree(HERE / "tests", OUT / "app/src/test/java/com/neutrondict/app/media", dirs_exist_ok=True)
 shutil.copytree(HERE / "androidTest", OUT / "app/src/androidTest/java/com/neutrondict/app/media", dirs_exist_ok=True)
 put(main / "assets/neutron/reader-context.js", (HERE / "reader-context.js").read_text())
+put(main / "assets/neutron/reader-source.js", (HERE / "reader-source.js").read_text())
 for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
     if UPSTREAM.joinpath(name).exists():
         shutil.copy2(UPSTREAM / name, main / "assets/neutron" / name)

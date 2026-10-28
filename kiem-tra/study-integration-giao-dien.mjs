@@ -91,6 +91,20 @@ try{
  await p.waitForTimeout(100);
  assert.equal(await p.evaluate(()=>__studyTts.length),0,"Late failure cannot read a card after Back");
  assert.equal(await p.locator("#stIdle").isVisible(),true);
+ // Source restore keeps the literal selected word and nearby quote, without whole-sentence URL highlighting.
+ const article=await p.evaluate(()=>{
+   let opened;
+   window.Capacitor.Plugins.NeutronMedia.openArticle=async args=>{opened=args;};
+   NeutronMediaOpenSource({word:"care",dict:"envi",cauNghe:{cau:"Edited example."},
+     src:{url:"https://example.org/news#section:~:text=Take%20care",sel:"care",cau:"Take care of your skin.",
+       prefix:"x".repeat(300)+"Take ",suffix:" of your skin.",language:"en"}});
+   return opened;
+ });
+ assert.equal(article.word,"care");
+ assert.equal(article.sentence,"Take care of your skin.");
+ assert.equal(article.url,"https://example.org/news#section");
+ assert.ok(article.prefix.endsWith("Take "));assert.equal(article.prefix.length,200);
+ assert.equal(article.suffix," of your skin.");
  // Real adapter: weak JLPT card goes through the notebook write queue.
  await p.evaluate(()=>luuTheYeuJlpt({kieu:"tu",muc:{id:"fixture",w:"練習",r:"れんしゅう",m:"luyện tập"},vd:{j:"毎日日本語を練習します。",v:"Tôi luyện tiếng Nhật hằng ngày."}},"n3"));
  const imported=await p.evaluate(async()=>{const n=await getNB(),x=n["javi:練習"];return {x,paths:Srs.duongMo(x)};});

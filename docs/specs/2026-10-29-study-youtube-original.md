@@ -31,3 +31,6 @@ Người dùng yêu cầu thử nghe đoạn video gốc ngay trong luồng họ
 - Node và Android unit/build ở commit `bb467c9` đã qua; thêm hủy lúc đang dừng, giới hạn thời gian, thiết lập ban đầu và loại thời gian chờ khỏi SRS.
 - Bản sửa epoch cho Home trong lúc cleanup tiếp tục chạy cùng các bộ trên. Kết quả cuối, báo cáo Android và APK của đúng mã được cập nhật tại [PR #27](https://github.com/heynyren/NeutronDict/pull/27).
 - Kiểm thử offline không chứng minh video YouTube trực tiếp hoặc điện thoại thật đã hoạt động. Mốc sai sẵn trong phụ đề nguồn vẫn cần đối chiếu với lời nói thực tế; chữ in trong hình video vẫn có thể hiện.
+
+## Bổ sung: quay lại nguồn web
+Người dùng xác nhận bản cũ tô sáng cả câu; yêu cầu làm nổi bật từ đã lưu. Trình đọc tiếp tục mở bài trong app, dùng câu/prefix/suffix để chọn đúng lần xuất hiện nhưng chỉ đánh dấu từ. Dùng text-node ranges để giữ inline HTML và ruby; thử lại tối đa 8 giây khi nội dung tải muộn/dựng lại. Không tạo lựa chọn văn bản nên không tự mở popup tra từ. Kiểm thử gồm Playwright trên DOM thật và luồng native đọc bài → chọn từ → lưu notebook.

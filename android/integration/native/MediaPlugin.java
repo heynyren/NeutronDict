@@ -122,6 +122,9 @@ public class MediaPlugin extends Plugin {
             Intent intent = new Intent(getContext(), com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class);
             intent.putExtra("url", url).putExtra("language", call.getString("language", "ja"));
             intent.putExtra("sentence", call.getString("sentence", ""));
+            intent.putExtra("word", call.getString("word", ""));
+            intent.putExtra("prefix", call.getString("prefix", ""));
+            intent.putExtra("suffix", call.getString("suffix", ""));
             intent.putExtra("title", call.getString("title", ""));
             getActivity().startActivity(intent); call.resolve();
         });

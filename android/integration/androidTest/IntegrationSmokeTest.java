@@ -49,7 +49,9 @@ public class IntegrationSmokeTest {
             evaluate(host,"window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup')return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});return window.__realReaderRequest(r)}");
             Context context=ApplicationProvider.getApplicationContext();
             Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
-                .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja");
+                .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja")
+                .putExtra("word","ケア").putExtra("sentence","クリームを塗って肌のケアをする。")
+                .putExtra("prefix","クリームを塗って肌の").putExtra("suffix","をする。");
             // Open through the live host as the product does; a second ActivityScenario can reset its task.
             host.onActivity(activity -> activity.startActivity(intent));
             java.util.concurrent.atomic.AtomicReference<com.kienhoang.dualsubreplay.ui.NewsReaderActivity> opened=new java.util.concurrent.atomic.AtomicReference<>();
@@ -72,6 +74,15 @@ public class IntegrationSmokeTest {
                         "<html lang='ja'><p>古いケアです。クリームを塗って肌の<span id='target'>ケア</span>をする。</p></html>",
                         "text/html","UTF-8",null);
                 });
+                java.util.concurrent.atomic.AtomicReference<String> highlighted=new java.util.concurrent.atomic.AtomicReference<>();
+                long highlightDeadline=System.currentTimeMillis()+12000;
+                while(!"true".equals(highlighted.get()) && System.currentTimeMillis()<highlightDeadline){
+                    onReader.accept(activity -> readerPage(activity).evaluateJavascript(
+                        "(function(){const m=document.querySelectorAll('mark[data-neutrondict-source]');const t=document.querySelector('#target mark[data-neutrondict-source]');return m.length===1&&!!t&&t.textContent==='ケア'&&getSelection().toString()==='';})()",
+                        highlighted::set));
+                    Thread.sleep(100);
+                }
+                assertEquals("Only the saved word at the original occurrence should be highlighted", "true", highlighted.get());
                 java.util.concurrent.atomic.AtomicReference<JSONObject> selected=new java.util.concurrent.atomic.AtomicReference<>();
                 long deadline=System.currentTimeMillis()+20000;
                 while(selected.get()==null && System.currentTimeMillis()<deadline){

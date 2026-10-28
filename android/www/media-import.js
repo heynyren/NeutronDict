@@ -19,7 +19,7 @@
     const src = {url, title:text(raw.title,500) || (videoId ? "YouTube" : "Bài báo"), sel:word,
       cau:sentence, cauDich:!translated && (raw.meaningLanguage || "vi").startsWith("vi") ? text(raw.translatedSentence,4000) : "",
       media:videoId ? "youtube" : "article", language,
-      prefix:text(raw.prefix,80), suffix:text(raw.suffix,80)};
+      prefix:typeof raw.prefix==="string"?raw.prefix.slice(-80):"", suffix:text(raw.suffix,80)};
     if (videoId && !translated) src.yt = {v:videoId,t:startMs / 1000,dur:(endMs-startMs)/1000,
       sentence:{t:startMs / 1000,end:endMs / 1000,text:sentence}};
     return {id:text(raw.id,100), word, language, dict:language === "ja" ? "javi" : "envi",

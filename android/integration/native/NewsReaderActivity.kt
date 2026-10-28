@@ -26,6 +26,7 @@ import com.kienhoang.dualsubreplay.data.*
 import com.kienhoang.dualsubreplay.ui.theme.DualSubTheme
 import com.neutrondict.app.media.*
 import kotlinx.coroutines.*
+import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
@@ -47,15 +48,29 @@ class NewsReaderActivity : ComponentActivity() {
     private var lastSelection = ""
     private var lookupGeneration = 0
     private var pageProgress by mutableFloatStateOf(0f)
+    private var sourceTarget: JSONObject? = null
+    private var sourceRestoreGeneration = 0
+    private var sourceRestoreCancelled = false
+    private var sourceRestoreFinished = false
+    private var readerActive = false
+    private var readableText: String? = null
+    private val sourceRestoreTasks = mutableListOf<Runnable>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentUrl = savedInstanceState?.getString("url") ?: intent.getStringExtra("url").orEmpty()
-        language = intent.getStringExtra("language") ?: "ja"
-        pageTitle = intent.getStringExtra("title").orEmpty()
+        language = savedInstanceState?.getString("language") ?: intent.getStringExtra("language") ?: "ja"
+        pageTitle = savedInstanceState?.getString("title") ?: intent.getStringExtra("title").orEmpty()
+        offline = savedInstanceState?.getBoolean("offline", false) ?: false
+        sourceRestoreCancelled = savedInstanceState?.getBoolean("sourceRestoreCancelled", false) ?: false
+        sourceTarget = runCatching { JSONObject(savedInstanceState?.getString("sourceTarget").orEmpty()) }.getOrNull()
+            ?: JSONObject().apply {
+                for (key in listOf("word", "sentence", "prefix", "suffix")) put(key, intent.getStringExtra(key).orEmpty())
+                put("language", language)
+            }.takeIf { it.optString("word").isNotBlank() || it.optString("sentence").isNotBlank() }
         if (!NewsRepository.validUrl(currentUrl)) { finish(); return }
         voice = TextToSpeech(this) { result -> voiceReady = result == TextToSpeech.SUCCESS }
-        page = SelectionWebView(this) { captureSelectionAutomatic() }
+        page = SelectionWebView(this, { captureSelectionAutomatic() }, { cancelSourceRestore(user = true) })
         page.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -73,9 +88,13 @@ class NewsReaderActivity : ComponentActivity() {
         page.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 if (!request.isForMainFrame) return false
-                return !NewsRepository.validUrl(request.url.toString())
+                val allowed = NewsRepository.validUrl(request.url.toString())
+                if (allowed && request.hasGesture()) cancelSourceRestore(user = true)
+                return !allowed
             }
             override fun onPageStarted(view: WebView, url: String, icon: android.graphics.Bitmap?) {
+                cancelSourceRestore()
+                sourceRestoreFinished = false
                 lookupGeneration++; lookupJob?.cancel(); selection = null; entry = null; lastSelection = ""
                 if (!offline) currentUrl = url
                 status = "Đang mở bài…"
@@ -83,11 +102,8 @@ class NewsReaderActivity : ComponentActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 pageTitle = view.title ?: pageTitle
                 status = if (offline) "Bản đã lưu trên máy" else ""
-                val sentence = intent.getStringExtra("sentence").orEmpty()
-                if (sentence.isNotBlank()) {
-                    view.findAllAsync(sentence)
-                    intent.removeExtra("sentence")
-                }
+                sourceRestoreFinished = false
+                scheduleSourceRestore()
             }
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (!request.isForMainFrame) return
@@ -104,8 +120,43 @@ class NewsReaderActivity : ComponentActivity() {
                 return true
             }
         }
-        if (savedInstanceState?.getBundle("web")?.let { page.restoreState(it) } == null) page.loadUrl(currentUrl)
+        val savedReader = savedInstanceState?.getString("readerText")
+        if (offline && !savedReader.isNullOrBlank()) showText(savedReader, resetSource = false)
+        else if (savedInstanceState?.getBundle("web")?.let { page.restoreState(it) } == null) page.loadUrl(currentUrl)
         setContent { DualSubTheme { ReaderScreen() } }
+    }
+
+    private fun cancelSourceRestore(user: Boolean = false) {
+        sourceRestoreGeneration++
+        if (user) sourceRestoreCancelled = true
+        if (::page.isInitialized) sourceRestoreTasks.forEach { page.removeCallbacks(it) }
+        sourceRestoreTasks.clear()
+    }
+    private fun restartSourceRestore() {
+        cancelSourceRestore()
+        sourceRestoreCancelled = false
+        sourceRestoreFinished = false
+    }
+    private fun scheduleSourceRestore() {
+        cancelSourceRestore()
+        val target = sourceTarget ?: return
+        if (!readerActive || sourceRestoreCancelled || sourceRestoreFinished || isFinishing || isDestroyed) return
+        val generation = sourceRestoreGeneration
+        val payload = JSONObject(target.toString()).put("language", language)
+        val template = runCatching { assets.open("neutron/reader-source.js").bufferedReader().use { it.readText() } }.getOrNull() ?: return
+        val script = template.replace("__NEUTRON_SOURCE__", payload.toString())
+        val delays = longArrayOf(0L, 300L, 1000L, 2500L, 5000L, 8000L)
+        for ((index, delay) in delays.withIndex()) {
+            val task = Runnable {
+                if (generation != sourceRestoreGeneration || !readerActive || sourceRestoreCancelled || isFinishing || isDestroyed) return@Runnable
+                page.evaluateJavascript(script) { raw ->
+                    if (generation != sourceRestoreGeneration || !readerActive || sourceRestoreCancelled || isFinishing || isDestroyed) return@evaluateJavascript
+                    if (index == delays.lastIndex) sourceRestoreFinished = true
+                }
+            }
+            sourceRestoreTasks.add(task)
+            page.postDelayed(task, delay)
+        }
     }
 
     @Composable private fun ReaderScreen() {
@@ -116,7 +167,7 @@ class NewsReaderActivity : ComponentActivity() {
         val result = entry
         BackHandler {
             if (state != null) { selection = null; entry = null }
-            else if (page.canGoBack() && !offline) page.goBack() else finish()
+            else if (page.canGoBack() && !offline) { cancelSourceRestore(user = true); page.goBack() } else finish()
         }
         Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column {
@@ -130,7 +181,7 @@ class NewsReaderActivity : ComponentActivity() {
                 Text(pageTitle, style = MaterialTheme.typography.titleMedium, maxLines = 2, modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp))
                 Text(Uri.parse(currentUrl).host.orEmpty(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 20.dp))
                 Row(Modifier.padding(horizontal = 8.dp)) {
-                    TextButton(onClick = { offline = false; page.loadUrl(currentUrl) }) { Text("Tải lại") }
+                    TextButton(onClick = { offline = false; readableText = null; restartSourceRestore(); page.loadUrl(currentUrl) }) { Text("Tải lại") }
                     TextButton(onClick = { readerText(false) }) { Text("Dễ đọc") }
                     TextButton(onClick = { readerText(true) }) { Text("Lưu bài") }
                 }
@@ -187,7 +238,8 @@ class NewsReaderActivity : ComponentActivity() {
             data.put("url", currentUrl).put("title", pageTitle)
             val detected = data.optString("language").substringBefore('-').lowercase()
             data.put("language", detected.ifBlank { language.substringBefore('-') })
-            val fingerprint = currentUrl + "|" + data.optString("word") + "|" + data.optString("sentence")
+            val fingerprint = JSONArray().put(currentUrl).put(data.optString("word")).put(data.optString("sentence"))
+                .put(data.optString("prefix")).put(data.optString("suffix")).toString()
             if (automatic && fingerprint == lastSelection) return@evaluateJavascript
             lastSelection = fingerprint
             lookupJob?.cancel()
@@ -234,8 +286,11 @@ class NewsReaderActivity : ComponentActivity() {
             }
         }
     }
-    private fun showText(text: String) {
-        val escaped = android.text.TextUtils.htmlEncode(text)
+    private fun showText(text: String, resetSource: Boolean = true) {
+        if (resetSource) restartSourceRestore() else cancelSourceRestore()
+        offline = true
+        readableText = text.take(250000)
+        val escaped = android.text.TextUtils.htmlEncode(readableText.orEmpty())
         val html = "<!doctype html><html lang='" + language.replace(Regex("[^a-zA-Z-]"), "") +
             "'><meta name='viewport' content='width=device-width,initial-scale=1'>" +
             "<style>body{font:19px/1.9 sans-serif;margin:24px;white-space:pre-wrap;overflow-wrap:anywhere;color:#172a31;background:#fafaf7}p{margin:1em 0}</style><article>" +
@@ -245,20 +300,47 @@ class NewsReaderActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", currentUrl)
-        if (::page.isInitialized) outState.putBundle("web", Bundle().also { page.saveState(it) })
+        outState.putString("title", pageTitle)
+        outState.putString("language", language)
+        outState.putBoolean("offline", offline)
+        outState.putString("sourceTarget", sourceTarget?.toString())
+        outState.putBoolean("sourceRestoreCancelled", sourceRestoreCancelled)
+        if (offline && readableText != null) outState.putString("readerText", readableText)
+        else if (::page.isInitialized) outState.putBundle("web", Bundle().also { page.saveState(it) })
     }
-    override fun onPause() { super.onPause(); if (::page.isInitialized) page.onPause(); voice?.stop() }
-    override fun onResume() { super.onResume(); if (::page.isInitialized) page.onResume() }
-    override fun onDestroy() { lookupJob?.cancel(); voice?.shutdown(); if (::page.isInitialized) page.destroy(); super.onDestroy() }
+    override fun onPause() {
+        readerActive = false
+        cancelSourceRestore()
+        super.onPause()
+        if (::page.isInitialized) page.onPause()
+        voice?.stop()
+    }
+    override fun onResume() {
+        super.onResume()
+        readerActive = true
+        if (::page.isInitialized) {
+            page.onResume()
+            if (!sourceRestoreFinished) scheduleSourceRestore()
+        }
+    }
+    override fun onDestroy() {
+        readerActive = false
+        cancelSourceRestore()
+        lookupJob?.cancel()
+        voice?.shutdown()
+        if (::page.isInitialized) page.destroy()
+        super.onDestroy()
+    }
 }
 
 /** Native selection opens the original card after the handles settle. No article JS bridge. */
-private class SelectionWebView(context: Context, private val lookup: () -> Unit) : WebView(context) {
+private class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
     private var selecting = false
     private var touching = false
     private val openSelection = Runnable { if (selecting && !touching) lookup() }
     private fun schedule() { removeCallbacks(openSelection); postDelayed(openSelection, 550) }
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
+        if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) touched()
         when (event.actionMasked) {
             android.view.MotionEvent.ACTION_DOWN, android.view.MotionEvent.ACTION_MOVE -> { touching = true; removeCallbacks(openSelection) }
             android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> { touching = false; if (selecting) schedule() }

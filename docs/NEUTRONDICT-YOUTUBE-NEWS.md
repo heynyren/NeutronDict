@@ -164,3 +164,6 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 Tài liệu kỹ thuật: [YouTube API policies](https://developers.google.com/youtube/terms/developer-policies),
 [Android PlaybackParams](https://developer.android.com/reference/android/media/PlaybackParams),
 [Azure Speech quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits).
+
+## Quay lại nguồn bài báo
+Nút Mở nguồn dùng trình đọc trong app. Từ đã lưu được tô vàng riêng, câu và phần chữ hai bên dùng để tìm đúng chỗ; không tô cả câu. Hỗ trợ chữ chia qua span/ruby và nội dung tải muộn, giữ popup tra từ khi bạn tự bôi đen. Nếu bài đã thay đổi, vị trí khôi phục phụ thuộc phần nội dung còn lại; không chỉnh văn bản gốc của bài.

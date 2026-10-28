@@ -100,8 +100,16 @@
       native().openYouTube({url:it.src.url}).catch(notifyError); return true;
     }
     if (/\.pdf$/i.test(u.pathname)) return false;
-    native().openArticle({url:it.src.url,language:it.src.language || (it.dict==="javi"?"ja":"en"),
-      sentence:it.src.cau || it.src.sel || it.word,title:it.src.title || ""}).catch(notifyError);
+    // Let the reader restore only the saved word, without a browser text-fragment
+    // highlight painting the entire source sentence at the same time.
+    const directive=u.hash.indexOf(":~:");
+    if(directive>=0)u.hash=u.hash.slice(1,directive);
+    const selected=String(it.src.sel || "").trim();
+    native().openArticle({url:u.href,language:it.src.language || (it.dict==="javi"?"ja":"en"),
+      word:selected && selected!==it.src.cau && selected.length<=200 ? selected : it.word,
+      sentence:it.src.cau || it.src.sel || it.word,
+      prefix:String(it.src.prefix || "").slice(-200),suffix:String(it.src.suffix || "").slice(0,200),
+      title:it.src.title || ""}).catch(notifyError);
     return true;
   };
   function addButton(parent,label,action,classes="btn sm") {

@@ -2,7 +2,9 @@
   "use strict";
   const selection = window.getSelection();
   if (!selection || !selection.rangeCount || selection.isCollapsed) return null;
-  const range = selection.getRangeAt(0), word = selection.toString().trim();
+  const range = selection.getRangeAt(0), selected = range.cloneContents();
+  selected.querySelectorAll("rt,rp,script,style,noscript").forEach(node=>node.remove());
+  const word = (selected.textContent || selection.toString()).trim();
   if (!word || word.length > 200) return null;
   let element = range.commonAncestorContainer;
   if (element.nodeType !== 1) element = element.parentElement;
