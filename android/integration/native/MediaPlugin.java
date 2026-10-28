@@ -57,6 +57,41 @@ public class MediaPlugin extends Plugin {
         } catch (Exception e) { call.resolve(new JSObject().put("available", false)); } });
     }
     private final ExecutorService io = Executors.newSingleThreadExecutor();
+    @PluginMethod public void playYouTubeSentence(PluginCall call) {
+        String url = call.getString("url", "");
+        double start = call.getData().optDouble("start", -1);
+        double end = call.getData().optDouble("end", -1);
+        double rate = call.getData().optDouble("rate", 1);
+        getActivity().runOnUiThread(() -> {
+            try {
+                com.kienhoang.dualsubreplay.ui.NeutronPlayback.requestStudy(url, start, end, rate, status -> {
+                    // Home or another app must never pull the user back into NeutronDict.
+                    if (!status.equals("interrupted") && !com.kienhoang.dualsubreplay.ui.NeutronPlayback.activeStudy() && !getActivity().isDestroyed()) {
+                        Intent back = new Intent(getContext(), com.neutrondict.app.MainActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                        getActivity().startActivity(back);
+                    }
+                    call.resolve(new JSObject().put("status", status));
+                    return kotlin.Unit.INSTANCE;
+                });
+                if (com.kienhoang.dualsubreplay.ui.NeutronPlayback.activeStudy()) {
+                    Intent intent = new Intent(getContext(), com.kienhoang.dualsubreplay.MainActivity.class);
+                    intent.setAction(Intent.ACTION_VIEW).setData(Uri.parse(url))
+                        .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                    getActivity().startActivity(intent);
+                }
+            } catch (Exception e) {
+                com.kienhoang.dualsubreplay.ui.NeutronPlayback.cancelStudy();
+                call.resolve(new JSObject().put("status", "unavailable"));
+            }
+        });
+    }
+    @PluginMethod public void cancelYouTubeSentence(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            com.kienhoang.dualsubreplay.ui.NeutronPlayback.cancelStudy();
+            call.resolve();
+        });
+    }
     @PluginMethod public void openYouTube(PluginCall call) {
         String url = call.getString("url", "https://m.youtube.com/");
         Uri u = Uri.parse(url);

@@ -287,3 +287,36 @@ patch(dual / "ui/KaraokeTiming.kt", "        val fromLive = wordHighlightEnabled
 patch(dual / "ui/AppViewModel.kt", "                playbackTimeMs = timeMs,\n            )\n        val index = position?.segmentIndex", "                playbackTimeMs = timeMs,\n                segments = current.segments,\n            )\n        val index = position?.segmentIndex")
 
 patch(dual / "ui/KaraokeTiming.kt", "        val stale = playbackTimeMs - lastMappedMediaTimeMs > LIVE_CAPTION_STALE_MS", "        val stale = playbackTimeMs - lastMappedMediaTimeMs > LIVE_CAPTION_STALE_MS ||\n            lastMappedMediaTimeMs - playbackTimeMs > LIVE_CAPTION_BACKWARD_SEEK_RESET_MS")
+
+
+# Study sentence replay reuses DualSub's single YouTube page, with bounded
+# playback and an automatic return to the still-live NeutronDict Study host.
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "            delay(MEDIA_STATE_POLL_INTERVAL_MS)",
+      "            delay(if (NeutronPlayback.activeStudy()) 100L else MEDIA_STATE_POLL_INTERVAL_MS)")
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "        if (canGoBack) webView.goBack() else (context as? Activity)?.leaveKeepingState()",
+      "        if (NeutronPlayback.activeStudy()) NeutronPlayback.cancelStudy()\n        else if (canGoBack) webView.goBack() else (context as? Activity)?.leaveKeepingState()")
+patch(dual / "ui/StudyPlayback.kt",
+      "        val current = state ?: return",
+      "        if (NeutronPlayback.activeStudy()) return\n        val current = state ?: return")
+patch(dual / "MainActivity.kt",
+      "        super.onStop()",
+      "        super.onStop()\n        if (!isChangingConfigurations) com.kienhoang.dualsubreplay.ui.NeutronPlayback.interruptStudy()")
+# Hide learning captions temporarily; do not change the user's saved settings.
+patch(dual / "ui/DualSubApp.kt",
+      "val tracksVisible = state.showOriginal() || state.showTranslation()",
+      "val tracksVisible = !NeutronPlayback.activeStudy() && (state.showOriginal() || state.showTranslation())")
+patch(dual / "ui/DualSubApp.kt",
+      "suppressPageCaptions = shouldSuppressNativeCaptions(state, liveCaptionCaptureEnabled, effectivePlayerMode),",
+      "suppressPageCaptions = NeutronPlayback.activeStudy() || shouldSuppressNativeCaptions(state, liveCaptionCaptureEnabled, effectivePlayerMode),")
+patch(dual / "ui/LearningPlayerRoot.kt",
+      "val overlayContent = learningOverlayContent(state)",
+      "val overlayContent = if (NeutronPlayback.activeStudy()) null else learningOverlayContent(state)")
+
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "    fun pageChanged(url: String) {",
+      "    fun pageChanged(url: String) {\n        if (NeutronPlayback.activeStudy()) { pendingClip = null; playingClipVideo = null; return }")
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "    fun observePage(url: String) {",
+      "    fun observePage(url: String) {\n        if (NeutronPlayback.activeStudy()) { pendingClip = null; playingClipVideo = null; return }")

@@ -1032,7 +1032,8 @@
       sel: (chu || c.s).slice(0, 400),
       cau: c.s, // giữ cả câu gốc; giới hạn bài luyện được áp dụng riêng
       cauDich: S.dich.get(i) || "",
-      yt: { v: S.v, t: t, dur: Math.max(1, Math.round(dai == null ? (c.tEnd - c.t) : dai)), kenh: S.kenh }
+      yt: { v: S.v, t: t, dur: Math.max(1, Math.round(dai == null ? (c.tEnd - c.t) : dai)), kenh: S.kenh,
+        sentence: {t: c.t, end: c.tEnd, text: c.s} }
     };
   }
 

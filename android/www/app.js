@@ -1912,6 +1912,7 @@ function show(view, huong) {
   veNav();
   veThanhChonNb();
 
+  if (view !== "Study") dungNgheTrongHoc();
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
@@ -1929,7 +1930,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
 /** Vẽ lại icon thanh tab: tab đang mở dùng icon đặc. */
 function veNav() {
   const bo = { Lookup: "magnifying-glass", Notebook: "notebook", Study: "graduation-cap",
-               Settings: "gear", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
+               Settings: "gear-six", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
   MAN.forEach((v) => {
     const b = $("nav" + v);
     const on = b.classList.contains("active");
@@ -1963,7 +1964,7 @@ window.ChamVuot.nutQuayLai(() => {
   if ($("editSheet").classList.contains("show")) { dongSua(); return true; }
   const phu = document.querySelector(".sheet.show");
   if (phu) { phu.classList.remove("show"); return true; }
-  if (session.queue.length && $("stBody").style.display !== "none") { ketThucSom(); return true; }
+  if (manHienTai === "Study" && session.queue.length) { ketThucSom(); return true; }
   if (lichSu.length > 1) {
     lichSu.pop();
     show(lichSu[lichSu.length - 1], -1);
@@ -4424,6 +4425,7 @@ function veNguPhapTrongHoc(it) {
 }
 
 function showCard(giuLat, xem) {
+  dungNgheTrongHoc();
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
@@ -4436,6 +4438,9 @@ function showCard(giuLat, xem) {
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
   if (it._d === "grammar") { veNguPhapTrongHoc(it); return; }
+  // Ngữ pháp ẩn mặt thẻ thường; phải hiện lại khi sang đường kế tiếp.
+  $("stBody").style.display = "";
+  $("stIdle").style.display = "none";
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
   // thì bỏ thẻ này khỏi buổi chứ không kẹt ở một màn trống.
   let de = null;
@@ -4482,6 +4487,7 @@ function showCard(giuLat, xem) {
   }
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
+  $("stNgheNguon").textContent = "";
   if (laNghe) {
     const lv = ((it.duong || {}).nghe || {}).lv;
     $("stNgheToc").textContent = T2("Tốc độ ×{t} — nhanh dần theo cấp", { t: window.Srs.tocDoNghe(lv) });
@@ -4603,12 +4609,21 @@ async function boiThem(key) {
  * rõ từng chữ, lên cấp thì đẩy về tốc độ nói thật.
  */
 let henPhat = null;
+function dungNgheTrongHoc() {
+  if (henPhat) { clearTimeout(henPhat); henPhat = null; }
+  window.StudyListening?.cancel();
+}
 
-function phatCauNghe() {
+async function phatCauNghe() {
   const it = theCardHienTai();
   if (!it || !it.cauNghe || !it.cauNghe.cau) return;
   const lv = ((it.duong || {}).nghe || {}).lv;
-  speak(it.cauNghe.cau, null, laNhat() ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
+  const rate = window.Srs.tocDoNghe(lv), lang = laNhat() ? "ja" : "en";
+  const tts = () => speak(it.cauNghe.cau, null, lang, { rate });
+  try {
+    await window.StudyListening.play(it, {rate,tts,cache:()=>Store.get("ytKho"),
+      status: text => { if (theCardHienTai() === it) $("stNgheNguon").textContent = text; }});
+  } catch (_) { /* provider failures must not break the study queue */ }
 }
 if ($("stNghePhat")) $("stNghePhat").addEventListener("click", phatCauNghe);
 
@@ -5067,7 +5082,10 @@ $("stUndoBtn").addEventListener("click", async () => {
 
 /** Dừng buổi học giữa chừng (nút Quay lại của máy). */
 function ketThucSom() {
+  dungNgheTrongHoc();
   session = { queue: [], done: 0, again: 0, deleted: 0 };
+  theTrenMan = null;
+  $("stGrammar").style.display = "none";
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";
@@ -5077,6 +5095,8 @@ function ketThucSom() {
 }
 
 async function finishStudy() {
+  dungNgheTrongHoc();
+  $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();
   if (window.NhacTau) window.NhacTau.tat();
   theTrenMan = null;

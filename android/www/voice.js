@@ -15,8 +15,16 @@ function choice(lang){
     .sort((a,b)=>Number(/enhanced|premium|neural|natural/i.test(b.v.name))-Number(/enhanced|premium|neural|natural/i.test(a.v.name)));
   return candidate[0]?.i;
 }
+async function stop(){
+  ++request;if(player){player.pause();player=null;}
+  try{await tts()?.stop();}catch(_){}
+  try{g.speechSynthesis?.cancel();}catch(_){}
+}
 async function speak(text,lang,rate,pitch){
-  const token=++request;if(player){player.pause();player=null;}await tts()?.stop().catch(()=>{});
+  const token=++request;
+  if(player){player.pause();player=null;}
+  try{await tts()?.stop();}catch(_){}
+  if(token!==request)return;
   let result;
   try {result=await native()?.azureSpeech({text,lang,rate});}catch(_){}
   if(token!==request)return;
@@ -62,6 +70,6 @@ async function boot(){
     $("voiceStatus").textContent="Đã xóa khóa Azure.";
   };
 }
-g.NeutronVoice={speak,choice,loadVoices};
+g.NeutronVoice={speak,stop,choice,loadVoices};
 if(g.NeutronReady)boot().catch(()=>{});else g.addEventListener("neutrondict-ready",()=>boot().catch(()=>{}),{once:true});
 })(window);

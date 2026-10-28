@@ -20,7 +20,8 @@
       cau:sentence, cauDich:!translated && (raw.meaningLanguage || "vi").startsWith("vi") ? text(raw.translatedSentence,4000) : "",
       media:videoId ? "youtube" : "article", language,
       prefix:text(raw.prefix,80), suffix:text(raw.suffix,80)};
-    if (videoId && !translated) src.yt = {v:videoId,t:startMs / 1000,dur:(endMs-startMs)/1000};
+    if (videoId && !translated) src.yt = {v:videoId,t:startMs / 1000,dur:(endMs-startMs)/1000,
+      sentence:{t:startMs / 1000,end:endMs / 1000,text:sentence}};
     return {id:text(raw.id,100), word, language, dict:language === "ja" ? "javi" : "envi",
       reading:text(raw.reading,300), meaning:text(raw.meaning,3000),
       meaningLanguage:text(raw.meaningLanguage,20) || "vi", src};
@@ -66,6 +67,35 @@
     const seconds=Number.isFinite(time)?Math.min(604800,Math.max(0,Math.floor(time))):0;
     return "https://m.youtube.com/watch?v="+id+"&t="+seconds;
   }
-  root.NeutronMediaImport = {normalize,merge,sourceYouTube};
+  // The reading link can point at a selected fragment. Listening needs the whole
+  // sentence's exact bounds and must match the text actually being studied.
+  function sentenceYouTube(item, cache) {
+    const clean=s=>String(s || "").normalize("NFKC").replace(/[\s\u200b]+/g,"");
+    const wanted=clean(item?.cauNghe?.cau);
+    if (!wanted) return null;
+    for (const src of [item?.src,...(Array.isArray(item?.mediaSources)?item.mediaSources:[])]) {
+      if (!src || clean(src.cau)!==wanted) continue;
+      const url=sourceYouTube({src}); if(!url) continue;
+      const videoId=new URL(url).searchParams.get("v"), yt=src.yt || {};
+      const ranges=[];
+      if (yt.sentence && clean(yt.sentence.text)===wanted)
+        ranges.push([yt.sentence.t,yt.sentence.end]);
+      // Android media imports have always carried precise native sentence bounds.
+      if (src.media==="youtube") ranges.push([yt.t,Number(yt.t)+Number(yt.dur)]);
+      for (const [key,track] of Object.entries(cache || {})) {
+        if (key.split("|")[0]!==videoId || !Array.isArray(track?.cau)) continue;
+        const rows=track.cau.filter(c=>clean(c.s)===wanted).sort((a,b)=>Math.abs(a.t-Number(yt.t || 0))-Math.abs(b.t-Number(yt.t || 0)));
+        for (const row of rows) ranges.push([row.t,row.tEnd]);
+      }
+      for (const [a,b] of ranges) {
+        if (a==null || b==null || a==="" || b==="") continue;
+        const start=Number(a),end=Number(b);
+        if (Number.isFinite(start)&&Number.isFinite(end)&&start>=0&&start<=604800&&end>start&&end<=604800&&end-start<=180)
+          return {videoId,url:"https://m.youtube.com/watch?v="+videoId+"&t="+Math.floor(start),start,end};
+      }
+    }
+    return null;
+  }
+  root.NeutronMediaImport = {normalize,merge,sourceYouTube,sentenceYouTube};
   if (typeof module !== "undefined") module.exports = root.NeutronMediaImport;
 })(typeof window !== "undefined" ? window : globalThis);

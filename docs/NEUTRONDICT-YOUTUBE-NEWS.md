@@ -123,6 +123,21 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 7. Kiểm thử tự động xác minh đường fallback bằng provider giả lập; chưa thử giọng
    Azure thực tế với khóa tài khoản của người dùng.
 
+## Nghe câu YouTube gốc trong Học
+- Bài nghe có mốc toàn câu khớp nội dung sẽ tự mở đoạn đó trong player DualSub hiện có,
+  phát giọng gốc rồi tự trở lại đúng thẻ đang học. Nút Nghe phát lại cùng đoạn; không tự chấm
+  điểm hoặc chuyển thẻ. Đây là luồng phát trực tuyến trong app, chưa phải file âm thanh ngoại tuyến.
+- Tốc độ theo cấp nghe: **1× → 1,1× → 1,2× → 1,3× → 1,4× → 1,5×**, giữ cao độ.
+  Phụ đề học của DualSub tạm ẩn khi nghe; chữ đã được in sẵn trong hình video vẫn có thể hiện.
+- Back dừng đoạn và trở về thẻ; Home/ngắt app dừng yêu cầu, không tự kéo app lên trước.
+  Hết đoạn sẽ pause và trả lại tốc độ/âm lượng cũ của player. Không tạo player YouTube thứ hai.
+- Thiếu mốc toàn câu, câu đã sửa khác nguồn, video không phát được hoặc chờ quá lâu sẽ dùng
+  Azure/TTS trên máy. Các mục Android có mốc chính xác vẫn dùng được. Extension mới lưu thêm
+  mốc toàn câu; mục desktop cũ chỉ có mốc mảnh cần cache phụ đề khớp hoặc lưu lại nguồn để có
+  mốc đầy đủ. Không tự đoán thời lượng từ số chữ.
+- Bản này cũng sửa bánh răng tab Cài đặt và hiện lại thẻ thường sau ngữ pháp; Back trong
+  ngữ pháp kết thúc buổi học đúng cách.
+
 ## Mốc câu YouTube và giới hạn của nghe ngoại tuyến
 - Nguồn YouTube lưu từ extension trên máy tính cũng mở bằng module DualSub trong
   Android, theo video ID và mốc nguồn. Thao tác mở nguồn chủ động yêu cầu có tiếng;
