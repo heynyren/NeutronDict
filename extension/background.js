@@ -90,7 +90,7 @@ async function contextSource(info, tab) {
   if (!src.cau && (!ctx || ctx.pdf) && /^(https?:|file:|blob:)/i.test(url)) {
     const result = await extractPdfContext(url, src.sel, await pdfGoiY(url));
     if (result && result.ok) {
-      pdfGhiNho(url, result.page);
+      await pdfGhiNho(url, result.page);
       Object.assign(src, { cau: result.cau, pdf: true, capture: "pdf-auto",
         page: result.page, paragraph: result.paragraph, start: result.start, end: result.end,
         documentId: result.documentId, contextStatus: "complete" });
