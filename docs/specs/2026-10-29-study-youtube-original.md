@@ -18,5 +18,16 @@ Người dùng yêu cầu thử nghe đoạn video gốc ngay trong luồng họ
 3. Mở chế độ đoạn câu trên player DualSub duy nhất, pause ở cuối, khôi phục tốc độ cũ và trả kết quả về notebook còn sống.
 4. Kiểm thử dữ liệu, fallback/cancellation, native range driver và lifecycle; build APK và kiểm thử Android giả lập trên GitHub Actions.
 
+## Kết quả triển khai
+- Nguồn Android/extension có thêm metadata toàn câu, độc lập với mốc mảnh để mở nguồn.
+- Luồng phát giữ player YouTube duy nhất, tạm ẩn phụ đề học, tự pause/khôi phục trước khi trả về thẻ.
+- Hủy có xác nhận dừng; token và epoch ngăn kết quả cũ phát lại hoặc kéo app lên trước sau Home.
+- Giữ các màn thiết lập ban đầu của DualSub; thiếu thiết lập hoặc mốc câu chuyển sang TTS.
+- Sửa icon gear-six, khôi phục container thẻ sau ngữ pháp và Back trong buổi học.
+- Giữ SRS, không tính thời gian chờ/phát video thành phản hồi chậm.
+
 ## Kiểm chứng
-Đang thực hiện. Kiểm thử offline không chứng minh video YouTube trực tiếp hoặc điện thoại thật đã hoạt động. Các mốc sai sẵn trong phụ đề nguồn vẫn cần đối chiếu với lời nói thực tế.
+- Node và Playwright ở commit `6001199` đã qua; gồm hồi quy ngữ pháp → thẻ từ, bánh răng và nghe giữ nguyên thẻ.
+- Node và Android unit/build ở commit `bb467c9` đã qua; thêm hủy lúc đang dừng, giới hạn thời gian, thiết lập ban đầu và loại thời gian chờ khỏi SRS.
+- Bản sửa epoch cho Home trong lúc cleanup tiếp tục chạy cùng các bộ trên. Kết quả cuối, báo cáo Android và APK của đúng mã được cập nhật tại [PR #27](https://github.com/heynyren/NeutronDict/pull/27).
+- Kiểm thử offline không chứng minh video YouTube trực tiếp hoặc điện thoại thật đã hoạt động. Mốc sai sẵn trong phụ đề nguồn vẫn cần đối chiếu với lời nói thực tế; chữ in trong hình video vẫn có thể hiện.

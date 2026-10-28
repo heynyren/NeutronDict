@@ -22,6 +22,7 @@ object NeutronPlayback {
     private var study: StudyTask? = null
     private var studyGeneration = 0
     private var cleanups = 0
+    private var interruptionEpoch = 0L
     private val idleWaiters = mutableListOf<() -> Unit>()
 
     private class StudyTask(
@@ -74,7 +75,7 @@ object NeutronPlayback {
         cancelStudy()
         if (study == null && cleanups == 0) done() else idleWaiters += done
     }
-    @JvmStatic fun interruptStudy() { finishStudy("interrupted") }
+    @JvmStatic fun interruptStudy() { interruptionEpoch++; finishStudy("interrupted") }
     @JvmStatic fun failStudy() { finishStudy("unavailable") }
 
     private fun watch(task: StudyTask) {
@@ -87,6 +88,7 @@ object NeutronPlayback {
 
     private fun finishStudy(reason: String) {
         val task = study ?: return
+        val epoch = interruptionEpoch
         cleanups++
         study = null
         task.ticket++
@@ -97,7 +99,7 @@ object NeutronPlayback {
                 replied = true
                 cleanups--
                 if (study == null && cleanups == 0) studyActive = false
-                runCatching { task.complete(reason) }
+                runCatching { task.complete(if (epoch == interruptionEpoch) reason else "interrupted") }
                 if (study == null && cleanups == 0) {
                     val waiting = idleWaiters.toList()
                     idleWaiters.clear()
