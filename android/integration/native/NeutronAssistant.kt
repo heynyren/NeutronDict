@@ -74,7 +74,8 @@ object NeutronAssistant {
                 return try {
                     val item = JSONObject().put("word", action.word).put("meaning", action.meaning)
                         .put("reading", action.reading ?: "").put("language", language).put("meaningLanguage", "vi")
-                        .put("sentence", "").put("kind", "ai").put("title", "NeutronDict AI")
+                        .put("sentence", neutronSourceSentence(context, action.word, language))
+                        .put("url", neutronSourceUrl(context)).put("kind", "ai").put("title", "NeutronDict AI")
                     // Saving is handled by the same JS queue as manual notebook and SRS edits.
                     neutronRequest(JSONObject().put("op", "save").put("item", item))
                     AiActionOutcome.Done("Đã lưu vào sổ tay", "Word saved in NeutronDict. Existing SRS and edits preserved.")

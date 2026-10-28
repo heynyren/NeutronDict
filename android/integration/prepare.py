@@ -54,7 +54,7 @@ put(main / "assets/neutron/UPSTREAM.txt", "DualSub Replay: https://github.com/he
 # Register only in the trusted Capacitor host. Reader and YouTube WebViews have no native JS bridge.
 host = java / "com/neutrondict/app/MainActivity.java"
 patch(host, "super.onCreate(savedInstanceState);", "registerPlugin(com.neutrondict.app.media.MediaPlugin.class);\n    super.onCreate(savedInstanceState);")
-patch(host, "  /** Phân loại intent:", """  @Override protected void onResume() {
+patch(host, "  /** Phân loại intent:", """  @Override public void onResume() {
     super.onResume();
     if (getBridge() != null && getBridge().getWebView() != null) {
       getBridge().getWebView().evaluateJavascript("window.dispatchEvent(new Event('neutrondict-media'))", null);
