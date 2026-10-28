@@ -102,7 +102,7 @@ public class IntegrationSmokeTest {
                     get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
                 }catch(Exception ex){throw new AssertionError(ex);}});
                 assertNull("Selecting text must wait for the manual lookup command",selected.get());
-                assertEquals("0",evaluate(host,"String(window.__readerLookupCount)"));
+                assertEquals("0",evaluate(host,"window.__readerLookupCount"));
                 onReader.accept(activity -> {
                     android.view.ActionMode mode=selectionMode.get();
                     assertNotNull("Tra NeutronDict menu entry is missing",mode.getMenu().findItem(0x4e44));
@@ -119,7 +119,7 @@ public class IntegrationSmokeTest {
                 java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
                 onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
                 assertNotNull("Native selection lookup did not reply: "+readerStatus.get(),selected.get());
-                assertEquals("1",evaluate(host,"String(window.__readerLookupCount)"));
+                assertEquals("1",evaluate(host,"window.__readerLookupCount"));
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
                 java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();
