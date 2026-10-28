@@ -839,6 +839,7 @@
    */
   function duongMo(muc) {
     const co = duongCo(muc);
+    if (muc && muc.jlptReviewAt) return co;
     const d = (muc && muc.duong) || {};
     if (ngayCua(d.nhin) < MO_NGAY && !(((muc || {}).lichRieng || {}).nhin || {}).dongBang) return ["nhin"];
     return co;
@@ -1002,6 +1003,9 @@
    * @returns {string[]} rỗng nghĩa là chưa tới lượt mục này; có phần tử thì CHỈ
    *   MỘT (xem GIAN_DUONG)
    */
+  function canOnJlpt(muc, ten) {
+    return !!(muc && muc.jlptReviewAt && ((muc.duong || {})[ten]?.ts || 0) < muc.jlptReviewAt);
+  }
   function denHan(muc, now) {
     /*
      * `dongBang` — "từ này tôi thấy mình thuộc rồi, cất đi".
@@ -1022,8 +1026,8 @@
     for (const t of duongMo(muc)) {
       if (biDongBang(muc, t)) continue;
       const due = hanDuong(muc, t);
-      if (due && due > bayGio) continue;
-      if (choDen(muc, t, bayGio)) continue;          // vừa chấm một đường khác: ngủ đã
+      if (!canOnJlpt(muc, t) && due && due > bayGio) continue;
+      if (!canOnJlpt(muc, t) && choDen(muc, t, bayGio)) continue;          // vừa chấm một đường khác: ngủ đã
       ra.push(t);
       break;                                          // mỗi lần chỉ MỘT đường
     }
@@ -1045,6 +1049,7 @@
     if (duongMo(muc).indexOf(ten) < 0) return false;
     const bayGio = now || Date.now();
     const due = hanDuong(muc, ten);
+    if (canOnJlpt(muc, ten)) return true;
     if (due && due > bayGio) return false;
     return !choDen(muc, ten, bayGio);
   }

@@ -217,7 +217,8 @@ let NGU = "en";
 let nguDaNap = "";
 
 async function getStore() {
-  const s = await chrome.storage.local.get(["notebook", "decks"]);
+  const s = await chrome.storage.local.get(["notebook", "decks", "nguPhapSrs", "ytKho"]);
+  window.StudyGrammar.hydrate(s.nguPhapSrs,s.ytKho);
   return { nb: s.notebook || {}, decks: s.decks || {} };
 }
 
@@ -349,6 +350,7 @@ function hangDoiKhoi(scopeList) {
     const han = window.Srs.denHan(it, now);
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
+  if (NGU === "ja") for (const q of (window.StudyGrammar?.queue(scopeList) || [])) khoi.push([q]);
   return khoi;
 }
 
@@ -2072,7 +2074,7 @@ function veDau() {
   $("count").textContent = T2("Đang hiện {n} mục", { n: rows.length })
     + (rows.length !== base.length ? " trong " + base.length : "");
 
-  const den = dueList(base).length;
+  const den = hangDoi(base).length;
   $("dueCount").textContent = String(den);
   // Nói thẳng buổi học sắp tới lấy mục ở đâu. Nút chỉ ghi "Học ngay" thì đang
   // mở một sổ con mà bấm vào, người ta vẫn tưởng nó ôn cả sổ tay.
@@ -2624,6 +2626,7 @@ async function startStudy() {
   // Xếp hàng thẳng từ danh sách đang mở: `hangDoiKhoi` đã tự hỏi từng đường
   // một, lọc qua `dueList` trước đó là lọc HAI LẦN và làm rơi mất những mục mà
   // chỉ một đường tới hạn.
+  await getStore();
   const khoi = hangDoiKhoi(currentActiveSet());
   if (!khoi.length) {
     toast(T("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!"), "bad");
@@ -2654,6 +2657,7 @@ async function startStudy() {
  * nới ngày y như ôn đúng hạn, nên cho ôn cả thẻ chưa tới hạn là mở lối cày điểm.
  */
 function hangDoiDuong(scopeList, ds) {
+  if (ds.includes("grammar")) return NGU === "ja" ? window.StudyGrammar.queue(scopeList) : [];
   const now = Date.now();
   const ra = [];
   for (const it of scopeList) {
@@ -2833,7 +2837,25 @@ function dungDongHo() {
   else if (baiDien && baiDien.moc) msDaDung = Math.round(performance.now() - baiDien.moc);
 }
 
+function veNguPhapTrongHoc(it) {
+  $("stBody").style.display = "none";
+  const host = $("stGrammar"); host.style.display = "";
+  $("stDone").style.display = "none";
+  window.StudyGrammar.render(host, it, {
+    record: ghiNguPhap,
+    translate: cau => new Promise(resolve => chrome.runtime.sendMessage({type:"TRANSLATE",text:cau,from:"ja",to:"vi"},r=>resolve(chrome.runtime.lastError?"":r?.text || ""))),
+    next: ({correct,retry}) => {
+      if (session.queue[0] !== it) return;
+      session.queue.shift();
+      if (correct) session.done++; else session.again++;
+      if (retry) session.queue.push({...it,_grammarRetry:true});
+      showCard();
+    }
+  });
+}
+
 function showCard(giuLat, xem) {
+  $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
   if (!xem) session.xem = null;
@@ -2848,6 +2870,7 @@ function showCard(giuLat, xem) {
   // một thẻ người học chưa kịp nhìn.
   { const a = document.activeElement; if (a && a !== document.body && ovl.contains(a)) a.blur(); }
   if (!it) { finishStudy(); return; }
+  if (it._d === "grammar") { veNguPhapTrongHoc(it); return; }
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
   // thì bỏ thẻ này khỏi buổi chứ không kẹt ở một màn trống.
   let de = null;
@@ -3058,6 +3081,7 @@ function xinDichCau(it, o) {
 }
 
 function revealCard() {
+  if (theCardHienTai()?._d === "grammar") return;
   const it = theCardHienTai();
   if (!it) return;
   if (it._d === "nghe") {
@@ -3120,6 +3144,7 @@ function revealCard() {
 }
 
 async function grade(remembered, tuVuot) {
+  if (theCardHienTai()?._d === "grammar") return;
   // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
   if (session.xem) { await chamLaiXem(remembered, tuVuot); return; }
   // Bài liên kết tự chấm bằng nút Xong; phím tắt 1/2 không được cướp lượt.
@@ -3751,6 +3776,7 @@ document.addEventListener("keyup", (e) => {
  *   ← →     xem lại / chấm lại các thẻ đã chấm (xemTruoc / xemSau)
  */
 function phimHoc(e) {
+  if (theCardHienTai()?._d === "grammar") return;
   // Phím giữ lâu sinh ra chuỗi keydown lặp: chỉ mũi tên được lặp (lùi nhiều thẻ), còn lại
   // mỗi lần nhấn là MỘT thao tác — không thì giữ Space/Enter là chấm hàng loạt.
   if (e.repeat && e.key !== "ArrowLeft" && e.key !== "ArrowRight") { e.preventDefault(); return; }
@@ -4592,12 +4618,23 @@ function moMan(ten) {
 /* ==================================================================== */
 /* Ôn thi JLPT — chế độ riêng, chỉ có ở tiếng Nhật                      */
 /* ==================================================================== */
+async function luuTheYeuJlpt(card, level) {
+  const incoming = window.JlptStudy.item(card, level);
+  await capNhat(nb => {
+    const key = incoming.dict + ":" + incoming.word;
+    if (nb[key]?.del) throw new Error("Từ đã xoá: khôi phục trong sổ tay trước.");
+    nb[key] = window.JlptStudy.merge(nb[key], incoming, Date.now());
+  });
+  syncSoon();
+}
+
 let jlptSan = null;
 function moJlpt() {
   if (!jlptSan) {
     jlptSan = window.JlptUI.khoi($("jlptRoot"), {
       doc: async () => (await chrome.storage.local.get("jlpt")).jlpt || null,
       ghi: (v) => chrome.storage.local.set({ jlpt: v }),
+      onWeak: luuTheYeuJlpt,
       taiMon: async (id) => {
         const r = await fetch(chrome.runtime.getURL("jlpt/" + id + ".json"));
         if (!r.ok) throw new Error("jlpt " + id);
@@ -4635,6 +4672,7 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     if (!moi) return null;
     kho[key] = moi;
     await chrome.storage.local.set({ nguPhapSrs: kho });
+    window.StudyGrammar.remember(q, moi);
     return moi;
   });
   if (ra) syncSoon();
@@ -4926,7 +4964,7 @@ $("chuNgu").addEventListener("change", async () => {
 function veNgu() {
   $("nguEn").classList.toggle("active", NGU === "en");
   $("nguJa").classList.toggle("active", NGU === "ja");
-  $("grammar").style.display = NGU === "ja" ? "" : "none";
+  $("grammar").style.display = "none";
   $("jlpt").style.display = NGU === "ja" ? "" : "none";
   if (NGU !== "ja" && ($("viewGrammar").classList.contains("show") || $("viewJlpt").classList.contains("show"))) moMan("list");
   const sb = $("brandSub");

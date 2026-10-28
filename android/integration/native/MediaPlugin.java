@@ -43,6 +43,19 @@ public class MediaPlugin extends Plugin {
         });
     }
 
+    private final ExecutorService voiceIo = Executors.newSingleThreadExecutor();
+    @PluginMethod public void voiceSettings(PluginCall call) {
+        voiceIo.execute(() -> { try {
+            AzureSpeech speech = new AzureSpeech(getContext());
+            JSONObject result = call.getBoolean("save", false) ? speech.configure(call.getData()) : speech.status();
+            call.resolve(JSObject.fromJSONObject(result));
+        } catch (Exception e) { call.reject("Không lưu được cấu hình giọng đọc."); } });
+    }
+    @PluginMethod public void azureSpeech(PluginCall call) {
+        voiceIo.execute(() -> { try {
+            call.resolve(JSObject.fromJSONObject(new AzureSpeech(getContext()).synthesize(call.getData())));
+        } catch (Exception e) { call.resolve(new JSObject().put("available", false)); } });
+    }
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     @PluginMethod public void openYouTube(PluginCall call) {
         String url = call.getString("url", "https://m.youtube.com/");
@@ -53,6 +66,7 @@ public class MediaPlugin extends Plugin {
             call.reject("Đường dẫn YouTube không hợp lệ."); return;
         }
         getActivity().runOnUiThread(() -> {
+            com.kienhoang.dualsubreplay.ui.NeutronPlayback.request(url);
             Intent intent = new Intent(getContext(), com.kienhoang.dualsubreplay.MainActivity.class);
             intent.setAction(Intent.ACTION_VIEW).setData(u).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             getActivity().startActivity(intent);
@@ -97,5 +111,5 @@ public class MediaPlugin extends Plugin {
             call.resolve();
         } catch (Exception e) { call.reject(e.getMessage()); } });
     }
-    @Override protected void handleOnDestroy() { io.shutdown(); }
+    @Override protected void handleOnDestroy() { io.shutdown(); voiceIo.shutdownNow(); }
 }

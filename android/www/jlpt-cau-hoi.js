@@ -382,8 +382,22 @@
     return [];
   }
 
+  function theYeu(mon, id) {
+    chuanBi(mon);
+    const x = mon._idx;
+    const t = x.tuTheoId.get(id);
+    if (t) return { kieu: "tu", muc: t, vd: (x.vdTu.get(id) || [])[0] || null };
+    const p = x.ppTheoId.get(id);
+    if (p) return { kieu: "pp", muc: p, vd: (x.vdPp.get(id) || [])[0] || null };
+    const h = x.han.find(h => h.id === id);
+    if (!h) return null;
+    const related = x.tu.filter(t => t.w.includes(h.c));
+    const example = related.flatMap(t => x.vdTu.get(t.id) || []).find(v => v.j.includes(h.c));
+    return { kieu: "han", muc: h, vd: example || null };
+  }
+
   goc.JlptCauHoi = {
-    chuanBi, chiaChang, dungDe, theHoc, tachDoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
+    chuanBi, chiaChang, dungDe, theHoc, theYeu, tachDoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
     KIEU_TU, KIEU_HAN, KIEU_PP, SO_LUA_CHON
   };
 })(typeof self !== "undefined" ? self : this);

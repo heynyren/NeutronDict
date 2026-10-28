@@ -195,13 +195,34 @@
       <div id="nbList" class="list"></div>
     </div>
 
+  </section>
+
+  <section id="viewSettings" class="view">
+    <div class="topbar"><h2 data-chu>Cài đặt</h2></div>
+    <p class="t-small muted" data-chu>Đồng bộ, âm thanh và tuỳ chỉnh ứng dụng.</p>
+    <details class="box" id="voiceSettings">
+      <summary>Giọng đọc và bài nghe</summary><div class="boxbody">
+      <label>Giọng Nhật dự phòng <select id="voiceJa"></select></label>
+      <button id="voiceTestJa" class="btn sm" type="button">Nghe thử tiếng Nhật</button>
+      <label>Giọng Anh dự phòng <select id="voiceEn"></select></label>
+      <button id="voiceTestEn" class="btn sm" type="button">Nghe thử tiếng Anh</button>
+      <button id="voiceInstall" class="btn sm" type="button">Cài thêm giọng trên máy</button>
+      <fieldset id="azureSettings" hidden><legend>Azure Neural · tuỳ chọn</legend>
+        <p class="t-small muted">Dùng tài nguyên Speech gói F0 miễn phí. Âm thanh được lưu lại; hết lượt hoặc lỗi sẽ chuyển sang giọng trên máy. App không đổi gói Azure. Giới hạn đếm trong app là 450.000 ký tự/tháng trên máy này, không thay thế hạn mức tài khoản Azure.</p>
+        <label class="check"><input id="azureEnabled" type="checkbox">Dùng Azure cho bài nghe Nhật / Anh</label>
+        <label>Vùng tài nguyên <input id="azureRegion" value="japaneast" autocomplete="off" placeholder="japaneast"></label>
+        <label>Khóa Speech <input id="azureKey" type="password" autocomplete="off" placeholder="Khóa Azure Speech F0"></label>
+        <div class="rowx wrap"><button id="azureSave" class="btn primary" type="button">Lưu Azure</button><button id="azureRemove" class="btn" type="button">Xóa khóa</button></div>
+      </fieldset>
+      <p id="voiceStatus" class="t-small muted" role="status"></p>
+    </div></details>
     <details class="box" id="chuBox">
       <summary data-chu><span id="icChu"></span> Ngôn ngữ giao diện <span class="caret" id="cr0"></span></summary>
       <div class="boxbody">
         <select id="chuNgu" style="width:100%">
           <option value="vi">Tiếng Việt</option>
           <option value="en">English</option>
-          <option value="ja">日本語</option>
+          <option value="ja">Tiếng Nhật · 日本語</option>
         </select>
         <span class="t-tiny faint" style="display:block;margin-top:6px" data-chu>Chỉ đổi chữ trên màn hình. Ngôn ngữ tra từ đổi ở nút EN→V / 日→V phía trên.</span>
       </div>
@@ -295,6 +316,7 @@
   <section id="viewStudy" class="view">
     <div id="stProg" class="t-small muted" style="text-align:center;margin-bottom:10px"></div>
 
+    <div id="stGrammar" class="card" style="display:none" data-khong-vuot-tab></div>
     <div id="stBody" style="display:none">
       <div class="studycard" id="stCard" data-khong-vuot-tab>
         <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
@@ -369,10 +391,10 @@
       <div id="jlptRoot" data-khong-vuot-tab></div>
     </section>
 
-    <section id="viewGrammar" class="view">
+    <section id="viewGrammar" class="view" hidden>
       <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
       <div class="card">
-        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Lịch ôn ngữ pháp riêng, cấp 1 bắt đầu từ 3 ngày; không cộng vào chế độ Học.</div>
+        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Ngữ pháp nằm trong chế độ Học; làm đúng một lần sẽ đóng băng riêng câu này.</div>
         <div class="t-small muted" style="margin-top:8px" data-chu>Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới.</div>
         <div id="npCount" class="t-small muted" style="margin:14px 0"></div>
         <p id="npStats" class="t-small muted"></p>
@@ -437,7 +459,7 @@
   <button id="navLookup" class="active" type="button"><span class="i"></span><span class="t" data-chu>Tra từ</span></button>
   <button id="navNotebook" type="button"><span class="i"></span><span class="t" data-chu>Sổ tay</span></button>
   <button id="navStudy" type="button"><span class="i"></span><span class="t" data-chu>Học</span></button>
-  <button id="navGrammar" type="button" style="display:none"><span class="i"></span><span class="t" data-chu>Ngữ pháp</span></button>
+  <button id="navSettings" type="button"><span class="i"></span><span class="t" data-chu>Cài đặt</span></button>
   <button id="navJlpt" type="button" style="display:none"><span class="i"></span><span class="t">JLPT</span></button>
   <button id="navSpeak" type="button"><span class="i"></span><span class="t" data-chu>Nói</span></button>
   <button id="navProgress" type="button"><span class="i"></span><span class="t" data-chu>Tiến độ</span></button>
@@ -567,6 +589,7 @@
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>
+<script src="study-grammar.js"></script>
   <script src="cau-dien.js"></script>
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
@@ -586,12 +609,14 @@
   <script src="jlpt-canh-gioi.js"></script>
   <script src="jlpt-nhac.js"></script>
   <script src="jlpt-giao-dien.js"></script>
+<script src="jlpt-study.js"></script>
   <script src="hang-vuot.js"></script>
 <script src="media-import.js"></script>
+<script src="voice.js"></script>
 <script src="app.js"></script>
 <dialog id="newsDialog" class="news-dialog">
-  <div class="rowx between"><h2>Đọc báo</h2><button id="newsClose" class="btn" type="button">Đóng</button></div>
-  <p class="t-small muted">Đọc bài → bôi đen từ → Tra NeutronDict → Lưu vào sổ tay.</p>
+  <header class="news-header"><div><span class="news-kicker">NEUTRONDICT · KHÁM PHÁ</span><h2>Thế giới qua từng câu chữ</h2></div><button id="newsClose" class="btn" type="button" aria-label="Đóng đọc báo">✕</button></header>
+  <p class="t-small muted">Đọc điều bạn thích. Bôi đen một từ để tra ngay và lưu cả câu vào sổ tay.</p>
   <div class="rowx wrap">
     <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="">Mọi ngôn ngữ</option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
     <button id="newsRefresh" class="btn primary" type="button">Cập nhật</button>
@@ -606,7 +631,7 @@
     <form id="newsAddFeed" class="stack">
       <input id="newsFeedUrl" type="url" required placeholder="https://… nguồn RSS/Atom" aria-label="URL RSS">
       <input id="newsFeedTitle" maxlength="120" placeholder="Tên nguồn" aria-label="Tên nguồn">
-      <input id="newsFeedLanguage" required maxlength="20" placeholder="Mã ngôn ngữ: ja, en, fr…" aria-label="Mã ngôn ngữ">
+      <select id="newsFeedLanguage" aria-label="Ngôn ngữ nguồn tin"><option value="ja">Tiếng Nhật · 日本語</option><option value="en">Tiếng Anh · English</option><option value="vi">Tiếng Việt</option><option value="fr">Tiếng Pháp</option><option value="de">Tiếng Đức</option><option value="ko">Tiếng Hàn</option><option value="zh">Tiếng Trung</option></select>
       <button class="btn" type="submit">Thêm nguồn</button>
     </form>
   </details>

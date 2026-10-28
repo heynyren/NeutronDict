@@ -78,10 +78,14 @@ public class IntegrationSmokeTest {
                     onReader.accept(activity -> readerPage(activity).evaluateJavascript(
                         "(function(){const e=document.getElementById('target');if(!e)return false;const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);return true})()",
                         value -> {if("true".equals(value)) try {
-                            java.lang.reflect.Method capture=activity.getClass().getDeclaredMethod("captureSelection");
-                            capture.setAccessible(true);capture.invoke(activity);
+                            readerPage(activity).startActionMode(new android.view.ActionMode.Callback() {
+                                public boolean onCreateActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
+                                public boolean onPrepareActionMode(android.view.ActionMode m,android.view.Menu menu){return true;}
+                                public boolean onActionItemClicked(android.view.ActionMode m,android.view.MenuItem item){return false;}
+                                public void onDestroyActionMode(android.view.ActionMode m){}
+                            },android.view.ActionMode.TYPE_FLOATING);
                         }catch(Exception e){throw new AssertionError(e);}}));
-                    Thread.sleep(500);
+                    Thread.sleep(900);
                     onReader.accept(activity -> {
                         try {
                             java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");

@@ -89,7 +89,10 @@
     await native()?.readerReply({requestId:request.requestId,result:result || {},error:error || null});
   };
   window.NeutronMediaOpenSource = it => {
-    if (!native() || !it?.src?.url) return false;
+    if (!native()) return false;
+    const youtube=window.NeutronMediaImport.sourceYouTube(it);
+    if (youtube) { dungDongHo(); native().openYouTube({url:youtube}).catch(notifyError); return true; }
+    if (!it?.src?.url) return false;
     let u; try { u=new URL(it.src.url); } catch(_) { return false; }
     if (u.protocol !== "https:") return false;
     dungDongHo();
@@ -190,3 +193,5 @@
   }
   if(window.NeutronReady)boot();else window.addEventListener("neutrondict-ready",boot,{once:true});
 })();
+
+window.addEventListener("neutron-voice-fallback",e=>toast(e.detail));

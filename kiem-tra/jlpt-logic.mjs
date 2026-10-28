@@ -3,7 +3,7 @@
  *
  *   node kiem-tra/jlpt-logic.mjs
  *
- * Chốt: luật 60% (59% trượt, 60% qua), sao, ngọc, mở khoá chặng / trùm / màn, chuỗi ngày, và chất lượng
+ * Chốt: hoàn thành độc lập điểm, bài cuối cần mọi chặng, sao, ngọc, mở khoá chặng / trùm / màn, chuỗi ngày, và chất lượng
  * đề dựng từ dữ liệu thật của N3 và N2 (mọi câu có đúng 4 lựa chọn khác nhau, đáp án đúng nằm trong đó,
  * chỗ trống nằm trong câu, không dùng câu hỏi sách vì không có đáp án).
  */
@@ -19,13 +19,13 @@ function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = M
 console.log("Luật 60%");
 let td = TD.macDinh();
 let r = TD.ghiKetQua(td, "n3", "c1b1h1", { dung: 9, tong: 16, saiIds: [] }, Date.now());
-soat("9/16 = 56% → trượt, 0 sao", r.phanTram === 56 && !r.qua && r.sao === 0);
+soat("9/16 = 56% → hoàn thành, 0 sao", r.phanTram === 56 && r.qua && r.sao === 0);
 r = TD.ghiKetQua(td, "n3", "c1b1h1", { dung: 10, tong: 16, saiIds: [] }, Date.now());
 soat("10/16 = 63% → qua, 1 sao", r.phanTram === 63 && r.qua && r.sao === 1);
 r = TD.ghiKetQua(TD.macDinh(), "n3", "x", { dung: 6, tong: 10, saiIds: [] }, Date.now());
 soat("đúng 60% → qua (ngưỡng tính cả 60)", r.phanTram === 60 && r.qua);
 r = TD.ghiKetQua(TD.macDinh(), "n3", "x", { dung: 59, tong: 100, saiIds: [] }, Date.now());
-soat("59% → trượt", r.phanTram === 59 && !r.qua);
+soat("59% vẫn hoàn thành", r.phanTram === 59 && r.qua);
 soat("sao: 60/80/95", TD.saoTu(60) === 1 && TD.saoTu(79) === 1 && TD.saoTu(80) === 2 && TD.saoTu(94) === 2 && TD.saoTu(95) === 3 && TD.saoTu(59) === 0);
 
 console.log("\nNgọc, kỷ lục, mục sai");
@@ -43,19 +43,24 @@ console.log("\nMở khoá");
 const ids = ["a", "b", "c", "boss"];
 td = TD.macDinh();
 soat("chặng đầu luôn mở khi màn mở", TD.changMo(td, "n3", ids, 0, true));
-soat("chặng 2 khoá khi chặng 1 chưa qua", !TD.changMo(td, "n3", ids, 1, true));
+soat("chặng 2 mở dù chưa làm chặng 1", TD.changMo(td, "n3", ids, 1, true));
 TD.ghiKetQua(td, "n3", "a", { dung: 5, tong: 10, saiIds: [] }, Date.now());
-soat("chặng 1 chỉ 50% → chặng 2 vẫn khoá", !TD.changMo(td, "n3", ids, 1, true));
+soat("chặng 1 chỉ 50% → vẫn hoàn thành", TD.changMo(td, "n3", ids, 1, true));
 TD.ghiKetQua(td, "n3", "a", { dung: 6, tong: 10, saiIds: [] }, Date.now());
-soat("chặng 1 đạt 60% → chặng 2 mở, chặng 3 vẫn khoá", TD.changMo(td, "n3", ids, 1, true) && !TD.changMo(td, "n3", ids, 2, true));
+soat("mọi chặng thường mở tự do", TD.changMo(td, "n3", ids, 1, true) && TD.changMo(td, "n3", ids, 2, true));
 soat("màn chưa mở thì không chặng nào mở", !TD.changMo(td, "n3", ids, 0, false));
 td.thu = true;
-soat("chế độ thử: mở hết", TD.changMo(td, "n3", ids, 3, true));
+soat("chế độ thử vẫn không bỏ điều kiện bài cuối", !TD.changMo(td, "n3", ids, 3, true));
+TD.ghiKetQua(td,"n3","c",{dung:0,tong:10,saiIds:[]},Date.now());
+soat("thiếu chặng b: bài cuối vẫn khoá",!TD.changMo(td,"n3",ids,3,true));
+TD.ghiKetQua(td,"n3","b",{dung:0,tong:10,saiIds:[]},Date.now());
+soat("đủ chặng, kể cả 0%: bài cuối mở",TD.changMo(td,"n3",ids,3,true));
+soat("lượt rỗng không hoàn thành",!TD.ghiKetQua(td,"n3","empty",{dung:0,tong:0},Date.now()).qua && !TD.daXong(td,"n3","empty"));
 td = TD.macDinh();
 const trum = { n3: "boss", n2: "boss" };
 soat("các màn mở SONG SONG: N3 và N2 đều mở ngay từ đầu", TD.monMo(td, "n3", trum) && TD.monMo(td, "n2", trum));
 TD.ghiKetQua(td, "n3", "boss", { dung: 17, tong: 30, saiIds: [] }, Date.now());
-soat("trùm N3 56% (chưa hoàn thành) vẫn không khoá N2", TD.monMo(td, "n2", trum) && !TD.monXong(td, "n3", "boss"));
+soat("trùm N3 56% đã hoàn thành, N2 vẫn mở", TD.monMo(td, "n2", trum) && TD.monXong(td, "n3", "boss"));
 TD.ghiKetQua(td, "n3", "boss", { dung: 18, tong: 30, saiIds: [] }, Date.now());
 soat("trùm N3 đạt 60% → hoàn thành N3", TD.monXong(td, "n3", "boss"));
 soat("màn chưa có dữ liệu (N1/N4/N5) chưa mở được", !TD.monMo(td, "n1", trum) && !TD.monMo(td, "n4", trum) && !TD.monMo(td, "n5", trum));

@@ -282,6 +282,9 @@ async function speak(text, audio, ngu, tuy) {
   const ma = GIONG[ngu] || (laNhat() ? "ja-JP" : "en-US");
   const nhip = t.rate != null ? t.rate : 0.9;
   try {
+    if (window.NeutronVoice && Plugins.TextToSpeech) {
+      await window.NeutronVoice.speak(text, ma, nhip, t.pitch); return;
+    }
     if (Plugins.TextToSpeech) {
       const o = { text, lang: ma, rate: nhip };
       if (t.pitch != null) o.pitch = t.pitch;
@@ -518,7 +521,11 @@ async function doiNgu(ngu) {
 
 async function getNB() { return (await Store.get("notebook")) || {}; }
 /** Chỉ phần sổ tay của ngôn ngữ đang bật — dùng cho danh sách và học. */
-async function getNBNgu() { return window.Ngu.locSo(await getNB(), NGU); }
+async function getNBNgu() {
+  const [nb,h,v] = await Promise.all([getNB(),Store.get("nguPhapSrs"),Store.get("ytKho")]);
+  window.StudyGrammar.hydrate(h,v);
+  return window.Ngu.locSo(nb,NGU);
+}
 async function setNB(nb) { await Store.set("notebook", nb); }
 async function getDecks() { return (await Store.get("decks")) || {}; }
 async function setDecks(d) { await Store.set("decks", d); }
@@ -1852,6 +1859,7 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     if (!moi) return null;
     kho[key] = moi;
     await Store.set("nguPhapSrs", kho);
+    window.StudyGrammar.remember(q, moi);
     return moi;
   });
   if (ra) syncSoon();
@@ -1871,7 +1879,7 @@ window.NguPhapUI.khoiTao({
     return r && r.text || "";
   }
 });
-const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Jlpt", "Speak", "Progress"];
+const MAN = ["Lookup", "Notebook", "Study", "Jlpt", "Speak", "Progress", "Settings"];
 const manCoTheMo = () => MAN.filter((v) => (v !== "Grammar" && v !== "Jlpt") || laNhat());
 let manHienTai = "Lookup";
 /** Chồng màn đã đi qua, để nút Quay lại của Android lùi từng bước. */
@@ -1921,7 +1929,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
 /** Vẽ lại icon thanh tab: tab đang mở dùng icon đặc. */
 function veNav() {
   const bo = { Lookup: "magnifying-glass", Notebook: "notebook", Study: "graduation-cap",
-               Grammar: "books", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
+               Settings: "gear", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
   MAN.forEach((v) => {
     const b = $("nav" + v);
     const on = b.classList.contains("active");
@@ -1967,12 +1975,23 @@ window.ChamVuot.nutQuayLai(() => {
 /* ==================================================================== */
 /* Ôn thi JLPT — chế độ riêng, chỉ có ở tiếng Nhật                      */
 /* ==================================================================== */
+async function luuTheYeuJlpt(card, level) {
+  const incoming = window.JlptStudy.item(card, level);
+  await capNhat(nb => {
+    const key = incoming.dict + ":" + incoming.word;
+    if (nb[key]?.del) throw new Error("Từ đã xoá: khôi phục trong sổ tay trước.");
+    nb[key] = window.JlptStudy.merge(nb[key], incoming, Date.now());
+  });
+  syncSoon();
+}
+
 let jlptSan = null;
 function moJlpt() {
   if (!jlptSan) {
     jlptSan = window.JlptUI.khoi($("jlptRoot"), {
       doc: async () => (await Store.get("jlpt")) || null,
       ghi: (v) => Store.set("jlpt", v),
+      onWeak: luuTheYeuJlpt,
       taiMon: async (id) => {
         const r = await fetch("jlpt/" + id + ".json");
         if (!r.ok) throw new Error("jlpt " + id);
@@ -4010,6 +4029,7 @@ function hangDoiKhoi(scopeList) {
     const han = window.Srs.denHan(it, now);
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
+  if (NGU === "ja") for (const q of (window.StudyGrammar?.queue(scopeList) || [])) khoi.push([q]);
   return khoi;
 }
 
@@ -4028,6 +4048,7 @@ async function currentDue() {
   for (const it of setIn(ds, curDeck)) {
     for (const d of window.Srs.denHan(it, now)) ra.push(Object.assign({}, it, { _d: d }));
   }
+  if (NGU === "ja") ra.push(...window.StudyGrammar.queue(setIn(ds, curDeck)));
   return ra;
 }
 
@@ -4092,6 +4113,7 @@ $("stStart").addEventListener("click", async () => {
  * các đường `ds` thành MỘT thẻ, và chỉ lấy thẻ ĐÃ tới hạn.
  */
 function hangDoiDuong(scopeList, ds) {
+  if (ds.includes("grammar")) return NGU === "ja" ? window.StudyGrammar.queue(scopeList) : [];
   const now = Date.now();
   const ra = [];
   for (const it of scopeList) {
@@ -4381,7 +4403,25 @@ function dungDongHo() {
 let theTrenMan = null;
 function theCardHienTai() { return theTrenMan || session.queue[0]; }
 
+function veNguPhapTrongHoc(it) {
+  $("stBody").style.display = "none";
+  const host = $("stGrammar"); host.style.display = "";
+  $("stIdle").style.display = "none";
+  window.StudyGrammar.render(host, it, {
+    record: ghiNguPhap,
+    translate: async cau => (await translateText(cau,"javi"))?.text || "",
+    next: ({correct,retry}) => {
+      if (session.queue[0] !== it) return;
+      session.queue.shift();
+      if (correct) session.done++; else session.again++;
+      if (retry) session.queue.push({...it,_grammarRetry:true});
+      showCard();
+    }
+  });
+}
+
 function showCard(giuLat, xem) {
+  $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
   if (!xem) session.xem = null;
@@ -4392,6 +4432,7 @@ function showCard(giuLat, xem) {
   baiDien = null;
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
+  if (it._d === "grammar") { veNguPhapTrongHoc(it); return; }
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
   // thì bỏ thẻ này khỏi buổi chứ không kẹt ở một màn trống.
   let de = null;
@@ -4451,7 +4492,7 @@ function showCard(giuLat, xem) {
   renderStudyFav(it);
 
   const src = $("stSrc");
-  if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
+  if (it.src && (it.src.url || it.src.yt?.v)) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
   else { src.style.display = "none"; src.onclick = null; }
 
   // Cụm ghi âm dùng CHÍNH khoá của mục, nên bản thu ghi ở sổ tay thì mở buổi
@@ -4750,6 +4791,7 @@ function khoiNguCanh(it, tuDich) {
 }
 
 function revealCard() {
+  if (theCardHienTai()?._d === "grammar") return;
   const it = theCardHienTai();
   if (!it) return;
   if (it._d === "nghe") {
@@ -4803,6 +4845,7 @@ $("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if 
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
 
 async function grade(remembered, tuVuot) {
+  if (theCardHienTai()?._d === "grammar") return;
   // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
   if (session.xem) { await chamLaiXem(remembered, tuVuot); return; }
   // Bài liên kết tự chấm bằng nút Xong; đừng để nút Nhớ/Quên cướp lượt.
@@ -5246,7 +5289,7 @@ function veNgu() {
   // Tab "Chi tiết" là IPA/định nghĩa Anh; "Hán tự" chỉ có nghĩa với tiếng Nhật.
   $("tabDetail").style.display = laNhat() ? "none" : "";
   $("tabKanji").style.display = laNhat() ? "" : "none";
-  $("navGrammar").style.display = laNhat() ? "" : "none";
+
   $("navJlpt").style.display = laNhat() ? "" : "none";
   if (!laNhat() && (manHienTai === "Grammar" || manHienTai === "Jlpt")) show("Notebook");
   $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");

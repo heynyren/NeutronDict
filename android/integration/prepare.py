@@ -257,3 +257,11 @@ manifest.write(manifest_path, encoding="utf-8", xml_declaration=True)
 # Source build records for reproducibility.
 put(OUT / "INTEGRATION.json", json.dumps({"upstream":PIN,"applicationId":"com.neutrondict.app.preview"}, indent=2))
 print("Prepared integrated project:", OUT)
+
+# Source replay comes from an explicit tap in the trusted notebook.
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "settings.mediaPlaybackRequiresUserGesture = true",
+      "settings.mediaPlaybackRequiresUserGesture = false")
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT) { rawValue ->",
+      "        NeutronPlayback.apply(webView)\n        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT) { rawValue ->")

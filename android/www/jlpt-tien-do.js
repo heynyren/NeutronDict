@@ -2,10 +2,8 @@
  * Tiến độ của chế độ "Ôn thi JLPT": luật mở khoá, sao, ngọc, chuỗi ngày.
  * Thuần dữ liệu — không đụng DOM, không đụng bộ nhớ — để test được và để extension / Android dùng chung.
  *
- * Luật 60% (do chủ dự án đặt ra):
- *   - một CHẶNG đạt ≥ 60% thì chặng kế mở;
- *   - trùm chương đạt ≥ 60% thì chương sau mở;
- *   - trùm cuối màn đạt ≥ 60% thì hoàn thành màn (các màn N5…N1 mở song song, không khoá nhau).
+ * Chặng thường mở tự do. Bài cuối chỉ mở sau khi hoàn thành mọi chặng trước đó.
+ * Điểm số chỉ dùng tính sao; hoàn thành nghĩa là làm hết lượt có câu hỏi.
  *
  * Dạng lưu (một khoá duy nhất `jlpt`):
  *   { v:1, ngoc:0, ngayCuoi:"2026-10-27", chuoi:3, thu:false, nhac:true,
@@ -16,7 +14,7 @@
 (function (goc) {
   "use strict";
 
-  const NGUONG = 60;                 // phần trăm tối thiểu để qua
+  const NGUONG = 60;                 // chỉ tính sao, không khoá chặng
   const MOC_SAO = [60, 80, 95];      // 1, 2, 3 sao
 
   /** Thứ tự hiển thị các màn (từ dễ đến khó). */
@@ -67,16 +65,19 @@
    * @param {string[]} ids   id các chặng theo thứ tự đi
    * @param {boolean} monMo  màn này đã mở chưa (nếu chưa thì không chặng nào mở)
    */
+  function daXong(td, monId, id) {
+    const c = ((td.mon[monId] || {}).chang || {})[id];
+    // Legacy lan is only written after the full quiz, including scores below 60%.
+    return !!(c && (c.xong === true || c.lan > 0));
+  }
   function changMo(td, monId, ids, i, monMo) {
-    if (!monMo) return false;
-    if (td.thu) return true;
-    if (i <= 0) return true;
-    return qua(tot(td, monId, ids[i - 1]));
+    if (!monMo || i < 0 || i >= ids.length) return false;
+    return ids[i] !== "boss" || ids.filter(id => id !== "boss").every(id => daXong(td, monId, id));
   }
 
   /** Màn đã hoàn thành chưa: trùm cuối màn đạt ngưỡng. */
   function monXong(td, monId, idTrumCuoi) {
-    return qua(tot(td, monId, idTrumCuoi));
+    return daXong(td, monId, idTrumCuoi);
   }
 
   /**
@@ -110,6 +111,7 @@
    * @returns {{phanTram:number, sao:number, qua:boolean, ngoc:number, laKyLuc:boolean}}
    */
   function ghiKetQua(td, monId, changId, kq, bayGio) {
+    if (!(kq.tong > 0)) return { phanTram: 0, sao: 0, qua: false, ngoc: 0, laKyLuc: false };
     const phanTram = kq.tong > 0 ? Math.round((kq.dung / kq.tong) * 100) : 0;
     const sao = qua(phanTram) ? saoTu(phanTram) : 0;
     const o = monCua(td, monId);
@@ -119,6 +121,7 @@
     let ngoc = kq.dung;
     if (sao > cu.sao) ngoc += (sao - cu.sao) * 5;
     o.chang[changId] = {
+      xong: true,
       tot: Math.max(cu.tot, phanTram),
       sao: Math.max(cu.sao, sao),
       lan: cu.lan + 1,
@@ -127,25 +130,25 @@
     td.ngoc += ngoc;
     (kq.saiIds || []).forEach((id) => { td.sai[id] = (td.sai[id] || 0) + 1; });
     chamChuoi(td, bayGio);
-    return { phanTram, sao, qua: qua(phanTram), ngoc, laKyLuc };
+    return { phanTram, sao, qua: true, ngoc, laKyLuc };
   }
 
   /** Tổng số sao / số chặng đã qua của một màn. */
   function tomTat(td, monId, ids) {
     const o = (td.mon[monId] || {}).chang || {};
     let sao = 0, xong = 0;
-    ids.forEach((id) => { const c = o[id]; if (c) { sao += c.sao || 0; if (qua(c.tot || 0)) xong++; } });
+    ids.forEach((id) => { const c = o[id]; if (c) { sao += c.sao || 0; if (daXong(td, monId, id)) xong++; } });
     return { sao, xong, tong: ids.length, tiLe: ids.length ? Math.round((xong / ids.length) * 100) : 0 };
   }
 
   /** Chặng nào là chặng đầu tiên CHƯA qua (để bản đồ cuộn tới). */
   function changHienTai(td, monId, ids) {
-    for (let i = 0; i < ids.length; i++) if (!qua(tot(td, monId, ids[i]))) return i;
+    for (let i = 0; i < ids.length; i++) if (!daXong(td, monId, ids[i])) return i;
     return ids.length - 1;
   }
 
   goc.JlptTienDo = {
-    NGUONG, MOC_SAO, THU_TU_MON, macDinh, chuan, monCua, saoTu, qua, tot, changMo, monXong, monMo,
+    NGUONG, MOC_SAO, THU_TU_MON, daXong, macDinh, chuan, monCua, saoTu, qua, tot, changMo, monXong, monMo,
     ngay, chamChuoi, ghiKetQua, tomTat, changHienTai
   };
 })(typeof self !== "undefined" ? self : this);

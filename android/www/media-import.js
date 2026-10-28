@@ -44,6 +44,28 @@
     next.ts = now;
     return {item:next,status:old?"updated":"created"};
   }
-  root.NeutronMediaImport = {normalize,merge};
+  function sourceYouTube(item) {
+    const src=item?.src || {};
+    const valid=id=>/^[A-Za-z0-9_-]{11}$/.test(id || "");
+    let url;
+    try { url=new URL(src.url); } catch (_) {}
+    const host=url?.hostname || "";
+    const youtube=url && ["https:","http:"].includes(url.protocol) &&
+      (host==="youtu.be" || host==="youtube.com" || host.endsWith(".youtube.com"));
+    if (!youtube && !valid(src.yt?.v)) return "";
+    let id=valid(src.yt?.v)?src.yt.v:"";
+    if (!id && youtube) id=host==="youtu.be"?url.pathname.split("/")[1]:
+      url.searchParams.get("v") || (/^\/(?:shorts|embed|live)\/([^/]+)/.exec(url.pathname)||[])[1];
+    if (!valid(id)) return "";
+    const parseTime=value=>{
+      if (/^\d+(?:\.\d+)?$/.test(value || "")) return Number(value);
+      const match=/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(value || "");
+      return match ? Number(match[1]||0)*3600+Number(match[2]||0)*60+Number(match[3]||0) : 0;
+    };
+    const time=src.yt?.t != null?Number(src.yt.t):parseTime(url?.searchParams.get("t") || url?.searchParams.get("start") || url?.hash?.match(/t=([^&]+)/)?.[1]);
+    const seconds=Number.isFinite(time)?Math.min(604800,Math.max(0,Math.floor(time))):0;
+    return "https://m.youtube.com/watch?v="+id+"&t="+seconds;
+  }
+  root.NeutronMediaImport = {normalize,merge,sourceYouTube};
   if (typeof module !== "undefined") module.exports = root.NeutronMediaImport;
 })(typeof window !== "undefined" ? window : globalThis);

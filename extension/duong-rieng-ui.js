@@ -9,6 +9,7 @@
 (function(goc) {
   "use strict";
   const LUA = [
+    { ma: "grammar", ds: ["grammar"], ten: "Ghép câu ngữ pháp", mota: "Đúng một lần là đóng băng câu" },
     { ma: "nghe", ds: ["nghe"], ten: "Chỉ bài nghe", mota: "Nghe một câu rồi nhận ra từ" },
     { ma: "nhin", ds: ["nhin"], ten: "Chỉ bài đoán nghĩa", mota: "Nhìn từ rồi nhớ nghĩa của nó" },
     { ma: "dien", ds: ["dien"], ten: "Chỉ bài điền khuyết", mota: "Chọn từ đúng cho chỗ trống trong câu" }

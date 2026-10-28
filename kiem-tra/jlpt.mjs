@@ -83,7 +83,7 @@ soat("nói xong: nhân vật rời cảnh, chặng bấm được lại", await 
 const nut = await pg.evaluate(() => ({ n: document.querySelectorAll(".jl-nut").length, khoa: document.querySelectorAll(".jl-nut.khoa").length,
   dau: document.querySelector(".jl-nut").className, canh: document.querySelectorAll(".jl-banner svg").length }));
 soat("máy tính: bản đồ rộng hơn 900px, thanh bên được ẩn", await pg.evaluate(() => document.querySelector(".jl-bd").getBoundingClientRect().width > 900 && getComputedStyle(document.querySelector(".side")).display === "none"));
-soat("bản đồ có 227 chặng, 1 mở còn lại khoá", nut.n === 227 && nut.khoa === 226 && !/khoa/.test(nut.dau), JSON.stringify(nut));
+soat("bản đồ có 227 chặng, chỉ bài cuối khoá", nut.n === 227 && nut.khoa === 1 && !/khoa/.test(nut.dau), JSON.stringify(nut));
 const cuonTai = (f) => pg.evaluate((f) => { const m = document.querySelector(".main"); const sp = m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement; sp.scrollTop = f * (sp.scrollHeight - sp.clientHeight); return new Promise((r) => setTimeout(() => r([...document.querySelectorAll(".jl-gioi-lop")].map((l) => (l.classList.contains("an") ? 0 : +l.style.opacity))), 450)); }, f);
 const ngang = await cuonTai(1);
 soat("N3 leo núi LÊN: cuộn xuống đáy = chân núi (khung 1 hiện), nút chặng 1 nằm dưới nút chặng cuối", ngang[0] === 1 && ngang.slice(1).every((x) => x === 0) && await pg.evaluate(() => { const n = [...document.querySelectorAll(".jl-nut")]; const m = document.querySelector(".main"); const sp = m.scrollHeight > m.clientHeight + 1 ? m : document.scrollingElement; const y = (e) => e.getBoundingClientRect().top + sp.scrollTop; return y(n[0]) > y(n[n.length - 1]); }));
@@ -166,7 +166,7 @@ soat("kết quả 100%, 3 sao (nảy lần lượt), vượt chặng, có pháo 
 await pg.click(".jl-kq .jl-btn.chinh");
 await pg.waitForSelector(".jl-bd");
 const sau1 = await pg.evaluate(() => { const n = [...document.querySelectorAll(".jl-nut")]; return { x1: n[0].classList.contains("xong"), m2: !n[1].classList.contains("khoa"), k3: n[2].classList.contains("khoa") }; });
-soat("chặng 1 xong, chặng 2 mở, chặng 3 vẫn khoá", sau1.x1 && sau1.m2 && sau1.k3, JSON.stringify(sau1));
+soat("chặng 1 xong, chặng 2 mở, chặng 3 vẫn khoá", sau1.x1 && sau1.m2 && !sau1.k3, JSON.stringify(sau1));
 let luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
 soat("tiến độ lưu bền: điểm 100, sao 3, ngọc = số câu đúng + 15 (3 sao × 5)", luu && luu.mon.n3.chang[id1].tot === 100 && luu.mon.n3.chang[id1].sao === 3 && luu.ngoc === tongCau + 15, JSON.stringify(luu && luu.ngoc));
 soat("chuỗi ngày = 1", luu.chuoi === 1);
@@ -198,7 +198,7 @@ for (let i = 0; i < tong2; i++) {
 await pg.waitForSelector(".jl-kq");
 await pg.waitForFunction(() => document.querySelector(".jl-vong b").textContent === "0%", null, { timeout: 5000 });
 const kq2 = await pg.evaluate(() => ({ p: document.querySelector(".jl-vong b").textContent, tieu: document.querySelector(".jl-kq-tieu").textContent, truot: !!document.querySelector(".jl-vong.truot") }));
-soat("0% → 'Chưa đạt 60%', vòng màu trượt (ôn lại không được tính điểm)", kq2.p === "0%" && /Chưa đạt/.test(kq2.tieu) && kq2.truot, JSON.stringify(kq2));
+soat("0% vẫn hoàn thành; điểm ôn lại không tính vào kết quả", kq2.p === "0%" && /Vượt chặng/.test(kq2.tieu) && !kq2.truot, JSON.stringify(kq2));
 await pg.click(".jl-kq .jl-btn:not(.chinh)");        // Chơi lại
 await pg.waitForSelector(".jl-lua");
 await pg.keyboard.press("Escape");
@@ -208,7 +208,7 @@ soat("hộp hỏi thoát: lớp phủ kín cả màn hình và hộp nằm chín
 await pg.click(".jl-hoi .jl-btn.chinh");
 await pg.waitForSelector(".jl-bd");
 const sau2 = await pg.evaluate(() => { const n = [...document.querySelectorAll(".jl-nut")]; return { x2: n[1].classList.contains("xong"), k3: n[2].classList.contains("khoa") }; });
-soat("trượt chặng 2: không xong, chặng 3 vẫn khoá; thoát giữa chừng không đổi gì", !sau2.x2 && sau2.k3, JSON.stringify(sau2));
+soat("chặng 2 điểm thấp vẫn xong, chặng 3 mở; thoát giữa chừng không đổi gì", sau2.x2 && !sau2.k3, JSON.stringify(sau2));
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
 soat("điểm cao nhất của chặng 2 ghi nhận 0 và có mục sai để ôn", luu.mon.n3.chang[id2].tot === 0 && Object.keys(luu.sai).length >= 4, Object.keys(luu.sai).length);
 
@@ -246,13 +246,13 @@ await pg.waitForSelector(".jl-thoai");
 await xongThoai();
 await pg.waitForSelector(".jl-bd");
 const n2 = await pg.evaluate(() => ({ n: document.querySelectorAll(".jl-nut").length, khoa: document.querySelectorAll(".jl-nut.khoa").length, tit: document.querySelector(".jl-bd-ten").textContent }));
-soat("N2: 201 chặng, tất cả mở (chế độ thử), tiêu đề Okinawa", n2.n === 201 && n2.khoa === 0 && /Okinawa/.test(n2.tit), JSON.stringify(n2));
+soat("N2: 201 chặng, bài cuối vẫn khoá (chế độ thử), tiêu đề Okinawa", n2.n === 201 && n2.khoa === 1 && /Okinawa/.test(n2.tit), JSON.stringify(n2));
 await pg.evaluate(() => document.querySelector(".jl-lui").click());
 await pg.uncheck("#jlThu");
 await pg.click('.jl-the[data-mon="n2"]');
 await pg.waitForSelector(".jl-bd");
 const n2b = await pg.evaluate(() => ({ khoa: document.querySelectorAll(".jl-nut.khoa").length, mo: document.querySelectorAll(".jl-nut:not(.khoa)").length }));
-soat("N2 tắt chế độ thử: vào được ngay không cần qua N3; chỉ chặng đầu mở", n2b.mo === 1 && n2b.khoa === 200, JSON.stringify(n2b));
+soat("N2 tắt chế độ thử: vào được ngay không cần qua N3; mọi chặng thường mở", n2b.mo === 200 && n2b.khoa === 1, JSON.stringify(n2b));
 soat("không có lỗi trang", loi.length === 0, loi.join(" | ").slice(0, 200));
 await ctx.close();
 process.exit(ket.every(Boolean) ? 0 : 1);
