@@ -81,7 +81,17 @@ jobs:
           profile: pixel_2
           disable-animations: true
           working-directory: android/integration/build
-          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationSmokeTest,com.kienhoang.dualsubreplay.ui.WordLearningDialogTest#liveWordCanBeSavedWithoutOfferingUnreliableClipExamples,com.kienhoang.dualsubreplay.ui.WordLearningDialogTest#manualSpeechWorksWhenAutomaticSpeechIsDisabled,com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest#thePanelUsesTheAppThemeEvenOutsideTheAppScreen,com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest#picturesAndFilesWaitAboveTheChatBoxThenGoWithTheQuestion --no-daemon --max-workers=2
+          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationSmokeTest,com.kienhoang.dualsubreplay.ui.WordLearningDialogTest,com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest --no-daemon --max-workers=2
+      - name: Verify all selected device suites ran
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("android/integration/build/app/build/reports/androidTests/connected/debug")
+          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
+              report = root / (name + ".html")
+              assert report.is_file(), "Missing device test suite: " + name
+              print(name, "report verified")
+          PY
       - name: Upload device test reports
         if: always()
         uses: actions/upload-artifact@v4
