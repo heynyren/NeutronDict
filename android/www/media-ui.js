@@ -23,6 +23,19 @@
         nb[key] = {...current,means:en.means || [],reading:current.reading || en.reading || "",ts:Date.now()};
       })).then(()=>syncNow(item.language)).catch(()=>{});
     }
+    // A full sentence can span several display rows; translate that exact sentence,
+    // never attach a single row's translation to the full listening example.
+    if (item.src.cau && !item.src.cauDich) {
+      gtxTranslate(item.src.cau,item.language,"vi").then(translation => {
+        if (!translation) return;
+        return capNhat(nb => {
+          const key=item.dict+":"+item.word, current=nb[key];
+          if (!current || current.del || !current.cauNghe || current.cauNghe.sua ||
+              current.cauNghe.cau!==item.src.cau || current.cauNghe.dich) return;
+          nb[key]={...current,cauNghe:{...current.cauNghe,dich:translation},ts:Date.now()};
+        });
+      }).then(()=>syncNow(item.language)).catch(()=>{});
+    }
     syncNow(item.language).catch(()=>{});
     return {status,key:item.dict + ":" + item.word};
   }

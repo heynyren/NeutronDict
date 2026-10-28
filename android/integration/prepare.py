@@ -97,7 +97,7 @@ patch(dual / "ui/AppViewModel.kt",
       "        val watchUrl = neutronSourceWatchUrl(mobileWatchUrl(videoId), text)\n        ensureOpenTab(watchUrl)")
 # Store the complete sentence even when the displayed subtitle is split into shorter rows.
 patch(dual / "data/SavedWord.kt", "meaning.trim(), segment?.originalText.orEmpty(), segment?.translatedText, selection.videoId,",
-      "meaning.trim(), segment?.sentence?.text ?: segment?.originalText.orEmpty(), segment?.translatedText, selection.videoId,")
+      "meaning.trim(), segment?.sentence?.text ?: segment?.originalText.orEmpty(), segment?.translatedText?.takeIf { segment.sentence == null || segment.sentence.text == segment.originalText }, selection.videoId,")
 
 # Shared AI controller: one key vault, history and settings, no concurrent history writers across screens.
 patch(dual / "ui/LearningPlayerRoot.kt", "val aiViewModel: AiAssistantViewModel = viewModel()",

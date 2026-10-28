@@ -47,5 +47,47 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 3. Kiểm thử import/SRS, XML/context/security, build và Android smoke test.
 4. Công bố link PR và artifact thử nghiệm; giữ main nguyên trạng.
 
-## Kết quả
-Đang triển khai. Chưa có kết quả build hay kiểm thử thiết bị.
+## Giao diện và AI
+- Giữ các màn hình, theme, hiệu ứng và cửa sổ của DualSub Replay từ bản nguồn đã ghim.
+- Cửa sổ tra từ trong bài báo dùng lại WordLearningDialog của DualSub: nghĩa, cách đọc,
+  phát âm, sửa nghĩa, chữ Hán và hỏi AI. Đọc báo không có nút lưu đoạn video.
+- Bảng AI gốc được mở từ nút AI trên NeutronDict và trong trình đọc báo.
+  Dùng chung thiết lập, khóa mã hóa và lịch sử với module YouTube.
+- Ngoài màn hình YouTube, AI nhận văn bản đang đọc và có thể đề nghị lưu từ vào
+  sổ tay. Công cụ thay đổi phát video chỉ hoạt động trong màn hình YouTube;
+  chưa cấp công cụ sửa lịch SRS hay điều khiển bài JLPT cho AI.
+- Chức năng chụp màn hình tự động của AI chỉ được phép trên nội dung YouTube.
+  Ngoài YouTube dùng văn bản được trích hoặc ảnh/tệp người dùng đính kèm.
+
+## Dùng bản thử
+1. Mở Actions → Integrated Android preview → lượt chạy xanh của nhánh này.
+2. Trong Artifacts tải NeutronDict-integrated-preview, giải nén.
+3. Cài APK trong app/build/outputs/apk/debug (không cài APK androidTest).
+4. Ứng dụng có tên NeutronDict Preview, package com.neutrondict.app.preview.
+   Nó có vùng dữ liệu riêng với app cũ. Kết nối cùng Apps Script theo từng ngôn ngữ
+   để kéo sổ tay hiện có. Không cần gỡ app chính.
+5. Thanh trên NeutronDict có YouTube, Đọc báo, AI. Trong YouTube, dùng menu ngăn
+   kéo “NeutronDict · Sổ tay và đọc báo” để quay về.
+6. Đọc báo: mở bài, bôi đen từ, chọn “Tra NeutronDict”, xem nghĩa và bấm lưu.
+   Có thể dùng nút “Tra từ” khi lựa chọn còn tồn tại. Từ Nhật/Anh vào đúng
+   sổ tay cùng câu và nguồn; ngôn ngữ khác đọc/dịch được nhưng chưa có kho SRS.
+7. Nguồn tin mặc định: Google News Nhật và Anh. Có thể thêm RSS/Atom HTTPS,
+   chọn cập nhật thủ công hoặc chu kỳ nền 15/30/60/120 phút. Android có thể
+   hoãn tác vụ nền theo pin/mạng. “Lưu bài” lưu phần văn bản để đọc ngoại tuyến.
+8. Trong bảng AI dùng thiết lập gốc của DualSub để kết nối nhà cung cấp. Không
+   có khóa API được đóng gói sẵn. Gọi AI thật có thể tính phí theo tài khoản đã cấu hình.
+
+## Kiểm chứng và giới hạn
+- Pipeline build toàn bộ nguồn DualSub cùng Capacitor; chạy bộ unit test gốc,
+  parser RSS/Atom, giữ ngữ cảnh/mốc video và kiểm thử mới.
+- Pipeline Android chạy trên emulator: mở launcher, hộp nhận bền vững, save qua
+  cầu nối thật vào notebook và giữ SRS/hiệu đính; mở AI; kiểm thử gốc cửa sổ tra từ
+  và theme/đính kèm của bảng AI.
+- Pipeline NeutronDict chạy Node và Playwright, gồm chọn đúng lần xuất hiện,
+  câu Nhật/Anh, ruby/furigana, danh sách và bảo vệ vùng nhập riêng tư.
+- Lượt build 40659461290 đã tạo APK. Các commit tiếp theo phải qua lại pipeline;
+  trạng thái và báo cáo gắn commit nằm trong PR #27 và Actions.
+- Chưa xác minh trên điện thoại thật, tài khoản YouTube thật, khóa AI thật hoặc
+  mọi nhà xuất bản. Trang báo cần đăng nhập/paywall phụ thuộc nhà xuất bản.
+  Đây là bản thử trên nhánh riêng; chưa hợp nhất main.
+
