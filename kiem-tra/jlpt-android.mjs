@@ -52,6 +52,12 @@ try {
   soat("cảnh nền liền mạch: 10 khung chồng, sân khấu dính đầu vùng cuộn, tràn sát hai mép", await p.evaluate(() => { const k = document.querySelector(".jl-gioi-khung").getBoundingClientRect(); return document.querySelectorAll(".jl-gioi-lop").length === 10 && Math.abs(k.left) < 1 && Math.abs(k.right - innerWidth) < 1 && !document.querySelector(".jl-banner"); }));
   soat("N3 leo núi LÊN: lúc vào là chân núi (khung 1 hiện), nút chặng 1 ở dưới cùng", await p.evaluate(() => { const l = [...document.querySelectorAll(".jl-gioi-lop")]; const n = [...document.querySelectorAll(".jl-nut")]; return !l[0].classList.contains("an") && l.slice(1).every((x) => x.classList.contains("an") || +x.style.opacity === 0) && n[0].getBoundingClientRect().top > n[n.length - 1].getBoundingClientRect().top; }));
   soat("bản đồ N3: 227 chặng", await p.evaluate(() => document.querySelectorAll(".jl-nut").length === 227));
+  soat("Android: SVG nền và đường bản đồ không chạy hoạt ảnh liên tục", await p.evaluate(() => {
+    const scene = document.querySelector(".jl-gioi-lop:not(.an) svg .jl-tw, .jl-gioi-lop:not(.an) svg .jl-boi2");
+    const path = document.querySelector(".jl-bd .jl-duong path");
+    return getComputedStyle(path).animationName === "none" && (!scene || getComputedStyle(scene).animationName === "none");
+  }));
+  soat("Android: tối đa hai lớp cảnh được giữ để tăng tốc cuộn", await p.evaluate(() => [...document.querySelectorAll(".jl-gioi-lop")].filter((x) => getComputedStyle(x).willChange !== "auto").length <= 2));
   soat("không bị thanh tab dưới che chặng đầu (nút bấm được)", await p.evaluate(() => { const n = document.querySelector(".jl-nut"); n.scrollIntoView({ block: "center" }); const r = n.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return n.contains(e) || e === n; }));
   await bamChang(p, ".jl-nut.hien");
   await p.tap(".jl-to-nut .jl-btn:not(.chinh)");     // làm bài ngay
