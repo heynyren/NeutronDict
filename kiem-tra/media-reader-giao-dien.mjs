@@ -23,6 +23,9 @@ async function capture(html,selector,word,occurrence=0){
  const raw=await page.evaluate(script);
  return raw?JSON.parse(raw):null;
 }
+await page.setContent('<html lang="ja"><p>古いケアです。クリームを塗って肌の<span>ケア</span>をする。</p></html>');
+await page.evaluate(()=>{const r=document.createRange();r.selectNodeContents(document.querySelector("span"));getSelection().removeAllRanges();getSelection().addRange(r)});
+assert.equal(JSON.parse(await page.evaluate(script)).sentence,"クリームを塗って肌のケアをする。");
 let result=await capture('<html lang="ja"><p>古いケアです。クリームを塗って肌の<span>ケア</span>をする。次の文です。</p></html>',"p span","ケア");
 assert.equal(result.sentence,"クリームを塗って肌のケアをする。");
 result=await capture('<html lang="en"><p>Care matters. Take <b>care</b> of your skin. Next sentence.</p></html>',"b","care");

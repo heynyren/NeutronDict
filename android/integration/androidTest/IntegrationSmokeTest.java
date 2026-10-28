@@ -50,8 +50,22 @@ public class IntegrationSmokeTest {
             Context context=ApplicationProvider.getApplicationContext();
             Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
                 .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja");
-            try(ActivityScenario<com.kienhoang.dualsubreplay.ui.NewsReaderActivity> reader=ActivityScenario.launch(intent)){
-                reader.onActivity(activity -> {
+            // Open through the live host as the product does; a second ActivityScenario can reset its task.
+            host.onActivity(activity -> activity.startActivity(intent));
+            java.util.concurrent.atomic.AtomicReference<com.kienhoang.dualsubreplay.ui.NewsReaderActivity> opened=new java.util.concurrent.atomic.AtomicReference<>();
+            long openDeadline=System.currentTimeMillis()+10000;
+            while(opened.get()==null && System.currentTimeMillis()<openDeadline){
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+                    for(android.app.Activity activity:androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(androidx.test.runner.lifecycle.Stage.RESUMED))
+                        if(activity instanceof com.kienhoang.dualsubreplay.ui.NewsReaderActivity)opened.set((com.kienhoang.dualsubreplay.ui.NewsReaderActivity)activity);
+                });
+                Thread.sleep(100);
+            }
+            assertNotNull("Reader activity did not open",opened.get());
+            java.util.function.Consumer<java.util.function.Consumer<com.kienhoang.dualsubreplay.ui.NewsReaderActivity>> onReader=
+                action -> androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().runOnMainSync(()->action.accept(opened.get()));
+            try {
+                onReader.accept(activity -> {
                     android.webkit.WebView web=readerPage(activity);
                     web.stopLoading();
                     web.loadDataWithBaseURL("https://example.org/integration-fixture",
@@ -61,21 +75,23 @@ public class IntegrationSmokeTest {
                 java.util.concurrent.atomic.AtomicReference<JSONObject> selected=new java.util.concurrent.atomic.AtomicReference<>();
                 long deadline=System.currentTimeMillis()+20000;
                 while(selected.get()==null && System.currentTimeMillis()<deadline){
-                    reader.onActivity(activity -> readerPage(activity).evaluateJavascript(
+                    onReader.accept(activity -> readerPage(activity).evaluateJavascript(
                         "(function(){const e=document.getElementById('target');if(!e)return false;const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);return true})()",
                         value -> {if("true".equals(value)) try {
                             java.lang.reflect.Method capture=activity.getClass().getDeclaredMethod("captureSelection");
                             capture.setAccessible(true);capture.invoke(activity);
                         }catch(Exception e){throw new AssertionError(e);}}));
                     Thread.sleep(500);
-                    reader.onActivity(activity -> {
+                    onReader.accept(activity -> {
                         try {
                             java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
                             get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
                         }catch(Exception e){throw new AssertionError(e);}
                     });
                 }
-                assertNotNull("Native selection lookup did not reply while the notebook was paused",selected.get());
+                java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
+                onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
+                assertNotNull("Native selection lookup did not reply: "+readerStatus.get(),selected.get());
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
                 java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();
@@ -83,7 +99,8 @@ public class IntegrationSmokeTest {
                     .put("translatedSentence","Bôi kem để chăm sóc da.");
                 MediaPlugin.request(new JSONObject().put("op","save").put("item",item),(result,err)->{error.set(err);saved.countDown();});
                 assertTrue(saved.await(35,java.util.concurrent.TimeUnit.SECONDS));assertNull(error.get());
-            }
+            } finally { onReader.accept(activity -> activity.finish()); }
+            androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             evaluate(host,"window.__readerSaved=null;getNB().then(nb=>window.__readerSaved=nb['javi:ケア'])");
             long deadline=System.currentTimeMillis()+10000;
             while(!"true".equals(evaluate(host,"!!window.__readerSaved")) && System.currentTimeMillis()<deadline)Thread.sleep(100);

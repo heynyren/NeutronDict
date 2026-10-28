@@ -17,6 +17,7 @@
   let text = "", offset = -1, node;
   while ((node = walker.nextNode())) {
     if (node === range.startContainer) offset = text.length + range.startOffset;
+    else if (offset < 0 && range.comparePoint(node, 0) === 0) offset = text.length;
     if (text.length > 250000) break;
     text += node.nodeValue;
   }

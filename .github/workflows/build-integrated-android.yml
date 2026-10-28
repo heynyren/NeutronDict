@@ -88,7 +88,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           working-directory: android/integration/build
-          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationSmokeTest,com.kienhoang.dualsubreplay.ui.WordLearningDialogTest,com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest --no-daemon --max-workers=2
+          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite --no-daemon --max-workers=2
       - name: Verify all selected device suites ran
         run: |
           python3 - <<'PY'
