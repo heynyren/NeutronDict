@@ -65,7 +65,6 @@ try {
   await p.waitForSelector(".jl-lua, .jl-thoai");
   if (await p.$(".jl-thoai")) { await p.tap(".jl-thoai .jl-btn"); await p.waitForSelector(".jl-lua"); }   // lời thoại đầu chương
   soat("đang chơi: màn chơi phủ kín, thanh tab dưới không đè lên", await p.evaluate(() => { const r = document.querySelector(".jl-chay").getBoundingClientRect(); const nav = getComputedStyle(document.querySelector(".jl-chay")).zIndex; return r.height >= innerHeight - 2 && Number(nav) > 60; }));
-  soat("Android: bản đồ phía sau ngừng vẽ khi làm bài", await p.evaluate(() => getComputedStyle(document.querySelector(".jl-bd")).visibility === "hidden"));
   const tong = await p.evaluate(() => Number(document.querySelector(".jl-chay-tieu").textContent.split("/")[1]));
   for (let i = 0; i < tong; i++) {
     await p.waitForSelector(".jl-lua:not(:disabled)");

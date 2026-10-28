@@ -720,4 +720,3 @@ body.jlpt-toan .side { display: none; }
 #scroller .jl-bd .jl-bd-dau { background: var(--bg, #f7f5fd); }
 #scroller .jl-ten-chuong { background: rgba(10, 12, 40, .86); }
 #scroller .jl-bd > .jl-suutam { background: rgba(10, 12, 40, .82); }
-#scroller .jl-goc:has(.jl-chay) .jl-bd { visibility: hidden; }
