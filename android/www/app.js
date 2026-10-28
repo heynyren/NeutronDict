@@ -3231,6 +3231,7 @@ function chuanHoaUrl(u) {
 }
 
 function openSourceExt(it) {
+  if (window.NeutronMediaOpenSource && window.NeutronMediaOpenSource(it)) return;
   // Link đã lưu sai kiểu `https://file///…` thì chữa lại trước khi mở.
   if (it && it.src && it.src.url) { const u = chuanHoaUrl(it.src.url); if (u !== it.src.url) it = Object.assign({}, it, { src: Object.assign({}, it.src, { url: u }) }); }
   // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn đều đi qua đây.
@@ -5319,6 +5320,8 @@ async function donHuyHieu() {
   refreshNotifications();
   checkProcessText();
   checkShare();
+  window.NeutronReady = true;
+  window.dispatchEvent(new Event("neutrondict-ready"));
 
   // Xét lại huy hiệu lúc mở app: có mốc chỉ phụ thuộc số mục trong sổ (lưu từ
   // máy tính, hoặc lưu qua menu Chia sẻ) nên không đi qua đường chấm bài.

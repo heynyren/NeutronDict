@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/neutrondict-work
+      - codex/neutrondict-youtube-news
       - main
   workflow_dispatch:
 

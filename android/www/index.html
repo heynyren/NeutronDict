@@ -130,7 +130,7 @@
     .khv { font-size: 19px; font-weight: 750; color: var(--accent); text-transform: capitalize; }
     .kmeta { color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
   </style>
-</head>
+<link rel="stylesheet" href="media.css"></head>
 <body>
 
 <header>
@@ -138,6 +138,11 @@
   <span class="nm" data-chu>NeutronDict</span>
   <span class="streak" id="streakChip" style="display:none"></span>
 </header>
+<div id="mediaBar" hidden class="media-bar">
+  <button id="mediaYouTube" class="btn sm" type="button">▶ YouTube</button>
+  <button id="mediaNews" class="btn sm" type="button">▤ Đọc báo</button>
+  <button id="mediaAi" class="btn sm" type="button">✦ Trợ lý AI</button>
+</div>
 
 <main id="scroller">
 
@@ -582,7 +587,32 @@
   <script src="jlpt-nhac.js"></script>
   <script src="jlpt-giao-dien.js"></script>
   <script src="hang-vuot.js"></script>
+<script src="media-import.js"></script>
 <script src="app.js"></script>
+<dialog id="newsDialog" class="news-dialog">
+  <div class="rowx between"><h2>Đọc báo</h2><button id="newsClose" class="btn" type="button">Đóng</button></div>
+  <p class="t-small muted">Đọc bài → bôi đen từ → Tra NeutronDict → Lưu vào sổ tay.</p>
+  <div class="rowx wrap">
+    <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="">Mọi ngôn ngữ</option value="ja">日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
+    <button id="newsRefresh" class="btn primary" type="button">Cập nhật</button>
+    <button id="newsSaved" class="btn" type="button">★ Bài đã lưu</button>
+  </div>
+  <input id="newsSearch" type="search" placeholder="Lọc tiêu đề, nguồn báo…" aria-label="Lọc bài báo">
+  <p id="newsStatus" class="t-tiny muted" role="status"></p>
+  <details><summary>Nguồn tin và cập nhật</summary>
+    <label>Cập nhật nền <select id="newsMinutes"><option value="0">Tắt</option><option value="15">15 phút</option><option value="30">30 phút</option><option value="60">1 giờ</option><option value="120">2 giờ</option></select></label>
+    <p class="t-tiny muted">Android có thể trì hoãn cập nhật để tiết kiệm pin. Mỗi nguồn cung cấp số lượng bài khác nhau.</p>
+    <div id="newsFeeds"></div>
+    <form id="newsAddFeed" class="stack">
+      <input id="newsFeedUrl" type="url" required placeholder="https://… nguồn RSS/Atom" aria-label="URL RSS">
+      <input id="newsFeedTitle" maxlength="120" placeholder="Tên nguồn" aria-label="Tên nguồn">
+      <input id="newsFeedLanguage" required maxlength="20" placeholder="Mã ngôn ngữ: ja, en, fr…" aria-label="Mã ngôn ngữ">
+      <button class="btn" type="submit">Thêm nguồn</button>
+    </form>
+  </details>
+  <div id="newsList" class="stack"></div><button id="newsMore" class="btn block" hidden type="button">Xem thêm</button>
+</dialog>
+<script src="media-ui.js"></script>
   <div id="stHieuUng" class="st-hieuung" aria-hidden="true"></div>
 </body>
 </html>

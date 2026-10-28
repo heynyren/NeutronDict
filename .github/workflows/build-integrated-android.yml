@@ -1,0 +1,79 @@
+name: Integrated Android preview
+on:
+  push:
+    branches: [codex/neutrondict-youtube-news]
+    paths: ['android/**', '.github/workflows/build-integrated-android.yml', 'kiem-tra/media-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: integrated-android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pinned complete DualSub source
+        uses: actions/checkout@v4
+        with:
+          repository: heynyren/dual-sub-replay
+          ref: 25d2a83eeb7c95fc204ac656256b7d3cca5616ae
+          path: android/integration/upstream
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install and prepare existing Capacitor shell
+        working-directory: android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+          node patch-android.js
+      - name: Assemble integrated sources
+        run: python3 android/integration/prepare.py
+      - name: Unit tests and APKs
+        working-directory: android/integration/build
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace --max-workers=2
+      - name: Upload APK and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-integrated-preview
+          path: |
+            android/integration/build/app/build/outputs/apk/debug/*.apk
+            android/integration/build/app/build/outputs/apk/androidTest/debug/*.apk
+            android/integration/build/app/build/reports/tests/
+            android/integration/build/INTEGRATION.json
+          retention-days: 7
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android integration smoke tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          working-directory: android/integration/build
+          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationSmokeTest --no-daemon --max-workers=2
+      - name: Upload device test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-integrated-device-tests
+          path: android/integration/build/app/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 7
