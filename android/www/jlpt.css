@@ -698,10 +698,6 @@ body.jlpt-toan .side { display: none; }
 .jl-thoai.di, .jl-thoai.di > * { pointer-events: none; }
 
 /* Android WebView: giới hạn số lớp vẽ và hoạt ảnh trong bản đồ JLPT. */
-#scroller .jl-bd .jl-chuong {
-  content-visibility: auto;
-  contain-intrinsic-size: auto var(--jl-sec-height, 1400px);
-}
 #scroller .jl-gioi-lop { will-change: auto; }
 #scroller .jl-gioi-lop:not(.an) { will-change: opacity, transform; }
 #scroller .jl-gioi-lop svg *,

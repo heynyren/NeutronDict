@@ -462,8 +462,6 @@
       const cao = R ? nHang * DONG + 30 : g.ds.length * 92 + 20;
       const lo = el("div", "jl-lo" + (R ? " rong" : ""));
       lo.style.height = cao + "px";
-      // Kích thước dự phòng giúp WebView bỏ qua chương ngoài màn hình mà vẫn giữ vị trí cuộn.
-      sec.style.setProperty("--jl-sec-height", (cao + 80) + "px");
       const toa = g.ds.map((c, k) => {
         let p;
         if (!R) p = { x: 50 + LECH[k % LECH.length], y: k * 92 + 46 };
