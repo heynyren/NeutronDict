@@ -133,6 +133,18 @@ patch(capture, "                hidden = true", """                if (!com.neut
 patch(capture, "                    copyWindow(activity, decor.width, decor.height)",
       "                    if (com.neutrondict.app.media.ScreenPrivacy.canCapture(decor)) copyWindow(activity, decor.width, decor.height) else null")
 
+
+# Device UI tests must finish IME resizing before tapping the next control.
+# Keep every original assertion and all production UI/animations unchanged.
+ai_ui_test = OUT / "app/src/androidTest/java/com/kienhoang/dualsubreplay/ui/AiAssistantPanelUiTest.kt"
+ai_test_source = ai_ui_test.read_text()
+ai_test_source, keyboard_inputs = re.subn(
+    r"(?m)^([ \t]*)(composeRule[^\n]*\.performTextInput\([^\n]*\))$",
+    lambda m: m.group(0) + "\n" + m.group(1) + "Espresso.closeSoftKeyboard()\n" + m.group(1) + "composeRule.waitForIdle()",
+    ai_test_source)
+if keyboard_inputs != 12: raise RuntimeError("Upstream AI keyboard test inputs changed")
+ai_ui_test.write_text(ai_test_source)
+
 # An integrated APK must never offer an unrelated DualSub package update.
 updater = dual / "update/AppUpdater.kt"
 updater_text = updater.read_text()
