@@ -29,6 +29,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
       - name: Install and prepare existing Capacitor shell
         working-directory: android
         run: |
@@ -44,7 +46,7 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace --max-workers=2
       - name: Upload APK and test reports
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: NeutronDict-integrated-preview

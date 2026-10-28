@@ -137,6 +137,11 @@ modules = [
 settings = (OUT / "settings.gradle.kts").read_text().replace('include(":benchmark")', '')
 for name, npm_path, namespace in modules:
     source = ANDROID / "node_modules" / npm_path
+    # Namespace must match the npm module's generated R/BuildConfig imports.
+    source_gradle = source.joinpath("build.gradle").read_text()
+    namespace_match = re.search(r"""namespace\s*(?:=\s*)?["']([^"']+)["']""", source_gradle)
+    if not namespace_match: raise RuntimeError("Missing namespace: " + npm_path)
+    namespace = namespace_match.group(1)
     dest = OUT / name
     shutil.copytree(source / "src", dest / "src", dirs_exist_ok=True)
     dependencies = '''
