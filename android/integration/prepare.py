@@ -85,6 +85,14 @@ patch(navigation, "                            Spacer(Modifier.height(8.dp))", "
                                 },
                             )""")
 
+# Preserve the source position when returning from a saved notebook entry.
+patch(dual / "ui/AppViewModel.kt",
+      "        val watchUrl = mobileWatchUrl(videoId)\n        ensureOpenTab(watchUrl)",
+      "        val watchUrl = neutronSourceWatchUrl(mobileWatchUrl(videoId), text)\n        ensureOpenTab(watchUrl)")
+# Store the complete sentence even when the displayed subtitle is split into shorter rows.
+patch(dual / "data/SavedWord.kt", "meaning.trim(), segment?.originalText.orEmpty(), segment?.translatedText, selection.videoId,",
+      "meaning.trim(), segment?.sentence?.text ?: segment?.originalText.orEmpty(), segment?.translatedText, selection.videoId,")
+
 # Shared AI controller: one key vault, history and settings, no concurrent history writers across screens.
 patch(dual / "ui/LearningPlayerRoot.kt", "val aiViewModel: AiAssistantViewModel = viewModel()",
       "val aiViewModel: AiAssistantViewModel = sharedNeutronAssistant(context)")
@@ -110,6 +118,8 @@ if security_test.exists():
     test = test.replace("assertTrue(shouldOpenInsideApp(EmbeddedNavigationDecision.OPEN_EXTERNAL, true))",
                         "assertFalse(shouldOpenInsideApp(EmbeddedNavigationDecision.OPEN_EXTERNAL, true))")
     test = test.replace("activeSignInKeepsUnknownHostsEmbeddedInsteadOfChrome", "activeSignInNeverEmbedsUnknownHosts")
+    test = test.replace("assertTrue(\n            shouldOpenInsideApp(EmbeddedNavigationDecision.OPEN_EXTERNAL, signInEmbeddingActive = true),",
+                        "assertFalse(\n            shouldOpenInsideApp(EmbeddedNavigationDecision.OPEN_EXTERNAL, signInEmbeddingActive = true),")
     security_test.write_text(test)
 capture = dual / "ui/AiScreenCapture.kt"
 patch(capture, "                hidden = true", """                if (!com.neutrondict.app.media.ScreenPrivacy.canCapture(decor)) return@withContext null
@@ -182,6 +192,7 @@ extra = '\n'.join('    implementation(project(":' + name + '"))' for name,_,_ in
 patch(gradle, "dependencies {", '''dependencies {
 ''' + extra + '''
     implementation("androidx.work:work-runtime:2.10.5")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     testImplementation("net.sf.kxml:kxml2:2.3.0")
 ''')
 # Native tests compile under the original namespace; ND Java refers to no generated app R.

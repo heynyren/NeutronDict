@@ -226,11 +226,11 @@ class NewsReaderActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("url", currentUrl)
-        outState.putBundle("web", Bundle().also { page.saveState(it) })
+        if (::page.isInitialized) outState.putBundle("web", Bundle().also { page.saveState(it) })
     }
-    override fun onPause() { super.onPause(); page.onPause(); voice?.stop() }
+    override fun onPause() { super.onPause(); if (::page.isInitialized) page.onPause(); voice?.stop() }
     override fun onResume() { super.onResume(); if (::page.isInitialized) page.onResume() }
-    override fun onDestroy() { lookupJob?.cancel(); voice?.shutdown(); page.destroy(); super.onDestroy() }
+    override fun onDestroy() { lookupJob?.cancel(); voice?.shutdown(); if (::page.isInitialized) page.destroy(); super.onDestroy() }
 }
 
 /** Only a native, user-clicked command reads selection. The article has no JS bridge to app storage. */
