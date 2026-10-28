@@ -696,3 +696,28 @@ body.jlpt-toan .side { display: none; }
 #scroller .jl-goc { margin: -12px -12px calc(-1 * (env(safe-area-inset-bottom) + 84px)); }
 #scroller .jl-chon { padding: 12px 12px calc(env(safe-area-inset-bottom) + 96px); }
 .jl-thoai.di, .jl-thoai.di > * { pointer-events: none; }
+
+/* Android WebView: giới hạn số lớp vẽ và hoạt ảnh trong bản đồ JLPT. */
+#scroller .jl-bd .jl-chuong {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--jl-sec-height, 1400px);
+}
+#scroller .jl-gioi-lop { will-change: auto; }
+#scroller .jl-gioi-lop:not(.an) { will-change: opacity, transform; }
+#scroller .jl-gioi-lop svg *,
+#scroller .jl-chay-canh svg * { animation: none !important; }
+#scroller .jl-bd .jl-duong path { animation: none; filter: none; }
+#scroller .jl-bd .jl-nut:not(.hien),
+#scroller .jl-bd .jl-nut:not(.hien) > span,
+#scroller .jl-bd .jl-nut:not(.hien) > svg,
+#scroller .jl-bd .jl-nut::before,
+#scroller .jl-bd .jl-sao { animation: none; }
+#scroller .jl-khi i:nth-child(n+5) { display: none; }
+#scroller .jl-bd .jl-bd-dau,
+#scroller .jl-ten-chuong,
+#scroller .jl-bd > .jl-suutam,
+#scroller .jl-the-cap { -webkit-backdrop-filter: none; backdrop-filter: none; }
+#scroller .jl-bd .jl-bd-dau { background: var(--bg, #f7f5fd); }
+#scroller .jl-ten-chuong { background: rgba(10, 12, 40, .86); }
+#scroller .jl-bd > .jl-suutam { background: rgba(10, 12, 40, .82); }
+#scroller .jl-goc:has(.jl-chay) .jl-bd { visibility: hidden; }
