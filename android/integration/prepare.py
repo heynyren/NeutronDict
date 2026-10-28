@@ -36,6 +36,12 @@ generated = ANDROID / "android/app/src/main"
 # Preserve the source app, tests, assets, notices and Compose UI. Bring the existing Capacitor shell in.
 shutil.copytree(generated / "assets", main / "assets", dirs_exist_ok=True)
 shutil.copytree(generated / "res", main / "res", dirs_exist_ok=True)
+# Capacitor's generated strings are brand/URI constants, not untranslated UI labels.
+brand_strings = main / "res/values/strings.xml"
+brands = ET.parse(brand_strings)
+for string in brands.getroot().findall("string"):
+    string.set("translatable", "false")
+brands.write(brand_strings, encoding="utf-8", xml_declaration=True)
 shutil.copytree(generated / "java", java, dirs_exist_ok=True)
 for source in HERE.joinpath("native").iterdir():
     if source.suffix not in (".java", ".kt"): continue
