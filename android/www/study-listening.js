@@ -15,8 +15,10 @@ function cancel(){
   return stopping;
 }
 async function play(item,options){
-  await cancel();
-  const token=++generation;active=true;
+  const pending=cancel(),token=generation;
+  await pending;
+  if(token!==generation)return {kind:"cancelled"};
+  active=true;
   const current=()=>token===generation;
   const status=text=>{if(current())options.status?.(text);};
   const tts=async message=>{
@@ -36,8 +38,10 @@ async function play(item,options){
     return tts(clip?"TTS · "+options.rate+"×":"TTS · chưa có mốc âm thanh gốc khớp toàn câu");
   status("YouTube gốc · "+options.rate+"× · đang mở đoạn câu…");
   let result;
+  const began=g.performance?.now() ?? Date.now();
   try{result=await native().playYouTubeSentence({...clip,rate:options.rate});}
   catch(_){result={status:"unavailable"};}
+  finally{if(current())options.excludeWait?.(Math.max(0,(g.performance?.now() ?? Date.now())-began));}
   if(!current())return {kind:"cancelled"};
   if(result?.status==="completed"){
     status("Đã nghe YouTube gốc · "+options.rate+"×");
@@ -47,7 +51,9 @@ async function play(item,options){
     status("Đã dừng đoạn YouTube · bấm Nghe để phát lại");
     return {kind:"cancelled"};
   }
-  return tts("Chưa phát được YouTube gốc · đang dùng TTS "+options.rate+"×");
+  return tts(result?.reason==="setup"
+    ? "TTS · mở YouTube một lần để hoàn tất thiết lập nghe giọng gốc"
+    : "Chưa phát được YouTube gốc · đang dùng TTS "+options.rate+"×");
 }
 g.StudyListening={play,cancel};
 })(window);

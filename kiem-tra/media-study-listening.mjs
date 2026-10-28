@@ -22,7 +22,8 @@ const native={playYouTubeSentence:async o=>{requests.push(o);return {status:"com
 const g=environment(native),source=g.NeutronMediaImport.sentenceYouTube;
 assert.deepEqual(plain(source(item)),{videoId:id,url:"https://m.youtube.com/watch?v="+id+"&t=94",start:94.125,end:99.875});
 const snapshot=JSON.stringify(item);
-const options={rate:1.4,tts:async()=>{spoken++;},status:s=>statuses.push(s)};
+let now=0,excluded=0;g.performance={now:()=>now};
+const options={rate:1.4,tts:async()=>{spoken++;},status:s=>statuses.push(s),excludeWait:ms=>excluded+=ms};
 assert.equal((await g.StudyListening.play(item,options)).kind,"youtube");
 assert.equal(requests[0].rate,1.4);
 assert.equal(requests[0].start,94.125);
@@ -50,8 +51,9 @@ const withMatchingOtherSource=plain(changed);withMatchingOtherSource.mediaSource
   cau:changed.cauNghe.cau,yt:{v:id,sentence:{text:changed.cauNghe.cau,t:5,end:9}}}];
 assert.equal(source(withMatchingOtherSource).start,5);
 
-native.playYouTubeSentence=async()=>({status:"unavailable"});
+native.playYouTubeSentence=async()=>{now+=25000;return {status:"unavailable"};};
 assert.equal((await g.StudyListening.play(item,options)).kind,"tts");assert.equal(spoken,1);
+assert.equal(excluded,25000,"YouTube loading does not count as slow SRS retrieval");
 await g.StudyListening.play(desktop,options);assert.equal(spoken,2);
 native.playYouTubeSentence=async()=>{throw Error("offline");};
 await g.StudyListening.play(item,options);assert.equal(spoken,3);
@@ -72,4 +74,15 @@ const first=g.StudyListening.play(item,options);await tick();
 assert.equal((await g.StudyListening.play(item,options)).kind,"youtube");
 a.resolve({status:"unavailable"});
 assert.equal((await first).kind,"cancelled");assert.equal(spoken,3);
+// Cancelling while a previous provider is still stopping must cancel the new intent too.
+const slowStop=deferred();
+native.cancelYouTubeSentence=()=>slowStop.promise;
+let started=0;
+native.playYouTubeSentence=async()=>{started++;return {status:"completed"};};
+const beforeSpoken=spoken;
+const blocked=g.StudyListening.play(item,options);await tick();
+const cancelling=g.StudyListening.cancel();
+slowStop.resolve();await cancelling;
+assert.equal((await blocked).kind,"cancelled");
+assert.equal(started,0);assert.equal(spoken,beforeSpoken);
 console.log("Original YouTube sentence bounds, exact source matching, fallback and cancellation: OK");

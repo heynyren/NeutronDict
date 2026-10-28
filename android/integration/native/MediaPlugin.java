@@ -63,33 +63,40 @@ public class MediaPlugin extends Plugin {
         double end = call.getData().optDouble("end", -1);
         double rate = call.getData().optDouble("rate", 1);
         getActivity().runOnUiThread(() -> {
+            if (!com.kienhoang.dualsubreplay.ui.NeutronPlayback.readyForStudy(getContext())) {
+                call.resolve(new JSObject().put("status", "unavailable").put("reason", "setup"));
+                return;
+            }
             try {
-                com.kienhoang.dualsubreplay.ui.NeutronPlayback.requestStudy(url, start, end, rate, status -> {
+                boolean started = com.kienhoang.dualsubreplay.ui.NeutronPlayback.requestStudy(url, start, end, rate, status -> {
                     // Home or another app must never pull the user back into NeutronDict.
                     if (!status.equals("interrupted") && !com.kienhoang.dualsubreplay.ui.NeutronPlayback.activeStudy() && !getActivity().isDestroyed()) {
                         Intent back = new Intent(getContext(), com.neutrondict.app.MainActivity.class)
                             .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                        getActivity().startActivity(back);
+                        try { getActivity().startActivity(back); } catch (Exception ignored) {}
                     }
                     call.resolve(new JSObject().put("status", status));
                     return kotlin.Unit.INSTANCE;
                 });
-                if (com.kienhoang.dualsubreplay.ui.NeutronPlayback.activeStudy()) {
+                if (started) {
                     Intent intent = new Intent(getContext(), com.kienhoang.dualsubreplay.MainActivity.class);
                     intent.setAction(Intent.ACTION_VIEW).setData(Uri.parse(url))
                         .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                     getActivity().startActivity(intent);
                 }
             } catch (Exception e) {
-                com.kienhoang.dualsubreplay.ui.NeutronPlayback.cancelStudy();
-                call.resolve(new JSObject().put("status", "unavailable"));
+                if (com.kienhoang.dualsubreplay.ui.NeutronPlayback.activeStudy())
+                    com.kienhoang.dualsubreplay.ui.NeutronPlayback.failStudy();
+                else call.resolve(new JSObject().put("status", "unavailable"));
             }
         });
     }
     @PluginMethod public void cancelYouTubeSentence(PluginCall call) {
         getActivity().runOnUiThread(() -> {
-            com.kienhoang.dualsubreplay.ui.NeutronPlayback.cancelStudy();
-            call.resolve();
+            com.kienhoang.dualsubreplay.ui.NeutronPlayback.cancelStudy(() -> {
+                call.resolve();
+                return kotlin.Unit.INSTANCE;
+            });
         });
     }
     @PluginMethod public void openYouTube(PluginCall call) {

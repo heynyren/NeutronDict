@@ -48,4 +48,14 @@ class NeutronStudyStateTest {
         for (status in listOf("completed","cancelled","unavailable"))
             assertEquals(status,NeutronStudyClock(range(),0L).status(100L,status))
     }
+
+    @Test fun setupMustCompleteWithoutBypassingTheNewUserGuide() {
+        assertFalse(neutronStudySetupReady(false,false,false,false,false))
+        assertFalse(neutronStudySetupReady(true,true,false,false,false))
+        assertFalse(neutronStudySetupReady(true,true,true,true,false))
+        assertTrue(neutronStudySetupReady(true,true,true,true,true))
+    }
+    @Test fun existingUsersRetainTheOriginalSetupMigration() {
+        assertTrue(neutronStudySetupReady(true,false,false,false,false))
+    }
 }

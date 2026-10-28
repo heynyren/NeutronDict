@@ -46,3 +46,11 @@ internal class NeutronStudyClock(private val range: NeutronStudyRange, createdAt
         return null
     }
 }
+
+/** Reuse the original migration rules; never skip setup on a fresh installation. */
+internal fun neutronStudySetupReady(onboarding: Boolean, guideExists: Boolean, guideValue: Boolean,
+                                    goalExists: Boolean, goalValue: Boolean): Boolean {
+    val guide = initialGuideCompleted(guideExists, guideValue, onboarding)
+    val goal = com.kienhoang.dualsubreplay.data.initialDailyGoalPromptCompleted(goalExists, goalValue, guide)
+    return onboarding && guide && goal
+}

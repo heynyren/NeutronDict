@@ -1,5 +1,6 @@
 package com.kienhoang.dualsubreplay.ui
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -12,7 +13,7 @@ import org.json.JSONTokener
 
 /** One visible YouTube page serves source taps and bounded Study replays. */
 object NeutronPlayback {
-    private val main = Handler(Looper.getMainLooper())
+    private val main by lazy { Handler(Looper.getMainLooper()) }
     private var videoId: String? = null
     private var expires = 0L
     private var generation = 0
@@ -20,6 +21,8 @@ object NeutronPlayback {
     private var studyActive by mutableStateOf(false)
     private var study: StudyTask? = null
     private var studyGeneration = 0
+    private var cleanups = 0
+    private val idleWaiters = mutableListOf<() -> Unit>()
 
     private class StudyTask(
         val range: NeutronStudyRange,
@@ -34,6 +37,14 @@ object NeutronPlayback {
     }
 
     @JvmStatic fun activeStudy(): Boolean = studyActive
+    @JvmStatic fun readyForStudy(context: Context): Boolean {
+        val p = context.getSharedPreferences("dual_sub_preferences", Context.MODE_PRIVATE)
+        return neutronStudySetupReady(
+            p.getBoolean("onboarding_completed", false),
+            p.contains(GUIDE_COMPLETED_PREFERENCE), p.getBoolean(GUIDE_COMPLETED_PREFERENCE, false),
+            p.contains(DAILY_GOAL_PROMPT_COMPLETED_PREFERENCE), p.getBoolean(DAILY_GOAL_PROMPT_COMPLETED_PREFERENCE, false),
+        )
+    }
 
     @JvmStatic fun requestStudy(
         url: String,
@@ -41,7 +52,7 @@ object NeutronPlayback {
         end: Double,
         rate: Double,
         complete: (String) -> Unit,
-    ) {
+    ): Boolean {
         interruptStudy()
         videoId = null
         generation++
@@ -49,16 +60,22 @@ object NeutronPlayback {
         val range = neutronStudyRange(url, start, end, rate)
         if (range == null) {
             complete("unavailable")
-            return
+            return false
         }
         val task = StudyTask(range, ++studyGeneration, NeutronStudyClock(range, SystemClock.elapsedRealtime()), complete)
         study = task
         studyActive = true
         watch(task)
+        return true
     }
 
     @JvmStatic fun cancelStudy() { finishStudy("cancelled") }
+    @JvmStatic fun cancelStudy(done: () -> Unit) {
+        cancelStudy()
+        if (study == null && cleanups == 0) done() else idleWaiters += done
+    }
     @JvmStatic fun interruptStudy() { finishStudy("interrupted") }
+    @JvmStatic fun failStudy() { finishStudy("unavailable") }
 
     private fun watch(task: StudyTask) {
         main.postDelayed({
@@ -70,6 +87,7 @@ object NeutronPlayback {
 
     private fun finishStudy(reason: String) {
         val task = study ?: return
+        cleanups++
         study = null
         task.ticket++
         val view = task.view?.get()
@@ -77,8 +95,14 @@ object NeutronPlayback {
         val done = Runnable {
             if (!replied) {
                 replied = true
-                if (study == null) studyActive = false
-                task.complete(reason)
+                cleanups--
+                if (study == null && cleanups == 0) studyActive = false
+                runCatching { task.complete(reason) }
+                if (study == null && cleanups == 0) {
+                    val waiting = idleWaiters.toList()
+                    idleWaiters.clear()
+                    waiting.forEach { runCatching { it() } }
+                }
             }
         }
         if (view == null) {

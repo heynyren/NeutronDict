@@ -4622,6 +4622,7 @@ async function phatCauNghe() {
   const tts = () => speak(it.cauNghe.cau, null, lang, { rate });
   try {
     await window.StudyListening.play(it, {rate,tts,cache:()=>Store.get("ytKho"),
+      excludeWait: ms => { if (theCardHienTai() === it && msDaDung === null) mocHienThe += ms; },
       status: text => { if (theCardHienTai() === it) $("stNgheNguon").textContent = text; }});
   } catch (_) { /* provider failures must not break the study queue */ }
 }
