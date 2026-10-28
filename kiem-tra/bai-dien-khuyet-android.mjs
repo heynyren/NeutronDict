@@ -41,7 +41,7 @@ try {
   soat("nút Ôn từng đường có mặt", await p.evaluate(() => !!document.getElementById("stStartDuong")));
   await p.evaluate(() => document.querySelector("#stStartDuong").click()); await p.waitForSelector("#duongRiengDialog[open]");
   const lua = await p.evaluate(() => [...document.querySelectorAll("#duongRiengDialog .duong-rieng-lua")].map((x) => x.dataset.ma + ":" + (x.disabled ? "off" : "on")));
-  soat("hộp có nghe/nhìn/điền khuyết và điền khuyết bật", lua.join(",") === "nghe:off,nhin:off,dien:on", lua.join(","));
+  soat("hộp có nghe/nhìn/điền khuyết và điền khuyết bật", lua.join(",") === "grammar:off,nghe:off,nhin:off,dien:on", lua.join(","));
   await p.evaluate(() => document.querySelector('#duongRiengDialog [data-ma="dien"]').click()); await cho(600);
   const m = await p.evaluate(() => ({
     mat: document.getElementById("stDienMat").style.display !== "none",

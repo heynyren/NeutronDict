@@ -265,3 +265,25 @@ patch(dual / "ui/YouTubeBrowserScreen.kt",
 patch(dual / "ui/YouTubeBrowserScreen.kt",
       "        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT) { rawValue ->",
       "        NeutronPlayback.apply(webView)\n        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT) { rawValue ->")
+
+# Full-sentence text and playback bounds must remain one context, even after disk paging.
+
+patch(dual / "data/SubtitleModels.kt", "    val index: Int,\n)", "    val index: Int,\n    val startMs: Long = -1,\n    val endMs: Long = -1,\n)")
+
+patch(dual / "ui/CaptionFormat.kt", "SentenceSlice(sentence, cuts, index)", "SentenceSlice(sentence, cuts, index, rows.minOf { it.startMs }, rows.maxOf { it.endMs })")
+
+patch(dual / "data/SubtitleStore.kt", "        writeInt(sentence.index)", "        writeInt(sentence.index)\n        writeLong(sentence.startMs)\n        writeLong(sentence.endMs)")
+
+patch(dual / "data/SubtitleStore.kt", "SentenceSlice(text, List(count) { readInt() }, readInt())", "SentenceSlice(text, List(count) { readInt() }, readInt(), readLong(), readLong())")
+
+patch(dual / "data/SavedWord.kt", "    val segment = selection.segment", "    val segment = selection.segment?.let { row ->\n        val whole = row.sentence\n        if (whole != null && whole.startMs >= 0 && whole.endMs > whole.startMs)\n            row.copy(startMs = whole.startMs, endMs = whole.endMs)\n        else row\n    }")
+
+# Keep row arbitration close to the actual media clock, not a repeated phrase far ahead.
+
+patch(dual / "ui/KaraokeTiming.kt", "        playbackTimeMs: Long = 0L,\n    ): CaptionHighlightPosition?", "        playbackTimeMs: Long = 0L,\n        segments: List<SubtitleSegment>? = null,\n    ): CaptionHighlightPosition?")
+
+patch(dual / "ui/KaraokeTiming.kt", "        val fromLive = wordHighlightEnabled && generatedCaptions && livePosition != null", "        fun near(index: Int): Boolean {\n            if (segments == null) return true\n            val row = segments.getOrNull(index) ?: return false\n            return row.startMs <= playbackTimeMs + 1_000L && row.endMs >= playbackTimeMs - 1_000L\n        }\n        if (lastPosition?.let { !near(it.segmentIndex) } == true) reset()\n        val fromLive = wordHighlightEnabled && generatedCaptions &&\n            livePosition != null && near(livePosition.segmentIndex)")
+
+patch(dual / "ui/AppViewModel.kt", "                playbackTimeMs = timeMs,\n            )\n        val index = position?.segmentIndex", "                playbackTimeMs = timeMs,\n                segments = current.segments,\n            )\n        val index = position?.segmentIndex")
+
+patch(dual / "ui/KaraokeTiming.kt", "        val stale = playbackTimeMs - lastMappedMediaTimeMs > LIVE_CAPTION_STALE_MS", "        val stale = playbackTimeMs - lastMappedMediaTimeMs > LIVE_CAPTION_STALE_MS ||\n            lastMappedMediaTimeMs - playbackTimeMs > LIVE_CAPTION_BACKWARD_SEEK_RESET_MS")

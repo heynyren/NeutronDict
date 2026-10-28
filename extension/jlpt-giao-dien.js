@@ -746,12 +746,13 @@
    */
   async function chamThe(nho) {
     if (!chay || chay.dangLuu) return;
+    const round = chay;
     if (!nho && A.onWeak) {
       chay.dangLuu = true;
       try { await A.onWeak(chay.hoc[chay.iHoc], monId); }
       catch (e) { A.toast(T("Chưa lưu được thẻ sang Học. Hãy thử lại.")); return; }
-      finally { if (chay) chay.dangLuu = false; }
-      if (!chay) return;
+      finally { round.dangLuu = false; }
+      if (chay !== round) return;
     }
     const i = chay.iHoc, n = chay.hoc.length;
     chay.lat = false; chay.vuaLat = false;
@@ -910,7 +911,7 @@
     const dung = k === q.dung;
     if (!dung && A.onWeak) {
       try { await A.onWeak(CH.theYeu(mon, q.mucId), monId); }
-      catch (e) { if (chay) chay.da = false; A.toast(T("Chưa lưu được thẻ sang Học. Bấm lại đáp án để thử lưu.")); return; }
+      catch (e) { if (chay === round) chay.da = false; A.toast(T("Chưa lưu được thẻ sang Học. Bấm lại đáp án để thử lưu.")); return; }
       if (chay !== round) return;
     }
     const nutLua = chay.o.querySelectorAll(".jl-lua");
