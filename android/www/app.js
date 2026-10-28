@@ -1977,12 +1977,15 @@ window.ChamVuot.nutQuayLai(() => {
 /* ==================================================================== */
 async function luuTheYeuJlpt(card, level) {
   const incoming = window.JlptStudy.item(card, level);
+  let deleted = false;
   await capNhat(nb => {
     const key = incoming.dict + ":" + incoming.word;
-    if (nb[key]?.del) throw new Error("Từ đã xoá: khôi phục trong sổ tay trước.");
+    if (nb[key]?.del) { deleted = true; return; }
     nb[key] = window.JlptStudy.merge(nb[key], incoming, Date.now());
   });
-  syncSoon();
+  if (deleted) toast(T("Từ này đã xoá khỏi sổ tay nên không tự thêm lại. Bạn vẫn tiếp tục bài JLPT."));
+  else syncSoon();
+  return !deleted;
 }
 
 let jlptSan = null;

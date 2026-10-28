@@ -18,7 +18,7 @@
     const next={...incoming,...old,ts:Math.max(now,(old?.ts || 0)+1),jlptSource:incoming.jlptSource,jlptReviewAt:now};
     if (!next.means?.length) next.means=incoming.means;
     if (!next.reading) next.reading=incoming.reading;
-    if (!next.cauNghe?.cau && incoming.cauNghe) next.cauNghe={...incoming.cauNghe,ts:now};
+    if (!next.cauNghe?.cau && !next.cauNghe?.sua && incoming.cauNghe) next.cauNghe={...incoming.cauNghe,ts:now};
     if (!next.src && incoming.src) next.src=incoming.src;
     // "Not known" is explicit evidence to resume all available study routes.
     next.dongBang=false;

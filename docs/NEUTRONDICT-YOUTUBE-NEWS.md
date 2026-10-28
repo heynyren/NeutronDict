@@ -13,7 +13,8 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 - Một APK, launcher NeutronDict (Capacitor); activity YouTube native giữ Compose,
   phụ đề, phát lại, dịch, từ điển, luyện tập, AI và các thiết lập của upstream.
 - Reader activity riêng không có cầu nối Capacitor/JavaScript có quyền vào dữ liệu.
-  Chỉ thao tác người dùng trên menu native mới đọc lựa chọn và ngữ cảnh.
+  Khi người dùng bôi đen và dừng kéo, menu lựa chọn native kích hoạt tra từ tự động;
+  nút Tra NeutronDict vẫn có thể gọi lại. Chỉ đọc lựa chọn và ngữ cảnh khi có thao tác đó.
 - Hộp nhận từ durable, ghi riêng từng giao dịch; NeutronDict xác nhận sau khi
   ghi thành công qua hàng đợi capNhat. Không ghi trực tiếp notebook từ native/worker.
 - Giữ nguyên tiến độ SRS, đóng băng, nghĩa/câu người dùng sửa. Nhập lại cùng
@@ -68,8 +69,9 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
    để kéo sổ tay hiện có. Không cần gỡ app chính.
 5. Thanh trên NeutronDict có YouTube, Đọc báo, AI. Trong YouTube, dùng menu ngăn
    kéo “NeutronDict · Sổ tay và đọc báo” để quay về.
-6. Đọc báo: mở bài, bôi đen từ, chọn “Tra NeutronDict”, xem nghĩa và bấm lưu.
-   Có thể dùng nút “Tra từ” khi lựa chọn còn tồn tại. Từ Nhật/Anh vào đúng
+6. Đọc báo: mở bài, bôi đen từ rồi thả tay; popup tra từ gốc của DualSub tự mở
+   sau khi lựa chọn ổn định. Xem nghĩa và bấm lưu. Có thể gọi lại bằng “Tra NeutronDict”
+   trong menu chọn chữ hoặc nút “Tra từ” khi lựa chọn còn tồn tại. Từ Nhật/Anh vào đúng
    sổ tay cùng câu và nguồn; ngôn ngữ khác đọc/dịch được nhưng chưa có kho SRS.
 7. Nguồn tin mặc định: Google News Nhật và Anh. Có thể thêm RSS/Atom HTTPS,
    chọn cập nhật thủ công hoặc chu kỳ nền 15/30/60/120 phút. Android có thể
@@ -85,9 +87,60 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
   và theme/đính kèm của bảng AI.
 - Pipeline NeutronDict chạy Node và Playwright, gồm chọn đúng lần xuất hiện,
   câu Nhật/Anh, ruby/furigana, danh sách và bảo vệ vùng nhập riêng tư.
-- Lượt build 40659461290 đã tạo APK. Các commit tiếp theo phải qua lại pipeline;
-  trạng thái và báo cáo gắn commit nằm trong PR #27 và Actions.
+- Link lượt kiểm thử và APK đã xác minh của mỗi phiên bản nằm trong PR #27.
+  Artifact giữ 7 ngày; lấy bản mới từ lượt chạy xanh của Integrated Android preview.
 - Chưa xác minh trên điện thoại thật, tài khoản YouTube thật, khóa AI thật hoặc
   mọi nhà xuất bản. Trang báo cần đăng nhập/paywall phụ thuộc nhà xuất bản.
   Đây là bản thử trên nhánh riêng; chưa hợp nhất main.
 
+
+## Học, JLPT và cài đặt
+- Mọi màn JLPT thường đều mở để tự chọn. Bài cuối chỉ mở khi tất cả màn trước
+  đã có kết quả hoàn thành; điểm 60% không còn là điều kiện mở khóa. Điểm và sao vẫn được hiển thị.
+- Thẻ chọn “không thuộc” hoặc trả lời sai được ghi vào sổ tay qua hàng đợi hiện có,
+  kèm ví dụ trong bộ JLPT. Những đường có đủ dữ liệu được đưa vào Học; giữ cấp SRS
+  và hiệu đính đã có. Lần đánh dấu yếu chủ động mở lại lịch đóng băng của các đường
+  từ vựng để ôn; không hồi sinh từ người dùng đã xóa.
+- Ngữ pháp nằm trong Học → Ôn từng đường → Ghép câu ngữ pháp và trong buổi học chung.
+  Mỗi câu chỉ xuất hiện một lần dù chứa nhiều từ đã lưu. Ghép đúng một lần đóng băng
+  riêng câu đó; không đổi cấp nghe/nhìn/điền khuyết của từ. Xem đáp án không tính là thuộc.
+- Android có tab Cài đặt riêng: giao diện, đồng bộ, giọng đọc và các thiết lập đã có.
+  Sổ tay không còn phải cuộn xuống cuối để tìm cài đặt. Tab Ngữ pháp riêng đã gỡ.
+
+## Giọng đọc: Azure tùy chọn và TTS trên máy
+1. Mở Cài đặt → Giọng đọc, chọn giọng Nhật/Anh đã cài và nghe thử.
+2. Mặc định dùng TTS của thiết bị. Có thể cài thêm dữ liệu giọng đọc từ cùng khu vực.
+3. Nếu có Azure Speech, điền region và khóa tài khoản **F0**, rồi bật Azure. Không có
+   khóa được đóng gói sẵn, app không tạo tài khoản và không tự nâng cấp gói Azure.
+4. Giọng Azure Nhật: Nanami Neural; Anh: Jenny Neural. Âm thanh có cache riêng tối đa
+   khoảng 32 MB. Khóa được mã hóa bằng Android Keystore, không gửi vào Apps Script.
+5. Azure hết hạn mức, sai khóa, lỗi mạng hoặc phát âm thanh thất bại lúc bắt đầu thì
+   app chuyển sang TTS trên máy. Giọng ngoại tuyến cần được cài sẵn; chất lượng tùy
+   engine và thiết bị. App không thể đảm bảo mọi giọng hệ thống đều không dùng mạng.
+6. App có thêm giới hạn thận trọng 450.000 ký tự/tháng trên thiết bị, bao gồm cả yêu
+   cầu timeout chưa rõ kết quả. Azure mới là nơi kiểm soát tổng hạn mức tài khoản:
+   bộ đếm thiết bị không bao gồm ứng dụng hoặc thiết bị khác và không thay thế gói F0.
+7. Kiểm thử tự động xác minh đường fallback bằng provider giả lập; chưa thử giọng
+   Azure thực tế với khóa tài khoản của người dùng.
+
+## Mốc câu YouTube và giới hạn của nghe ngoại tuyến
+- Nguồn YouTube lưu từ extension trên máy tính cũng mở bằng module DualSub trong
+  Android, theo video ID và mốc nguồn. Thao tác mở nguồn chủ động yêu cầu có tiếng;
+  sau đó người dùng vẫn có thể tắt tiếng theo ý mình.
+- Khi một câu dài chia thành nhiều dòng phụ đề, bản tích hợp lưu cả nội dung câu và
+  thời gian bao trọn các dòng đó, kể cả sau khi phụ đề được phân trang từ đĩa.
+- Bộ chọn phụ đề có giới hạn theo đồng hồ video để một cụm từ lặp lại không kéo
+  phụ đề tới câu còn ở xa phía sau; mẫu phụ đề từ tương lai sau khi tua lùi bị loại.
+  Giới hạn này không sửa được timestamp sai sẵn hoặc nội dung sai của phụ đề nguồn.
+- Muốn xác nhận lỗi thực tế cần video, mốc thời gian và thao tác tua/đổi tốc độ để
+  đối chiếu với lời nói. Kiểm thử mô phỏng chưa chứng minh mọi video đều đồng bộ.
+- Người dùng muốn thêm nghe ngoại tuyến và tăng dần tốc độ mà giữ cao độ giọng.
+  **Chưa triển khai tải/cắt âm thanh YouTube thành file.** API YouTube chính thức
+  hạn chế lưu/tách âm thanh; chức năng offline cần một nguồn âm thanh được phép lưu
+  hoặc tệp người dùng cung cấp. Khi có nguồn, cần căn câu theo âm thanh, kiểm tra
+  đầu/cuối và phát với tốc độ thay đổi, cao độ 1.0; không thể chỉ tin dòng sub đang hiện.
+- Âm thanh Azure trong cache là giọng tổng hợp; không phải âm thanh gốc từ YouTube.
+
+Tài liệu kỹ thuật: [YouTube API policies](https://developers.google.com/youtube/terms/developer-policies),
+[Android PlaybackParams](https://developer.android.com/reference/android/media/PlaybackParams),
+[Azure Speech quotas](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits).

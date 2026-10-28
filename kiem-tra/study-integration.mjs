@@ -17,6 +17,8 @@ for (const dir of ["extension","android/www"]) {
     assert.equal(next.duong.nhin.lv,4);assert.equal(next.dongBang,false);
     assert.ok(g.Srs.denHanDuong(next,"nhin",1001));
     for(const route of g.Srs.duongCo(next))assert.ok(g.Srs.denHanDuong(next,route,1001),route);
+    const cleared={...old,cauNghe:{cau:"",dich:"",sua:1,ts:900}};
+    assert.equal(g.JlptStudy.merge(cleared,incoming,1000).cauNghe.cau,"");
     const deleted={...old,del:true};assert.equal(g.JlptStudy.merge(deleted,incoming,1000),deleted);
   }
   const word={key:"javi:勉強",word:"勉強",dict:"javi",src:{cau:"私は毎朝日本語を勉強します。",cauDich:"Tôi học tiếng Nhật mỗi sáng."}};

@@ -47,6 +47,13 @@ try{
  const imported=await p.evaluate(async()=>{const n=await getNB(),x=n["javi:練習"];return {x,paths:Srs.duongMo(x)};});
  assert.ok(imported.x.jlptReviewAt);assert.ok(imported.paths.includes("nghe"));
  assert.equal(imported.x.cauNghe.cau,"毎日日本語を練習します。");
+ // A deleted card must neither resurrect nor trap the exam on an unanswerable question.
+ const skipped=await p.evaluate(async()=>{
+   await capNhat(nb=>{nb["javi:練習"]={...nb["javi:練習"],del:true};});
+   const added=await luuTheYeuJlpt({kieu:"tu",muc:{id:"fixture",w:"練習",r:"れんしゅう",m:"luyện tập"}},"n3");
+   return {added,deleted:(await getNB())["javi:練習"].del};
+ });
+ assert.equal(skipped.added,false);assert.equal(skipped.deleted,true);
  assert.deepEqual(errors,[]);
  // Fallback uses real voice.js, mocked provider boundary only.
  const v=await browser.newPage();

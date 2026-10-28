@@ -107,6 +107,14 @@ await cho(350);
 
 console.log("\nThẻ học: kéo dọc + nhấp đúp");
 {
+  // The shuffled queue may land on 牛, deliberately seeded without a source.
+  // Select a source-bearing fixture for source gestures; the no-source case is tested below.
+  await page.evaluate(()=>{
+    const i=session.queue.findIndex(x=>x.src?.url && x._d==="nhin");
+    if(i<0)throw Error("Missing source-bearing fixture");
+    const [card]=session.queue.splice(i,1);session.queue.unshift(card);showCard();
+  });
+  await cho(350);
   await page.evaluate(() => { window.__log.length = 0; });
   let b = await hopThe();
   const w = await page.evaluate(() => theCardHienTai().word);
@@ -201,7 +209,7 @@ console.log("\nBài điền khuyết rồi sang thẻ thường: không được
   await page.waitForFunction(() => document.getElementById("studyOverlay").classList.contains("show"));
   await cho(500);
   // Ép thẻ bài điền khuyết lên đầu hàng, rồi bỏ qua nó bằng › (boQuaThe).
-  await page.evaluate(() => { const i = session.queue.findIndex((x) => x._d === "dien"); const [x] = session.queue.splice(i, 1); session.queue.unshift(x); showCard(); });
+  await page.evaluate(() => { const i = session.queue.findIndex((x) => x._d === "dien"); const [x] = session.queue.splice(i, 1); const normal = session.queue.findIndex(y => y._d === "nhin"); if (normal >= 0) { const [n] = session.queue.splice(normal, 1); session.queue.unshift(n); } session.queue.unshift(x); showCard(); });
   await cho(450);
   soat("đang ở một thẻ bài điền khuyết", await page.evaluate(() => !!baiDien));
   await page.evaluate(() => document.getElementById("stSau").click()); await cho(400);
