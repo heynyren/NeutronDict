@@ -219,6 +219,7 @@ await pg.waitForSelector(".jl-lua");
 await pg.keyboard.press("1");
 await pg.waitForSelector(".jl-fb");
 await pg.click(".jl-bao");
+await pg.waitForFunction(async () => Object.keys((await chrome.storage.local.get("jlpt")).jlpt.baoLoi).length === 1);
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
 soat("câu bị báo được ghi lại", Object.keys(luu.baoLoi).length === 1);
 await pg.keyboard.press("Escape"); await pg.click(".jl-hoi .jl-btn.chinh"); await pg.waitForSelector(".jl-bd");
@@ -228,10 +229,12 @@ const nhac = () => pg.evaluate(() => { const b = document.querySelector(".jl-nha
 let nh = await nhac();
 soat("nút nhạc nằm ở cuối màn hình, đang bật", !nh.an && !nh.tat && nh.r, JSON.stringify(nh));
 await pg.click(".jl-nhac");
+await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === false);
 nh = await nhac();
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
 soat("bấm nút: tắt nhạc, lưu lựa chọn", nh.tat && luu.nhac === false);
 await pg.click(".jl-nhac");
+await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === true);
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
 soat("bấm lần nữa: bật lại", luu.nhac === true);
 

@@ -37,7 +37,15 @@
     if (onClick) b.addEventListener("click", onClick);
     return b;
   }
-  const luu = () => A.ghi(td);
+  let luuDang = 0;
+  const luu = async () => {
+    luuDang++;
+    try {
+      const saved = await A.ghi(TD.chuan(td));
+      // Giữ cả thao tác mới hơn trong UI nếu một lượt ghi trước vừa hoàn tất.
+      if (saved) td = TD.tron(td, saved);
+    } finally { luuDang--; }
+  };
 
   const giamChuyen = () => !!(goc.matchMedia && goc.matchMedia("(prefers-reduced-motion: reduce)").matches);
   /** Màn hình rộng (máy tính) hay hẹp (điện thoại): quyết định cách xếp bản đồ và độ rộng của cảnh vẽ. */
@@ -168,10 +176,14 @@
   }
 
   /** Gọi mỗi lần người dùng mở màn này (dữ liệu có thể vừa được đồng bộ từ máy khác). */
-  async function lamMoi() {
+  async function lamMoi(chiKhiDoi) {
     if (!A) return;
-    if (chay) return;                       // đang chơi dở thì đừng đè
-    td = TD.chuan(await A.doc());
+    const fresh = TD.chuan(await A.doc());
+    const next = luuDang ? TD.tron(td, fresh) : TD.tron(fresh, td);
+    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) return;
+    td = next;
+    // Chỉ gộp dữ liệu khi đang làm bài/đọc thoại; giữ nguyên câu và popup đang xem.
+    if (luuDang || chay || root.querySelector(".jl-thoai, .jl-lop")) return;
     if (monId && mon) { veBanDo(false); capNhatNhac(); } else veChonMan();
   }
 
@@ -283,11 +295,11 @@
     const o = TD.monCua(td, id);
     o.tong = chang.length;
     await luu();
-    const lanDau = !o.thoai.batDau;
+    const lanDau = !TD.monCua(td, id).thoai.batDau;
     veBanDo(true);                          // cuộn tới chặng hiện tại (N3: đáy bản đồ = chân núi)
     capNhatNhac();                          // vào màn là một cú bấm của người dùng nên được phép phát nhạc
     if (lanDau) {
-      o.thoai.batDau = 1; await luu();
+      TD.monCua(td, id).thoai.batDau = 1; await luu();
       thoai((truyen && truyen.batDau) || TH.MON[id].thoai.batDau, null, 0);
     }
   }
