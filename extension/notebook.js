@@ -4652,7 +4652,7 @@ async function ghiTienDoJlpt(v) {
 let jlptSan = null;
 chrome.storage.onChanged.addListener((doi, area) => {
   if (area === "local" && doi.jlpt && jlptSan && $("viewJlpt").classList.contains("show"))
-    jlptSan.then(() => window.JlptUI.lamMoi()).catch(() => {});
+    jlptSan.then(() => window.JlptUI.lamMoi(true)).catch(() => {});
 });
 function moJlpt() {
   if (!jlptSan) {

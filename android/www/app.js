@@ -1550,7 +1550,7 @@ async function doSync(rawNgu) {
       JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar) ||
       (syncJlpt && JSON.stringify(window.JlptTienDo.gui(finalJlpt)) !== JSON.stringify(jlptGui))) syncSoon(ngu);
   if (syncJlpt && jlptSan && manHienTai === "Jlpt") {
-    await jlptSan; await window.JlptUI.lamMoi();
+    await jlptSan; await window.JlptUI.lamMoi(true);
   }
 
   await locHangDoiLich();

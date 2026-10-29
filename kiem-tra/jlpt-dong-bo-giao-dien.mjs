@@ -102,6 +102,10 @@ try{
   check("Android giữ lựa chọn tắt nhạc của thiết bị",
     await phone.evaluate(async()=>(await Store.get("jlpt")).nhac===false));
 
+  await pc.evaluate(async()=>{moMan("list");moMan("jlpt");await jlptSan;await JlptUI.lamMoi();});
+  check("quay lại JLPT không có dữ liệu mới vẫn khôi phục bản đồ/toàn màn",
+    await pc.evaluate(()=>document.body.classList.contains("jlpt-toan") && !!document.querySelector(".jl-bd")));
+
   // Học trên một màn đang giữ snapshot cũ sau khi cloud nhận chặng mới.
   const stale=await phone.evaluate(()=>JlptUI.trangThai().td);
   await pc.evaluate(async()=>{

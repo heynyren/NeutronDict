@@ -172,11 +172,11 @@
   }
 
   /** Gọi mỗi lần người dùng mở màn này (dữ liệu có thể vừa được đồng bộ từ máy khác). */
-  async function lamMoi() {
+  async function lamMoi(chiKhiDoi) {
     if (!A) return;
     const fresh = TD.chuan(await A.doc());
     const next = TD.tron(fresh, td);
-    if (JSON.stringify(next) === JSON.stringify(td)) return;
+    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) return;
     td = next;
     // Chỉ gộp dữ liệu khi đang làm bài/đọc thoại; giữ nguyên câu và popup đang xem.
     if (chay || root.querySelector(".jl-thoai, .jl-lop")) return;
