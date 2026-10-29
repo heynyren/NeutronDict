@@ -32,3 +32,5 @@ Kiểm chứng trung gian trên 0541713: Node đạt, Android unit/APK đạt; C
 ### Nhật ký kiểm thử
 - 0541713: 977 unit đạt; Chromium phát hiện kiểm tra đóng PDF ngay và fixture đồng hồ video khác JS world. Đã giữ đóng PDF ngay khi không có POS dùng chung và dùng currentTime thật trong fixture.
 - ea0e7d: 978 unit chạy, 1 kỳ vọng CaptionFormatTest vẫn cố ý nhảy qua từ đầu vì bù 75 ms cũ. Điều chỉnh kỳ vọng thành chính từ tại mốc bắt đầu, giữ toàn bộ assertion và kiểm thử cả câu/cụm ngắn; không bỏ kiểm thử. Các gate cuối chạy lại trên commit sửa.
+
+- Chromium ea0e7d: worker thật, màu, mốc video, chọn nguồn, toggle và PDF dùng chung đã đạt. Bộ hồi quy sửa ví dụ phát hiện autofocus trễ cướp focus khi đã chọn ô khác. Đã chặn callback cũ và không đổi focus khi người dùng đã vào hộp sửa; thêm hồi quy giữ callback rồi chủ động chọn ô trước khi chạy lại, giữ mọi assertion lưu và bảo vệ ví dụ.

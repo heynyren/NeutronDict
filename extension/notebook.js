@@ -1412,7 +1412,13 @@ function moSua(it, tab) {
 
   $("editSheet").classList.add("show");
   const oFocus = tab === "link" ? "edLink" : tab === "note" ? "edNote" : (tab === "vidu" && coViDu) ? "edViDu" : "edTrans";
-  setTimeout(() => $(oFocus).focus(), 40);
+  const editSession = dangSua;
+  setTimeout(() => {
+    const sheet = $("editSheet");
+    if (dangSua !== editSession || !sheet.classList.contains("show")) return;
+    // The user may already be typing in another field when the entrance animation ends.
+    if (!sheet.contains(document.activeElement)) $(oFocus).focus();
+  }, 40);
 }
 
 function dongSua() {

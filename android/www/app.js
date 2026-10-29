@@ -2762,7 +2762,13 @@ function moSua(it, tab, veLai) {
   $("edRestore").style.display = goc ? "" : "none";
   $("editSheet").classList.add("show");
   const oFocus = tab === "note" ? "edNote" : (tab === "vidu" && coViDu) ? "edViDu" : "edTrans";
-  setTimeout(() => $(oFocus).focus(), 60);
+  const editSession = dangSua;
+  setTimeout(() => {
+    const sheet = $("editSheet");
+    if (dangSua !== editSession || !sheet.classList.contains("show")) return;
+    // The user may already be typing in another field when the entrance animation ends.
+    if (!sheet.contains(document.activeElement)) $(oFocus).focus();
+  }, 60);
 }
 
 function dongSua() { $("editSheet").classList.remove("show"); dangSua = null; }
