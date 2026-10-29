@@ -20,6 +20,7 @@ try {
     assert.ok(start >= 0 && end > start, surface + ": missing grammar view");
     const page = await browser.newPage();
     await page.setContent("<!DOCTYPE html><html><body>" + html.slice(start, end) + "</body></html>");
+    await page.locator("#viewGrammar").evaluate(e=>e.hidden=false); // Legacy widget is now hosted through Study.
     await page.addScriptTag({ content: "window.T = (s) => s; window.T2 = (s, o) => s.replace(/\\{([^}]+)\\}/g, (_, k) => o[k]);" });
     await page.addScriptTag({ content: readFileSync(path.join(jsDir, "ngu-phap.js"), "utf8") });
     await page.addScriptTag({ content: readFileSync(path.join(jsDir, "ngu-phap-ui.js"), "utf8") });

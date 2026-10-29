@@ -1,0 +1,123 @@
+name: Integrated Android preview
+on:
+  push:
+    branches: [codex/neutrondict-youtube-news, main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: integrated-android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pinned complete DualSub source
+        uses: actions/checkout@v4
+        with:
+          repository: heynyren/dual-sub-replay
+          ref: 25d2a83eeb7c95fc204ac656256b7d3cca5616ae
+          path: android/integration/upstream
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+      - name: Install and prepare existing Capacitor shell
+        working-directory: android
+        run: |
+          npm install
+          npx cap add android
+          npx cap sync android
+          node patch-android.js
+      - name: Assemble integrated sources
+        run: python3 android/integration/prepare.py
+      - name: Unit tests and APKs
+        working-directory: android/integration/build
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace --max-workers=2
+      - name: Unit test diagnostics
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as E
+          for path in glob.glob("android/integration/build/app/build/test-results/**/*.xml", recursive=True):
+              for case in E.parse(path).iter("testcase"):
+                  for tag in ("failure", "error"):
+                      for error in case.findall(tag):
+                          print(case.get("classname"), case.get("name"), error.get("message"))
+          PY
+      - name: Prepare installable preview
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          apks = list(Path("android/integration/build/app/build/outputs/apk/debug").glob("*.apk"))
+          assert len(apks) == 1, "Expected one installable APK"
+          target = Path("android/integration/dist/NeutronDict-integrated-preview.apk")
+          target.parent.mkdir(parents=True, exist_ok=True)
+          shutil.copy2(apks[0], target)
+          PY
+      - name: Upload installable APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-integrated-preview
+          path: android/integration/dist/NeutronDict-integrated-preview.apk
+          retention-days: 7
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android integration smoke tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          working-directory: android/integration/build
+          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.enableAdditionalTestOutput=true --no-daemon --max-workers=2
+      - name: Verify all selected device suites ran
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("android/integration/build/app/build/reports/androidTests/connected/debug")
+          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
+              report = root / (name + ".html")
+              assert report.is_file(), "Missing device test suite: " + name
+              print(name, "report verified")
+          import shutil
+          images = Path("android/integration/build/app/build")
+          target = Path("android/integration/ui-evidence")
+          target.mkdir(exist_ok=True)
+          for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png"):
+              # AGP versions place collected images under additional-output or test-result artifacts.
+              matches = list(images.rglob(name))
+              assert matches, "Missing native UI screenshot: " + name
+              shutil.copy2(matches[0], target / name)
+              print(name, "UI evidence verified at", matches[0])
+          PY
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-integrated-reports
+          path: |
+            android/integration/build/app/build/reports/androidTests/
+            android/integration/build/app/build/reports/tests/
+            android/integration/build/INTEGRATION.json
+            android/integration/ui-evidence/
+            android/integration/build/app/build/outputs/androidTest-results/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -35,18 +35,10 @@ function extractPdfContext(url,word,hint){
   const task=pdfContextQueue.then(async()=>{
     if(/^file:/i.test(url)&&!(await chrome.extension.isAllowedFileSchemeAccess()))
       return {ok:false,pdf:true,reason:"file-access"};
-    const offscreenUrl=chrome.runtime.getURL("pdf-offscreen.html");
     try{
-      const contexts=await chrome.runtime.getContexts({contextTypes:["OFFSCREEN_DOCUMENT"],documentUrls:[offscreenUrl]});
-      if(!contexts.length)await chrome.offscreen.createDocument({
-        url:"pdf-offscreen.html",reasons:["WORKERS"],justification:"Read the PDF text around the word saved from the context menu."
-      });
-      return await chrome.runtime.sendMessage({target:"pdf-offscreen",type:"PDF_EXTRACT",url,word,hint:hint>0?hint:0});
+      return await runNeutronOffscreen({target:"pdf-offscreen",type:"PDF_EXTRACT",url,word,hint:hint>0?hint:0});
     }catch(e){return {ok:false,reason:"unreadable",error:String(e.message||e)};}
-    finally{
-      // Serialized requests own this document; closing cannot interrupt another save.
-      await chrome.offscreen.closeDocument().catch(()=>{});
-    }
+
   });
   pdfContextQueue=task.catch(()=>{});return task;
 }

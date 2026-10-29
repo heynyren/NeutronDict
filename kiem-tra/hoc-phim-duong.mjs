@@ -171,7 +171,7 @@ await page.waitForSelector("#duongRiengDialog[open]");
 {
   const r = await page.evaluate(() => [...document.querySelectorAll("#duongRiengDialog .duong-rieng-lua")]
     .map((b) => ({ ma: b.dataset.ma, off: b.disabled, chu: b.textContent })));
-  soat("hộp có ba loại bài", r.length === 3, r.map((x) => x.ma).join(","));
+  soat("hộp có ba đường từ vựng và ghép câu ngữ pháp", r.length === 4 && r.some(x=>x.ma==="grammar"), r.map((x) => x.ma).join(","));
   const nghe = r.find((x) => x.ma === "nghe");
   soat("bài nghe bật và nói rõ số bài (2)", nghe && !nghe.off && /2/.test(nghe.chu), nghe && nghe.chu);
   soat("bài đoán nghĩa & điền khuyết tắt vì chưa có bài nào tới hạn",

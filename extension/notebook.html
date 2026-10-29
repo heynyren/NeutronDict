@@ -315,10 +315,10 @@
       </div>
     </section>
 
-    <section id="viewGrammar" class="view">
+    <section id="viewGrammar" class="view" hidden>
       <div class="topbar"><span class="t-title grow" data-chu>Luyện ngữ pháp</span></div>
       <div class="card">
-        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Lịch ôn ngữ pháp riêng, cấp 1 bắt đầu từ 3 ngày; không cộng vào chế độ Học.</div>
+        <div class="t-small muted" data-chu>Ghép các mảnh bị xáo trộn thành câu tiếng Nhật gốc chứa từ bạn đã lưu. Mỗi câu có tối đa 4 mảnh. Ngữ pháp nằm trong chế độ Học; làm đúng một lần sẽ đóng băng riêng câu này.</div>
         <div class="t-small muted" style="margin-top:8px" data-chu>Ghép đúng câu thì câu được đóng băng và không hiện lại; bạn mở lại được ở danh sách bên dưới.</div>
         <div id="npCount" class="t-small muted" style="margin:14px 0"></div>
         <p id="npStats" class="t-small muted"></p>
@@ -417,7 +417,8 @@
   </div>
   <div class="stwrap">
     <div class="stcol">
-      <div id="stBody">
+      <div id="stGrammar" class="card" style="display:none" data-khong-vuot-tab></div>
+    <div id="stBody">
         <div class="studycard" id="stCard">
           <!-- Mặt trước thẻ NGHE: không có chữ nào, chỉ một nút phát. Thấy chữ
                là mắt đọc mất, tai không phải làm gì — hỏng đúng thứ đang kiểm. -->
@@ -620,6 +621,7 @@
   <script src="cau-nghe.js"></script>
   <script src="ngu-phap.js"></script>
   <script src="ngu-phap-ui.js"></script>
+<script src="study-grammar.js"></script>
   <script src="cau-dien.js"></script>
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
@@ -635,6 +637,7 @@
 <script src="jlpt-canh-gioi.js"></script>
 <script src="jlpt-nhac.js"></script>
 <script src="jlpt-giao-dien.js"></script>
+<script src="jlpt-study.js"></script>
 <script src="kho-ghi.js"></script>
 <script src="pdf-source.js"></script>
 <script src="notebook.js"></script>

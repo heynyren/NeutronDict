@@ -282,6 +282,9 @@ async function speak(text, audio, ngu, tuy) {
   const ma = GIONG[ngu] || (laNhat() ? "ja-JP" : "en-US");
   const nhip = t.rate != null ? t.rate : 0.9;
   try {
+    if (window.NeutronVoice && Plugins.TextToSpeech) {
+      await window.NeutronVoice.speak(text, ma, nhip, t.pitch); return;
+    }
     if (Plugins.TextToSpeech) {
       const o = { text, lang: ma, rate: nhip };
       if (t.pitch != null) o.pitch = t.pitch;
@@ -518,7 +521,11 @@ async function doiNgu(ngu) {
 
 async function getNB() { return (await Store.get("notebook")) || {}; }
 /** Chỉ phần sổ tay của ngôn ngữ đang bật — dùng cho danh sách và học. */
-async function getNBNgu() { return window.Ngu.locSo(await getNB(), NGU); }
+async function getNBNgu() {
+  const [nb,h,v] = await Promise.all([getNB(),Store.get("nguPhapSrs"),Store.get("ytKho")]);
+  window.StudyGrammar.hydrate(h,v);
+  return window.Ngu.locSo(nb,NGU);
+}
 async function setNB(nb) { await Store.set("notebook", nb); }
 async function getDecks() { return (await Store.get("decks")) || {}; }
 async function setDecks(d) { await Store.set("decks", d); }
@@ -1852,6 +1859,7 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     if (!moi) return null;
     kho[key] = moi;
     await Store.set("nguPhapSrs", kho);
+    window.StudyGrammar.remember(q, moi);
     return moi;
   });
   if (ra) syncSoon();
@@ -1871,7 +1879,7 @@ window.NguPhapUI.khoiTao({
     return r && r.text || "";
   }
 });
-const MAN = ["Lookup", "Notebook", "Study", "Grammar", "Jlpt", "Speak", "Progress"];
+const MAN = ["Lookup", "Notebook", "Study", "Jlpt", "Speak", "Progress", "Settings"];
 const manCoTheMo = () => MAN.filter((v) => (v !== "Grammar" && v !== "Jlpt") || laNhat());
 let manHienTai = "Lookup";
 /** Chồng màn đã đi qua, để nút Quay lại của Android lùi từng bước. */
@@ -1904,6 +1912,7 @@ function show(view, huong) {
   veNav();
   veThanhChonNb();
 
+  if (view !== "Study") dungNgheTrongHoc();
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
@@ -1921,7 +1930,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
 /** Vẽ lại icon thanh tab: tab đang mở dùng icon đặc. */
 function veNav() {
   const bo = { Lookup: "magnifying-glass", Notebook: "notebook", Study: "graduation-cap",
-               Grammar: "books", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
+               Settings: "gear-six", Jlpt: "mountains", Speak: "microphone", Progress: "chart-line-up" };
   MAN.forEach((v) => {
     const b = $("nav" + v);
     const on = b.classList.contains("active");
@@ -1955,7 +1964,7 @@ window.ChamVuot.nutQuayLai(() => {
   if ($("editSheet").classList.contains("show")) { dongSua(); return true; }
   const phu = document.querySelector(".sheet.show");
   if (phu) { phu.classList.remove("show"); return true; }
-  if (session.queue.length && $("stBody").style.display !== "none") { ketThucSom(); return true; }
+  if (manHienTai === "Study" && session.queue.length) { ketThucSom(); return true; }
   if (lichSu.length > 1) {
     lichSu.pop();
     show(lichSu[lichSu.length - 1], -1);
@@ -1967,12 +1976,26 @@ window.ChamVuot.nutQuayLai(() => {
 /* ==================================================================== */
 /* Ôn thi JLPT — chế độ riêng, chỉ có ở tiếng Nhật                      */
 /* ==================================================================== */
+async function luuTheYeuJlpt(card, level) {
+  const incoming = window.JlptStudy.item(card, level);
+  let deleted = false;
+  await capNhat(nb => {
+    const key = incoming.dict + ":" + incoming.word;
+    if (nb[key]?.del) { deleted = true; return; }
+    nb[key] = window.JlptStudy.merge(nb[key], incoming, Date.now());
+  });
+  if (deleted) toast(T("Từ này đã xoá khỏi sổ tay nên không tự thêm lại. Bạn vẫn tiếp tục bài JLPT."));
+  else syncSoon();
+  return !deleted;
+}
+
 let jlptSan = null;
 function moJlpt() {
   if (!jlptSan) {
     jlptSan = window.JlptUI.khoi($("jlptRoot"), {
       doc: async () => (await Store.get("jlpt")) || null,
       ghi: (v) => Store.set("jlpt", v),
+      onWeak: luuTheYeuJlpt,
       taiMon: async (id) => {
         const r = await fetch("jlpt/" + id + ".json");
         if (!r.ok) throw new Error("jlpt " + id);
@@ -2739,7 +2762,13 @@ function moSua(it, tab, veLai) {
   $("edRestore").style.display = goc ? "" : "none";
   $("editSheet").classList.add("show");
   const oFocus = tab === "note" ? "edNote" : (tab === "vidu" && coViDu) ? "edViDu" : "edTrans";
-  setTimeout(() => $(oFocus).focus(), 60);
+  const editSession = dangSua;
+  setTimeout(() => {
+    const sheet = $("editSheet");
+    if (dangSua !== editSession || !sheet.classList.contains("show")) return;
+    // The user may already be typing in another field when the entrance animation ends.
+    if (!sheet.contains(document.activeElement)) $(oFocus).focus();
+  }, 60);
 }
 
 function dongSua() { $("editSheet").classList.remove("show"); dangSua = null; }
@@ -3231,6 +3260,7 @@ function chuanHoaUrl(u) {
 }
 
 function openSourceExt(it) {
+  if (window.NeutronMediaOpenSource && window.NeutronMediaOpenSource(it)) return;
   // Link đã lưu sai kiểu `https://file///…` thì chữa lại trước khi mở.
   if (it && it.src && it.src.url) { const u = chuanHoaUrl(it.src.url); if (u !== it.src.url) it = Object.assign({}, it, { src: Object.assign({}, it.src, { url: u }) }); }
   // Dừng ĐỒNG HỒ Ở ĐÂY, không ở từng nút: mọi đường mở nguồn đều đi qua đây.
@@ -4009,6 +4039,7 @@ function hangDoiKhoi(scopeList) {
     const han = window.Srs.denHan(it, now);
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
+  if (NGU === "ja") for (const q of (window.StudyGrammar?.queue(scopeList) || [])) khoi.push([q]);
   return khoi;
 }
 
@@ -4027,6 +4058,7 @@ async function currentDue() {
   for (const it of setIn(ds, curDeck)) {
     for (const d of window.Srs.denHan(it, now)) ra.push(Object.assign({}, it, { _d: d }));
   }
+  if (NGU === "ja") ra.push(...window.StudyGrammar.queue(setIn(ds, curDeck)));
   return ra;
 }
 
@@ -4091,6 +4123,7 @@ $("stStart").addEventListener("click", async () => {
  * các đường `ds` thành MỘT thẻ, và chỉ lấy thẻ ĐÃ tới hạn.
  */
 function hangDoiDuong(scopeList, ds) {
+  if (ds.includes("grammar")) return NGU === "ja" ? window.StudyGrammar.queue(scopeList) : [];
   const now = Date.now();
   const ra = [];
   for (const it of scopeList) {
@@ -4380,7 +4413,26 @@ function dungDongHo() {
 let theTrenMan = null;
 function theCardHienTai() { return theTrenMan || session.queue[0]; }
 
+function veNguPhapTrongHoc(it) {
+  $("stBody").style.display = "none";
+  const host = $("stGrammar"); host.style.display = "";
+  $("stIdle").style.display = "none";
+  window.StudyGrammar.render(host, it, {
+    record: ghiNguPhap,
+    translate: async cau => (await translateText(cau,"javi"))?.text || "",
+    next: ({correct,retry}) => {
+      if (session.queue[0] !== it) return;
+      session.queue.shift();
+      if (correct) session.done++; else session.again++;
+      if (retry) session.queue.push({...it,_grammarRetry:true});
+      showCard();
+    }
+  });
+}
+
 function showCard(giuLat, xem) {
+  dungNgheTrongHoc();
+  $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
   if (!xem) session.xem = null;
@@ -4391,6 +4443,10 @@ function showCard(giuLat, xem) {
   baiDien = null;
   $("stCard").style.visibility = "";            // thẻ bay đi đã giấu nó cho tới lúc này
   if (!it) { finishStudy(); return; }
+  if (it._d === "grammar") { veNguPhapTrongHoc(it); return; }
+  // Ngữ pháp ẩn mặt thẻ thường; phải hiện lại khi sang đường kế tiếp.
+  $("stBody").style.display = "";
+  $("stIdle").style.display = "none";
   // Bài điền khuyết: dựng đề TRƯỚC khi vẽ gì. Không dựng được (câu hay bản dịch vừa mất)
   // thì bỏ thẻ này khỏi buổi chứ không kẹt ở một màn trống.
   let de = null;
@@ -4437,6 +4493,7 @@ function showCard(giuLat, xem) {
   }
   $("stNgheCau").style.display = "none";
   $("stNgheCau").textContent = "";
+  $("stNgheNguon").textContent = "";
   if (laNghe) {
     const lv = ((it.duong || {}).nghe || {}).lv;
     $("stNgheToc").textContent = T2("Tốc độ ×{t} — nhanh dần theo cấp", { t: window.Srs.tocDoNghe(lv) });
@@ -4450,7 +4507,7 @@ function showCard(giuLat, xem) {
   renderStudyFav(it);
 
   const src = $("stSrc");
-  if (it.src && it.src.url) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
+  if (it.src && (it.src.url || it.src.yt?.v)) { src.style.display = ""; src.onclick = () => openSourceExt(it); }
   else { src.style.display = "none"; src.onclick = null; }
 
   // Cụm ghi âm dùng CHÍNH khoá của mục, nên bản thu ghi ở sổ tay thì mở buổi
@@ -4558,12 +4615,22 @@ async function boiThem(key) {
  * rõ từng chữ, lên cấp thì đẩy về tốc độ nói thật.
  */
 let henPhat = null;
+function dungNgheTrongHoc() {
+  if (henPhat) { clearTimeout(henPhat); henPhat = null; }
+  window.StudyListening?.cancel();
+}
 
-function phatCauNghe() {
+async function phatCauNghe() {
   const it = theCardHienTai();
   if (!it || !it.cauNghe || !it.cauNghe.cau) return;
   const lv = ((it.duong || {}).nghe || {}).lv;
-  speak(it.cauNghe.cau, null, laNhat() ? "ja" : "en", { rate: window.Srs.tocDoNghe(lv) });
+  const rate = window.Srs.tocDoNghe(lv), lang = laNhat() ? "ja" : "en";
+  const tts = () => speak(it.cauNghe.cau, null, lang, { rate });
+  try {
+    await window.StudyListening.play(it, {rate,tts,cache:()=>Store.get("ytKho"),
+      excludeWait: ms => { if (theCardHienTai() === it && msDaDung === null) mocHienThe += ms; },
+      status: text => { if (theCardHienTai() === it) $("stNgheNguon").textContent = text; }});
+  } catch (_) { /* provider failures must not break the study queue */ }
 }
 if ($("stNghePhat")) $("stNghePhat").addEventListener("click", phatCauNghe);
 
@@ -4749,6 +4816,7 @@ function khoiNguCanh(it, tuDich) {
 }
 
 function revealCard() {
+  if (theCardHienTai()?._d === "grammar") return;
   const it = theCardHienTai();
   if (!it) return;
   if (it._d === "nghe") {
@@ -4802,6 +4870,7 @@ $("stGemini").addEventListener("click", () => { const it = theCardHienTai(); if 
 $("stEdit").addEventListener("click", () => { const it = theCardHienTai(); if (it) moSua(it, "trans"); });
 
 async function grade(remembered, tuVuot) {
+  if (theCardHienTai()?._d === "grammar") return;
   // Đang xem lại một thẻ đã chấm: bấm Nhớ/Quên là chấm lại thẻ ấy.
   if (session.xem) { await chamLaiXem(remembered, tuVuot); return; }
   // Bài liên kết tự chấm bằng nút Xong; đừng để nút Nhớ/Quên cướp lượt.
@@ -5020,7 +5089,10 @@ $("stUndoBtn").addEventListener("click", async () => {
 
 /** Dừng buổi học giữa chừng (nút Quay lại của máy). */
 function ketThucSom() {
+  dungNgheTrongHoc();
   session = { queue: [], done: 0, again: 0, deleted: 0 };
+  theTrenMan = null;
+  $("stGrammar").style.display = "none";
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
   $("stStart").style.display = "";
@@ -5030,6 +5102,8 @@ function ketThucSom() {
 }
 
 async function finishStudy() {
+  dungNgheTrongHoc();
+  $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();
   if (window.NhacTau) window.NhacTau.tat();
   theTrenMan = null;
@@ -5245,7 +5319,7 @@ function veNgu() {
   // Tab "Chi tiết" là IPA/định nghĩa Anh; "Hán tự" chỉ có nghĩa với tiếng Nhật.
   $("tabDetail").style.display = laNhat() ? "none" : "";
   $("tabKanji").style.display = laNhat() ? "" : "none";
-  $("navGrammar").style.display = laNhat() ? "" : "none";
+
   $("navJlpt").style.display = laNhat() ? "" : "none";
   if (!laNhat() && (manHienTai === "Grammar" || manHienTai === "Jlpt")) show("Notebook");
   $("ipaGuideBtn") && ($("ipaGuideBtn").style.display = laNhat() ? "none" : "");
@@ -5319,6 +5393,8 @@ async function donHuyHieu() {
   refreshNotifications();
   checkProcessText();
   checkShare();
+  window.NeutronReady = true;
+  window.dispatchEvent(new Event("neutrondict-ready"));
 
   // Xét lại huy hiệu lúc mở app: có mốc chỉ phụ thuộc số mục trong sổ (lưu từ
   // máy tính, hoặc lưu qua menu Chia sẻ) nên không đi qua đường chấm bài.

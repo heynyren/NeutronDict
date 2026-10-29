@@ -4,6 +4,7 @@ importScripts("kana.js");      // self.Kana — suy furigana khi từ điển kh
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
 importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
+importScripts("offscreen-jobs.js");
 importScripts("pdf-auto.js");
 importScripts("pdf-source.js");
 importScripts("web-context.js");
@@ -90,7 +91,7 @@ async function contextSource(info, tab) {
   if (!src.cau && (!ctx || ctx.pdf) && /^(https?:|file:|blob:)/i.test(url)) {
     const result = await extractPdfContext(url, src.sel, await pdfGoiY(url));
     if (result && result.ok) {
-      pdfGhiNho(url, result.page);
+      await pdfGhiNho(url, result.page);
       Object.assign(src, { cau: result.cau, pdf: true, capture: "pdf-auto",
         page: result.page, paragraph: result.paragraph, start: result.start, end: result.end,
         documentId: result.documentId, contextStatus: "complete" });
@@ -324,6 +325,16 @@ async function tronGoi(entries, word, dict) {
 let syncTimer = null;
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg) return;
+  if(msg.type==="POS_IDLE") {
+    if(sender.id===chrome.runtime.id && sender.url===chrome.runtime.getURL("pdf-offscreen.html") &&
+       neutronOffscreenUsers===0 && Date.now()>=neutronPosWarmUntil) closeNeutronOffscreen();
+    return;
+  }
+  if(msg.type==="SUBTITLE_POS") {
+    if(sender.id!==chrome.runtime.id) return;
+    analyzeSubtitleRows(msg.rows).then(sendResponse,e=>sendResponse({ok:false,error:String(e.message||e)}));
+    return true;
+  }
 
   if (msg.type === "LOOKUP") {
     // msg.chiHanTu: chỉ cần liệt kê Hán tự trong đoạn, khỏi tra từ điển.

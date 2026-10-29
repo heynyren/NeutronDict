@@ -186,7 +186,7 @@
     const dau = el("div", "jl-dau");
     const t = el("div", "jl-dau-chu");
     t.appendChild(el("div", "jl-tieude", T("Ôn thi JLPT")));
-    t.appendChild(el("div", "jl-phu", T("Mỗi cấp là một màn chơi, mở sẵn song song — chọn cấp hợp với trình độ của bạn. Vượt từng chặng, đạt từ 60% để đi tiếp.")));
+    t.appendChild(el("div", "jl-phu", T("Mỗi cấp là một màn chơi, mở sẵn song song — chọn cấp hợp với trình độ của bạn. Chọn bất kỳ chặng nào. Hoàn thành tất cả chặng để mở bài kiểm tra cuối.")));
     dau.appendChild(t);
     dau.appendChild(thongKe());
     o.appendChild(dau);
@@ -198,7 +198,7 @@
       const mo = TD.monMo(td, id, TRUM);
       const m = td.mon[id] || { chang: {} };
       const tong = m.tong || 0;
-      const xong = Object.keys(m.chang).filter((k) => TD.qua(m.chang[k].tot || 0)).length;
+      const xong = Object.keys(m.chang).filter((k) => TD.daXong(td, id, k)).length;
       const b = el("button", "jl-the" + (mo ? "" : " khoa"));
       b.type = "button";
       b.style.setProperty("--m1", th.mau[0]); b.style.setProperty("--m2", th.mau[1]);
@@ -426,7 +426,7 @@
     // bộ sưu tập: món đồ nhặt được ở mỗi chương đã qua trùm
     const sk = el("div", "jl-suutam");
     th.suuTam.forEach((e, ci) => {
-      const co = TD.qua(TD.tot(td, monId, "c" + mon.chuong[ci].so + "boss"));
+      const co = TD.daXong(td, monId, "c" + mon.chuong[ci].so + "boss");
       const s = el("span", co ? "co" : "chua", co ? e : "·"); s.title = co ? e : T("Chưa nhặt được");
       sk.appendChild(s);
     });
@@ -449,7 +449,7 @@
       const sec = el("section", "jl-chuong");
       sec.style.setProperty("--c1", g.mau[0]); sec.style.setProperty("--c2", g.mau[1]);
       sec.dataset.ci = String(g.ci);
-      const xongCh = g.ds.filter((c) => TD.qua(TD.tot(td, monId, c.id))).length;
+      const xongCh = g.ds.filter((c) => TD.daXong(td, monId, c.id)).length;
       // tấm bảng tên nổi (không còn banner tách rời): cảnh nền liền một mạch phía sau
       const bang = el("div", "jl-ten-chuong");
       bang.appendChild(el("span", null, g.ten));
@@ -492,7 +492,7 @@
         const idx = chang.indexOf(c);
         const mo = TD.changMo(td, monId, ids, idx, true);
         const tot = TD.tot(td, monId, c.id);
-        const xong = TD.qua(tot);
+        const xong = TD.daXong(td, monId, c.id);
         const sao = ((td.mon[monId] || { chang: {} }).chang[c.id] || {}).sao || 0;
         const b = el("button", "jl-nut " + c.loai + (mo ? "" : " khoa") + (xong ? " xong" : "") + (idx === hienTai && mo ? " hien" : ""));
         b.type = "button"; b.dataset.id = c.id;
@@ -591,16 +591,16 @@
     const tot = TD.tot(td, monId, c.id);
     const cc = ((td.mon[monId] || { chang: {} }).chang[c.id]) || null;
     let mota;
-    if (c.loai === "boss") mota = T("Đề tổng hợp toàn màn, 30 câu. Đạt từ 60% để hoàn thành màn.");
-    else if (c.loai === "boss-chuong") mota = T("Đề tổng hợp của cả chương, 20 câu. Đạt từ 60% để mở chương sau.");
-    else mota = c.items.length + " " + (c.loai === "han" ? T("chữ Hán") : c.loai === "tu" ? T("từ vựng") : T("mẫu ngữ pháp")) + " · " + c.soCau + " " + T("câu hỏi") + " · " + T("đạt từ 60% để qua");
+    if (c.loai === "boss") mota = T("Đề tổng hợp toàn màn, 30 câu. Mở sau khi hoàn thành mọi chặng.");
+    else if (c.loai === "boss-chuong") mota = T("Đề tổng hợp của cả chương, 20 câu. Bạn có thể làm bất cứ lúc nào.");
+    else mota = c.items.length + " " + (c.loai === "han" ? T("chữ Hán") : c.loai === "tu" ? T("từ vựng") : T("mẫu ngữ pháp")) + " · " + c.soCau + " " + T("câu hỏi") + " · " + T("làm hết câu hỏi để hoàn thành");
     p.appendChild(el("div", "jl-to-mo", mota));
     if (cc) p.appendChild(el("div", "jl-to-tot", T("Điểm cao nhất") + ": " + tot + "% " + "★".repeat(cc.sao || 0) + "☆".repeat(3 - (cc.sao || 0))));
     if (mo && doanTruyen(c).length && daKe(c)) {
       p.appendChild(nut("jl-btn jl-nghe-lai", "📖 " + T("Nghe lại câu chuyện"), () => { o.remove(); thoai(doanTruyen(c), () => veLaiChang(c, idx, mo), c.ci); }));
     }
     if (!mo) {
-      p.appendChild(el("div", "jl-to-khoa", T("Chặng này đang khoá: hãy vượt chặng trước đó với từ 60% trở lên.")));
+      p.appendChild(el("div", "jl-to-khoa", T("Bài kiểm tra cuối đang khoá: hãy hoàn thành tất cả chặng trước.")));
       p.appendChild(nut("jl-btn", T("Đóng"), () => o.remove()));
     } else {
       const hang = el("div", "jl-to-nut");
@@ -668,6 +668,8 @@
   /* ================================================================ chơi */
 
   function batDau(c, coHoc) {
+    const ids = CH.chiaChang(mon).map(x => x.id);
+    if (!TD.changMo(td, monId, ids, ids.indexOf(c.id), true)) return;
     const o = TD.monCua(td, monId);
     const xuLy = () => {
       chay = { c, hoc: coHoc ? CH.theHoc(mon, c) : [], iHoc: 0, lat: false, de: [], iQ: 0, dung: 0, sai: [], lai: [], tong: 0, da: false, laLai: false };
@@ -742,7 +744,16 @@
    * Sang thẻ kế (đã nhớ) hoặc cho thẻ này quay lại cuối hàng (chưa nhớ). Dùng chung cho vuốt, nút và phím,
    * để mọi đường đi đều ra cùng một kết quả.
    */
-  function chamThe(nho) {
+  async function chamThe(nho) {
+    if (!chay || chay.dangLuu) return;
+    const round = chay;
+    if (!nho && A.onWeak) {
+      chay.dangLuu = true;
+      try { await A.onWeak(chay.hoc[chay.iHoc], monId); }
+      catch (e) { A.toast(T("Chưa lưu được thẻ sang Học. Hãy thử lại.")); return; }
+      finally { round.dangLuu = false; }
+      if (chay !== round) return;
+    }
     const i = chay.iHoc, n = chay.hoc.length;
     chay.lat = false; chay.vuaLat = false;
     if (nho) {
@@ -892,11 +903,17 @@
     if (q.kieu === "nghe") setTimeout(() => { if (chay && chay.de[chay.iQ] === q && !chay.da) A.nghe(q.de.nghe); }, 280);
   }
 
-  function chon(k) {
+  async function chon(k) {
     if (!chay || chay.da) return;
+    const round = chay;
     const q = chay.de[chay.iQ];
     chay.da = true; chay.chon = k;
     const dung = k === q.dung;
+    if (!dung && A.onWeak) {
+      try { await A.onWeak(CH.theYeu(mon, q.mucId), monId); }
+      catch (e) { if (chay === round) chay.da = false; A.toast(T("Chưa lưu được thẻ sang Học. Bấm lại đáp án để thử lưu.")); return; }
+      if (chay !== round) return;
+    }
     const nutLua = chay.o.querySelectorAll(".jl-lua");
     nutLua.forEach((b, i) => {
       b.disabled = true;
@@ -964,10 +981,11 @@
 
   async function ketQua() {
     const c = chay.c;
+    const daXongTruoc = TD.daXong(td, monId, c.id);
     const truoc = TD.tot(td, monId, c.id);
     const kq = TD.ghiKetQua(td, monId, c.id, { dung: chay.dung, tong: chay.tong, saiIds: chay.sai }, Date.now());
     await luu();
-    const lanDauQua = kq.qua && truoc < TD.NGUONG;
+    const lanDauQua = kq.qua && !daXongTruoc;
     const o = chay.o;
     xoaNoiDung(o);
     o.classList.add("ket-qua"); o.classList.remove("loe-dung", "loe-sai");
@@ -985,12 +1003,12 @@
       sk.appendChild(st);
     }
     hop.appendChild(sk);
-    hop.appendChild(el("div", "jl-kq-tieu", kq.qua ? (c.loai === "boss" ? T("Hoàn thành màn!") : T("Vượt chặng!")) : T("Chưa đạt 60%")));
+    hop.appendChild(el("div", "jl-kq-tieu", kq.qua ? (c.loai === "boss" ? T("Hoàn thành màn!") : T("Vượt chặng!")) : T("Chưa hoàn thành")));
     const phu = el("div", "jl-kq-phu");
     const ng = el("span", "jl-kq-ngoc", "+0 💎");
     phu.appendChild(document.createTextNode(chay.dung + " / " + chay.tong + " " + T("câu đúng") + " · "));
     phu.appendChild(ng);
-    if (!kq.qua) phu.appendChild(document.createTextNode(" · " + T("Ôn lại rồi thử lần nữa nhé, cần từ 60% để đi tiếp.")));
+    if (!kq.qua) phu.appendChild(document.createTextNode(" · " + T("Hãy làm hết lượt để hoàn thành.")));
     hop.appendChild(phu);
     dem(ng, kq.ngoc, 1200, (n) => "+" + n + " 💎");
     if (kq.laKyLuc && kq.qua && truoc > 0) hop.appendChild(el("div", "jl-kyluc", "🏆 " + T("Kỷ lục mới!")));

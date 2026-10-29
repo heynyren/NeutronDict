@@ -139,7 +139,7 @@ await page.click("#studyPath");
 await page.waitForSelector("#duongRiengDialog[open]");
 {
   const r = await page.evaluate(() => [...document.querySelectorAll("#duongRiengDialog .duong-rieng-lua")].map((b) => ({ ma: b.dataset.ma, off: b.disabled, chu: b.textContent })));
-  soat("hộp ôn từng đường: bài nghe/nhìn/điền khuyết (không còn đúng–sai)", r.map((x) => x.ma).join(",") === "nghe,nhin,dien", r.map((x) => x.ma).join(","));
+  soat("hộp ôn từng đường: bài nghe/nhìn/điền khuyết (không còn đúng–sai)", r.map((x) => x.ma).join(",") === "grammar,nghe,nhin,dien", r.map((x) => x.ma).join(","));
   const d = r.find((x) => x.ma === "dien");
   soat("điền khuyết bật và đếm 2 bài tới hạn", d && !d.off && /2/.test(d.chu), d && d.chu);
 }

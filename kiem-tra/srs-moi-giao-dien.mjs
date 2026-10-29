@@ -115,6 +115,8 @@ try{
   const html=readFileSync(path.join(dir,dir===ext?"notebook.html":"index.html"),"utf8");
   const start=html.indexOf('<section id="viewGrammar"'),end=html.indexOf('<section id="viewSpeak"',start);
   await page.setContent(html.slice(start,end));
+  // Legacy widget isolation; production navigation is covered by study-integration-giao-dien.
+  await page.evaluate(()=>document.querySelector("#viewGrammar").hidden=false);
   await page.addScriptTag({content:'window.T=s=>s;window.T2=(s,o)=>s.replace(/\\{([^}]+)\\}/g,(_,k)=>o[k]);'});
   for(const f of ["ngu-phap.js","ngu-phap-ui.js"])await page.addScriptTag({content:readFileSync(path.join(dir,f),"utf8")});
   await page.evaluate(async()=>{

@@ -39,7 +39,8 @@ await sw.evaluate(() => {
 });
 const LK = (word, dict) => sw.evaluate(([w, d]) => handleLookup(w, d), [word, dict]);
 const bat = (b) => sw.evaluate(async (b) => { const { settings } = await chrome.storage.local.get("settings"); await chrome.storage.local.set({ settings: Object.assign({}, settings || {}, { goiDien: b }) }); }, b);
-await sw.evaluate(() => chrome.storage.local.set({ settings: { ngu: "ja" }, notebook: {}, cache: {}, trCache: {} }));
+await sw.evaluate(() => chrome.storage.local.set({ settings: { ngu: "ja", goiDien: true, goiIt: false, goiY: false }, notebook: {}, cache: {}, trCache: {} }));
+// This section tests the electrical pack alone; multi-pack composition is tested below.
 await bat(true);
 
 console.log("Từ chuyên ngành (Nhật)");

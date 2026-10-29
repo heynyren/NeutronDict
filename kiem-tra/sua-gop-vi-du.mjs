@@ -67,6 +67,15 @@ const sachLai = await doc("fuse");
 soat("ví dụ sạch thì không bị đụng", sachLai.cauNghe.cau === "The fuse blows." && sachLai.cauNghe.dich === "Cầu chì cháy.");
 
 console.log("\nHộp sửa gộp");
+// Hold the entrance-focus callback so a fast manual field choice happens before it.
+await pg.evaluate(()=>{
+  window.__realFocusTimeout=window.setTimeout;
+  window.__focusCallbacks=[];
+  window.setTimeout=(fn,delay,...args)=>{
+    if(delay===40&&typeof fn==="function"){window.__focusCallbacks.push(()=>fn(...args));return -42;}
+    return window.__realFocusTimeout(fn,delay,...args);
+  };
+});
 await pg.click(hang("relay") + " .ctl .iconbtn[title^='Sửa nghĩa']");
 await pg.waitForSelector("#editSheet.show");
 const o = await pg.evaluate(() => ({
@@ -76,6 +85,14 @@ const o = await pg.evaluate(() => ({
 }));
 soat("mở một hộp có đủ nghĩa + ví dụ + ghi chú", o.tit === "Sửa mục này" && o.trans === "rơle" && o.coNote && o.thay, JSON.stringify(o));
 soat("ví dụ chưa lọc được hiện nguyên để sửa, kèm lời nhắc", o.cau === "Rơle(relay) bảo vệ" && /lẫn tiếng Việt/.test(o.hint), o.hint.slice(0, 50));
+await pg.focus("#edViDu");
+const focusKept=await pg.evaluate(()=>{
+  const count=window.__focusCallbacks.length;
+  window.setTimeout=window.__realFocusTimeout;
+  window.__focusCallbacks.forEach(fn=>fn());
+  return {count,active:document.activeElement.id};
+});
+soat("không cướp con trỏ khi đã chọn ô ví dụ",focusKept.count>0&&focusKept.active==="edViDu",JSON.stringify(focusKept));
 await pg.fill("#edTrans", "rơle bảo vệ\nrơ-le");
 await pg.fill("#edViDu", "Check the relay setting.");
 await pg.fill("#edViDuDich", "Kiểm tra cài đặt rơle.");
