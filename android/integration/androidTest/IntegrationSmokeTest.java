@@ -138,6 +138,18 @@ public class IntegrationSmokeTest {
             assertEquals("true",evaluate(host,"window.__readerSaved.src.cau==='クリームを塗って肌のケアをする。' && window.__readerSaved.src.url==='https://example.org/integration-fixture'"));
         }
     }
+    @Test public void learnerDataWorksBeforeOpeningYouTube() throws Exception {
+        assertTrue("English learner data must be ready from the application entry point",
+            com.kienhoang.dualsubreplay.data.EnglishMorphology.INSTANCE.awaitReady(60000L));
+        java.util.List<com.kienhoang.dualsubreplay.data.AnalyzedToken> tokens =
+            com.kienhoang.dualsubreplay.data.LanguageAwareTokenizer.INSTANCE.tokenize("We went home.", "en");
+        com.kienhoang.dualsubreplay.data.AnalyzedToken went = null;
+        for (com.kienhoang.dualsubreplay.data.AnalyzedToken token : tokens)
+            if ("went".equals(token.getText())) went = token;
+        assertNotNull(went);
+        assertEquals("go", went.getBaseForm());
+        assertEquals(com.kienhoang.dualsubreplay.data.PartOfSpeech.VERB, went.getPartOfSpeech());
+    }
     @Test public void nativeSaveRoundTripKeepsNotebookAndSrs() throws Exception {
         try(ActivityScenario<com.neutrondict.app.MainActivity> scenario=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(scenario);

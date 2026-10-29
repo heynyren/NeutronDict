@@ -252,6 +252,9 @@ for values in (main / "res").glob("values*/strings*.xml"):
     s = values.read_text()
     s = re.sub(r'(<string name="app_name">).*?(</string>)', r'\g<1>NeutronDict Preview\2', s)
     values.write_text(s)
+if application.get(A+"name") not in (None, "android.app.Application"):
+    raise RuntimeError("Upstream introduced an Application class; integrate its initialization explicitly")
+application.set(A+"name", "com.neutrondict.app.media.NeutronApplication")
 application.set(A+"label", "NeutronDict Preview")
 # Preserve the original AI/WebView backup exclusions. Reader cache is expendable.
 manifest.write(manifest_path, encoding="utf-8", xml_declaration=True)

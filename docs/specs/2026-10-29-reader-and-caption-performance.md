@@ -36,3 +36,5 @@ Kiểm chứng trung gian trên 0541713: Node đạt, Android unit/APK đạt; C
 - Chromium ea0e7d: worker thật, màu, mốc video, chọn nguồn, toggle và PDF dùng chung đã đạt. Bộ hồi quy sửa ví dụ phát hiện autofocus trễ cướp focus khi đã chọn ô khác. Đã chặn callback cũ và không đổi focus khi người dùng đã vào hộp sửa; thêm hồi quy giữ callback rồi chủ động chọn ô trước khi chạy lại, giữ mọi assertion lưu và bảo vệ ví dụ.
 
 - 613c7a5: Node/Chromium đều đạt; 978/978 unit và 4/4 luồng native đạt. Device chạy đủ 36, 22 thất bại tại ghi ảnh EACCES do thư mục external do shell tạo. Chuyển output ảnh sang files nội bộ ứng dụng, lấy bằng adb run-as; giữ nguyên test và assertion, chạy lại cả 36.
+
+- b79dac0: Chromium đạt; 978 unit đạt; 35/36 device đạt, gồm hai popup sáng/tối. Lỗi còn lại là mô hình tiếng Anh bị gọi trước khi LearnerData có AssetManager; bộ nạp gốc coi lỗi này là vĩnh viễn trong process. Khởi tạo nguồn dữ liệu ngay trong Application, trước mọi lối vào (không tải/parse đồng bộ); thêm kiểm thử phân tích “went → go/động từ” khi chưa mở YouTube. Đây cũng sửa lối đọc báo/AI mở trước YouTube trên máy thật.
