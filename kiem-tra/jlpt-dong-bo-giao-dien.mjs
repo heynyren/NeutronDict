@@ -151,6 +151,14 @@ try{
     await new Promise(r=>setTimeout(r,100));
   check("ghi tiến độ Android tự hẹn gửi cloud",saves>before && !!cloud.jlpt?.mon?.n2?.chang?.["auto-push"]);
   check("cloud chỉ chứa tiến độ, không mang tuỳ chọn nhạc/thử",!("nhac" in cloud.jlpt)&&!("thu" in cloud.jlpt));
+  // Hồ sơ chỉ khai kho chung, không có syncUrl/syncUrlJa: khởi động vẫn phải kéo.
+  await sw.evaluate(() => clearTimeout(syncTimer));
+  cloud.jlpt.mon.n2.chang["cold-start"]={xong:true,lan:1,tot:50,sao:0,ts:Date.now()};
+  const reopened=await desktop.newPage();
+  reopened.on("pageerror",e=>errors.push("PC reopen: "+e.message));
+  await reopened.goto("chrome-extension://"+id+"/notebook.html");
+  await reopened.waitForFunction(async()=>JlptTienDo.daXong((await chrome.storage.local.get("jlpt")).jlpt,"n2","cold-start"));
+  check("mở lại extension chỉ khai kho chung vẫn tự kéo tiến độ",true);
   check("không có lỗi trang",errors.length===0);
   console.log("JLPT hai thiết bị: "+checks+" kiểm tra đạt.");
 }finally{

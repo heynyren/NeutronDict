@@ -4186,7 +4186,7 @@ async function loadConfig() {
   }
   const nh = $("syncNhan");
   if (nh) nh.textContent = T2("Đang cấu hình cloud tiếng {ngu}", { ngu: T(window.Ngu.ten(NGU)) });
-  return { syncUrl: kho[k.url], syncToken: kho[k.token] };
+  return { syncUrl: kho[c.url] || kho[k.url], syncToken: kho[c.url] ? kho[c.token] : kho[k.token] };
 }
 /*
  * Bật kho chung thì ô riêng của từng ngôn ngữ mờ đi — không xoá, chỉ mờ. Người
@@ -4270,8 +4270,9 @@ function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu:
 // Quay lại tab Sổ tay -> kéo dữ liệu mới (nếu đã cấu hình đồng bộ).
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden) return;
-  const cfg = await loadConfig();
-  if (cfg.syncUrl) syncNow();
+  const k = window.Ngu.khoaSync(NGU), c = window.Ngu.KHOA_CHUNG;
+  const kho = await chrome.storage.local.get([k.url, c.url]);
+  if (kho[c.url] || kho[k.url]) syncNow();
 });
 
 /* ==================================================================== */
