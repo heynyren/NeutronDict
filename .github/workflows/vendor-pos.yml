@@ -1,0 +1,25 @@
+name: Vendor Japanese analyzer
+on:
+  push:
+    branches: [codex/neutrondict-youtube-news]
+    paths: ['.github/workflows/vendor-pos.yml', 'cong-cu/dong-goi-tu-loai.py']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Bundle locked analyzer and licenses
+        run: python3 cong-cu/dong-goi-tu-loai.py
+      - name: Save assets for source ZIP installs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add extension/vendor/kuromoji
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Vendor locked Kuromoji and IPADIC for offline subtitle analysis"
+          git push origin "HEAD:$GITHUB_REF_NAME"
