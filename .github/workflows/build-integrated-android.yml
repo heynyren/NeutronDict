@@ -97,11 +97,16 @@ jobs:
               report = root / (name + ".html")
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
-          images = Path("android/integration/build/app/build/outputs/connected_android_test_additional_output")
+          import shutil
+          images = Path("android/integration/build/app/build")
+          target = Path("android/integration/ui-evidence")
+          target.mkdir(exist_ok=True)
           for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png"):
+              # AGP versions place collected images under additional-output or test-result artifacts.
               matches = list(images.rglob(name))
               assert matches, "Missing native UI screenshot: " + name
-              print(name, "UI evidence verified")
+              shutil.copy2(matches[0], target / name)
+              print(name, "UI evidence verified at", matches[0])
           PY
       - name: Upload validation reports
         if: always()
@@ -112,6 +117,7 @@ jobs:
             android/integration/build/app/build/reports/androidTests/
             android/integration/build/app/build/reports/tests/
             android/integration/build/INTEGRATION.json
-            android/integration/build/app/build/outputs/connected_android_test_additional_output/
+            android/integration/ui-evidence/
+            android/integration/build/app/build/outputs/androidTest-results/
           if-no-files-found: ignore
           retention-days: 7
