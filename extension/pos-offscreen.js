@@ -13,7 +13,11 @@ function analyzePos(rows){
     posWorker.onmessage=({data})=>{
       const pending=posWaiting.get(data.id);if(!pending)return;
       posWaiting.delete(data.id);clearTimeout(pending.timer);pending.resolve(data);
-      if(!posWaiting.size)posIdle=setTimeout(stopPosWorker,60000);
+      if(!posWaiting.size)posIdle=setTimeout(()=>{
+        stopPosWorker();
+        // Wake an MV3 service worker that may have slept before its own idle timer.
+        chrome.runtime.sendMessage({type:"POS_IDLE"}).catch(()=>{});
+      },60000);
     };
     posWorker.onerror=stopPosWorker;
   }

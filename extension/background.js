@@ -325,6 +325,11 @@ async function tronGoi(entries, word, dict) {
 let syncTimer = null;
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg) return;
+  if(msg.type==="POS_IDLE") {
+    if(sender.id===chrome.runtime.id && sender.url===chrome.runtime.getURL("pdf-offscreen.html") &&
+       neutronOffscreenUsers===0 && Date.now()>=neutronPosWarmUntil) closeNeutronOffscreen();
+    return;
+  }
   if(msg.type==="SUBTITLE_POS") {
     if(sender.id!==chrome.runtime.id) return;
     analyzeSubtitleRows(msg.rows).then(sendResponse,e=>sendResponse({ok:false,error:String(e.message||e)}));
