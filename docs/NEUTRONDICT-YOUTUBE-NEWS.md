@@ -182,3 +182,5 @@ Nút Mở nguồn dùng trình đọc trong app. Từ đã lưu được tô và
 - Extension có nút **Loại từ**, chú giải và màu danh từ, động từ, tính từ, trạng từ, đại từ, liên từ, trợ từ/trợ động từ cho phụ đề **tiếng Nhật**. Rê vào từ để xem nhãn và dạng gốc.
 - Dùng Kuromoji.js 0.1.2/IPADIC được đóng gói sẵn cùng giấy phép trong `extension/vendor/kuromoji` ([tài liệu gốc](https://github.com/takuyaa/kuromoji.js)). Phân tích chạy cục bộ trên worker, chỉ cho dòng đang nhìn thấy; không gửi transcript cho AI hay dịch vụ phân loại.
 - Lần đầu cần khởi tạo bộ từ điển. Nút bật/tắt được ghi nhớ. Khi tắt, giữ nguyên câu chữ, mốc tua và khả năng chọn/lưu nguồn. Chỉ tô màu ngữ pháp; không sửa lời thoại.
+
+Dữ liệu phân tích từ được đăng ký ngay khi Application khởi động, nên mở đọc báo/AI trước YouTube vẫn dùng được; nạp và phân tích nặng vẫn chạy nền. Các gói thuật ngữ riêng nạp nền lúc mở báo, giữ thứ tự nghĩa chuyên ngành và nghĩa người dùng đã sửa, không chặn popup đầu.

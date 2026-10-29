@@ -105,6 +105,35 @@ try{
  assert.equal(article.url,"https://example.org/news#section");
  assert.ok(article.prefix.endsWith("Take "));assert.equal(article.prefix.length,200);
  assert.equal(article.suffix," of your skin.");
+ // Fast article meanings keep the bundled terminology and manual-edit priority.
+ const reader=await p.evaluate(async()=>{
+   await napGoi();
+   const oldProvider=dichTu,oldSentence=gtxTranslate,oldReplies=Capacitor.Plugins.NeutronMedia.readerReply;
+   let sentenceCalls=0,calls=0;
+   const replies=[];
+   Capacitor.Plugins.NeutronMedia.readerReply=async r=>{replies.push(r);};
+   dichTu=async()=>{calls++;return {main:"nghĩa chung",senses:[],data:null};};
+   gtxTranslate=()=>{sentenceCalls++;return new Promise(()=>{});};
+   const before=JSON.stringify(await getNB());
+   try {
+     await NeutronReaderRequest({requestId:"terms",op:"lookup",item:{word:"電圧",language:"ja",sentence:"電圧を測ります。"}});
+     const afterLookup=JSON.stringify(await getNB());
+     await capNhat(nb=>{nb["javi:電圧"]={word:"電圧",dict:"javi",means:["nghĩa riêng của tôi"],mEdit:true,duong:{nghe:{lv:5}}};});
+     await NeutronReaderRequest({requestId:"manual",op:"lookup",item:{word:"電圧",language:"ja"}});
+     dichTu=async()=>{throw Error("offline fixture");};
+     await NeutronReaderRequest({requestId:"offline",op:"lookup",item:{word:"電流",language:"ja"}});
+     return {replies,calls,sentenceCalls,noWrites:before===afterLookup};
+   } finally {
+     dichTu=oldProvider;gtxTranslate=oldSentence;Capacitor.Plugins.NeutronMedia.readerReply=oldReplies;
+     await capNhat(nb=>{delete nb["javi:電圧"];});
+   }
+ });
+ assert.equal(reader.noWrites,true);assert.equal(reader.sentenceCalls,0);assert.equal(reader.calls,1);
+ assert.ok(reader.replies[0].result.meaning.toLowerCase().includes("điện áp"));
+ assert.match(reader.replies[0].result.reading,/[ぁ-ん]/);
+ assert.equal(reader.replies[1].result.meaning,"nghĩa riêng của tôi");
+ assert.ok(reader.replies[2].result.meaning.toLowerCase().includes("dòng điện"));
+ assert.ok(reader.replies.every(r=>!r.error));
  // Real adapter: weak JLPT card goes through the notebook write queue.
  await p.evaluate(()=>luuTheYeuJlpt({kieu:"tu",muc:{id:"fixture",w:"練習",r:"れんしゅう",m:"luyện tập"},vd:{j:"毎日日本語を練習します。",v:"Tôi luyện tiếng Nhật hằng ngày."}},"n3"));
  const imported=await p.evaluate(async()=>{const n=await getNB(),x=n["javi:練習"];return {x,paths:Srs.duongMo(x)};});

@@ -89,7 +89,9 @@ jobs:
           working-directory: android/integration/build
           script: |
             ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.testInstrumentationRunnerArguments.additionalTestOutputDir=/data/user/0/com.neutrondict.app.preview/files/neutron-ui --no-daemon --max-workers=2
-            adb pull /sdcard/Android/data/com.neutrondict.app.preview/files/neutron-ui ../ui-evidence
+            mkdir -p ../ui-evidence
+            adb exec-out run-as com.neutrondict.app.preview tar -C files/neutron-ui -cf - . > ../ui-evidence.tar
+            tar -xf ../ui-evidence.tar -C ../ui-evidence
       - name: Verify all selected device suites ran
         run: |
           python3 - <<'PY'

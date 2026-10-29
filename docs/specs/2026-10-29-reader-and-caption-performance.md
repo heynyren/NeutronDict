@@ -38,3 +38,9 @@ Kiểm chứng trung gian trên 0541713: Node đạt, Android unit/APK đạt; C
 - 613c7a5: Node/Chromium đều đạt; 978/978 unit và 4/4 luồng native đạt. Device chạy đủ 36, 22 thất bại tại ghi ảnh EACCES do thư mục external do shell tạo. Chuyển output ảnh sang files nội bộ ứng dụng, lấy bằng adb run-as; giữ nguyên test và assertion, chạy lại cả 36.
 
 - b79dac0: Chromium đạt; 978 unit đạt; 35/36 device đạt, gồm hai popup sáng/tối. Lỗi còn lại là mô hình tiếng Anh bị gọi trước khi LearnerData có AssetManager; bộ nạp gốc coi lỗi này là vĩnh viễn trong process. Khởi tạo nguồn dữ liệu ngay trong Application, trước mọi lối vào (không tải/parse đồng bộ); thêm kiểm thử phân tích “went → go/động từ” khi chưa mở YouTube. Đây cũng sửa lối đọc báo/AI mở trước YouTube trên máy thật.
+
+### Kiểm chứng chức năng đã hoàn thành
+- f7e391e: toàn bộ Node/Chromium đạt, **978/978 unit**, **37/37 device**, không bỏ qua. Các popup sáng/tối, đọc báo trước YouTube, lưu notebook/SRS và các màn AI gốc đều đạt. [Báo cáo](https://github.com/heynyren/NeutronDict/actions/runs/40819358057/artifacts/12874441103).
+- Job tổng vẫn đỏ vì lệnh xuất ảnh còn trỏ đường external cũ sau khi tham số test đã dùng internal. Đã sửa lệnh xuất sang adb exec-out/run-as + tar; không thay test.
+- Giữ ưu tiên các gói thuật ngữ điện/IT/y đã có: nạp nền khi mở báo, trộn gói đã sẵn sau kết quả cache, luôn giữ nghĩa riêng của sổ tay. Không đợi gói để mở popup; có gói trên máy thì vẫn tra được khi mạng lỗi. Thêm hồi quy qua adapter thật, không ghi notebook khi chỉ tra.
+- Gate phát hành: kiểm tra lại Node/Chromium và job Android (bao gồm xuất ảnh) trên đúng HEAD trước khi hợp nhất. Không có bằng chứng YouTube/giọng dịch vụ trực tiếp trên điện thoại thật.

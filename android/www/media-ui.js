@@ -72,7 +72,7 @@
       const meaning=meansFromSenses(g.main,g.senses).map(meanToStr).join("\n");
       const reading=lang==="ja" ? (window.Kana.docSan(word) ||
         (g.data ? window.Kana.tuRomajiCum(gtxRomaji(g.data,3)) : "")) : "";
-      return {meaning,reading,source:"translation"};
+      return {meaning,reading,docSuy:lang==="ja" && !!reading && !window.Kana.docSan(word),source:"translation"};
     }
   });
   window.NeutronReaderRequest = async request => {
@@ -80,7 +80,18 @@
     try {
       const raw = request.item || {};
       if (request.op === "lookup") {
-        result = await fastReader.lookup(raw);
+        const lang=String(raw.language||"ja").split(/[-_]/)[0].toLowerCase();
+        napGoi().catch(()=>{}); // Never wait for packs or sentence translation in the quick popup.
+        try { result = await fastReader.lookup(raw); }
+        catch(e) {
+          if(!["ja","en"].includes(lang) || !window.ThuatNgu.tra(raw.word,lang))throw e;
+          result={meaning:"",reading:"",source:"local"};
+        }
+        if(result.source!=="notebook" && ["ja","en"].includes(lang)) {
+          const first=window.ThuatNgu.tron([{word:raw.word,reading:result.reading,docSuy:result.docSuy,
+            means:result.meaning ? result.meaning.split("\n") : []}],raw.word,lang)[0];
+          result={...result,reading:first.reading || "",meaning:first.means.map(meanToStr).join("\n")};
+        }
       } else if (request.op === "save") {
         // Request stays inside the live Capacitor instance; no second notebook writer.
         result = await importItem({...raw,id:raw.id || crypto.randomUUID()});
@@ -90,6 +101,10 @@
     } catch(e) { error=e.message || String(e); }
     await native()?.readerReply({requestId:request.requestId,result:result || {},error:error || null});
   };
+  function openReader(article) {
+    napGoi().catch(()=>{}); // Local terminology loads while the article opens.
+    return native().openArticle(article);
+  }
   window.NeutronMediaOpenSource = it => {
     if (!native()) return false;
     const youtube=window.NeutronMediaImport.sourceYouTube(it);
@@ -107,7 +122,7 @@
     const directive=u.hash.indexOf(":~:");
     if(directive>=0)u.hash=u.hash.slice(1,directive);
     const selected=String(it.src.sel || "").trim();
-    native().openArticle({url:u.href,language:it.src.language || (it.dict==="javi"?"ja":"en"),
+    openReader({url:u.href,language:it.src.language || (it.dict==="javi"?"ja":"en"),
       word:selected && selected!==it.src.cau && selected.length<=200 ? selected : it.word,
       sentence:it.src.cau || it.src.sel || it.word,
       prefix:String(it.src.prefix || "").slice(-200),suffix:String(it.src.suffix || "").slice(0,200),
@@ -139,7 +154,7 @@
     for(const article of filtered.slice(0,pageSize)) {
       const card=document.createElement("article");card.className="card news-card";
       const title=document.createElement("button");title.type="button";title.className="news-title";title.textContent=article.title;
-      title.onclick=()=>native().openArticle(article).catch(notifyError);card.appendChild(title);
+      title.onclick=()=>openReader(article).catch(notifyError);card.appendChild(title);
       const meta=document.createElement("p");meta.className="t-tiny muted";meta.textContent=[article.source,article.language,
         article.date?new Date(article.date).toLocaleDateString():"",article.offline?"Đã lưu đọc offline":""].filter(Boolean).join(" · ");
       card.appendChild(meta);
@@ -166,7 +181,7 @@
     byId("mediaBar").hidden=false;
     byId("mediaYouTube").onclick=()=>{dungDongHo();native().openYouTube({}).catch(notifyError);};
     byId("mediaNews").onclick=()=>{
-      dungDongHo();byId("newsDialog").showModal();
+      dungDongHo();napGoi().catch(()=>{});byId("newsDialog").showModal();
       refresh().then(()=>{configure();if(!news?.updatedAt || Date.now()-news.updatedAt>30*60000)refresh(true);});
     };
     byId("mediaAi").onclick=()=>{
