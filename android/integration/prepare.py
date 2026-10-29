@@ -370,3 +370,13 @@ patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/WordTimingTest.k
 patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/WordTimingTest.kt",
       "// Near the next boundary, the small visual lead compensates for WebView/UI latency.",
       "// The next word stays inactive until the video's clock reaches its actual anchor.")
+
+# Zero lead means even a short opening token remains active at its own real start.
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/CaptionFormatTest.kt",
+      "val expected = words[if (wordIndex == 0) 1 else wordIndex]",
+      "val expected = word")
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/CaptionFormatTest.kt",
+      """        // v0.9.5's 75 ms lead skips this fixture's 30 ms opening token once
+        // the cue starts. All later token starts are at least 90 ms apart.""",
+      """        // Match the web extension: each token is active at its own anchor,
+        // including the 30 ms opening token; never jump ahead by a fixed offset.""")

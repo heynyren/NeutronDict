@@ -28,3 +28,7 @@ Chủ dự án ngày 29/10/2026 yêu cầu đẩy main sau khi xong. Merge PR #2
 Đã triển khai: popup dùng nguyên PhraseActionBar/WordLearningDialog; bộ tra chỉ đọc có dedupe/cache giới hạn; dịch câu sau khi lưu; worker Kuromoji đóng gói và chỉ phân tích dòng thấy được. PDF và POS chia quyền sở hữu offscreen, không đóng nền khi tác vụ khác đang dùng. Đồng hồ tái neo khi mất seek/buffer và bỏ bù sớm 75 ms.
 
 Kiểm chứng trung gian trên 0541713: Node đạt, Android unit/APK đạt; Chromium/emulator còn chạy khi bổ sung hồi quy độ bù và vòng đời popup. Phiên bản cuối cần các gate cloud trên đúng HEAD trước khi hợp nhất main. UI có ảnh theme tối/sáng trong artifact báo cáo; không thay thế xác minh trên máy thật.
+
+### Nhật ký kiểm thử
+- 0541713: 977 unit đạt; Chromium phát hiện kiểm tra đóng PDF ngay và fixture đồng hồ video khác JS world. Đã giữ đóng PDF ngay khi không có POS dùng chung và dùng currentTime thật trong fixture.
+- ea0e7d: 978 unit chạy, 1 kỳ vọng CaptionFormatTest vẫn cố ý nhảy qua từ đầu vì bù 75 ms cũ. Điều chỉnh kỳ vọng thành chính từ tại mốc bắt đầu, giữ toàn bộ assertion và kiểm thử cả câu/cụm ngắn; không bỏ kiểm thử. Các gate cuối chạy lại trên commit sửa.
