@@ -87,11 +87,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           working-directory: android/integration/build
-          script: |
-            ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.testInstrumentationRunnerArguments.additionalTestOutputDir=/data/user/0/com.neutrondict.app.preview/files/neutron-ui --no-daemon --max-workers=2
-            mkdir -p ../ui-evidence
-            adb exec-out run-as com.neutrondict.app.preview tar -C files/neutron-ui -cf - . > ../ui-evidence.tar
-            tar -xf ../ui-evidence.tar -C ../ui-evidence
+          script: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.enableAdditionalTestOutput=true --no-daemon --max-workers=2
       - name: Verify all selected device suites ran
         run: |
           python3 - <<'PY'
@@ -101,6 +97,11 @@ jobs:
               report = root / (name + ".html")
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
+          images = Path("android/integration/build/app/build/outputs/connected_android_test_additional_output")
+          for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png"):
+              matches = list(images.rglob(name))
+              assert matches, "Missing native UI screenshot: " + name
+              print(name, "UI evidence verified")
           PY
       - name: Upload validation reports
         if: always()
@@ -111,6 +112,6 @@ jobs:
             android/integration/build/app/build/reports/androidTests/
             android/integration/build/app/build/reports/tests/
             android/integration/build/INTEGRATION.json
-            android/integration/ui-evidence/
+            android/integration/build/app/build/outputs/connected_android_test_additional_output/
           if-no-files-found: ignore
           retention-days: 7
