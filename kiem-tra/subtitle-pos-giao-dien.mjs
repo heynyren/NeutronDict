@@ -7,6 +7,7 @@ const ext=process.argv[2],out=join(process.env.RUNNER_TEMP||tmpdir(),"nd-ui");
 mkdirSync(out,{recursive:true});
 const ctx=await chromium.launchPersistentContext(mkdtempSync(join(tmpdir(),"nd-pos-")),{
  channel:"chromium",headless:true,args:[`--disable-extensions-except=${ext}`,`--load-extension=${ext}`]});
+let page;
 try{
  const sw=ctx.serviceWorkers()[0]||await ctx.waitForEvent("serviceworker");
  const text="私は本を読みます。しかし、彼は速く走る。";
@@ -29,15 +30,15 @@ try{
  <div id=secondary><div id=secondary-inner></div></div></div></ytd-watch-flexy>
  <script>document.getElementById('movie_player').getPlayerResponse=()=>({videoDetails:{videoId:"posvideo",title:"POS"},
  captions:{playerCaptionsTracklistRenderer:{captionTracks:[{baseUrl:"https://www.youtube.com/api/timedtext?v=posvideo",languageCode:"ja",name:{simpleText:"JA"},kind:"asr"}]}}});
- const v=document.querySelector('video');Object.defineProperty(v,'currentTime',{get:()=>3.5,set:()=>{}});v.play=()=>Promise.resolve();</script>`;
+ const v=document.querySelector('video');v.currentTime=3.5;v.play=()=>Promise.resolve();</script>`;
  await ctx.route("https://www.youtube.com/**",r=>r.fulfill({contentType:"text/html",body:html}));
- const page=await ctx.newPage();await page.setViewportSize({width:1450,height:900});
+ page=await ctx.newPage();await page.setViewportSize({width:1450,height:900});
  await page.goto("https://www.youtube.com/watch?v=posvideo");
  const host=page.locator("[data-ndict-yt]");
  await host.locator(".ln .nd-pos[data-pos=verb]").first().waitFor({timeout:30000});
  const originalText=await host.locator(".tx").first().evaluate(e=>Array.from(e.childNodes).filter(n=>!n.classList?.contains("vi")).map(n=>n.textContent).join(""));
  assert.equal(originalText,text);
- assert(await host.locator(".pc.now .nd-pos").count()>0);
+ await host.locator(".pc.now .nd-pos").first().waitFor({timeout:5000});
  const token=host.locator(".ln .nd-pos[data-pos=noun]").first();
  await token.evaluate(e=>{const r=document.createRange();r.selectNodeContents(e);getSelection().removeAllRanges();getSelection().addRange(r);e.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true}));});
  const saved=await sw.evaluate(async()=>{const tab=(await chrome.tabs.query({})).find(t=>t.url?.includes("posvideo"));return contextSource({selectionText:"本",pageUrl:tab.url},tab);});
@@ -57,4 +58,4 @@ try{
  ]));
  assert.equal(both[0].ok,true);assert.equal(both[1].ok,false);
  console.log("Real bundled Kuromoji worker, Japanese POS, emoji, visible-row colors, timing, source selection, toggle and PDF lifecycle OK");
-}finally{await ctx.close();}
+}catch(e){await page?.screenshot({path:join(out,"subtitle-pos-failed.png")}).catch(()=>{});throw e;}finally{await ctx.close();}

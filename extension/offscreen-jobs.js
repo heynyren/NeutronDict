@@ -1,8 +1,15 @@
 /* One offscreen document shared by PDF extraction and Japanese POS workers. */
-let neutronOffscreenClosing=null, neutronOffscreenOpening=null, neutronOffscreenUsers=0, neutronOffscreenIdle=null;
+let neutronOffscreenClosing=null, neutronOffscreenOpening=null, neutronOffscreenUsers=0;
+let neutronOffscreenIdle=null, neutronPosWarmUntil=0;
+function closeNeutronOffscreen(){
+  return neutronOffscreenClosing ||= Promise.resolve().then(()=>{
+    if(neutronOffscreenUsers===0)return chrome.offscreen.closeDocument().catch(()=>{});
+  }).finally(()=>{neutronOffscreenClosing=null;});
+}
 async function runNeutronOffscreen(message, timeout=35000) {
   clearTimeout(neutronOffscreenIdle);
   neutronOffscreenUsers++;
+  if(message.target==="pos-offscreen")neutronPosWarmUntil=Date.now()+60000;
   let timer;
   try {
     await neutronOffscreenClosing;
@@ -18,9 +25,11 @@ async function runNeutronOffscreen(message, timeout=35000) {
     })]);
   } finally {
     clearTimeout(timer);
-    if(--neutronOffscreenUsers===0) neutronOffscreenIdle=setTimeout(()=>{
-      if(neutronOffscreenUsers===0)neutronOffscreenClosing=chrome.offscreen.closeDocument().catch(()=>{}).finally(()=>{neutronOffscreenClosing=null;});
-    },60000);
+    if(--neutronOffscreenUsers===0) {
+      const warm=neutronPosWarmUntil-Date.now();
+      if(warm>0)neutronOffscreenIdle=setTimeout(closeNeutronOffscreen,warm);
+      else await closeNeutronOffscreen(); // PDF-only saves retain their immediate cleanup contract.
+    }
   }
 }
 async function analyzeSubtitleRows(rows) {
