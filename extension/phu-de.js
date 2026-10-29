@@ -1123,6 +1123,26 @@
        biết nhìn đâu. Bo góc + nền mềm chứ không gạch chân: chữ có nhiều nét
        chạm đáy, gạch chân là dính vào chữ. */
     .pc { border-radius: 5px; padding: 0 1px; }
+    /* Same POS palette as DualSub, darkened for the light transcript card. */
+    .box.pos-on .nd-pos[data-pos=noun] { color:#246f8c; }
+    .box.pos-on .nd-pos[data-pos=verb] { color:#39753b; }
+    .box.pos-on .nd-pos[data-pos=adjective] { color:#91611c; }
+    .box.pos-on .nd-pos[data-pos=adverb] { color:#82498d; }
+    .box.pos-on .nd-pos[data-pos=pronoun] { color:#28727c; }
+    .box.pos-on .nd-pos[data-pos=conjunction] { color:#a04c36; }
+    .box.pos-on .nd-pos[data-pos=particle] { color:#a44444; }
+    .pos-legend { display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 14px 8px;font-size:11px; }
+    .pos-legend[hidden] { display:none; }
+    .box.pos-on .pc.now .nd-pos { text-decoration:underline;text-underline-offset:3px; }
+    @media (prefers-color-scheme:dark) {
+      .box.pos-on .nd-pos[data-pos=noun] { color:#4fc3f7; }
+      .box.pos-on .nd-pos[data-pos=verb] { color:#81c784; }
+      .box.pos-on .nd-pos[data-pos=adjective] { color:#ffb74d; }
+      .box.pos-on .nd-pos[data-pos=adverb] { color:#ba68c8; }
+      .box.pos-on .nd-pos[data-pos=pronoun] { color:#4dd0e1; }
+      .box.pos-on .nd-pos[data-pos=conjunction] { color:#ff8a65; }
+      .box.pos-on .nd-pos[data-pos=particle] { color:#e57373; }
+    }
     /* Rê vào mẩu nào thì mẩu đó sáng lên: cho thấy mỗi mẩu là một chỗ nghe lại
        riêng, đúng như từng dòng trong bảng của YouTube. */
     .ln:hover .pc:hover { background: var(--accent-soft); color: var(--accent); }
@@ -1303,6 +1323,7 @@
 
   function goBang() {
     goPhoi();
+    stopPos();
     if (quanSat) { quanSat.disconnect(); quanSat = null; }
     hangCho.clear(); clearTimeout(henDich);
     if (S.host) { S.host.remove(); S.host = null; S.root = null; S.oList = null; }
@@ -1403,7 +1424,24 @@
     const nutBam = nutChip("crosshair-simple", T("Bám"), T("Tự cuộn theo dòng đang nói"));
     nutSong.classList.toggle("on", S.songNgu);   // giữ lựa chọn khi chuyển video
     bar.appendChild(chonBan); bar.appendChild(oTim); bar.appendChild(nutSong); bar.appendChild(nutBam);
+    const posButton=nutChip("text-aa",T("Loại từ"),T("Màu loại từ tiếng Nhật · Kuromoji/IPADIC"));
+    posButton.dataset.action="pos";posButton.classList.toggle("on",posEnabled);
+    posButton.setAttribute("aria-pressed",String(posEnabled));
+    bar.appendChild(posButton);
+    box.classList.toggle("pos-on",posEnabled);
     box.appendChild(bar);
+    const legend=document.createElement("div");legend.className="pos-legend";legend.hidden=!posEnabled;
+    for(const [pos,label] of Object.entries(self.NeutronPos.labels)){
+      if(pos==="other")continue;
+      const item=document.createElement("span");item.className="nd-pos";item.dataset.pos=pos;item.textContent=label;legend.appendChild(item);
+    }
+    box.appendChild(legend);
+    posButton.onclick=()=>{
+      posEnabled=!posEnabled;box.classList.toggle("pos-on",posEnabled);legend.hidden=!posEnabled;
+      posButton.classList.toggle("on",posEnabled);posButton.setAttribute("aria-pressed",String(posEnabled));
+      self.Song.ghi({ytLoaiTu:posEnabled});
+      startPos();
+    };
 
     /* --- danh sách --- */
     const wrap = document.createElement("div"); wrap.className = "wrap";
@@ -1599,6 +1637,88 @@
     if (pos < c.s.length) el.appendChild(document.createTextNode(c.s.slice(pos)));
   }
 
+  /* Only visible Japanese rows enter the worker. Coloring never changes source text or cue spans. */
+  let posEnabled=true, posObserver=null, posEpoch=0, posTimer=null, posBusy=false;
+  const posCache=new Map(), posVisible=new Set();
+  self.Song.doc("ytLoaiTu").then(r=>{
+    if(typeof r?.ytLoaiTu==="boolean")posEnabled=r.ytLoaiTu;
+    const box=S.root?.querySelector(".box"),button=S.root?.querySelector('[data-action="pos"]');
+    box?.classList.toggle("pos-on",posEnabled);
+    if(button){button.classList.toggle("on",posEnabled);button.setAttribute("aria-pressed",String(posEnabled));}
+    const legend=S.root?.querySelector(".pos-legend");if(legend)legend.hidden=!posEnabled;
+    startPos();
+  });
+  function stopPos(){
+    posEpoch++;posObserver?.disconnect();posObserver=null;clearTimeout(posTimer);posVisible.clear();
+  }
+  function paintPos(tx,text,tokens){
+    if(!tx||tx.dataset.posText===text)return;
+    const selection=window.getSelection();
+    if(selection&&!selection.isCollapsed)return; // Keep the user's live selection/handles intact.
+    const walker=document.createTreeWalker(tx,NodeFilter.SHOW_TEXT,{
+      acceptNode:n=>n.parentElement.closest(".vi")?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT
+    });
+    const nodes=[];let node,offset=0;
+    while(node=walker.nextNode()){nodes.push({node,start:offset});offset+=node.nodeValue.length;}
+    if(nodes.map(x=>x.node.nodeValue).join("")!==text)return;
+    for(const {node,start} of nodes){
+      const end=start+node.nodeValue.length, fragment=document.createDocumentFragment();let cursor=start;
+      for(const token of tokens){
+        const a=Math.max(start,token.start),b=Math.min(end,token.end);
+        if(a>=b)continue;
+        if(a>cursor)fragment.appendChild(document.createTextNode(text.slice(cursor,a)));
+        const span=document.createElement("span");span.className="nd-pos";span.dataset.pos=token.pos;
+        span.title=(self.NeutronPos.labels[token.pos]||"")+(token.base?" · "+token.base:"");
+        span.textContent=text.slice(a,b);fragment.appendChild(span);cursor=b;
+      }
+      if(cursor<end)fragment.appendChild(document.createTextNode(text.slice(cursor,end)));
+      node.replaceWith(fragment);
+    }
+    tx.dataset.posText=text;
+  }
+  function queuePos(){clearTimeout(posTimer);posTimer=setTimeout(workPos,60);}
+  function workPos(){
+    if(posBusy||!posEnabled||!S.oList)return;
+    const rows=[];
+    for(const ln of posVisible){
+      const id=Number(ln.dataset.i),c=S.cau[id];if(!c||c.s.length>2000)continue;
+      const cached=posCache.get(c.s);
+      if(cached){paintPos(ln.querySelector(".tx"),c.s,cached);continue;}
+      if(rows.reduce((n,r)=>n+r.text.length,0)+c.s.length>6000)continue;
+      rows.push({id,text:c.s});if(rows.length===8)break;
+    }
+    if(!rows.length)return;
+    posBusy=true;const epoch=posEpoch;
+    self.Song.gui({type:"SUBTITLE_POS",rows},res=>{
+      posBusy=false;
+      if(epoch!==posEpoch){queuePos();return;}
+      const button=S.root?.querySelector('[data-action="pos"]');
+      if(!res?.ok){
+        if(button)button.title=T("Chưa nạp được bộ phân tích. Tắt/bật Loại từ để thử lại.");
+        return;
+      }
+      for(const row of res.rows||[]){
+        if(S.cau[row.id]?.s!==row.text||!Array.isArray(row.tokens))continue;
+        posCache.set(row.text,row.tokens);
+        while(posCache.size>300)posCache.delete(posCache.keys().next().value);
+        paintPos(S.oList?.querySelector('.ln[data-i="'+row.id+'"] .tx'),row.text,row.tokens);
+      }
+      queuePos();
+    });
+  }
+  function startPos(){
+    stopPos();
+    if(!posEnabled||!S.oList||nguNguon()!=="ja")return;
+    posObserver=new IntersectionObserver(entries=>{
+      for(const e of entries){if(e.isIntersecting)posVisible.add(e.target);else posVisible.delete(e.target);}
+      queuePos();
+    },{root:S.oList,rootMargin:"120px"});
+    S.oList.querySelectorAll(".ln").forEach(ln=>posObserver.observe(ln));
+  }
+  document.addEventListener("selectionchange",()=>{
+    if(posEnabled&&window.getSelection()?.isCollapsed)queuePos();
+  });
+
   /* --- vẽ danh sách --- */
   /* ================================================================== */
   /* Phơi lời thoại ra DOM thường — để trợ lý AI khác đọc được           */
@@ -1732,6 +1852,7 @@
     S.uiDem.textContent = S.cau.length ? S.cau.length + " câu" : "";
     batQuanSat();
     danhDau(true);
+    startPos();
   }
 
   /**

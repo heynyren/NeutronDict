@@ -65,20 +65,22 @@
     })().finally(()=>{ importing=null; });
     return importing;
   }
+  const fastReader=window.NeutronReaderLookup.create({
+    getNotebook:getNB,
+    translate:async(word,lang)=>{
+      const g=await dichTu(word,lang,"vi");
+      const meaning=meansFromSenses(g.main,g.senses).map(meanToStr).join("\n");
+      const reading=lang==="ja" ? (window.Kana.docSan(word) ||
+        (g.data ? window.Kana.tuRomajiCum(gtxRomaji(g.data,3)) : "")) : "";
+      return {meaning,reading,source:"translation"};
+    }
+  });
   window.NeutronReaderRequest = async request => {
     let result, error;
     try {
       const raw = request.item || {};
       if (request.op === "lookup") {
-        const lang = String(raw.language || "ja").split(/[-_]/)[0];
-        const translation = raw.sentence ? gtxTranslate(raw.sentence,lang,"vi").catch(()=>"") : Promise.resolve("");
-        const entries = ["ja","en"].includes(lang) ? await lookup(raw.word,lang==="ja"?"javi":"envi") :
-          [{word:raw.word,means:[await gtxTranslate(raw.word,lang,"vi")]}];
-        const first = entries[0];
-        if (!first) throw new Error("Chưa lấy được nghĩa. Kiểm tra mạng và thử lại.");
-        const nb = await getNB(), old = nb[(lang==="ja"?"javi":"envi")+":"+raw.word];
-        result = {reading:first.reading || "", meaning:((old?.mEdit ? old.means : first.means) || []).map(meanToStr).join("\n"),
-          translation:await translation};
+        result = await fastReader.lookup(raw);
       } else if (request.op === "save") {
         // Request stays inside the live Capacitor instance; no second notebook writer.
         result = await importItem({...raw,id:raw.id || crypto.randomUUID()});

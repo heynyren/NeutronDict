@@ -43,6 +43,8 @@
   if (sentence.length > 4000) return JSON.stringify({error:"Câu quá dài. Hãy chọn trong phần nội dung bài."});
   return JSON.stringify({
     word, sentence, url:location.href, title:document.title,
+    bounds:(()=>{const r=range.getBoundingClientRect();return {left:r.left,top:r.top,right:r.right,bottom:r.bottom};})(),
+    viewportWidth:window.innerWidth,
     language:document.documentElement.lang || "",
     prefix:text.slice(Math.max(0,offset-40),offset), suffix:text.slice(offset+word.length,offset+word.length+40)
   });

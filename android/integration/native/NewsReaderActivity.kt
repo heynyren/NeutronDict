@@ -18,6 +18,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect as ComposeRect
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -36,6 +40,9 @@ class NewsReaderActivity : ComponentActivity() {
     private lateinit var page: WebView
     private var selection by mutableStateOf<JSONObject?>(null)
     private var entry by mutableStateOf<JSONObject?>(null)
+    private var details by mutableStateOf(false)
+    private var lookupResult: CompletableDeferred<JSONObject>? = null
+    private var selectedTokens by mutableStateOf<List<AnalyzedToken>>(emptyList())
     private var status by mutableStateOf("")
     private var pageTitle by mutableStateOf("")
     private var currentUrl = ""
@@ -93,7 +100,7 @@ class NewsReaderActivity : ComponentActivity() {
             override fun onPageStarted(view: WebView, url: String, icon: android.graphics.Bitmap?) {
                 cancelSourceRestore()
                 sourceRestoreFinished = false
-                lookupGeneration++; lookupJob?.cancel(); selection = null; entry = null
+                lookupGeneration++; dismissLookup()
                 if (!offline) currentUrl = url
                 status = "Đang mở bài…"
             }
@@ -163,10 +170,12 @@ class NewsReaderActivity : ComponentActivity() {
         val aiHost = remember(model) { AiAssistantHost(model.controller) { model.guide } }
         val state = selection
         val result = entry
+        var rootOffset by remember { mutableStateOf(Offset.Zero) }
         BackHandler {
-            if (state != null) { selection = null; entry = null }
+            if (state != null) dismissLookup()
             else if (page.canGoBack() && !offline) { cancelSourceRestore(user = true); page.goBack() } else finish()
         }
+        Box(Modifier.fillMaxSize().onGloballyPositioned { rootOffset = it.positionInWindow() }) {
         Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
@@ -188,32 +197,55 @@ class NewsReaderActivity : ComponentActivity() {
                 AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth())
             }
         }
-        if (state != null && result != null) {
+        if (state != null) {
             val word = state.optString("word")
             val lang = state.optString("language", language).substringBefore('-').lowercase()
             val sentence = state.optString("sentence")
-            val token = AnalyzedToken(word, 0, word.length, PartOfSpeech.OTHER, result.optString("reading").ifBlank { null })
-            val selected = LearningWordSelection(token, lang, "vi", null,
-                SubtitleSegment(0, 0, 0, sentence, translatedText = result.optString("translation").ifBlank { null }), false)
-            CompositionLocalProvider(LocalAiAssistant provides aiHost) {
-                WordLearningDialog(selected, false,
-                    onTranslateWord = { result.optString("meaning") },
-                    onSave = { meaning, _ ->
-                        val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
-                            .put("reading", result.optString("reading")).put("translatedSentence", result.optString("translation"))
-                            .put("kind", "article")
-                        neutronRequest(JSONObject().put("op", "save").put("item", item))
-                        status = "Đã lưu vào sổ tay NeutronDict"
-                    },
-                    onSpeak = { speak(word, lang) }, speechMessage = null,
-                    onDismiss = { selection = null; entry = null })
+            val pending = lookupResult
+            val parts = selectedTokens
+            val token = parts.singleOrNull()?.takeIf { it.text == word }
+                ?: AnalyzedToken(word, 0, word.length, PartOfSpeech.OTHER, result?.optString("reading")?.ifBlank { null })
+            val selected = remember(state, token, parts) {
+                LearningWordSelection(token, lang, "vi", null,
+                    SubtitleSegment(0, 0, 0, sentence), false, parts)
             }
+            CompositionLocalProvider(LocalAiAssistant provides aiHost) {
+                if (!details) {
+                    val bounds = state.optJSONObject("bounds")
+                    val origin = IntArray(2).also { page.getLocationInWindow(it) }
+                    val scale = page.width.toFloat() / state.optDouble("viewportWidth", page.width.toDouble()).coerceAtLeast(1.0).toFloat()
+                    val rect = ComposeRect(
+                        origin[0] - rootOffset.x + (bounds?.optDouble("left") ?: 0.0).toFloat() * scale,
+                        origin[1] - rootOffset.y + (bounds?.optDouble("top") ?: 0.0).toFloat() * scale,
+                        origin[0] - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
+                        origin[1] - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
+                    PhraseActionBar(rect, word, false, null, null,
+                        quickTranslate = { checkNotNull(pending).await().optString("meaning") },
+                        onTranslate = { details = true },
+                        onPronounce = { speak(word, lang) },
+                        onClose = { dismissLookup() })
+                } else {
+                    WordLearningDialog(selected, false,
+                        onTranslateWord = { checkNotNull(pending).await().optString("meaning") },
+                        onSave = { meaning, _ ->
+                            val found = checkNotNull(pending).await()
+                            val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
+                                .put("reading", found.optString("reading")).put("kind", "article")
+                            neutronRequest(JSONObject().put("op", "save").put("item", item))
+                            status = "Đã lưu vào sổ tay NeutronDict"
+                        },
+                        onSpeak = { speak(word, lang) }, speechMessage = null,
+                        onDismiss = { dismissLookup() },
+                        onSpeakPart = { part -> speak(part.text, lang) })
+                }
+            }
+        }
         }
         // Grammar/kanji questions launched by the unchanged word card use the shared AI panel.
         val aiState by model.controller.state.collectAsState()
         LaunchedEffect(aiState.pendingQuestion) {
             if (aiState.pendingQuestion != null) {
-                selection = null; entry = null
+                dismissLookup()
                 askAi()
             }
         }
@@ -231,19 +263,39 @@ class NewsReaderActivity : ComponentActivity() {
             if (generation != lookupGeneration) return@evaluateJavascript
             if (data == null) { status = "Bôi đen từ rồi bấm Tra NeutronDict."; return@evaluateJavascript }
             if (data.has("error")) { status = data.optString("error"); return@evaluateJavascript }
+            (page as? SelectionWebView)?.finishSelectionMenu()
             data.put("url", currentUrl).put("title", pageTitle)
             val detected = data.optString("language").substringBefore('-').lowercase()
             data.put("language", detected.ifBlank { language.substringBefore('-') })
-            lookupJob?.cancel()
+            dismissLookup()
+            val pending = CompletableDeferred<JSONObject>()
+            lookupResult = pending
+            selection = data; details = false; status = ""
             lookupJob = lifecycleScope.launch {
-                status = "Đang tra “" + data.optString("word") + "”…"
+                launch {
+                    val tokens = withContext(Dispatchers.Default) {
+                        LanguageAwareTokenizer.tokenize(data.optString("word"), data.optString("language"))
+                    }
+                    if (selection === data) selectedTokens = tokens
+                }
                 try {
                     val found = neutronRequest(JSONObject().put("op", "lookup").put("item", data))
-                    if (generation == lookupGeneration) { selection = data; entry = found; status = "" }
-                } catch (e: CancellationException) { throw e }
-                catch (e: Exception) { status = e.message ?: "Chưa tra được từ." }
+                    if (generation == lookupGeneration && selection === data) {
+                        entry = found
+                        pending.complete(found)
+                    }
+                } catch (e: CancellationException) { pending.cancel(); throw e }
+                catch (e: Exception) {
+                    pending.completeExceptionally(e)
+                    if (selection === data) status = e.message ?: "Chưa tra được từ."
+                }
             }
         }
+    }
+    private fun dismissLookup() {
+        lookupJob?.cancel(); lookupJob = null
+        lookupResult?.cancel(); lookupResult = null
+        selection = null; entry = null; selectedTokens = emptyList(); details = false
     }
     private fun askAi() {
         page.evaluateJavascript("(function(){const e=document.querySelector('article,main')||document.body;return (window.getSelection().toString()||e.innerText||'').slice(0,14000)})()") { raw ->
@@ -327,6 +379,8 @@ class NewsReaderActivity : ComponentActivity() {
 
 /** Selection stays editable; dictionary lookup starts only from the explicit menu command. */
 private class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
+    private var selectionMode: ActionMode? = null
+    fun finishSelectionMenu() { selectionMode?.finish() }
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
         if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) touched()
         return super.onTouchEvent(event)
@@ -335,6 +389,7 @@ private class SelectionWebView(context: Context, private val lookup: () -> Unit,
         super.startActionMode(object : ActionMode.Callback2() {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val created = callback.onCreateActionMode(mode, menu)
+                if (created) selectionMode = mode
                 menu.add(0, 0x4e44, 0, "Tra NeutronDict").setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 return created
             }
@@ -344,7 +399,7 @@ private class SelectionWebView(context: Context, private val lookup: () -> Unit,
                 if (item.itemId == 0x4e44) { lookup(); return true }
                 return callback.onActionItemClicked(mode, item)
             }
-            override fun onDestroyActionMode(mode: ActionMode) { callback.onDestroyActionMode(mode) }
+            override fun onDestroyActionMode(mode: ActionMode) { if (selectionMode === mode) selectionMode = null; callback.onDestroyActionMode(mode) }
             override fun onGetContentRect(mode: ActionMode, view: View, rect: Rect) {
                 if (callback is ActionMode.Callback2) callback.onGetContentRect(mode, view, rect)
                 else super.onGetContentRect(mode, view, rect)

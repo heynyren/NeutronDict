@@ -321,3 +321,33 @@ patch(dual / "ui/YouTubeBrowserScreen.kt",
 patch(dual / "ui/YouTubeBrowserScreen.kt",
       "    fun observePage(url: String) {",
       "    fun observePage(url: String) {\n        if (NeutronPlayback.activeStudy()) { pendingClip = null; playingClipVideo = null; return }")
+
+# Share DualSub's first-step popup with the explicitly invoked article lookup.
+patch(dual / "ui/PhraseSelection.kt", "private fun PhraseActionBar(", "internal fun PhraseActionBar(")
+
+# Like extension/phu-de.js: media time + word anchors win over delayed caption DOM.
+patch(dual / "ui/KaraokeTiming.kt",
+      "        val fromLive = wordHighlightEnabled && generatedCaptions &&",
+      """        val timedRow = segments?.getOrNull(timedSegmentIndex)
+        val timedWords = timedRow?.words.orEmpty()
+        val anchored = timedWords.isNotEmpty() && timedWords.all {
+            it.startMs >= 0 && it.endMs > it.startMs
+        } && timedWords.zipWithNext().all { (a, b) -> b.startMs >= a.startMs }
+        if (anchored) {
+            lastPosition = timedPosition
+            behindSinceMs = null
+            return timedPosition
+        }
+        val fromLive = wordHighlightEnabled && generatedCaptions &&""")
+patch(dual / "ui/CaptionPlaybackClock.kt",
+      "        snapshot = sample",
+      """        // Re-anchor to actual media after an unreported seek or stopped renderer.
+        // Never retain a projected future cursor while video is paused/buffering.
+        val predictedAtSample = positionMs + if (previous == null || previous.paused || previous.buffering) 0L
+            else (((receivedAt - age) - sampledAt).coerceAtLeast(0) * previous.playbackRate).toLong()
+        val observedMs = (second * 1000).toLong()
+        if (sample.paused || sample.buffering || sample.seeking ||
+            kotlin.math.abs(observedMs - predictedAtSample) > 150L) {
+            lastEmittedPositionMs = null
+        }
+        snapshot = sample""")

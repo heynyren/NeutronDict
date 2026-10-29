@@ -72,10 +72,23 @@ jobs:
           done
           exit "$failed"
 
+      - name: Read tested extension version
+        id: extension-version
+        run: |
+          node -e "require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'value=' + require('./extension/manifest.json').version + '\\n')"
       - name: Upload tested extension
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-extension-4.30.3
+          name: NeutronDict-extension-${{ steps.extension-version.outputs.value }}
           path: extension/
           retention-days: 7
           if-no-files-found: error
+
+      - name: Upload UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeutronDict-extension-ui
+          path: ${{ runner.temp }}/nd-ui/
+          if-no-files-found: ignore
+          retention-days: 7

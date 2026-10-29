@@ -64,6 +64,32 @@ class NeutronCaptionTimingTest {
             resolver.resolve(true, true, 0, 0, null, 2_900, rows))
     }
 
+    @Test fun timestampCursorIgnoresEarlyAndLateCaptionDom() {
+        val row = SubtitleSegment(0, 1_000, 5_000, "first second third", words = listOf(
+            SubtitleWord("first",1_000,2_000), SubtitleWord("second",2_000,3_000), SubtitleWord("third",3_000,5_000)))
+        val resolver = CaptionHighlightResolver()
+        assertEquals(CaptionHighlightPosition(0,1),
+            resolver.resolve(true,true,0,1,KaraokePosition(0,0),2_400,listOf(row)))
+        assertEquals(CaptionHighlightPosition(0,1),
+            resolver.resolve(true,true,0,1,KaraokePosition(0,2),2_500,listOf(row)))
+        assertEquals(CaptionHighlightPosition(0,0),
+            resolver.resolve(true,true,0,0,KaraokePosition(0,2),1_200,listOf(row)))
+    }
+
+    @Test fun clockReanchorsAfterMissingSeekEventAndBuffering() {
+        val clock=CaptionPlaybackClock()
+        fun sample(second:Float,epoch:Long)=WebPlaybackSnapshot(
+            "https://m.youtube.com/watch?v=dQw4w9WgXcQ",second,
+            sampledAtEpochMs=epoch,sessionId="same")
+        assertTrue(clock.accept(sample(30f,1000),100,100,1000))
+        assertEquals(30100L,clock.position(200))
+        assertTrue(clock.accept(sample(5f,1100),200,200,1100))
+        assertEquals(5000L,clock.position(200))
+        assertEquals(5100L,clock.position(300))
+        assertTrue(clock.accept(sample(5.04f,1200).copy(buffering=true),300,300,1200))
+        assertEquals(5040L,clock.position(350))
+    }
+
     @Test fun futureLiveSnapshotAfterSeekingBackIsRejected() {
         val tracker = LiveCaptionTracker()
         val row = SubtitleSegment(0, 0, 30_000, "look here",

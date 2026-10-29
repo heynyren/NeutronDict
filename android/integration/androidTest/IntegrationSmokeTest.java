@@ -119,6 +119,8 @@ public class IntegrationSmokeTest {
                 java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
                 onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
                 assertNotNull("Native selection lookup did not reply: "+readerStatus.get(),selected.get());
+                long lookupDeadline=System.currentTimeMillis()+10000;
+                while(!"1".equals(evaluate(host,"window.__readerLookupCount")) && System.currentTimeMillis()<lookupDeadline)Thread.sleep(50);
                 assertEquals("1",evaluate(host,"window.__readerLookupCount"));
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
