@@ -106,6 +106,29 @@ try{
   check("quay lại JLPT không có dữ liệu mới vẫn khôi phục bản đồ/toàn màn",
     await pc.evaluate(()=>document.body.classList.contains("jlpt-toan") && !!document.querySelector(".jl-bd")));
 
+  // Ghi đầu bị giữ: 3 cú bấm nhanh vẫn phải lưu lựa chọn của cú bấm cuối.
+  const wanted=await pc.evaluate(()=>{
+    const old=JlptUI.trangThai().td.nhac;
+    window.__oldJlptSet=chrome.storage.local.set.bind(chrome.storage.local);
+    window.__jlptHeld=false;let once=true;
+    chrome.storage.local.set=async o=>{
+      if(once && o.jlpt){once=false;window.__jlptHeld=true;await new Promise(r=>{window.__jlptRelease=r;});}
+      return window.__oldJlptSet(o);
+    };
+    document.querySelector(".jl-nhac").click();
+    return !old;
+  });
+  await pc.waitForFunction(()=>window.__jlptHeld);
+  await pc.evaluate(()=>{
+    document.querySelector(".jl-nhac").click();
+    document.querySelector(".jl-nhac").click();
+    window.__jlptRelease();
+  });
+  await pc.evaluate(async()=>{await suaSoTay(async()=>{});chrome.storage.local.set=window.__oldJlptSet;});
+  await pc.waitForFunction(async wanted=>(await chrome.storage.local.get("jlpt")).jlpt.nhac===wanted,wanted);
+  check("bấm nhạc liên tiếp trong lúc ghi không bị snapshot cũ đổi lại",
+    await pc.evaluate(wanted=>JlptUI.trangThai().td.nhac===wanted,wanted));
+
   // Học trên một màn đang giữ snapshot cũ sau khi cloud nhận chặng mới.
   const stale=await phone.evaluate(()=>JlptUI.trangThai().td);
   await pc.evaluate(async()=>{

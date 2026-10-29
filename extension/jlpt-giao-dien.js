@@ -37,10 +37,14 @@
     if (onClick) b.addEventListener("click", onClick);
     return b;
   }
+  let luuDang = 0;
   const luu = async () => {
-    const saved = await A.ghi(TD.chuan(td));
-    // Trang có thể đã được sync trong khi người học vẫn làm bài.
-    if (saved) td = TD.tron(td, saved);
+    luuDang++;
+    try {
+      const saved = await A.ghi(TD.chuan(td));
+      // Giữ cả thao tác mới hơn trong UI nếu một lượt ghi trước vừa hoàn tất.
+      if (saved) td = TD.tron(td, saved);
+    } finally { luuDang--; }
   };
 
   const giamChuyen = () => !!(goc.matchMedia && goc.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -175,11 +179,11 @@
   async function lamMoi(chiKhiDoi) {
     if (!A) return;
     const fresh = TD.chuan(await A.doc());
-    const next = TD.tron(fresh, td);
+    const next = luuDang ? TD.tron(td, fresh) : TD.tron(fresh, td);
     if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) return;
     td = next;
     // Chỉ gộp dữ liệu khi đang làm bài/đọc thoại; giữ nguyên câu và popup đang xem.
-    if (chay || root.querySelector(".jl-thoai, .jl-lop")) return;
+    if (luuDang || chay || root.querySelector(".jl-thoai, .jl-lop")) return;
     if (monId && mon) { veBanDo(false); capNhatNhac(); } else veChonMan();
   }
 
