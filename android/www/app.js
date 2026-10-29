@@ -1492,11 +1492,15 @@ async function doSync(rawNgu) {
    */
   const mergedSua = window.Muc.tron((await Store.get("phuDeSua")) || {}, remoteSua);
   const mergedGrammar = window.Muc.tron((await Store.get("nguPhapSrs")) || {}, data.nguPhapSrs || {});
+  const syncJlpt = dungChung || ngu === "ja";
+  const mergedJlpt = syncJlpt ? window.JlptTienDo.tron(await Store.get("jlpt"), data.jlpt) : null;
+  const jlptGui = syncJlpt ? window.JlptTienDo.gui(mergedJlpt) : data.jlpt;
 
   const save = await httpPostJson(cfg.url, {
     token: cfg.token || "", action: "save",
     data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
-            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua, nguPhapSrs: mergedGrammar }
+            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua, nguPhapSrs: mergedGrammar,
+            ...(jlptGui !== undefined ? { jlpt: jlptGui } : {}) }
   }, "text/plain;charset=utf-8");
   if (!save || save.ok === false) throw new Error((save && save.error) || T("Lỗi khi lưu"));
 
@@ -1533,13 +1537,21 @@ async function doSync(rawNgu) {
     const g = window.Muc.tron((await Store.get("nguPhapSrs")) || {}, mergedGrammar);
     await Store.set("nguPhapSrs", g); return g;
   });
+  const finalJlpt = syncJlpt ? await xepHang(async () => {
+    const j = window.JlptTienDo.tron(await Store.get("jlpt"), mergedJlpt);
+    await Store.set("jlpt", j); return j;
+  }) : null;
   await setDecks(finalDecks); await Store.set("hoc", finalHoc);
   theoDoi.dat(finalHocNgu);
   // So bản ĐÃ BỎ ẢNH với gói vừa gửi: so bản còn ảnh thì lần nào cũng khác nhau
   // và lượt đồng bộ này tự hẹn lượt sau, mãi mãi.
   if (JSON.stringify(boAnh(dungChung ? finalNb : window.Ngu.locSo(finalNb, ngu))) !== JSON.stringify(guiDi) ||
       JSON.stringify(dungChung ? finalHoc : finalHocNgu) !== JSON.stringify(mergedHoc) ||
-      JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar)) syncSoon();
+      JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar) ||
+      (syncJlpt && JSON.stringify(window.JlptTienDo.gui(finalJlpt)) !== JSON.stringify(jlptGui))) syncSoon(ngu);
+  if (syncJlpt && jlptSan && manHienTai === "Jlpt") {
+    await jlptSan; await window.JlptUI.lamMoi();
+  }
 
   await locHangDoiLich();
   let n = 0; for (const k in window.Ngu.locSo(finalNb, ngu)) if (!finalNb[k].del) n++;
@@ -1547,9 +1559,16 @@ async function doSync(rawNgu) {
 }
 
 let syncTimer = null;
-function syncSoon() {
+const syncPending = new Set();
+function syncSoon(ngu) {
+  syncPending.add(window.Ngu.hopLe(ngu || NGU));
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => { syncNow().then(refreshNotifications).catch(() => {}); }, 2500);
+  syncTimer = setTimeout(async () => {
+    const ds = [...syncPending]; syncPending.clear();
+    for (const n of ds) {
+      try { await syncNow(n); await refreshNotifications(); } catch (e) {}
+    }
+  }, 2500);
 }
 
 /* ==================================================================== */
@@ -1989,12 +2008,22 @@ async function luuTheYeuJlpt(card, level) {
   return !deleted;
 }
 
+async function ghiTienDoJlpt(v) {
+  const saved = await xepHang(async () => {
+    const merged = window.JlptTienDo.tron(v, await Store.get("jlpt"));
+    await Store.set("jlpt", merged);
+    return merged;
+  });
+  syncSoon("ja");
+  return saved;
+}
+
 let jlptSan = null;
 function moJlpt() {
   if (!jlptSan) {
     jlptSan = window.JlptUI.khoi($("jlptRoot"), {
       doc: async () => (await Store.get("jlpt")) || null,
-      ghi: (v) => Store.set("jlpt", v),
+      ghi: ghiTienDoJlpt,
       onWeak: luuTheYeuJlpt,
       taiMon: async (id) => {
         const r = await fetch("jlpt/" + id + ".json");
@@ -2009,6 +2038,7 @@ function moJlpt() {
       nhacDay: 76                                  // nút nhạc nằm trên thanh điều hướng dưới
     });
   } else jlptSan.then(() => window.JlptUI.lamMoi());
+  syncNow("ja").catch(() => {});
 }
 
 /* ==================================================================== */

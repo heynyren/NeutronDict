@@ -4245,9 +4245,9 @@ async function gopCloudCu() {
   });
 }
 
-function syncNow() {
+function syncNow(ngu) {
   setStatus(T("Đang đồng bộ…"));
-  const cua = NGU;   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
+  const cua = window.Ngu.hopLe(typeof ngu === "string" ? ngu : NGU);   // đổi ngôn ngữ giữa chừng thì kết quả cũ không được ghi đè
   return new Promise((xong) => {
     chrome.runtime.sendMessage({ type: "SYNC_NOW", ngu: cua }, async (res) => {
       if (chrome.runtime.lastError) { setStatus(T2("Lỗi: {loi}", { loi: chrome.runtime.lastError.message })); xong(); return; }
@@ -4270,8 +4270,8 @@ function syncSoon() { try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu:
 // Quay lại tab Sổ tay -> kéo dữ liệu mới (nếu đã cấu hình đồng bộ).
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden) return;
-  const { syncUrl } = await chrome.storage.local.get("syncUrl");
-  if (syncUrl) syncNow();
+  const cfg = await loadConfig();
+  if (cfg.syncUrl) syncNow();
 });
 
 /* ==================================================================== */
@@ -4637,12 +4637,27 @@ async function luuTheYeuJlpt(card, level) {
   return !deleted;
 }
 
+async function ghiTienDoJlpt(v) {
+  const saved = await suaSoTay(async () => {
+    const { jlpt } = await chrome.storage.local.get("jlpt");
+    const merged = window.JlptTienDo.tron(v, jlpt);
+    await chrome.storage.local.set({ jlpt: merged });
+    return merged;
+  });
+  try { chrome.runtime.sendMessage({ type: "SYNC_SOON", ngu: "ja" }); } catch (e) {}
+  return saved;
+}
+
 let jlptSan = null;
+chrome.storage.onChanged.addListener((doi, area) => {
+  if (area === "local" && doi.jlpt && jlptSan && $("viewJlpt").classList.contains("show"))
+    jlptSan.then(() => window.JlptUI.lamMoi()).catch(() => {});
+});
 function moJlpt() {
   if (!jlptSan) {
     jlptSan = window.JlptUI.khoi($("jlptRoot"), {
       doc: async () => (await chrome.storage.local.get("jlpt")).jlpt || null,
-      ghi: (v) => chrome.storage.local.set({ jlpt: v }),
+      ghi: ghiTienDoJlpt,
       onWeak: luuTheYeuJlpt,
       taiMon: async (id) => {
         const r = await fetch(chrome.runtime.getURL("jlpt/" + id + ".json"));
@@ -4657,6 +4672,7 @@ function moJlpt() {
       toanMan: (b) => document.body.classList.toggle("jlpt-toan", !!b)
     });
   } else jlptSan.then(() => window.JlptUI.lamMoi());
+  syncNow("ja");
 }
 $("pageList").addEventListener("click", () => moMan("list"));
 $("pageProgress").addEventListener("click", () => moMan("progress"));

@@ -27,16 +27,72 @@
   /** Chuẩn hoá dữ liệu đọc từ kho (thiếu trường thì bù, sai kiểu thì bỏ). */
   function chuan(d) {
     const m = macDinh();
-    if (!d || typeof d !== "object") return m;
-    if (typeof d.ngoc === "number" && d.ngoc >= 0) m.ngoc = Math.floor(d.ngoc);
-    if (typeof d.ngayCuoi === "string") m.ngayCuoi = d.ngayCuoi;
-    if (typeof d.chuoi === "number" && d.chuoi >= 0) m.chuoi = Math.floor(d.chuoi);
+    if (!laObj(d)) return m;
+    Object.assign(m, hop(d, {}));
+    m.v = Math.max(1, so(d.v));
+    m.ngoc = so(d.ngoc);
+    m.ngayCuoi = typeof d.ngayCuoi === "string" && /^(?:|\d{4}-\d{2}-\d{2})$/.test(d.ngayCuoi) ? d.ngayCuoi : "";
+    m.chuoi = so(d.chuoi);
     m.thu = d.thu === true;
     m.nhac = d.nhac !== false;                // nhạc nền: mặc định bật, người dùng tắt được
-    if (d.mon && typeof d.mon === "object") m.mon = d.mon;
-    if (d.sai && typeof d.sai === "object") m.sai = d.sai;
-    if (d.baoLoi && typeof d.baoLoi === "object") m.baoLoi = d.baoLoi;
+    m.mon = laObj(d.mon) ? hop(d.mon, {}) : {};
+    m.sai = laObj(d.sai) ? hop(d.sai, {}) : {};
+    m.baoLoi = laObj(d.baoLoi) ? hop(d.baoLoi, {}) : {};
     return m;
+  }
+
+
+  const laObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  const so = (v) => typeof v === "number" && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0;
+  const khoa = (o) => Object.keys(laObj(o) ? o : {}).filter(k => !["__proto__", "constructor", "prototype"].includes(k)).sort();
+
+  // Phép hợp tăng dần, thuần dữ liệu: giữ cả hai nhánh, max số đếm/điểm/mốc.
+  // Không cộng hai snapshot vì chúng có thể chứa lại cùng một lượt đã đồng bộ.
+  function hop(a, b) {
+    if (laObj(a) || laObj(b)) {
+      const r = {};
+      for (const k of [...new Set([...khoa(a), ...khoa(b)])].sort()) {
+        const x = laObj(a) ? a[k] : undefined, y = laObj(b) ? b[k] : undefined;
+        r[k] = hop(x, y);
+      }
+      return r;
+    }
+    if (a === undefined) return b === undefined ? null : JSON.parse(JSON.stringify(b));
+    if (b === undefined) return JSON.parse(JSON.stringify(a));
+    if (typeof a === "number" && typeof b === "number") return Math.max(so(a), so(b));
+    if (typeof a === "boolean" && typeof b === "boolean") return a || b;
+    // Trường lạ vẫn được chuyển tiếp; thứ tự chọn ổn định khi hai bản cùng mốc.
+    return JSON.parse(JSON.stringify(JSON.stringify(a) >= JSON.stringify(b) ? a : b));
+  }
+
+  /** Gộp tiến độ theo cấp/chặng, KHÔNG lấy nguyên kho của máy mới hơn đè máy kia. */
+  function tron(a, b) {
+    const x = chuan(a), y = chuan(b), r = hop(x, y);
+    // Nhạc/chế độ thử là tuỳ chọn của máy này, không lấy từ thiết bị khác.
+    r.thu = x.thu; r.nhac = x.nhac;
+    for (const id of khoa(r.mon)) {
+      const m = r.mon[id] = laObj(r.mon[id]) ? r.mon[id] : {};
+      m.chang = laObj(m.chang) ? m.chang : {};
+      m.thoai = laObj(m.thoai) ? m.thoai : {};
+      for (const k of khoa(m.chang)) {
+        const c = m.chang[k] = laObj(m.chang[k]) ? m.chang[k] : {};
+        c.lan = so(c.lan); c.ts = so(c.ts);
+        c.tot = Math.min(100, so(c.tot)); c.sao = Math.min(3, so(c.sao));
+        c.xong = c.xong === true || c.lan > 0; // tương thích tiến độ cũ dưới 60%
+      }
+    }
+    // Chuỗi thuộc về ngày học gần nhất, không ghép "chuỗi dài nhất" với ngày khác.
+    const cuoi = x.ngayCuoi > y.ngayCuoi ? x : y;
+    r.ngayCuoi = cuoi.ngayCuoi;
+    r.chuoi = x.ngayCuoi === y.ngayCuoi ? Math.max(x.chuoi, y.chuoi) : cuoi.chuoi;
+    return hop(r, {}); // thứ tự khoá ổn định để nhận ra sync không có thay đổi
+  }
+
+  /** Chỉ tiến độ đi lên cloud, không mang lựa chọn nhạc/chế độ thử của thiết bị. */
+  function gui(d) {
+    const r = tron(d, null);
+    delete r.thu; delete r.nhac;
+    return r;
   }
 
   function monCua(td, monId) {
@@ -149,6 +205,6 @@
 
   goc.JlptTienDo = {
     NGUONG, MOC_SAO, THU_TU_MON, daXong, macDinh, chuan, monCua, saoTu, qua, tot, changMo, monXong, monMo,
-    ngay, chamChuoi, ghiKetQua, tomTat, changHienTai
+    ngay, chamChuoi, ghiKetQua, tomTat, changHienTai, tron, gui
   };
 })(typeof self !== "undefined" ? self : this);

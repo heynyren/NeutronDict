@@ -9,6 +9,7 @@ importScripts("pdf-auto.js");
 importScripts("pdf-source.js");
 importScripts("web-context.js");
 importScripts("cau-nghe.js");  // self.CauNghe — moi câu trọn vẹn quanh từ, cho bài nghe
+importScripts("jlpt-tien-do.js"); // tiến độ từng cấp/màn JLPT
 importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ học khi đồng bộ
 importScripts("thuat-ngu.js"); // self.ThuatNgu — gói thuật ngữ chuyên ngành, tra trước Google
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
@@ -2262,6 +2263,7 @@ async function gopCloudCu() {
   const may = await chrome.storage.local.get(["notebook", "decks", "hoc"]);
   let nb = may.notebook || {}, decks = may.decks || {};
   let hoc = self.Ngu.tachHoc(may.hoc);
+  let jlpt = (await chrome.storage.local.get("jlpt")).jlpt;
 
   for (const ngu of self.Ngu.DS) {
     const k = self.Ngu.khoaSync(ngu);
@@ -2284,6 +2286,7 @@ async function gopCloudCu() {
     // Cloud cũ giữ tiến độ của ĐÚNG ngôn ngữ nó phụ trách; tachHoc trả nó về
     // nhánh "en" khi gói không có vỏ { ja, en } — nên lấy theo cả hai đường.
     hoc[ngu] = self.TienDo.tron(hoc[ngu], xaHoc[ngu] || (data.hoc && !data.hoc.ja && !data.hoc.en ? data.hoc : null));
+    if (ngu === "ja") jlpt = self.JlptTienDo.tron(jlpt, data.jlpt);
   }
 
   await vaSau(async () => {
@@ -2302,10 +2305,16 @@ async function gopCloudCu() {
    * chung. Lượt gộp này chỉ chạy một lần lúc chuyển nếp, nhưng một lần cũng đủ
    * mất các đoạn Luyện nói người dùng tự viết.
    */
+  const chung = await driveRequest({ action: "load" }, "ja");
+  jlpt = self.JlptTienDo.tron(jlpt, ((chung || {}).data || {}).jlpt);
+  await vaSau(async () => {
+    jlpt = self.JlptTienDo.tron((await chrome.storage.local.get("jlpt")).jlpt, jlpt);
+    await chrome.storage.local.set({ jlpt });
+  });
   const them = await chrome.storage.local.get(["luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
   await driveRequest({ action: "save", data: { notebook: boAnh(nb), decks: decks, hoc: hoc,
     luyenNoi: them.luyenNoi || {}, soDoSrs: them.soDoSrs || {}, nguPhapSrs: them.nguPhapSrs || {},
-    phuDeSua: them.phuDeSua || {} } }, "ja");
+    phuDeSua: them.phuDeSua || {}, jlpt: self.JlptTienDo.gui(jlpt) } }, "ja");
   return countActive(nb);
 }
 
@@ -2389,7 +2398,7 @@ async function doSync(rawNgu) {
   // lọc lại cho sạch.
   const remoteCuaToi = dungChung ? remoteNb : self.Ngu.locSo(remoteNb, ngu);
 
-  const store = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
+  const store = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs", "jlpt"]);
   const hocTach = self.Ngu.tachHoc(store.hoc);
   const nbCuaToi = dungChung ? (store.notebook || {}) : self.Ngu.locSo(store.notebook || {}, ngu);
 
@@ -2451,18 +2460,23 @@ async function doSync(rawNgu) {
    */
   const mergedSua = self.Muc.tron(store.phuDeSua || {}, remoteSua);
   const mergedGrammar = self.Muc.tron(store.nguPhapSrs || {}, data.nguPhapSrs || {});
+  // JLPT thuộc tiếng Nhật. Kho chung luôn mang theo, cả khi đang học tiếng Anh.
+  const syncJlpt = dungChung || ngu === "ja";
+  const mergedJlpt = syncJlpt ? self.JlptTienDo.tron(store.jlpt, data.jlpt) : null;
+  const jlptGui = syncJlpt ? self.JlptTienDo.gui(mergedJlpt) : data.jlpt;
 
   const guiDi = boAnh(mergedNgu);
   await driveRequest({
     action: "save",
     data: { notebook: guiDi, decks: mergedDecks, hoc: mergedHoc,
-            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua, nguPhapSrs: mergedGrammar }
+            luyenNoi: mergedNoi, soDoSrs: mergedDo, phuDeSua: mergedSua, nguPhapSrs: mergedGrammar,
+            ...(jlptGui !== undefined ? { jlpt: jlptGui } : {}) }
   }, ngu);
 
   // Đọc lại dữ liệu máy NGAY TRƯỚC KHI GHI: người dùng có thể vừa sửa (phân
   // loại sổ, xoá, chấm điểm...) trong lúc chờ mạng -> phải giữ các thay đổi đó.
-  const { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar } = await vaSau(async () => {
-  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs"]);
+  const { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar, finalJlpt } = await vaSau(async () => {
+  const fresh = await chrome.storage.local.get(["notebook", "decks", "hoc", "luyenNoi", "soDoSrs", "phuDeSua", "nguPhapSrs", "jlpt"]);
   const freshHoc = self.Ngu.tachHoc(fresh.hoc);
   // mergeByTs là phép HỢP: phần ngôn ngữ kia trong fresh.notebook đi qua nguyên vẹn.
   // traAnh: bản trên Drive không mang `anh`, nên nếu để nguyên thì mỗi lượt
@@ -2486,10 +2500,12 @@ async function doSync(rawNgu) {
   const finalDo = self.Srs.tronSoDo(fresh.soDoSrs || {}, mergedDo);
   const finalSua = self.Muc.tron(fresh.phuDeSua || {}, mergedSua);
   const finalGrammar = self.Muc.tron(fresh.nguPhapSrs || {}, mergedGrammar);
+  const finalJlpt = syncJlpt ? self.JlptTienDo.tron(fresh.jlpt, mergedJlpt) : null;
   await chrome.storage.local.set({ notebook: finalNb, decks: finalDecks, hoc: finalHoc,
-                                   luyenNoi: finalNoi, soDoSrs: finalDo, phuDeSua: finalSua, nguPhapSrs: finalGrammar });
+                                   luyenNoi: finalNoi, soDoSrs: finalDo, phuDeSua: finalSua, nguPhapSrs: finalGrammar,
+                                   ...(syncJlpt ? { jlpt: finalJlpt } : {}) });
 
-    return { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar };
+    return { finalNb, finalDecks, finalHoc, finalHocNgu, finalNoi, finalDo, finalSua, finalGrammar, finalJlpt };
   });
 
   // Có thay đổi mới phát sinh -> đẩy nốt lên Drive ở lượt sau
@@ -2504,7 +2520,8 @@ async function doSync(rawNgu) {
       JSON.stringify(finalNoi) !== JSON.stringify(mergedNoi) ||
       JSON.stringify(finalDo) !== JSON.stringify(mergedDo) ||
       JSON.stringify(finalSua) !== JSON.stringify(mergedSua) ||
-       JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar)) {
+       JSON.stringify(finalGrammar) !== JSON.stringify(mergedGrammar) ||
+       (syncJlpt && JSON.stringify(self.JlptTienDo.gui(finalJlpt)) !== JSON.stringify(jlptGui))) {
     scheduleSync(ngu);
   }
   return countActive(self.Ngu.locSo(finalNb, ngu));
