@@ -75,7 +75,10 @@ class NewsReaderActivity : ComponentActivity() {
             }.takeIf { it.optString("word").isNotBlank() || it.optString("sentence").isNotBlank() }
         if (!NewsRepository.validUrl(currentUrl)) { finish(); return }
         voice = TextToSpeech(this) { result -> voiceReady = result == TextToSpeech.SUCCESS }
-        page = SelectionWebView(this, { captureSelection() }, { cancelSourceRestore(user = true) })
+        page = SelectionWebView(this, { captureSelection() }, {
+            cancelSourceRestore(user = true)
+            lookupGeneration++; dismissLookup()
+        })
         page.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -255,12 +258,12 @@ class NewsReaderActivity : ComponentActivity() {
     }
     private fun captureSelection() {
         if (isFinishing || isDestroyed) return
-        val generation = lookupGeneration
+        val generation = ++lookupGeneration
         val script = assets.open("neutron/reader-context.js").bufferedReader().use { it.readText() }
         page.evaluateJavascript(script) { raw ->
             val json = runCatching { JSONTokener(raw).nextValue() as? String }.getOrNull()
             val data = json?.let { runCatching { JSONObject(it) }.getOrNull() }
-            if (generation != lookupGeneration) return@evaluateJavascript
+            if (generation != lookupGeneration || !readerActive || isFinishing || isDestroyed) return@evaluateJavascript
             if (data == null) { status = "Bôi đen từ rồi bấm Tra NeutronDict."; return@evaluateJavascript }
             if (data.has("error")) { status = data.optString("error"); return@evaluateJavascript }
             (page as? SelectionWebView)?.finishSelectionMenu()
@@ -354,6 +357,7 @@ class NewsReaderActivity : ComponentActivity() {
     }
     override fun onPause() {
         readerActive = false
+        lookupGeneration++; dismissLookup()
         cancelSourceRestore()
         super.onPause()
         if (::page.isInitialized) page.onPause()

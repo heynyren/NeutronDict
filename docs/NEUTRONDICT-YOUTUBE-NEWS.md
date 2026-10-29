@@ -1,5 +1,5 @@
 # NeutronDict: YouTube và đọc báo trong cùng APK
-Ngày: 2026-10-28. Nhánh: codex/neutrondict-youtube-news.
+Cập nhật: 2026-10-29. Nguồn tích hợp: nhánh codex/neutrondict-youtube-news; đưa lên main sau khi kiểm thử đạt theo yêu cầu chủ dự án.
 
 ## Phạm vi đã được yêu cầu
 Tích hợp đầy đủ giao diện và các công cụ học của Dual Sub Replay cùng NeutronDict,
@@ -13,8 +13,8 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 - Một APK, launcher NeutronDict (Capacitor); activity YouTube native giữ Compose,
   phụ đề, phát lại, dịch, từ điển, luyện tập, AI và các thiết lập của upstream.
 - Reader activity riêng không có cầu nối Capacitor/JavaScript có quyền vào dữ liệu.
-  Khi người dùng bôi đen và dừng kéo, menu lựa chọn native kích hoạt tra từ tự động;
-  nút Tra NeutronDict vẫn có thể gọi lại. Chỉ đọc lựa chọn và ngữ cảnh khi có thao tác đó.
+  Bôi đen chỉ chọn chữ; người dùng bấm Tra NeutronDict mới trích lựa chọn và câu.
+  Popup nhanh PhraseActionBar và thẻ chi tiết WordLearningDialog dùng nguyên thành phần DualSub.
 - Hộp nhận từ durable, ghi riêng từng giao dịch; NeutronDict xác nhận sau khi
   ghi thành công qua hàng đợi capNhat. Không ghi trực tiếp notebook từ native/worker.
 - Giữ nguyên tiến độ SRS, đóng băng, nghĩa/câu người dùng sửa. Nhập lại cùng
@@ -46,7 +46,7 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
 1. Đặc tả và pipeline build bản thử riêng.
 2. Cầu nối media, giữ toàn bộ DualSub, bổ sung reader.
 3. Kiểm thử import/SRS, XML/context/security, build và Android smoke test.
-4. Công bố link PR và artifact thử nghiệm; giữ main nguyên trạng.
+4. Công bố link PR và artifact; hợp nhất main sau khi các gate cloud đạt (chủ dự án yêu cầu ngày 29/10/2026).
 
 ## Giao diện và AI
 - Giữ các màn hình, theme, hiệu ứng và cửa sổ của DualSub Replay từ bản nguồn đã ghim.
@@ -61,7 +61,7 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
   Ngoài YouTube dùng văn bản được trích hoặc ảnh/tệp người dùng đính kèm.
 
 ## Dùng bản thử
-1. Mở Actions → Integrated Android preview → lượt chạy xanh của nhánh này.
+1. Mở Actions → **Integrated Android preview** → lượt chạy xanh mới nhất của nhánh đang dùng (main sau khi hợp nhất).
 2. Trong Artifacts tải NeutronDict-integrated-preview, giải nén.
 3. Cài file NeutronDict-integrated-preview.apk vừa giải nén. Gói tải chỉ chứa APK cài đặt;
 4. Ứng dụng có tên NeutronDict Preview, package com.neutrondict.app.preview.
@@ -91,7 +91,7 @@ NeutronDict tiếp tục hỗ trợ Nhật–Việt và Anh–Việt. Không gá
   Artifact giữ 7 ngày; lấy bản mới từ lượt chạy xanh của Integrated Android preview.
 - Chưa xác minh trên điện thoại thật, tài khoản YouTube thật, khóa AI thật hoặc
   mọi nhà xuất bản. Trang báo cần đăng nhập/paywall phụ thuộc nhà xuất bản.
-  Đây là bản thử trên nhánh riêng; chưa hợp nhất main.
+  APK tích hợp tiếp tục dùng package preview riêng, cả khi nguồn đã được hợp nhất main.
 
 
 ## Học, JLPT và cài đặt
@@ -167,3 +167,18 @@ Tài liệu kỹ thuật: [YouTube API policies](https://developers.google.com/y
 
 ## Quay lại nguồn bài báo
 Nút Mở nguồn dùng trình đọc trong app. Từ đã lưu được tô vàng riêng, câu và phần chữ hai bên dùng để tìm đúng chỗ; không tô cả câu. Hỗ trợ chữ chia qua span/ruby và nội dung tải muộn, chỉ mở popup sau khi bạn bấm Tra NeutronDict. Nếu bài đã thay đổi, vị trí khôi phục phụ thuộc phần nội dung còn lại; không chỉnh văn bản gốc của bài.
+
+## Tra báo nhanh và popup hai bước
+1. Bôi đen và chỉnh vùng chọn; bấm **Tra NeutronDict**.
+2. Popup nhỏ giống YouTube hiện ngay: nghĩa nhanh, sao chép, phát âm, nút mở thẻ.
+3. Bấm biểu tượng dịch để mở thẻ chi tiết gốc DualSub: sửa nghĩa, đọc, chữ Hán/AI và lưu.
+4. Chỉ tra không ghi notebook. Từ đã có trong sổ dùng nghĩa hiện tại; cache tra tối đa 200 mục/10 phút, tách theo ngôn ngữ, gộp yêu cầu trùng.
+5. Popup không chờ dịch nguyên câu, IPA hoặc gói thuật ngữ. Khi lưu, câu và nguồn được ghi trước; bản dịch câu được làm giàu sau. Kết quả cũ bị hủy khi đóng, chạm lại bài, đổi trang hoặc rời trình đọc.
+6. File APK cho những tính năng native trên nằm trong **Integrated Android preview**. Workflow **Build Android APK** là shell Capacitor cũ, không chứa module DualSub/reader native; không dùng artifact đó để thử các tính năng tích hợp.
+
+## Con trỏ phụ đề và màu loại từ
+- Android ưu tiên thời gian video và bảng mốc từ, không để dòng sub DOM hiện chậm kéo con trỏ theo. Bỏ bù sớm cố định 75 ms; tái neo khi tua bị mất sự kiện, dừng hoặc buffer.
+- Nếu nguồn chỉ có mốc của cả câu/khối, các mốc từ bên trong vẫn là ước lượng theo nguồn; đây không phải nhận dạng giọng nói hay tự sửa timestamp sai của YouTube.
+- Extension có nút **Loại từ**, chú giải và màu danh từ, động từ, tính từ, trạng từ, đại từ, liên từ, trợ từ/trợ động từ cho phụ đề **tiếng Nhật**. Rê vào từ để xem nhãn và dạng gốc.
+- Dùng Kuromoji.js 0.1.2/IPADIC được đóng gói sẵn cùng giấy phép trong `extension/vendor/kuromoji` ([tài liệu gốc](https://github.com/takuyaa/kuromoji.js)). Phân tích chạy cục bộ trên worker, chỉ cho dòng đang nhìn thấy; không gửi transcript cho AI hay dịch vụ phân loại.
+- Lần đầu cần khởi tạo bộ từ điển. Nút bật/tắt được ghi nhớ. Khi tắt, giữ nguyên câu chữ, mốc tua và khả năng chọn/lưu nguồn. Chỉ tô màu ngữ pháp; không sửa lời thoại.

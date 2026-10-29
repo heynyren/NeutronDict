@@ -46,7 +46,7 @@ public class IntegrationSmokeTest {
         try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(host);
             // Fixture dictionary reply avoids depending on a live external provider.
-            evaluate(host,"window.__readerLookupCount=0;window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup'){window.__readerLookupCount++;return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});}return window.__realReaderRequest(r)}");
+            evaluate(host,"window.__readerLookupCount=0;window.__readerLookupReplied=false;window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup'){window.__readerLookupCount++;await new Promise(done=>setTimeout(done,3000));window.__readerLookupReplied=true;return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});}return window.__realReaderRequest(r)}");
             Context context=ApplicationProvider.getApplicationContext();
             Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
                 .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja")
@@ -118,7 +118,8 @@ public class IntegrationSmokeTest {
                 }
                 java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
                 onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
-                assertNotNull("Native selection lookup did not reply: "+readerStatus.get(),selected.get());
+                assertNotNull("Native selection popup did not appear: "+readerStatus.get(),selected.get());
+                assertEquals("Quick popup must appear before dictionary reply", "false", evaluate(host,"window.__readerLookupReplied"));
                 long lookupDeadline=System.currentTimeMillis()+10000;
                 while(!"1".equals(evaluate(host,"window.__readerLookupCount")) && System.currentTimeMillis()<lookupDeadline)Thread.sleep(50);
                 assertEquals("1",evaluate(host,"window.__readerLookupCount"));

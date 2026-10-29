@@ -88,9 +88,9 @@ jobs:
           disable-animations: true
           working-directory: android/integration/build
           script: |
-            adb shell mkdir -p /sdcard/Download/neutron-ui
-            ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.testInstrumentationRunnerArguments.additionalTestOutputDir=/sdcard/Download/neutron-ui --no-daemon --max-workers=2
-            adb pull /sdcard/Download/neutron-ui ../ui-evidence
+            adb shell mkdir -p /sdcard/Android/data/com.neutrondict.app.preview/files/neutron-ui
+            ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.neutrondict.app.media.IntegrationUiSuite -Pandroid.testInstrumentationRunnerArguments.additionalTestOutputDir=/sdcard/Android/data/com.neutrondict.app.preview/files/neutron-ui --no-daemon --max-workers=2
+            adb pull /sdcard/Android/data/com.neutrondict.app.preview/files/neutron-ui ../ui-evidence
       - name: Verify all selected device suites ran
         run: |
           python3 - <<'PY'

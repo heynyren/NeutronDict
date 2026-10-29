@@ -64,6 +64,13 @@ class NeutronCaptionTimingTest {
             resolver.resolve(true, true, 0, 0, null, 2_900, rows))
     }
 
+    @Test fun cursorChangesAtAnchorWithoutFixedEarlyOffset() {
+        val words=listOf(SubtitleWord("first",0,500),SubtitleWord("second",500,1000))
+        assertEquals(0,activeWordIndex(words,450))
+        assertEquals(0,activeWordIndex(words,499))
+        assertEquals(1,activeWordIndex(words,500))
+    }
+
     @Test fun timestampCursorIgnoresEarlyAndLateCaptionDom() {
         val row = SubtitleSegment(0, 1_000, 5_000, "first second third", words = listOf(
             SubtitleWord("first",1_000,2_000), SubtitleWord("second",2_000,3_000), SubtitleWord("third",3_000,5_000)))

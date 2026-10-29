@@ -351,3 +351,22 @@ patch(dual / "ui/CaptionPlaybackClock.kt",
             lastEmittedPositionMs = null
         }
         snapshot = sample""")
+
+# The extension selects anchors at actual media time, with no fixed visual lead.
+patch(dual / "data/WordTiming.kt",
+      "internal const val KARAOKE_HIGHLIGHT_LEAD_MS = 75L",
+      "internal const val KARAOKE_HIGHLIGHT_LEAD_MS = 0L")
+# This expectation deliberately changes with the authorized media-time policy.
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/WordTimingTest.kt",
+      "assertEquals(2, activeWordIndex(words, timeMs = 950))",
+      "assertEquals(1, activeWordIndex(words, timeMs = 950))")
+
+patch(dual / "data/WordTiming.kt",
+      "/** v0.9.5's visual lead, applied only after the first word has started. */",
+      "/** Follow actual video time, as NeutronDict's web extension does. */")
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/WordTimingTest.kt",
+      "activeWordIndexTracksTheSpokenWordWithSmallLatencyLead",
+      "activeWordIndexTracksActualAnchorsWithoutAnEarlyOffset")
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/WordTimingTest.kt",
+      "// Near the next boundary, the small visual lead compensates for WebView/UI latency.",
+      "// The next word stays inactive until the video's clock reaches its actual anchor.")
