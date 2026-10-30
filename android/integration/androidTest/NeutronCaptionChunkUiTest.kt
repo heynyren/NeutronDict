@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import com.neutrondict.app.media.NeutronPastelTheme
 import androidx.compose.ui.test.*
@@ -37,7 +38,12 @@ class NeutronCaptionChunkUiTest {
         val row=SubtitleSegment(0,1000,5000,cue.text,"Chúng tôi thực sự học mỗi ngày.",cue.words)
         var active by mutableStateOf(0)
         compose.setContent { DualSubTheme {
-            assertEquals(0xFF8BD4E6.toInt(),MaterialTheme.colorScheme.primary.toArgb())
+            val colors=MaterialTheme.colorScheme
+            assertEquals(0xFF8BD4E6.toInt(),appThemeAccentColor("pastel_blue").toArgb())
+            if (light) {
+                val contrast=(colors.surfaceContainerHigh.luminance()+0.05f)/(colors.primary.luminance()+0.05f)
+                assertTrue("Caption accent must be readable on the light card",contrast>=4.5f)
+            } else assertEquals(0xFF8BD4E6.toInt(),colors.primary.toArgb())
             Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
                 CompactSubtitleCard(row,true,1f,{},activeWordIndex=active,
                     originalColor=MaterialTheme.colorScheme.onSurface,

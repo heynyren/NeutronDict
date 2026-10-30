@@ -452,9 +452,7 @@ patch(theme, 'lightDualSubColorScheme(appThemeAccentColor(accentKey))',
 patch(theme, 'private fun lightDualSubColorScheme(accent: Color): ColorScheme {',
              'private fun lightDualSubColorScheme(accent: Color, pastel: Boolean = false): ColorScheme {')
 patch(theme, 'val primary = lerp(accent, Color.Black, LIGHT_ACCENT_DARKENING)',
-             'val primary = if (pastel) accent else lerp(accent, Color.Black, LIGHT_ACCENT_DARKENING)')
-patch(theme, '        onPrimary = Color.White,', '        onPrimary = if (pastel) Color(0xFF17313B) else Color.White,')
-patch(theme, '        onSecondary = Color.White,', '        onSecondary = if (pastel) Color(0xFF17313B) else Color.White,')
+             'val primary = lerp(accent, Color.Black, if (pastel) 0.55f else LIGHT_ACCENT_DARKENING)')
 # Reuse locale wrapping on pre-Android-13 devices too.
 patch(host, 'public class MainActivity extends BridgeActivity {', '''public class MainActivity extends BridgeActivity {
   @Override protected void attachBaseContext(android.content.Context base) {
@@ -537,14 +535,19 @@ patch(color_test, '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
         val light = scheme(AppColorThemeOption.LIGHT)''', '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
         val light = dualSubColorScheme("cyan", AppColorThemeOption.LIGHT.key)''')
 patch(color_test, '    private fun lightness(color: Color)', '''    @Test
-    fun pastelButtonsHaveDarkReadableInkInBothThemes() {
+    fun pastelAccentsAndButtonsStayReadableInBothThemes() {
         for (key in listOf("pastel_blue", "pastel_mint", "pastel_rose", "pastel_peach", "pastel_lavender", "pastel_butter")) {
             for (theme in listOf(AppColorThemeOption.LIGHT, AppColorThemeOption.DEEP_TEAL)) {
                 val colors=dualSubColorScheme(key,theme.key)
                 assertTrue(key+theme.key,contrast(colors.onPrimary,colors.primary)>=4.5f)
+                if (theme.isLight) {
+                    for (surface in listOf(colors.background,colors.surface,colors.surfaceContainerHigh,colors.primaryContainer)) {
+                        assertTrue(key+" accent on light surface",contrast(colors.primary,surface)>=4.5f)
+                    }
+                }
             }
         }
-        assertEquals(Color(0xFF8BD4E6),dualSubColorScheme("pastel_blue","light").primary)
+        assertEquals(Color(0xFF8BD4E6),com.kienhoang.dualsubreplay.ui.appThemeAccentColor("pastel_blue"))
     }
 
     private fun lightness(color: Color)''')

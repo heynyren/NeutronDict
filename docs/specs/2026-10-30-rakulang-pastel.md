@@ -22,3 +22,6 @@ Không tự đồng bộ sở thích màu giữa thiết bị. Người dùng c�
 - Giữ vị trí chức năng, tinh gọn đường viền, khoảng đệm, độ bo và bóng theo phong cách Material của màn YouTube.
 - Tên ứng dụng chính RaKuLanG; khu vực YouTube mang tên Rakubidio.
 - Bỏ nhãn DualSub, dòng phiên bản/kiểm tra cập nhật và liên kết xem mã nguồn GitHub trong drawer YouTube. Giấy phép thư viện vẫn truy cập được; không thay đổi tính năng học hoặc playback.
+
+## Điều chỉnh từ QA sáng/tối trước khi gộp
+Ảnh native sáng cho thấy dùng pastel nguyên bản làm primary khiến chữ nhấn/biểu tượng quá nhạt trên thẻ sáng. Native light dùng cùng hue nhưng trộn 55% đen cho primary/secondary, chữ trên nút trắng; swatch/preset gốc và primaryContainer vẫn theo màu pastel. Native dark tiếp tục dùng điểm nhấn pastel với chữ nút tối. Kiểm chứng tỷ lệ >=4.5 cho primary trên nền/thẻ sáng và onPrimary trên nút ở cả hai chế độ. Web UI tiếp tục dùng pastel làm nền/nút với chữ tối như thiết kế đã chọn.
