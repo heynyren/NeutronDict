@@ -37,14 +37,14 @@ try{
  for(const mode of ["light","dark"]){
   await page.emulateMedia({colorScheme:mode});
   for(const key of ["blue","mint","rose","peach","lavender","butter"]){
-   await page.locator('.pastel-picker input[value="'+key+'"]').check();
+   await page.locator('.pastel-choice:has(input[value="'+key+'"])').click();
    await page.waitForFunction(k=>document.documentElement.dataset.pastel===k,key);
    await checkColors(page);
   }
  }
  await page.waitForFunction(async()=>(await chrome.storage.local.get("pastelTheme")).pastelTheme==="butter");
  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.pastel==="butter");
- await page.locator('.pastel-picker input[value="blue"]').check();
+ await page.locator('.pastel-choice:has(input[value="blue"])').click();
  await page.waitForFunction(async()=>(await chrome.storage.local.get("pastelTheme")).pastelTheme==="blue");
  for(const [lang,title]of [["ja","テーマカラー"],["vi","Màu giao diện"],["en","Theme color"]]){
   await page.locator("#chuBox").evaluate(e=>e.open=true);
@@ -81,7 +81,7 @@ try{
  await mobile.goto("http://127.0.0.1:"+server.address().port+"/index.html");
  await mobile.waitForFunction(()=>window.NeutronReady);
  await mobile.locator("#navSettings").click();
- await mobile.locator('.pastel-picker input[value="mint"]').check();
+ await mobile.locator('.pastel-choice:has(input[value="mint"])').click();
  await mobile.waitForFunction(()=>window.__appearance.key==="mint");
  for(const [lang,label]of [["ja","音声とリスニング"],["en","Voices and listening"]]){
   await mobile.locator("#chuBox").evaluate(e=>e.open=true);

@@ -27,7 +27,7 @@ function veNgu() {
   dirEl.innerHTML = "";
   HUONG[NGU].forEach(([v, t]) => {
     const o = document.createElement("option");
-    o.value = v; o.textContent = t;
+    o.value = v; o.textContent = T(t);
     dirEl.appendChild(o);
   });
   if ([...dirEl.options].some((o) => o.value === cu)) dirEl.value = cu;

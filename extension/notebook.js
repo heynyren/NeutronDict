@@ -1061,7 +1061,7 @@ async function renameDeck() {
 async function deleteDeck() {
   if (current === ALL || current === NONE) return;
   const nm = deckName(current);
-  if (!confirm('Xoá sổ "' + nm + '"? Các mục trong sổ sẽ chuyển về "Chưa phân loại", không bị mất.')) return;
+  if (!confirm(T2('Xoá sổ "{name}"? Các mục trong sổ sẽ chuyển về "Chưa phân loại", không bị mất.',{name:nm}))) return;
   const cu = current;
   await capNhat((nb, dks) => {
     const now = Date.now();

@@ -3153,6 +3153,8 @@
   "Đã lưu từ, chưa tìm được câu chứa từ trong lớp chữ của PDF.": "単語は保存しましたが、PDFのテキスト層で該当する文が見つかりませんでした。",
   "Đã lưu từ, chưa đọc được ngữ cảnh từ nguồn này.": "単語は保存しましたが、この出典から文脈を取得できませんでした。"
 });
+  Object.assign(en,{"Xoá sổ \"{name}\"? Các mục trong sổ sẽ chuyển về \"Chưa phân loại\", không bị mất.":"Delete notebook \"{name}\"? Its entries will move to \"Uncategorized\"; none will be lost.","Xoá sổ \"{name}\"? Mục trong sổ sẽ về \"Chưa phân loại\".":"Delete notebook \"{name}\"? Its entries will move to \"Uncategorized\".","{n} câu":"{n} sentences"});
+  Object.assign(ja,{"Xoá sổ \"{name}\"? Các mục trong sổ sẽ chuyển về \"Chưa phân loại\", không bị mất.":"ノート「{name}」を削除しますか？項目は「未分類」に移動し、失われません。","Xoá sổ \"{name}\"? Mục trong sổ sẽ về \"Chưa phân loại\".":"ノート「{name}」を削除しますか？項目は「未分類」に移動します。","{n} câu":"{n}文"});
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

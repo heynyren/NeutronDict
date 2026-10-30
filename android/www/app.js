@@ -3907,7 +3907,7 @@ $("renameDeck").addEventListener("click", async () => {
 });
 $("deleteDeck").addEventListener("click", async () => {
   const decks = await getDecks(); const nm = deckName(decks, curDeck);
-  if (!confirm('Xoá sổ "' + nm + '"? Mục trong sổ sẽ về "Chưa phân loại".')) return;
+  if (!confirm(T2('Xoá sổ "{name}"? Mục trong sổ sẽ về "Chưa phân loại".',{name:nm}))) return;
   const cu = curDeck;
   await capNhat((nb) => {
     const now = Date.now();
@@ -5365,7 +5365,7 @@ function veNgu() {
   sel.innerHTML = "";
   HUONG_NGU[NGU].forEach(([v, t]) => {
     const o = document.createElement("option");
-    o.value = v; o.textContent = t;
+    o.value = v; o.textContent = T(t);
     sel.appendChild(o);
   });
   if ([...sel.options].some((o) => o.value === cu)) sel.value = cu;

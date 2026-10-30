@@ -58,6 +58,7 @@ try{
   await page.evaluate(end=>{window.state.paused=true;if(end)window.state.ended=true;else window.__dualSubAdSkip.config.ads=false;},end);
   assert.equal(await tick(true),"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
  }
+ await page.route("https://example.org",r=>r.fulfill({contentType:"text/html",body:"<p>other origin</p>"}));
  await page.goto("https://example.org");assert.equal(await page.evaluate(source),false);
  console.log("Background ads: post-ad playback, manual pause, DOM replacement, video switch, Study/foreground guard, buffering/seeking, bounded retries, quota-off/ended and origin isolation passed.");
 }finally{await browser.close();}

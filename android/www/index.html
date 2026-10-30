@@ -218,7 +218,7 @@
       <button id="voiceInstall" class="btn sm" type="button" data-chu>Cài thêm giọng trên máy</button>
       <fieldset id="azureSettings" hidden><legend data-chu>Azure Neural · tuỳ chọn</legend>
         <p class="t-small muted" data-chu>Dùng tài nguyên Speech gói F0 miễn phí. Âm thanh được lưu lại; hết lượt hoặc lỗi sẽ chuyển sang giọng trên máy. App không đổi gói Azure. Giới hạn đếm trong app là 450.000 ký tự/tháng trên máy này, không thay thế hạn mức tài khoản Azure.</p>
-        <label class="check"><input id="azureEnabled" type="checkbox" data-chu>Dùng Azure cho bài nghe Nhật / Anh</label>
+        <label class="check" data-chu><input id="azureEnabled" type="checkbox" data-chu>Dùng Azure cho bài nghe Nhật / Anh</label>
         <label data-chu>Vùng tài nguyên <input id="azureRegion" value="japaneast" autocomplete="off" placeholder="japaneast"></label>
         <label data-chu>Khóa Speech <input id="azureKey" type="password" autocomplete="off" placeholder="Khóa Azure Speech F0" data-chu-ph></label>
         <div class="rowx wrap"><button id="azureSave" class="btn primary" type="button" data-chu>Lưu Azure</button><button id="azureRemove" class="btn" type="button" data-chu>Xóa khóa</button></div>
@@ -512,7 +512,7 @@
         <span class="faint" data-chu>— chụp màn hình, hình vẽ, trang sách…</span></label>
       <div class="anh-hang" id="edAnh"></div>
       <div class="rowx" style="gap:8px;margin-top:6px">
-        <label class="btn sm" style="cursor:pointer">
+        <label class="btn sm" style="cursor:pointer" data-chu>
           <input type="file" id="edAnhFile" accept="image/*" multiple hidden data-chu>
           ＋ Thêm ảnh
         </label>
@@ -536,11 +536,11 @@
 <!-- ====================== Về tác giả ====================== -->
 <div id="aboutSheet" class="sheet">
   <div class="panel">
-    <h3><span id="abFlag"></span> RaKuLanG · Về tác giả</h3>
+    <h3 data-chu><span id="abFlag"></span> RaKuLanG · Về tác giả</h3>
     <div class="sub" data-chu>Một món quà nhỏ gửi tặng cộng đồng học tập</div>
-    <p class="t-body" data-chu>Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
-      <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
-      <b>nghiên cứu công nghệ</b>.</p>
+    <p class="t-body" data-chu>Xin chào, mình là <b data-chu>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
+      <b data-chu>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b data-chu>Ninh Bình</b>, một người mê
+      <b data-chu>nghiên cứu công nghệ</b>.</p>
     <p class="t-small muted" data-chu>Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
       một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
       &amp; tiếng Anh.</p>
@@ -629,7 +629,7 @@
   <header class="news-header"><div><span class="news-kicker" data-chu>RAKULANG · KHÁM PHÁ</span><h2 data-chu>Thế giới qua từng câu chữ</h2></div><button id="newsClose" class="btn" type="button" aria-label="Đóng đọc báo">✕</button></header>
   <p class="t-small muted" data-chu>Đọc điều bạn thích. Bôi đen từ, bấm Tra RaKuLanG để xem nghĩa và lưu cả câu vào sổ tay.</p>
   <div class="rowx wrap">
-    <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="" data-chu>Mọi ngôn ngữ</option><option value="ja">Tiếng Nhật · 日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="fr" data-chu>Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
+    <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="" data-chu>Mọi ngôn ngữ</option><option value="ja" data-chu>Tiếng Nhật · 日本語</option><option value="en">English</option><option value="vi" data-chu>Tiếng Việt</option><option value="fr" data-chu>Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
     <button id="newsRefresh" class="btn primary" type="button" data-chu>Cập nhật</button>
     <button id="newsSaved" class="btn" type="button" data-chu>★ Bài đã lưu</button>
   </div>
@@ -642,7 +642,7 @@
     <form id="newsAddFeed" class="stack">
       <input id="newsFeedUrl" type="url" required placeholder="https://… nguồn RSS/Atom" aria-label="URL RSS" data-chu-ph>
       <input id="newsFeedTitle" maxlength="120" placeholder="Tên nguồn" aria-label="Tên nguồn" data-chu-ph>
-      <select id="newsFeedLanguage" aria-label="Ngôn ngữ nguồn tin"><option value="ja">Tiếng Nhật · 日本語</option><option value="en" data-chu>Tiếng Anh · English</option><option value="vi">Tiếng Việt</option><option value="fr" data-chu>Tiếng Pháp</option><option value="de" data-chu>Tiếng Đức</option><option value="ko" data-chu>Tiếng Hàn</option><option value="zh" data-chu>Tiếng Trung</option></select>
+      <select id="newsFeedLanguage" aria-label="Ngôn ngữ nguồn tin"><option value="ja" data-chu>Tiếng Nhật · 日本語</option><option value="en" data-chu>Tiếng Anh · English</option><option value="vi" data-chu>Tiếng Việt</option><option value="fr" data-chu>Tiếng Pháp</option><option value="de" data-chu>Tiếng Đức</option><option value="ko" data-chu>Tiếng Hàn</option><option value="zh" data-chu>Tiếng Trung</option></select>
       <button class="btn" type="submit" data-chu>Thêm nguồn</button>
     </form>
   </details>

@@ -196,7 +196,7 @@ class NewsReaderActivity : ComponentActivity() {
                     TextButton(onClick = { readerText(false) }) { Text(NeutronUiStrings.text(this@NewsReaderActivity,"Dễ đọc")) }
                     TextButton(onClick = { readerText(true) }) { Text(NeutronUiStrings.text(this@NewsReaderActivity,"Lưu bài")) }
                 }
-                if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
+                if (status.isNotBlank()) Text(NeutronUiStrings.text(this@NewsReaderActivity,status), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
                 if (pageProgress < 1f) LinearProgressIndicator(progress = { pageProgress }, modifier = Modifier.fillMaxWidth())
                 AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth())
             }
@@ -395,7 +395,7 @@ private class SelectionWebView(context: Context, private val lookup: () -> Unit,
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val created = callback.onCreateActionMode(mode, menu)
                 if (created) selectionMode = mode
-                menu.add(0, 0x4e44, 0, getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                menu.add(0, 0x4e44, 0, this@SelectionWebView.context.getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 return created
             }
             override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =

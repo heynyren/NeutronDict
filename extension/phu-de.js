@@ -1849,7 +1849,7 @@
 
       list.appendChild(ln);
     });
-    S.uiDem.textContent = S.cau.length ? S.cau.length + " câu" : "";
+    S.uiDem.textContent = S.cau.length ? T2("{n} câu",{n:S.cau.length}) : "";
     batQuanSat();
     danhDau(true);
     startPos();
