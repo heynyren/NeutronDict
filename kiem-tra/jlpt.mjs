@@ -232,7 +232,7 @@ await pg.click(".jl-nhac");
 await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === false);
 nh = await nhac();
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
-soat("bấm nút: tắt nhạc, lưu lựa chọn", nh.tat && luu.nhac === false);
+soat("bấm nút: tắt nhạc, lưu lựa chọn", nh.tat && luu.nhac === false, JSON.stringify({button:nh,stored:luu.nhac,ui:await pg.evaluate(()=>JlptUI.trangThai().td.nhac)}));
 await pg.click(".jl-nhac");
 await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === true);
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);

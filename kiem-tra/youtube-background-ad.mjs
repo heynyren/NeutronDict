@@ -5,7 +5,7 @@ const browser=await chromium.launch({headless:true});
 const source=readFileSync("android/integration/youtube-ad-resume.js","utf8");
 try{
  const page=await browser.newPage();
- await page.route("https://m.youtube.com/**",r=>r.fulfill({contentType:"text/html",body:'<div id="movie_player" class="html5-video-player"><video></video></div>'}));
+ await page.route("https://m.youtube.com/**",r=>r.fulfill({contentType:"text/html",body:'<div id="movie_player" class="html5-video-player"><video></video><button class="ytp-play-button">Pause</button></div>'}));
  async function fresh(){
   await page.goto("https://m.youtube.com/watch?v=aaaaaaaaaaa");
   await page.evaluate(()=>{
@@ -30,6 +30,11 @@ try{
  // Native Pause/notification/earphones cancel recovery before video.pause().
  await fresh();await tick(false);await ad(true);await tick(true);
  await page.evaluate(()=>{window.__rakuAdResume.command(false);window.state.paused=true;});await ad(false);
+ assert.equal(await tick(true),"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
+ // A genuine pointer press on YouTube's pause control also cancels recovery.
+ await fresh();await tick(false);await ad(true);await tick(true);
+ await page.locator(".ytp-play-button").click();
+ await page.evaluate(()=>window.state.paused=true);await ad(false);
  assert.equal(await tick(true),"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
  // An ad may replace the DOM video; recovery follows the same watch URL only.
  await fresh();await tick(false);await ad(true);await tick(true);

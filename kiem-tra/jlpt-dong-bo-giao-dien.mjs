@@ -161,7 +161,10 @@ try{
     JlptTienDo.ghiKetQua(td,"n2","desktop-next",{dung:2,tong:2,saiIds:[]},Date.now());
     await ghiTienDoJlpt(td);await syncNow("ja");
   });
-  await phone.evaluate(()=>syncNow("ja"));
+  // Join any automatic round first, then explicitly fetch the new desktop stage.
+  await phone.evaluate(async()=>{await Promise.resolve(syncing.ja);await syncNow("ja");});
+  check("đã nhận chặng mới trước khi thử ghi snapshot cũ",
+    await phone.evaluate(async()=>JlptTienDo.daXong(await Store.get("jlpt"),"n2","desktop-next")));
   await phone.evaluate(v=>ghiTienDoJlpt(v),stale);
   check("snapshot UI cũ không ghi mất chặng vừa nhận",
     await phone.evaluate(async()=>JlptTienDo.daXong(await Store.get("jlpt"),"n2","desktop-next")));

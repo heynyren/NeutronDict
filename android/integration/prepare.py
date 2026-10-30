@@ -492,3 +492,59 @@ patch(commands, '"const request = video.play(); if (request && request.catch) re
                 '"window.__rakuAdResume && window.__rakuAdResume.command(true); const request = video.play(); if (request && request.catch) request.catch(function() {});"')
 patch(commands, 'WebVideoCommand.Pause -> "video.pause();"',
                 'WebVideoCommand.Pause -> "window.__rakuAdResume && window.__rakuAdResume.command(false); video.pause();"')
+
+
+# Presets and legacy accents must wrap instead of spilling off a phone's settings row.
+appearance = dual / "ui/AppearanceCustomizationSettings.kt"
+patch(appearance, 'private fun SettingsColorSwatchRow(',
+                  '@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)\nprivate fun SettingsColorSwatchRow(')
+patch(appearance, '''    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    )''', '''    androidx.compose.foundation.layout.FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    )''')
+
+
+# Resource-based onboarding/help also uses the YouTube module name in every locale.
+for resource in OUT.glob("app/src/*/res/values*/*.xml"):
+    if "license" in resource.name.lower(): continue
+    document = ET.parse(resource)
+    changed = False
+    for item in document.getroot().findall("string"):
+        for node in item.iter():
+            for field in ("text", "tail"):
+                original = getattr(node, field)
+                if not original: continue
+                value = original
+                for old in ("DualSub Replay", "DualSub-Replay", "DualSub"):
+                    value = value.replace(old, "Rakubidio")
+                if value != original:
+                    setattr(node, field, value)
+                    changed = True
+    if changed: document.write(resource, encoding="utf-8", xml_declaration=True)
+
+
+# The assistant must accept and enumerate every accent the UI can save.
+ai_actions = dual / "assistant/AiActions.kt"
+patch(ai_actions, 'internal val AI_ACCENT_COLORS = listOf("cyan", "blue", "mint", "amber", "rose", "lavender")',
+                  'internal val AI_ACCENT_COLORS = listOf("pastel_blue", "pastel_mint", "pastel_rose", "pastel_peach", "pastel_lavender", "pastel_butter", "cyan", "blue", "mint", "amber", "rose", "lavender")')
+# Preserve the original strong-accent check explicitly, and add the new pastel/on-primary contract.
+color_test = OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/theme/AppColorThemeTest.kt"
+patch(color_test, '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
+        val light = scheme(AppColorThemeOption.LIGHT)''', '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
+        val light = dualSubColorScheme("cyan", AppColorThemeOption.LIGHT.key)''')
+patch(color_test, '    private fun lightness(color: Color)', '''    @Test
+    fun pastelButtonsHaveDarkReadableInkInBothThemes() {
+        for (key in listOf("pastel_blue", "pastel_mint", "pastel_rose", "pastel_peach", "pastel_lavender", "pastel_butter")) {
+            for (theme in listOf(AppColorThemeOption.LIGHT, AppColorThemeOption.DEEP_TEAL)) {
+                val colors=dualSubColorScheme(key,theme.key)
+                assertTrue(key+theme.key,contrast(colors.onPrimary,colors.primary)>=4.5f)
+            }
+        }
+        assertEquals(Color(0xFF8BD4E6),dualSubColorScheme("pastel_blue","light").primary)
+    }
+
+    private fun lightness(color: Color)''')

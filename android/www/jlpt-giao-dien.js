@@ -44,6 +44,7 @@
       const saved = await A.ghi(TD.chuan(td));
       // Giữ cả thao tác mới hơn trong UI nếu một lượt ghi trước vừa hoàn tất.
       if (saved) td = TD.tron(td, saved);
+      veNutNhac();
     } finally { luuDang--; }
   };
 
@@ -181,8 +182,9 @@
     const truoc = banGhi, dangGhi = luuDang > 0;
     const fresh = TD.chuan(await A.doc());
     const next = dangGhi || luuDang || banGhi !== truoc ? TD.tron(td, fresh) : TD.tron(fresh, td);
-    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) return;
+    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) { veNutNhac(); return; }
     td = next;
+    veNutNhac();
     // Chỉ gộp dữ liệu khi đang làm bài/đọc thoại; giữ nguyên câu và popup đang xem.
     if (luuDang || chay || root.querySelector(".jl-thoai, .jl-lop")) return;
     if (monId && mon) { veBanDo(false); capNhatNhac(); } else veChonMan();

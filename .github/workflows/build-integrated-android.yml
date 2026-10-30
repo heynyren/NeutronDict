@@ -62,7 +62,7 @@ jobs:
           import shutil
           apks = list(Path("android/integration/build/app/build/outputs/apk/debug").glob("*.apk"))
           assert len(apks) == 1, "Expected one installable APK"
-          target = Path("android/integration/dist/NeutronDict-integrated-preview.apk")
+          target = Path("android/integration/dist/RaKuLanG-integrated-preview.apk")
           target.parent.mkdir(parents=True, exist_ok=True)
           shutil.copy2(apks[0], target)
           PY
@@ -70,8 +70,8 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-integrated-preview
-          path: android/integration/dist/NeutronDict-integrated-preview.apk
+          name: RaKuLanG-integrated-preview
+          path: android/integration/dist/RaKuLanG-integrated-preview.apk
           retention-days: 7
       - name: Enable KVM
         run: |
@@ -112,7 +112,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-integrated-reports
+          name: RaKuLanG-integrated-reports
           path: |
             android/integration/build/app/build/reports/androidTests/
             android/integration/build/app/build/reports/tests/

@@ -19,7 +19,8 @@ try{
  await sw.evaluate(()=>chrome.storage.local.set({settings:{chu:"en",ngu:"ja",inline:true},pastelTheme:"blue",notebook:{},hoc:{}}));
  const page=await ctx.newPage(),errors=[];page.on("pageerror",e=>errors.push(e.message));
  await page.goto("chrome-extension://"+id+"/notebook.html");
- await page.waitForSelector(".pastel-picker input");
+ await page.locator("#setBox").evaluate(e=>e.open=true);
+ await page.waitForSelector(".pastel-picker input",{state:"attached"});
  assert.equal(await page.locator(".pastel-picker input").count(),6);
  async function checkColors(p){
   const colors=await p.evaluate(()=>{
@@ -43,11 +44,11 @@ try{
   }
  }
  await page.waitForFunction(async()=>(await chrome.storage.local.get("pastelTheme")).pastelTheme==="butter");
- await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.pastel==="butter");
+ await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.pastel==="butter");await page.locator("#setBox").evaluate(e=>e.open=true);
  await page.locator('.pastel-choice:has(input[value="blue"])').click();
  await page.waitForFunction(async()=>(await chrome.storage.local.get("pastelTheme")).pastelTheme==="blue");
  for(const [lang,title]of [["ja","テーマカラー"],["vi","Màu giao diện"],["en","Theme color"]]){
-  await page.locator("#chuBox").evaluate(e=>e.open=true);
+  await page.locator("#setBox").evaluate(e=>e.open=true);
   await page.locator("#chuNgu").selectOption(lang);
   await page.waitForFunction(x=>document.querySelector("#pastelTitle").textContent===x,title);
   assert.equal(await page.locator(".pastel-choice").first().innerText(),lang==="ja"?"ブルー":lang==="en"?"Blue":"Xanh dương");
@@ -70,10 +71,10 @@ try{
  await mobile.addInitScript(()=>{
   localStorage.setItem("chu",JSON.stringify("en"));localStorage.setItem("ngu",JSON.stringify("ja"));
   localStorage.setItem("pastelTheme",JSON.stringify("blue"));
-  window.__appearance={key:"blue",language:"en",explicit:true};
+  window.__appearance=JSON.parse(localStorage.getItem("__nativeAppearance")||'{"key":"blue","language":"en","explicit":true}');
   window.Capacitor={Plugins:{NeutronMedia:{
-   pastelTheme:async a=>{if(a.key)window.__appearance.key=a.key;return{key:window.__appearance.key}},
-   interfaceLanguage:async a=>{if(a.language)window.__appearance.language=a.language;return{language:window.__appearance.language,explicit:true}},
+   pastelTheme:async a=>{if(a.key){window.__appearance.key=a.key;localStorage.setItem("__nativeAppearance",JSON.stringify(window.__appearance));}return{key:window.__appearance.key}},
+   interfaceLanguage:async a=>{if(a.language){window.__appearance.language=a.language;localStorage.setItem("__nativeAppearance",JSON.stringify(window.__appearance));}return{language:window.__appearance.language,explicit:true}},
    inbox:async()=>({items:[]}),news:async()=>({articles:[],bookmarks:[],feeds:[],minutes:30,updatedAt:1}),
    configureNews:async()=>({}),voiceSettings:async()=>({enabled:false,region:"japaneast",hasKey:false})
   }}};
