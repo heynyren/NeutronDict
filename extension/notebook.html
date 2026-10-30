@@ -2,8 +2,9 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title data-chu>Sổ tay NeutronDict</title>
+  <title data-chu>Sổ tay RaKuLanG</title>
   <link rel="stylesheet" href="ui.css">
+  <script src="pastel.js"></script>
   <link rel="stylesheet" href="ngu-phap.css">
   <link rel="stylesheet" href="jlpt.css">
   <style>
@@ -104,7 +105,7 @@
   <div class="brand">
     <span class="mark" id="brandMark"></span>
     <div>
-      <div class="nm" data-chu>Sổ tay NeutronDict</div>
+      <div class="nm" data-chu>Sổ tay RaKuLanG</div>
       <div class="sb" id="brandSub" data-chu>Anh – Việt · sóng học tập</div>
     </div>
   </div>
@@ -121,7 +122,7 @@
   </div>
 
   <button id="study" class="btn primary block lg" type="button">
-    <span id="studyLabel" data-chu>Học ngay</span><span id="studyCho" hidden></span> <span id="dueCount" class="tag" style="background:rgba(255,255,255,.22);color:#fff">0</span>
+    <span id="studyLabel" data-chu>Học ngay</span><span id="studyCho" hidden></span> <span id="dueCount" class="tag" style="background:rgba(255,255,255,.35);color:var(--accent-ink)">0</span>
   </button>
 
   <button id="studyPath" class="btn block" type="button" style="margin-top:8px" data-chu>Ôn từng đường</button>
@@ -296,7 +297,7 @@
   </details>
 
   <div class="credit" data-chu>
-    Ra đời bởi <button id="creditBtn" type="button">Nyren Phạm <span class="hb">♥</span></button>
+    Ra đời bởi <button id="creditBtn" type="button" data-chu>Nyren Phạm <span class="hb">♥</span></button>
   </div>
 </aside>
 
@@ -404,7 +405,7 @@
   <!-- Phím tắt, nép ở góc. Học bằng bàn phím nhanh hơn hẳn dùng chuột, nhưng
        chỉ khi người ta BIẾT có phím nào — nên bày ra chứ không giấu trong tài liệu. -->
   <div id="stPhim" class="stphim">
-    <button id="stPhimAn" class="stphim-an" type="button" title="Ẩn" data-chu-title>×</button>
+    <button id="stPhimAn" class="stphim-an" type="button" title="Ẩn" data-chu-title data-chu>×</button>
     <div class="stphim-t" data-chu>Phím tắt</div>
     <div><kbd>Space</kbd> <span data-chu>lật thẻ · rồi mở nguồn</span></div>
     <div><kbd>F</kbd> <span data-chu>Quên</span> · <kbd>J</kbd> <span data-chu>Nhớ</span> · <kbd>A</kbd> <span data-chu>phát âm / nghe lại</span></div>
@@ -552,12 +553,12 @@
 <!-- ====================== Về tác giả ====================== -->
 <div id="aboutSheet" class="sheet">
   <div class="panel" style="max-width:430px">
-    <h3><span id="abFlag"></span> NeutronDict · Về tác giả</h3>
+    <h3><span id="abFlag"></span> RaKuLanG · Về tác giả</h3>
     <div class="sub" data-chu>Một món quà nhỏ gửi tặng cộng đồng học tập</div>
-    <p class="t-body">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
+    <p class="t-body" data-chu>Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
       <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
       <b>nghiên cứu công nghệ</b>.</p>
-    <p class="t-small muted">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
+    <p class="t-small muted" data-chu>Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
       một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
       &amp; tiếng Anh. Nếu nó giúp ích cho việc học của bạn, thì mình đã hạnh phúc rồi.</p>
     <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px" data-chu>“Cho đi là còn mãi.”</p>

@@ -37,6 +37,7 @@ import java.security.MessageDigest
 import java.util.Locale
 
 class NewsReaderActivity : ComponentActivity() {
+    override fun attachBaseContext(base:Context) { super.attachBaseContext(NeutronInterface.wrap(base)) }
     private lateinit var page: WebView
     private var selection by mutableStateOf<JSONObject?>(null)
     private var entry by mutableStateOf<JSONObject?>(null)
@@ -105,11 +106,11 @@ class NewsReaderActivity : ComponentActivity() {
                 sourceRestoreFinished = false
                 lookupGeneration++; dismissLookup()
                 if (!offline) currentUrl = url
-                status = "Đang mở bài…"
+                status = NeutronUiStrings.text(this@NewsReaderActivity,"Đang mở bài…")
             }
             override fun onPageFinished(view: WebView, url: String) {
                 pageTitle = view.title ?: pageTitle
-                status = if (offline) "Bản đã lưu trên máy" else ""
+                status = if (offline) NeutronUiStrings.text(this@NewsReaderActivity,"Bản đã lưu trên máy") else ""
                 sourceRestoreFinished = false
                 scheduleSourceRestore()
             }
@@ -120,10 +121,10 @@ class NewsReaderActivity : ComponentActivity() {
                     offline = true
                     val data = runCatching { JSONObject(cached.readText()) }.getOrNull()
                     if (data != null) showText(data.optString("text"))
-                } else status = "Chưa mở được bài. Kiểm tra mạng hoặc bấm tải lại."
+                } else status = NeutronUiStrings.text(this@NewsReaderActivity,"Chưa mở được bài. Kiểm tra mạng hoặc bấm tải lại.")
             }
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-                Toast.makeText(this@NewsReaderActivity, "Trang đã đóng để giải phóng bộ nhớ. Hãy mở lại bài.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@NewsReaderActivity, NeutronUiStrings.text(this@NewsReaderActivity,"Trang đã đóng để giải phóng bộ nhớ. Hãy mở lại bài."), Toast.LENGTH_LONG).show()
                 finish()
                 return true
             }
@@ -183,17 +184,17 @@ class NewsReaderActivity : ComponentActivity() {
             Column {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { finish() }) { Text("‹ NeutronDict") }
-                    TextButton(onClick = { captureSelection() }) { Text("Tra NeutronDict") }
+                    TextButton(onClick = { finish() }) { Text(getString(com.kienhoang.dualsubreplay.R.string.rakulang_return)) }
+                    TextButton(onClick = { captureSelection() }) { Text(getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)) }
                     TextButton(onClick = { askAi() }) { Text("✦ AI") }
                 }
                 }
                 Text(pageTitle, style = MaterialTheme.typography.titleMedium, maxLines = 2, modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp))
                 Text(Uri.parse(currentUrl).host.orEmpty(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 20.dp))
                 Row(Modifier.padding(horizontal = 8.dp)) {
-                    TextButton(onClick = { offline = false; readableText = null; restartSourceRestore(); page.loadUrl(currentUrl) }) { Text("Tải lại") }
-                    TextButton(onClick = { readerText(false) }) { Text("Dễ đọc") }
-                    TextButton(onClick = { readerText(true) }) { Text("Lưu bài") }
+                    TextButton(onClick = { offline = false; readableText = null; restartSourceRestore(); page.loadUrl(currentUrl) }) { Text(NeutronUiStrings.text(this@NewsReaderActivity,"Tải lại")) }
+                    TextButton(onClick = { readerText(false) }) { Text(NeutronUiStrings.text(this@NewsReaderActivity,"Dễ đọc")) }
+                    TextButton(onClick = { readerText(true) }) { Text(NeutronUiStrings.text(this@NewsReaderActivity,"Lưu bài")) }
                 }
                 if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
                 if (pageProgress < 1f) LinearProgressIndicator(progress = { pageProgress }, modifier = Modifier.fillMaxWidth())
@@ -235,7 +236,7 @@ class NewsReaderActivity : ComponentActivity() {
                             val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
                                 .put("reading", found.optString("reading")).put("kind", "article")
                             neutronRequest(JSONObject().put("op", "save").put("item", item))
-                            status = "Đã lưu vào sổ tay NeutronDict"
+                            status = NeutronUiStrings.text(this@NewsReaderActivity,"Đã lưu vào sổ tay NeutronDict")
                         },
                         onSpeak = { speak(word, lang) }, speechMessage = null,
                         onDismiss = { dismissLookup() },
@@ -264,7 +265,7 @@ class NewsReaderActivity : ComponentActivity() {
             val json = runCatching { JSONTokener(raw).nextValue() as? String }.getOrNull()
             val data = json?.let { runCatching { JSONObject(it) }.getOrNull() }
             if (generation != lookupGeneration || !readerActive || isFinishing || isDestroyed) return@evaluateJavascript
-            if (data == null) { status = "Bôi đen từ rồi bấm Tra NeutronDict."; return@evaluateJavascript }
+            if (data == null) { status = NeutronUiStrings.text(this@NewsReaderActivity,"Bôi đen từ rồi bấm Tra NeutronDict."); return@evaluateJavascript }
             if (data.has("error")) { status = data.optString("error"); return@evaluateJavascript }
             (page as? SelectionWebView)?.finishSelectionMenu()
             data.put("url", currentUrl).put("title", pageTitle)
@@ -290,7 +291,7 @@ class NewsReaderActivity : ComponentActivity() {
                 } catch (e: CancellationException) { pending.cancel(); throw e }
                 catch (e: Exception) {
                     pending.completeExceptionally(e)
-                    if (selection === data) status = e.message ?: "Chưa tra được từ."
+                    if (selection === data) status = NeutronUiStrings.text(this@NewsReaderActivity,e.message) .takeIf { it.isNotBlank() } ?: NeutronUiStrings.text(this@NewsReaderActivity,"Chưa tra được từ.")
                 }
             }
         }
@@ -314,7 +315,7 @@ class NewsReaderActivity : ComponentActivity() {
     private fun readerText(save: Boolean) {
         page.evaluateJavascript("(function(){const e=document.querySelector('article,main')||document.body;return (e.innerText||'').slice(0,250000)})()") { raw ->
             val text = runCatching { JSONTokener(raw).nextValue() as? String }.getOrNull().orEmpty()
-            if (text.isBlank()) { status = "Chưa lấy được nội dung bài."; return@evaluateJavascript }
+            if (text.isBlank()) { status = NeutronUiStrings.text(this@NewsReaderActivity,"Chưa lấy được nội dung bài."); return@evaluateJavascript }
             if (!save) { offline = true; showText(text); return@evaluateJavascript }
             lifecycleScope.launch {
                 try {
@@ -322,14 +323,14 @@ class NewsReaderActivity : ComponentActivity() {
                         val file = cacheFile(currentUrl)
                         val temp = File(file.parentFile, file.name + ".tmp")
                         temp.writeText(JSONObject().put("text", text).put("title", pageTitle).put("url", currentUrl).toString())
-                        check(temp.renameTo(file)) { "Không lưu được bài." }
+                        check(temp.renameTo(file)) { NeutronUiStrings.text(this@NewsReaderActivity,"Không lưu được bài.") }
                         file.parentFile?.listFiles()?.filter { it.extension == "json" }?.sortedByDescending { it.lastModified() }
                             ?.drop(50)?.forEach { it.delete() }
                         NewsRepository(this@NewsReaderActivity).bookmark(JSONObject().put("url", currentUrl)
                             .put("title", pageTitle).put("language", language).put("offline", true), true)
                     }
-                    status = "Đã lưu bài để đọc ngoại tuyến"
-                } catch (e: Exception) { status = e.message ?: "Không lưu được bài." }
+                    status = NeutronUiStrings.text(this@NewsReaderActivity,"Đã lưu bài để đọc ngoại tuyến")
+                } catch (e: Exception) { status = NeutronUiStrings.text(this@NewsReaderActivity,e.message) .takeIf { it.isNotBlank() } ?: NeutronUiStrings.text(this@NewsReaderActivity,"Không lưu được bài.") }
             }
         }
     }
@@ -394,7 +395,7 @@ private class SelectionWebView(context: Context, private val lookup: () -> Unit,
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val created = callback.onCreateActionMode(mode, menu)
                 if (created) selectionMode = mode
-                menu.add(0, 0x4e44, 0, "Tra NeutronDict").setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                menu.add(0, 0x4e44, 0, getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 return created
             }
             override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =

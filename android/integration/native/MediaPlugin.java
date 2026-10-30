@@ -18,14 +18,14 @@ public class MediaPlugin extends Plugin {
     public static void request(JSONObject request, Reply reply) {
         MAIN.post(() -> {
             MediaPlugin plugin = current.get();
-            if (plugin == null || plugin.getActivity().isDestroyed()) { reply.complete(null, "Mở lại NeutronDict rồi thử tra lại."); return; }
+            if (plugin == null || plugin.getActivity().isDestroyed()) { reply.complete(null, NeutronUiStrings.text(plugin.getContext(),"Mở lại NeutronDict rồi thử tra lại.")); return; }
             String id = java.util.UUID.randomUUID().toString();
             try { request.put("requestId", id); } catch (Exception e) { reply.complete(null, e.getMessage()); return; }
             replies.put(id, reply);
             plugin.getBridge().getWebView().evaluateJavascript("window.NeutronReaderRequest && window.NeutronReaderRequest(" + request.toString() + ")", null);
             MAIN.postDelayed(() -> {
                 Reply waiting = replies.remove(id);
-                if (waiting != null) waiting.complete(null, "Tra từ chưa phản hồi. Kiểm tra mạng và thử lại.");
+                if (waiting != null) waiting.complete(null, NeutronUiStrings.text(plugin.getContext(),"Tra từ chưa phản hồi. Kiểm tra mạng và thử lại."));
             }, 30000);
         });
     }
@@ -49,12 +49,31 @@ public class MediaPlugin extends Plugin {
             AzureSpeech speech = new AzureSpeech(getContext());
             JSONObject result = call.getBoolean("save", false) ? speech.configure(call.getData()) : speech.status();
             call.resolve(JSObject.fromJSONObject(result));
-        } catch (Exception e) { call.reject("Không lưu được cấu hình giọng đọc."); } });
+        } catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),"Không lưu được cấu hình giọng đọc.")); } });
     }
     @PluginMethod public void azureSpeech(PluginCall call) {
         voiceIo.execute(() -> { try {
             call.resolve(JSObject.fromJSONObject(new AzureSpeech(getContext()).synthesize(call.getData())));
         } catch (Exception e) { call.resolve(new JSObject().put("available", false)); } });
+    }
+    @PluginMethod public void pastelTheme(PluginCall call) {
+        String key=call.getString("key");
+        io.execute(() -> { try {
+            String value=key==null ? NeutronPastelTheme.read(getContext()) : NeutronPastelTheme.write(getContext(),key);
+            call.resolve(new JSObject().put("key",value));
+        } catch(Exception e) { call.reject(getContext().getString(com.kienhoang.dualsubreplay.R.string.rakulang_theme_error)); } });
+    }
+    @PluginMethod public void interfaceLanguage(PluginCall call) {
+        String language=call.getString("language");
+        if(language!=null && !java.util.Arrays.asList("vi","en","ja").contains(language)){
+            call.reject("Unsupported UI language"); return;
+        }
+        getActivity().runOnUiThread(() -> {
+            call.resolve(new JSObject()
+                .put("language",com.kienhoang.dualsubreplay.ui.NeutronInterface.selected(getActivity()))
+                .put("explicit",com.kienhoang.dualsubreplay.ui.NeutronInterface.explicit(getActivity())));
+            if(language!=null)com.kienhoang.dualsubreplay.ui.NeutronInterface.select(getActivity(),language);
+        });
     }
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     @PluginMethod public void playYouTubeSentence(PluginCall call) {
@@ -105,7 +124,7 @@ public class MediaPlugin extends Plugin {
         String host = u.getHost();
         if (!"https".equals(u.getScheme()) || host == null ||
             !(host.equals("youtube.com") || host.endsWith(".youtube.com") || host.equals("youtu.be"))) {
-            call.reject("Đường dẫn YouTube không hợp lệ."); return;
+            call.reject(NeutronUiStrings.text(getContext(),"Đường dẫn YouTube không hợp lệ.")); return;
         }
         getActivity().runOnUiThread(() -> {
             com.kienhoang.dualsubreplay.ui.NeutronPlayback.request(url);
@@ -117,7 +136,7 @@ public class MediaPlugin extends Plugin {
     }
     @PluginMethod public void openArticle(PluginCall call) {
         String url = call.getString("url", "");
-        if (!NewsRepository.validUrl(url)) { call.reject("Chỉ mở địa chỉ HTTPS."); return; }
+        if (!NewsRepository.validUrl(url)) { call.reject(NeutronUiStrings.text(getContext(),"Chỉ mở địa chỉ HTTPS.")); return; }
         getActivity().runOnUiThread(() -> {
             Intent intent = new Intent(getContext(), com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class);
             intent.putExtra("url", url).putExtra("language", call.getString("language", "ja"));
@@ -131,30 +150,30 @@ public class MediaPlugin extends Plugin {
     }
     @PluginMethod public void inbox(PluginCall call) {
         io.execute(() -> { try { call.resolve(new JSObject().put("items", MediaInbox.list(getContext()))); }
-            catch (Exception e) { call.reject(e.getMessage()); } });
+            catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),e.getMessage())); } });
     }
     @PluginMethod public void acknowledge(PluginCall call) {
         io.execute(() -> { try { MediaInbox.ack(getContext(), call.getArray("ids", new JSArray())); call.resolve(); }
-            catch (Exception e) { call.reject(e.getMessage()); } });
+            catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),e.getMessage())); } });
     }
     @PluginMethod public void news(PluginCall call) {
         io.execute(() -> { try {
             NewsRepository repo = new NewsRepository(getContext());
             if (Boolean.TRUE.equals(call.getBoolean("refresh", false))) repo.refresh();
             call.resolve(JSObject.fromJSONObject(repo.snapshot()));
-        } catch (Exception e) { call.reject(e.getMessage()); } });
+        } catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),e.getMessage())); } });
     }
     @PluginMethod public void configureNews(PluginCall call) {
         io.execute(() -> { try {
             new NewsRepository(getContext()).configure(call.getArray("feeds"), call.getInt("minutes", 30));
             call.resolve();
-        } catch (Exception e) { call.reject(e.getMessage()); } });
+        } catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),e.getMessage())); } });
     }
     @PluginMethod public void bookmark(PluginCall call) {
         io.execute(() -> { try {
             new NewsRepository(getContext()).bookmark(call.getObject("article"), Boolean.TRUE.equals(call.getBoolean("saved", true)));
             call.resolve();
-        } catch (Exception e) { call.reject(e.getMessage()); } });
+        } catch (Exception e) { call.reject(NeutronUiStrings.text(getContext(),e.getMessage())); } });
     }
     @Override protected void handleOnDestroy() { io.shutdown(); voiceIo.shutdownNow(); }
 }

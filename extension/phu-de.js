@@ -595,7 +595,7 @@
 
   /**
    * Mã ngôn ngữ của bản chép lời, đoán từ chính chữ chứ không tin mã mà YouTube
-   * khai. Dùng làm ngôn ngữ NGUỒN khi dịch: kênh tiếng Anh mở trong NeutronDict thì
+   * khai. Dùng làm ngôn ngữ NGUỒN khi dịch: kênh tiếng Anh mở trong RaKuLanG thì
    * cũng phải dịch đúng từ tiếng Nhật, chứ ép "en" là ra một mớ vô nghĩa.
    */
   function nguNguon() {
@@ -1308,7 +1308,7 @@
   }
 
   /**
-   * Trên trang chỉ được có ĐÚNG MỘT bảng của NeutronDict.
+   * Trên trang chỉ được có ĐÚNG MỘT bảng của RaKuLanG.
    *
    * Bản content script cũ vẫn nằm nguyên trong trang sau khi extension được nạp
    * lại, và bảng nó dựng ra thì không ai gỡ. Người dùng thấy hai bảng chồng
@@ -1359,7 +1359,7 @@
     lg.src = LOGO; lg.alt = ""; lg.width = 18; lg.height = 18;
     top.appendChild(lg);
     const nm = document.createElement("span"); nm.className = "nm";
-    nm.textContent = T("NeutronDict · Lời thoại");
+    nm.textContent = T("RaKuLanG · Lời thoại");
     top.appendChild(nm);
     const demCau = document.createElement("span"); demCau.className = "n";
     top.appendChild(demCau);
@@ -1433,7 +1433,7 @@
     const legend=document.createElement("div");legend.className="pos-legend";legend.hidden=!posEnabled;
     for(const [pos,label] of Object.entries(self.NeutronPos.labels)){
       if(pos==="other")continue;
-      const item=document.createElement("span");item.className="nd-pos";item.dataset.pos=pos;item.textContent=label;legend.appendChild(item);
+      const item=document.createElement("span");item.className="nd-pos";item.dataset.pos=pos;item.textContent=T(label);legend.appendChild(item);
     }
     box.appendChild(legend);
     posButton.onclick=()=>{
@@ -1668,7 +1668,7 @@
         if(a>=b)continue;
         if(a>cursor)fragment.appendChild(document.createTextNode(text.slice(cursor,a)));
         const span=document.createElement("span");span.className="nd-pos";span.dataset.pos=token.pos;
-        span.title=(self.NeutronPos.labels[token.pos]||"")+(token.base?" · "+token.base:"");
+        span.title=T(self.NeutronPos.labels[token.pos]||"")+(token.base?" · "+token.base:"");
         span.textContent=text.slice(a,b);fragment.appendChild(span);cursor=b;
       }
       if(cursor<end)fragment.appendChild(document.createTextNode(text.slice(cursor,end)));
@@ -1767,7 +1767,7 @@
       choPhoi = o;
     }
     const dong = [];
-    dong.push("### Lời thoại video (NeutronDict)");
+    dong.push("### Lời thoại video (RaKuLanG)");
     if (S.tieuDe) dong.push("Tiêu đề: " + S.tieuDe);
     if (S.kenh) dong.push("Kênh: " + S.kenh);
     dong.push("Nguồn: https://www.youtube.com/watch?v=" + S.v);
@@ -2501,7 +2501,7 @@
     const top = document.createElement("div"); top.className = "top";
     const lg = document.createElement("img"); lg.className = "lg"; lg.src = LOGO; lg.alt = ""; lg.width = 18; lg.height = 18;
     top.appendChild(lg);
-    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = T("NeutronDict · Lời thoại");
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = T("RaKuLanG · Lời thoại");
     top.appendChild(nm);
     const spacer = document.createElement("span"); spacer.className = "n"; top.appendChild(spacer);
     const nutX = nutChip("x", "", T("Ẩn cho video này"));

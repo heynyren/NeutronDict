@@ -1,5 +1,5 @@
 /**
- * NeutronDict — bản Android (Capacitor).
+ * RaKuLanG — bản Android (Capacitor).
  *
  * Dùng chung dữ liệu và cơ chế đồng bộ với extension máy tính; giao diện dựng
  * bằng hệ thiết kế trong ui.css, icon Phosphor trong icons.js, phần theo dõi
@@ -500,7 +500,11 @@ async function napNgu() {
  * Nhật mà tra Việt–Anh.
  */
 async function napChu() {
-  const c = window.Chu.hopLe(await Store.get("chu"));
+  const stored=await Store.get("chu");
+  let nativeLanguage=null;
+  try { nativeLanguage=await Plugins.NeutronMedia?.interfaceLanguage?.({}); } catch(_) {}
+  const c=window.Chu.hopLe(nativeLanguage?.explicit ? nativeLanguage.language : (stored || nativeLanguage?.language));
+  await Store.set("chu",c);
   const o = $("chuNgu");
   if (o) o.value = c;
   window.Chu.dat(c);
@@ -510,6 +514,7 @@ async function doiChu(c) {
   const moi = window.Chu.hopLe(c);
   await Store.set("chu", moi);
   window.Chu.dat(moi);
+  await Plugins.NeutronMedia?.interfaceLanguage?.({language:moi});
   // Chữ do JS dựng ra không nằm trong lượt quét data-chu — vẽ lại các màn.
   veNgu();
   drawNotebook();
@@ -2435,7 +2440,7 @@ function renderDetail() {
       legend.forEach((it) => {
         const row = el("div", "legrow");
         row.appendChild(el("span", "ls", it.s));
-        row.appendChild(el("span", "lv", it.vi));
+        row.appendChild(el("span", "lv", T(it.vi)));
         row.appendChild(el("span", "le", "(" + it.ex + ")"));
         lg.appendChild(row);
       });
@@ -3979,7 +3984,7 @@ function fillIpaGuide() {
       row.style.cssText = "padding:7px 0;border-bottom:1px solid var(--line-soft)";
       row.appendChild(el("span", "ls", it.s));
       const info = el("div", "grow");
-      info.appendChild(el("div", null, it.vi));
+      info.appendChild(el("div", null, T(it.vi)));
       info.appendChild(el("div", "le t-tiny", it.ex + " " + it.ipa));
       row.appendChild(info);
       const spk = nutIcon("speaker-high", T("Nghe ví dụ"), "", 18);
@@ -5288,7 +5293,7 @@ document.addEventListener("visibilitychange", () => {
 /* ==================================================================== */
 
 function gaiIcon() {
-  $("brandMark").innerHTML = '<img src="brand-mark.png" alt="NeutronDict" width="28" height="28" style="display:block;object-fit:contain">';
+  $("brandMark").innerHTML = '<img src="brand-mark.png" alt="RaKuLanG" width="28" height="28" style="display:block;object-fit:contain">';
   $("icChu").innerHTML = window.Icon("translate", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
   $("icBell").innerHTML = window.Icon("bell-ringing", { size: 18 });
@@ -5398,6 +5403,13 @@ async function donHuyHieu() {
 (async () => {
   gaiIcon();
   await napChu();      // sau gaiIcon: nhãn do nó dựng ra mới có mặt để dịch
+  await RaKuPastel.start({
+    read: async () => Plugins.NeutronMedia?.pastelTheme ? (await Plugins.NeutronMedia.pastelTheme({})).key : Store.get("pastelTheme"),
+    write: async key => {
+      if (Plugins.NeutronMedia?.pastelTheme) await Plugins.NeutronMedia.pastelTheme({key});
+      else await Store.set("pastelTheme",key);
+    }
+  });
   await napNgu();
   veNgu();
   await donHuyHieu();

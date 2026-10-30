@@ -4,7 +4,7 @@
   const native = () => window.Capacitor?.Plugins?.NeutronMedia;
   const byId = id => document.getElementById(id);
   let importing = null, news = null, pageSize = 30, onlySaved = false;
-  const notifyError = e => toast(e?.message || String(e), "bad");
+  const notifyError = e => toast(T(e?.message || String(e)), "bad");
 
   async function importItem(raw) {
     const item = window.NeutronMediaImport.normalize(raw);
@@ -14,7 +14,7 @@
       const result = window.NeutronMediaImport.merge(nb[key],item,Date.now());
       nb[key] = result.item; status = result.status;
     });
-    if (status === "deleted") throw new Error("Từ này đã được xóa. Khôi phục trong sổ tay trước khi lưu lại.");
+    if (status === "deleted") throw new Error(T("Từ này đã được xóa. Khôi phục trong sổ tay trước khi lưu lại."));
     // Optional enrichment happens only after the source is safely persisted.
     if (!item.meaning || !item.meaningLanguage.startsWith("vi")) {
       lookup(item.word,item.dict).then(entries => capNhat(nb => {
@@ -60,7 +60,7 @@
         await native().acknowledge({ids:ack});
         if (manHienTai === "Notebook") await drawNotebook();
         updateDueButton();
-        toast("Đã nhận " + ack.length + " mục từ YouTube");
+        toast(T2("Đã nhận {n} mục từ YouTube",{n:ack.length}));
       }
     })().finally(()=>{ importing=null; });
     return importing;
@@ -97,8 +97,8 @@
         result = await importItem({...raw,id:raw.id || crypto.randomUUID()});
       } else if (request.op === "drain") {
         await drain(); result={ok:true};
-      } else throw new Error("Thao tác không hợp lệ.");
-    } catch(e) { error=e.message || String(e); }
+      } else throw new Error(T("Thao tác không hợp lệ."));
+    } catch(e) { error=T(e.message || String(e)); }
     await native()?.readerReply({requestId:request.requestId,result:result || {},error:error || null});
   };
   function openReader(article) {
@@ -137,11 +137,11 @@
   async function refresh(force=false) {
     if (!native()) return;
     const button=byId("newsRefresh");button.disabled=true;
-    byId("newsStatus").textContent=force?"Đang cập nhật tin…":"Đang mở danh sách…";
+    byId("newsStatus").textContent=force?T("Đang cập nhật tin…"):T("Đang mở danh sách…");
     try {
       news=await native().news({refresh:force});
       renderNews();
-      byId("newsStatus").textContent=(news.updatedAt?"Cập nhật "+new Date(news.updatedAt).toLocaleString():"Chưa có tin — bấm Cập nhật")
+      byId("newsStatus").textContent=(news.updatedAt?T2("Cập nhật {time}",{time:new Date(news.updatedAt).toLocaleString(Chu.dang())}):T("Chưa có tin — bấm Cập nhật"))
         +(news.errors?.length?" · "+news.errors.map(e=>e.title+": "+e.message).join(" · "):"");
     }catch(e){byId("newsStatus").textContent=e.message || String(e);}
     finally{button.disabled=false;}
@@ -156,14 +156,14 @@
       const title=document.createElement("button");title.type="button";title.className="news-title";title.textContent=article.title;
       title.onclick=()=>openReader(article).catch(notifyError);card.appendChild(title);
       const meta=document.createElement("p");meta.className="t-tiny muted";meta.textContent=[article.source,article.language,
-        article.date?new Date(article.date).toLocaleDateString():"",article.offline?"Đã lưu đọc offline":""].filter(Boolean).join(" · ");
+        article.date?new Date(article.date).toLocaleDateString():"",article.offline?T("Đã lưu đọc offline"):""].filter(Boolean).join(" · ");
       card.appendChild(meta);
-      addButton(card,bookmarks.has(article.url)?"★ Đã đánh dấu":"☆ Đọc sau",async()=>{
+      addButton(card,bookmarks.has(article.url)?T("★ Đã đánh dấu"):T("☆ Đọc sau"),async()=>{
         try{await native().bookmark({article,saved:!bookmarks.has(article.url)});await refresh();}catch(e){notifyError(e);}
       });
       root.appendChild(card);
     }
-    if (!filtered.length) {const p=document.createElement("p");p.textContent="Chưa có bài phù hợp. Thêm nguồn hoặc cập nhật tin.";root.appendChild(p);}
+    if (!filtered.length) {const p=document.createElement("p");p.textContent=T("Chưa có bài phù hợp. Thêm nguồn hoặc cập nhật tin.");root.appendChild(p);}
     byId("newsMore").hidden=filtered.length<=pageSize;
     byId("newsMinutes").value=String(news?.minutes ?? 30);
   }
@@ -172,7 +172,7 @@
     for(const feed of news?.feeds || []) {
       const row=document.createElement("div");row.className="rowx";
       const label=document.createElement("span");label.className="grow";label.textContent=feed.title+" · "+feed.language;row.appendChild(label);
-      addButton(row,"Xóa",async()=>{try{await native().configureNews({feeds:news.feeds.filter(x=>x.url!==feed.url),minutes:news.minutes});await refresh();configure();}catch(e){notifyError(e);}});
+      addButton(row,T("Xóa"),async()=>{try{await native().configureNews({feeds:news.feeds.filter(x=>x.url!==feed.url),minutes:news.minutes});await refresh();configure();}catch(e){notifyError(e);}});
       root.appendChild(row);
     }
   }
@@ -189,14 +189,14 @@
       const screen=document.querySelector(".view.show");
       const context=(window.getSelection()?.toString() || screen?.innerText || "").slice(0,14000);
       // Never read values from settings fields (tokens, URLs, keys).
-      native().openAssistant({context:"Màn hình "+manHienTai+"\n"+context,language:NGU}).catch(notifyError);
+      native().openAssistant({context:T2("Màn hình {screen}",{screen:manHienTai})+"\n"+context,language:NGU}).catch(notifyError);
     };
     byId("newsClose").onclick=()=>byId("newsDialog").close();
     byId("newsRefresh").onclick=()=>refresh(true);
     byId("newsMore").onclick=()=>{pageSize+=30;renderNews();};
     byId("newsLanguage").onchange=()=>{pageSize=30;renderNews();};
     byId("newsSearch").oninput=()=>{pageSize=30;renderNews();};
-    byId("newsSaved").onclick=()=>{onlySaved=!onlySaved;byId("newsSaved").textContent=onlySaved?"Xem tất cả tin":"★ Bài đã lưu";renderNews();};
+    byId("newsSaved").onclick=()=>{onlySaved=!onlySaved;byId("newsSaved").textContent=onlySaved?T("Xem tất cả tin"):T("★ Bài đã lưu");renderNews();};
     byId("newsMinutes").onchange=async()=>{
       try{await native().configureNews({feeds:news.feeds,minutes:Number(byId("newsMinutes").value)});await refresh();}
       catch(e){notifyError(e);}
@@ -205,7 +205,7 @@
       event.preventDefault();
       const url=byId("newsFeedUrl").value.trim(),language=byId("newsFeedLanguage").value.trim().toLowerCase();
       try {
-        const u=new URL(url);if(u.protocol!=="https:")throw new Error("Dùng địa chỉ HTTPS của nguồn RSS/Atom.");
+        const u=new URL(url);if(u.protocol!=="https:")throw new Error(T("Dùng địa chỉ HTTPS của nguồn RSS/Atom."));
         const feed={url,language,title:byId("newsFeedTitle").value.trim()||u.hostname};
         await native().configureNews({feeds:[...(news.feeds||[]),feed],minutes:news.minutes});
         event.target.reset();await refresh(true);configure();
@@ -214,9 +214,10 @@
     document.addEventListener("visibilitychange",()=>{if(!document.hidden){drain().catch(notifyError);if(byId("newsDialog").open)refresh();}});
     window.addEventListener("neutrondict-media",()=>drain().catch(notifyError));
     drain().catch(notifyError);
+    window.addEventListener("rakulang-language",()=>{if(byId("newsDialog").open){renderNews();configure();}byId("newsSaved").textContent=T(onlySaved?"Xem tất cả tin":"★ Bài đã lưu");});
     native().news({}).then(snapshot=>native().configureNews({feeds:snapshot.feeds,minutes:snapshot.minutes})).catch(notifyError);
   }
   if(window.NeutronReady)boot();else window.addEventListener("neutrondict-ready",boot,{once:true});
 })();
 
-window.addEventListener("neutron-voice-fallback",e=>toast(e.detail));
+window.addEventListener("neutron-voice-fallback",e=>toast(T(e.detail)));

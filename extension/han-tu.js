@@ -79,9 +79,9 @@
     const bit = [];
     if (k.on) bit.push("On: " + gonDoc(k.on));
     if (k.kun) bit.push("Kun: " + gonDoc(k.kun));
-    if (k.s) bit.push(k.s + " nét");
+    if (k.s) bit.push(root.T2 ? root.T2("{n} nét",{n:k.s}) : k.s + " nét");
     if (k.jlpt) bit.push("N" + k.jlpt);
-    if (k.rad) bit.push("Bộ: " + k.rad);
+    if (k.rad) bit.push(root.T2 ? root.T2("Bộ: {radical}",{radical:k.rad}) : "Bộ: " + k.rad);
     return bit.join(" · ");
   }
 

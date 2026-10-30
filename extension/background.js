@@ -1,3 +1,4 @@
+importScripts("chu-bang.js", "chu.js");
 importScripts("kho-ghi.js");   // khóa ghi chung với các trang sổ tay
 importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính âm Hán Việt ở nền
 importScripts("kana.js");      // self.Kana — suy furigana khi từ điển không cho
@@ -14,7 +15,7 @@ importScripts("tien-do.js");   // self.TienDo — để trộn tiến độ họ
 importScripts("thuat-ngu.js"); // self.ThuatNgu — gói thuật ngữ chuyên ngành, tra trước Google
 importScripts("muc.js");        // self.Muc — đọc/xoá một mục sổ tay, dùng chung mọi màn
 
-// NeutronDict — service worker (nền).
+// RaKuLanG — service worker (nền).
 // Tra từ tiếng Anh: nghĩa tiếng Việt (Google Dịch) + phiên âm IPA, phát âm, định nghĩa &
 // ví dụ tiếng Anh (Free Dictionary API). Không dùng dữ liệu Hán tự.
 
@@ -26,20 +27,24 @@ const DICT_API = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const DEFAULT_SETTINGS = { inline: true, requireCtrl: false, maxLen: 40 };
 
 // ==== Menu chuột phải ====
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: "tra-neutron-popup",
-      title: 'Tra "%s" bằng NeutronDict',
-      contexts: ["selection"]
-    });
-    chrome.contextMenus.create({
-      id: "luu-neutron",
-      title: 'Lưu "%s" vào NeutronDict (kèm nguồn)',
-      contexts: ["selection"]
-    });
-  });
+async function refreshContextMenus(reset) {
+  const {settings}=await chrome.storage.local.get("settings");
+  Chu.dat(Chu.hopLe(settings?.chu));
+  if(reset)await chrome.contextMenus.removeAll();
+  for(const [id,key] of [
+    ["tra-neutron-popup",'Tra "%s" bằng RaKuLanG'],
+    ["luu-neutron",'Lưu "%s" vào RaKuLanG (kèm nguồn)']
+  ]){
+    if(reset)chrome.contextMenus.create({id,title:T(key),contexts:["selection"]});
+    else await chrome.contextMenus.update(id,{title:T(key)}).catch(()=>{});
+  }
+}
+chrome.runtime.onInstalled.addListener(()=>refreshContextMenus(true).catch(()=>{}));
+chrome.runtime.onStartup.addListener(()=>refreshContextMenus(false).catch(()=>{}));
+chrome.storage.onChanged.addListener((changes,area)=>{
+  if(area==="local"&&changes.settings?.newValue?.chu!==changes.settings?.oldValue?.chu)refreshContextMenus(false).catch(()=>{});
 });
+refreshContextMenus(false).catch(()=>{});
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "tra-neutron-popup" && info.selectionText) {
@@ -400,7 +405,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "OPEN_LOOKUP") {
     // Content script bắt Ctrl+Shift+Z rồi nhờ nền mở cửa sổ popup — đúng đường
-    // mà menu chuột phải "Tra bằng NeutronDict" vẫn dùng.
+    // mà menu chuột phải "Tra bằng RaKuLanG" vẫn dùng.
     //
     // PHẢI return true + sendResponse: mở cửa sổ là việc bất đồng bộ, mà service
     // worker MV3 có thể bị ngắt ngay khi hàm nghe tin trả về. Không giữ nó sống

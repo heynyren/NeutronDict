@@ -1,6 +1,6 @@
 {
   "appId": "com.neutrondict.app",
-  "appName": "NeutronDict",
+  "appName": "RaKuLanG",
   "webDir": "www",
   "android": {
     "allowMixedContent": false
@@ -11,7 +11,7 @@
     },
     "LocalNotifications": {
       "smallIcon": "ic_stat_icon",
-      "iconColor": "#7c3aed"
+      "iconColor": "#8bd4e6"
     }
   }
 }

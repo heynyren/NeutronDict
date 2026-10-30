@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#6d3fd4" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#100c1c" media="(prefers-color-scheme: dark)">
-  <title data-chu>NeutronDict</title>
+  <meta name="theme-color" content="#285c6c" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c171e" media="(prefers-color-scheme: dark)">
+  <title data-chu>RaKuLanG</title>
   <link rel="stylesheet" href="ui.css">
+  <script src="pastel.js"></script>
   <link rel="stylesheet" href="ngu-phap.css">
   <link rel="stylesheet" href="jlpt.css">
   <style>
@@ -22,7 +23,7 @@
       flex: none;
       padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
       background: var(--grad);
-      color: #fff;
+      color: var(--accent-ink);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -92,7 +93,7 @@
     .pgroup:last-child { border-bottom: none; }
     .pos {
       display: inline-block; font-size: 12px; font-weight: 700; color: #fff;
-      background: var(--accent-2); border-radius: var(--r-xs);
+      background: var(--accent-fill); color: var(--accent-ink); border-radius: var(--r-xs);
       padding: 2px 10px; text-transform: lowercase; margin-bottom: 7px;
     }
     .pgroup ol { margin: 5px 0 0; padding-left: 22px; font-size: 15px; }
@@ -135,13 +136,13 @@
 
 <header>
   <span class="mark" id="brandMark"></span>
-  <span class="nm" data-chu>NeutronDict</span>
+  <span class="nm" data-chu>RaKuLanG</span>
   <span class="streak" id="streakChip" style="display:none"></span>
 </header>
 <div id="mediaBar" hidden class="media-bar">
   <button id="mediaYouTube" class="btn sm" type="button">▶ YouTube</button>
-  <button id="mediaNews" class="btn sm" type="button">▤ Đọc báo</button>
-  <button id="mediaAi" class="btn sm" type="button">✦ Trợ lý AI</button>
+  <button id="mediaNews" class="btn sm" type="button" data-chu>▤ Đọc báo</button>
+  <button id="mediaAi" class="btn sm" type="button" data-chu>✦ Trợ lý AI</button>
 </div>
 
 <main id="scroller">
@@ -159,7 +160,7 @@
       </div>
       <div class="rowx" style="gap:8px;margin-top:10px">
         <button id="go" class="btn primary grow" type="button" data-chu>Tra</button>
-        <button id="paste" class="btn grow" type="button">Dán &amp; tra</button>
+        <button id="paste" class="btn grow" type="button" data-chu>Dán &amp; tra</button>
       </div>
     </div>
 
@@ -170,7 +171,7 @@
     </div>
 
     <div class="card">
-      <div id="result" class="empty">Nhập một từ để tra, hoặc bấm “Dán &amp; tra”.</div>
+      <div id="result" class="empty" data-chu>Nhập một từ để tra, hoặc bấm “Dán &amp; tra”.</div>
       <div id="detail" class="detail" style="display:none"></div>
       <div id="kanji" style="display:none"></div>
     </div>
@@ -200,19 +201,27 @@
   <section id="viewSettings" class="view">
     <div class="topbar"><h2 data-chu>Cài đặt</h2></div>
     <p class="t-small muted" data-chu>Đồng bộ, âm thanh và tuỳ chỉnh ứng dụng.</p>
+    <section class="box" id="pastelSettings" aria-labelledby="pastelTitle">
+    <div class="boxbody">
+      <h3 id="pastelTitle" data-chu>Màu giao diện</h3>
+      <p class="t-small muted" data-chu>Chọn màu pastel yêu thích. Áp dụng ngay và tự lưu trên máy này.</p>
+      <div class="pastel-picker" role="radiogroup" aria-labelledby="pastelTitle"></div>
+      <p id="pastelStatus" class="t-tiny muted" role="status" aria-live="polite"></p>
+    </div>
+  </section>
     <details class="box" id="voiceSettings">
-      <summary>Giọng đọc và bài nghe</summary><div class="boxbody">
-      <label>Giọng Nhật dự phòng <select id="voiceJa"></select></label>
-      <button id="voiceTestJa" class="btn sm" type="button">Nghe thử tiếng Nhật</button>
-      <label>Giọng Anh dự phòng <select id="voiceEn"></select></label>
-      <button id="voiceTestEn" class="btn sm" type="button">Nghe thử tiếng Anh</button>
-      <button id="voiceInstall" class="btn sm" type="button">Cài thêm giọng trên máy</button>
-      <fieldset id="azureSettings" hidden><legend>Azure Neural · tuỳ chọn</legend>
-        <p class="t-small muted">Dùng tài nguyên Speech gói F0 miễn phí. Âm thanh được lưu lại; hết lượt hoặc lỗi sẽ chuyển sang giọng trên máy. App không đổi gói Azure. Giới hạn đếm trong app là 450.000 ký tự/tháng trên máy này, không thay thế hạn mức tài khoản Azure.</p>
-        <label class="check"><input id="azureEnabled" type="checkbox">Dùng Azure cho bài nghe Nhật / Anh</label>
-        <label>Vùng tài nguyên <input id="azureRegion" value="japaneast" autocomplete="off" placeholder="japaneast"></label>
-        <label>Khóa Speech <input id="azureKey" type="password" autocomplete="off" placeholder="Khóa Azure Speech F0"></label>
-        <div class="rowx wrap"><button id="azureSave" class="btn primary" type="button">Lưu Azure</button><button id="azureRemove" class="btn" type="button">Xóa khóa</button></div>
+      <summary data-chu>Giọng đọc và bài nghe</summary><div class="boxbody">
+      <label data-chu>Giọng Nhật dự phòng <select id="voiceJa"></select></label>
+      <button id="voiceTestJa" class="btn sm" type="button" data-chu>Nghe thử tiếng Nhật</button>
+      <label data-chu>Giọng Anh dự phòng <select id="voiceEn"></select></label>
+      <button id="voiceTestEn" class="btn sm" type="button" data-chu>Nghe thử tiếng Anh</button>
+      <button id="voiceInstall" class="btn sm" type="button" data-chu>Cài thêm giọng trên máy</button>
+      <fieldset id="azureSettings" hidden><legend data-chu>Azure Neural · tuỳ chọn</legend>
+        <p class="t-small muted" data-chu>Dùng tài nguyên Speech gói F0 miễn phí. Âm thanh được lưu lại; hết lượt hoặc lỗi sẽ chuyển sang giọng trên máy. App không đổi gói Azure. Giới hạn đếm trong app là 450.000 ký tự/tháng trên máy này, không thay thế hạn mức tài khoản Azure.</p>
+        <label class="check"><input id="azureEnabled" type="checkbox" data-chu>Dùng Azure cho bài nghe Nhật / Anh</label>
+        <label data-chu>Vùng tài nguyên <input id="azureRegion" value="japaneast" autocomplete="off" placeholder="japaneast"></label>
+        <label data-chu>Khóa Speech <input id="azureKey" type="password" autocomplete="off" placeholder="Khóa Azure Speech F0" data-chu-ph></label>
+        <div class="rowx wrap"><button id="azureSave" class="btn primary" type="button" data-chu>Lưu Azure</button><button id="azureRemove" class="btn" type="button" data-chu>Xóa khóa</button></div>
       </fieldset>
       <p id="voiceStatus" class="t-small muted" role="status"></p>
     </div></details>
@@ -308,7 +317,7 @@
     </details>
 
     <div class="credit" data-chu>
-      Ra đời bởi <button id="creditBtn" type="button">Nyren Phạm <span class="hb">♥</span></button>
+      Ra đời bởi <button id="creditBtn" type="button" data-chu>Nyren Phạm <span class="hb">♥</span></button>
     </div>
   </section>
 
@@ -382,7 +391,7 @@
     </div>
 
     <button id="stStart" class="btn primary block lg" style="margin-top:14px" type="button" data-chu>
-      Bắt đầu học <span class="tag" id="dueCount" style="background:rgba(255,255,255,.22);color:#fff">0</span>
+      Bắt đầu học <span class="tag" id="dueCount" style="background:rgba(255,255,255,.35);color:var(--accent-ink)">0</span>
     </button>
     <button id="stStartDuong" class="btn block" style="margin-top:8px" type="button" data-chu>Ôn từng đường</button>
   </section>
@@ -527,12 +536,12 @@
 <!-- ====================== Về tác giả ====================== -->
 <div id="aboutSheet" class="sheet">
   <div class="panel">
-    <h3><span id="abFlag"></span> NeutronDict · Về tác giả</h3>
+    <h3><span id="abFlag"></span> RaKuLanG · Về tác giả</h3>
     <div class="sub" data-chu>Một món quà nhỏ gửi tặng cộng đồng học tập</div>
-    <p class="t-body">Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
+    <p class="t-body" data-chu>Xin chào, mình là <b>Nyren Phạm</b> (P.C.N) — cựu sinh viên ngành
       <b>Tự động hoá, Đại học Bách Khoa Hà Nội</b>, quê <b>Ninh Bình</b>, một người mê
       <b>nghiên cứu công nghệ</b>.</p>
-    <p class="t-small muted">Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
+    <p class="t-small muted" data-chu>Mình làm dự án này như một món quà hiến tặng cộng đồng học tập —
       một công cụ nhỏ mà mạnh mẽ, đồng hành cùng bạn trên hành trình chinh phục tiếng Nhật
       &amp; tiếng Anh.</p>
     <p style="text-align:center;font-style:italic;color:var(--accent);font-size:16px" data-chu>“Cho đi là còn mãi.”</p>
@@ -617,27 +626,27 @@
 <script src="study-listening.js"></script>
 <script src="app.js"></script>
 <dialog id="newsDialog" class="news-dialog">
-  <header class="news-header"><div><span class="news-kicker">NEUTRONDICT · KHÁM PHÁ</span><h2>Thế giới qua từng câu chữ</h2></div><button id="newsClose" class="btn" type="button" aria-label="Đóng đọc báo">✕</button></header>
-  <p class="t-small muted">Đọc điều bạn thích. Bôi đen từ, bấm Tra NeutronDict để xem nghĩa và lưu cả câu vào sổ tay.</p>
+  <header class="news-header"><div><span class="news-kicker" data-chu>RAKULANG · KHÁM PHÁ</span><h2 data-chu>Thế giới qua từng câu chữ</h2></div><button id="newsClose" class="btn" type="button" aria-label="Đóng đọc báo">✕</button></header>
+  <p class="t-small muted" data-chu>Đọc điều bạn thích. Bôi đen từ, bấm Tra RaKuLanG để xem nghĩa và lưu cả câu vào sổ tay.</p>
   <div class="rowx wrap">
-    <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="">Mọi ngôn ngữ</option><option value="ja">Tiếng Nhật · 日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
-    <button id="newsRefresh" class="btn primary" type="button">Cập nhật</button>
-    <button id="newsSaved" class="btn" type="button">★ Bài đã lưu</button>
+    <select id="newsLanguage" aria-label="Ngôn ngữ tin"><option value="" data-chu>Mọi ngôn ngữ</option><option value="ja">Tiếng Nhật · 日本語</option><option value="en">English</option><option value="vi">Tiếng Việt</option><option value="fr" data-chu>Français</option><option value="de">Deutsch</option><option value="ko">한국어</option><option value="zh">中文</option></select>
+    <button id="newsRefresh" class="btn primary" type="button" data-chu>Cập nhật</button>
+    <button id="newsSaved" class="btn" type="button" data-chu>★ Bài đã lưu</button>
   </div>
-  <input id="newsSearch" type="search" placeholder="Lọc tiêu đề, nguồn báo…" aria-label="Lọc bài báo">
+  <input id="newsSearch" type="search" placeholder="Lọc tiêu đề, nguồn báo…" aria-label="Lọc bài báo" data-chu-ph>
   <p id="newsStatus" class="t-tiny muted" role="status"></p>
-  <details><summary>Nguồn tin và cập nhật</summary>
-    <label>Cập nhật nền <select id="newsMinutes"><option value="0">Tắt</option><option value="15">15 phút</option><option value="30">30 phút</option><option value="60">1 giờ</option><option value="120">2 giờ</option></select></label>
-    <p class="t-tiny muted">Android có thể trì hoãn cập nhật để tiết kiệm pin. Mỗi nguồn cung cấp số lượng bài khác nhau.</p>
+  <details><summary data-chu>Nguồn tin và cập nhật</summary>
+    <label data-chu>Cập nhật nền <select id="newsMinutes"><option value="0" data-chu>Tắt</option><option value="15" data-chu>15 phút</option><option value="30" data-chu>30 phút</option><option value="60" data-chu>1 giờ</option><option value="120" data-chu>2 giờ</option></select></label>
+    <p class="t-tiny muted" data-chu>Android có thể trì hoãn cập nhật để tiết kiệm pin. Mỗi nguồn cung cấp số lượng bài khác nhau.</p>
     <div id="newsFeeds"></div>
     <form id="newsAddFeed" class="stack">
-      <input id="newsFeedUrl" type="url" required placeholder="https://… nguồn RSS/Atom" aria-label="URL RSS">
-      <input id="newsFeedTitle" maxlength="120" placeholder="Tên nguồn" aria-label="Tên nguồn">
-      <select id="newsFeedLanguage" aria-label="Ngôn ngữ nguồn tin"><option value="ja">Tiếng Nhật · 日本語</option><option value="en">Tiếng Anh · English</option><option value="vi">Tiếng Việt</option><option value="fr">Tiếng Pháp</option><option value="de">Tiếng Đức</option><option value="ko">Tiếng Hàn</option><option value="zh">Tiếng Trung</option></select>
-      <button class="btn" type="submit">Thêm nguồn</button>
+      <input id="newsFeedUrl" type="url" required placeholder="https://… nguồn RSS/Atom" aria-label="URL RSS" data-chu-ph>
+      <input id="newsFeedTitle" maxlength="120" placeholder="Tên nguồn" aria-label="Tên nguồn" data-chu-ph>
+      <select id="newsFeedLanguage" aria-label="Ngôn ngữ nguồn tin"><option value="ja">Tiếng Nhật · 日本語</option><option value="en" data-chu>Tiếng Anh · English</option><option value="vi">Tiếng Việt</option><option value="fr" data-chu>Tiếng Pháp</option><option value="de" data-chu>Tiếng Đức</option><option value="ko" data-chu>Tiếng Hàn</option><option value="zh" data-chu>Tiếng Trung</option></select>
+      <button class="btn" type="submit" data-chu>Thêm nguồn</button>
     </form>
   </details>
-  <div id="newsList" class="stack"></div><button id="newsMore" class="btn block" hidden type="button">Xem thêm</button>
+  <div id="newsList" class="stack"></div><button id="newsMore" class="btn block" hidden type="button" data-chu>Xem thêm</button>
 </dialog>
 <script src="reader-lookup.js"></script>
 <script src="media-ui.js"></script>

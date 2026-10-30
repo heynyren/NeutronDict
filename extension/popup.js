@@ -1,5 +1,5 @@
 /**
- * Popup tra nhanh của NeutronDict.
+ * Popup tra nhanh của RaKuLanG.
  *
  * Dùng chung hệ thiết kế trong ui.css và bộ icon Phosphor trong icons.js với
  * trang Sổ tay, nên hai chỗ nhìn là cùng một app.
@@ -474,7 +474,7 @@ function renderDetail() {
       legend.forEach((it) => {
         const row = document.createElement("div"); row.className = "legrow";
         const s = document.createElement("span"); s.className = "ls"; s.textContent = it.s; row.appendChild(s);
-        const v = document.createElement("span"); v.className = "lv"; v.textContent = it.vi; row.appendChild(v);
+        const v = document.createElement("span"); v.className = "lv"; v.textContent = T(it.vi); row.appendChild(v);
         const e = document.createElement("span"); e.className = "le"; e.textContent = "(" + it.ex + ")"; row.appendChild(e);
         box.appendChild(row);
       });
@@ -772,7 +772,7 @@ document.getElementById("ipaGuide").addEventListener("click", openGuide);
  * dấu data-chu viết sẵn trong HTML. Nên nhãn do nó tạo ra phải tự mang dấu.
  */
 function gaiIcon() {
-  document.getElementById("brandMark").innerHTML = '<img src="icons/icon48.png" alt="NeutronDict" width="26" height="26" style="display:block;object-fit:contain">';
+  document.getElementById("brandMark").innerHTML = '<img src="icons/icon48.png" alt="RaKuLanG" width="26" height="26" style="display:block;object-fit:contain">';
   goEl.innerHTML = window.Icon("magnifying-glass", { size: 15 }) + '<span class="lb" data-chu>Tra</span>';
   bookEl.innerHTML = window.Icon("notebook", { size: 16 }) + '<span class="lb" data-chu>Sổ tay &amp; tiến độ</span>';
   document.getElementById("ipaGuide").innerHTML =
@@ -790,6 +790,11 @@ function gaiIcon() {
 (async () => {
   gaiIcon();
   await napChu();
+  await RaKuPastel.start({
+    read: async () => (await chrome.storage.local.get("pastelTheme")).pastelTheme,
+    write: key => chrome.storage.local.set({pastelTheme:key})
+  });
+
   const { settings } = await chrome.storage.local.get("settings");
   NGU = window.Ngu.hopLe((settings || {}).ngu);
   veNgu();
@@ -809,5 +814,5 @@ function gaiIcon() {
 chrome.storage.local.get("lastContextSave").then(({lastContextSave})=>{
   if(!lastContextSave||Date.now()-lastContextSave.ts>300000)return;
   const el=document.getElementById("saveContextStatus");
-  el.textContent=lastContextSave.message;el.hidden=false;
+  el.textContent=T(lastContextSave.message);el.hidden=false;
 });

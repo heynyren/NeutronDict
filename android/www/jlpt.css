@@ -4,25 +4,25 @@
    Tiền tố jl- để không đụng lớp nào của app.
    ========================================================================== */
 
-.jl-goc { position: relative; min-height: 60vh; color: var(--ink, #1a1430); }
+.jl-goc { position: relative; min-height: 60vh; color: var(--ink, #17313b); }
 .jl-goc * { box-sizing: border-box; }
 .jl-goc button { font-family: inherit; }
 
 /* ---------------------------------------------------------------- thành phần chung */
 .jl-btn {
-  border: 1px solid var(--line, #e7e2f4); background: var(--surface, #fff); color: var(--ink, #1a1430);
+  border: 1px solid var(--line, #c7e2e9); background: var(--surface, #fff); color: var(--ink, #17313b);
   border-radius: 999px; padding: 11px 20px; font-size: 15px; font-weight: 650; cursor: pointer;
   transition: transform .12s, box-shadow .12s, background .12s;
 }
-.jl-btn:hover { background: var(--surface-2, #f4f1fb); }
+.jl-btn:hover { background: var(--surface-2, #edf8fb); }
 .jl-btn:active { transform: translateY(1px); }
-.jl-btn.chinh { border-color: transparent; color: #fff; background: linear-gradient(135deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); box-shadow: 0 6px 16px rgba(80, 40, 160, .28); }
+.jl-btn.chinh { border-color: transparent; color: #fff; background: linear-gradient(135deg, var(--m1, #285c6c), var(--m2, #285c6c)); box-shadow: 0 6px 16px rgba(40,92,108, .28); }
 .jl-btn.chinh:hover { filter: brightness(1.06); }
 .jl-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: var(--surface, #fff); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.08)); font-size: 14px; }
 .jl-chip svg { fill: currentColor; }
 .jl-chip b { font-weight: 750; }
-.jl-bar { height: 10px; border-radius: 999px; background: var(--surface-3, #e9e4f7); overflow: hidden; }
-.jl-bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); transition: width .35s ease; }
+.jl-bar { height: 10px; border-radius: 999px; background: var(--surface-3, #dceff4); overflow: hidden; }
+.jl-bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--m1, #285c6c), var(--m2, #285c6c)); transition: width .35s ease; }
 .jl-bar.to { flex: 1; height: 14px; }
 .jl-tai { padding: 40px 16px; text-align: center; color: var(--ink-2); }
 
@@ -42,7 +42,7 @@
 .jl-the:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(40, 30, 90, .3); }
 .jl-the.khoa { filter: grayscale(.85) brightness(.82); cursor: default; }
 .jl-the.khoa:hover { transform: none; }
-.jl-the.sap { background: var(--surface-2, #f4f1fb); color: var(--ink-2); box-shadow: none; cursor: default; opacity: .75; }
+.jl-the.sap { background: var(--surface-2, #edf8fb); color: var(--ink-2); box-shadow: none; cursor: default; opacity: .75; }
 .jl-the-emoji { font-size: 52px; line-height: 1; flex: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.25)); }
 .jl-the-thong { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .jl-the-cap { font-size: 12px; font-weight: 800; letter-spacing: .12em; opacity: .85; }
@@ -58,11 +58,11 @@
 .jl-bd { max-width: 520px; margin: 0 auto; padding-bottom: 80px; }
 .jl-bd-dau {
   position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 10px 6px;
-  background: var(--bg, #f7f5fd); border-bottom: 1px solid var(--line-soft, #f0ecf9);
+  background: var(--bg, #f5fbfd); border-bottom: 1px solid var(--line-soft, #e3f1f5);
 }
 .jl-lui, .jl-x {
   flex: none; width: 38px; height: 38px; border-radius: 12px; border: none; cursor: pointer; display: grid; place-items: center;
-  background: var(--surface, #fff); color: var(--ink, #1a1430); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.08));
+  background: var(--surface, #fff); color: var(--ink, #17313b); box-shadow: var(--sh-1, 0 1px 3px rgba(0,0,0,.08));
 }
 .jl-lui svg, .jl-x svg { fill: currentColor; }
 .jl-bd-gioi { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -85,7 +85,7 @@
 .jl-nut {
   position: absolute; width: 68px; height: 68px; transform: translate(-50%, -50%); border-radius: 50%; border: none; cursor: pointer;
   display: grid; place-items: center; color: #fff; font-size: 26px; font-weight: 800;
-  background: linear-gradient(145deg, var(--m1, #6d3fd4), var(--m2, #a855f7)); box-shadow: 0 6px 0 rgba(0,0,0,.28), 0 10px 18px rgba(0,0,0,.25);
+  background: linear-gradient(145deg, var(--m1, #285c6c), var(--m2, #285c6c)); box-shadow: 0 6px 0 rgba(0,0,0,.28), 0 10px 18px rgba(0,0,0,.25);
   transition: transform .12s, box-shadow .12s;
 }
 .jl-nut:hover { transform: translate(-50%, -52%); }
@@ -120,11 +120,11 @@
 .jl-nv { font-size: 76px; line-height: 1; animation: jl-nhun 2.4s ease-in-out infinite; }
 @keyframes jl-nhun { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
 .jl-nv-ten { font-weight: 800; color: var(--ink-2); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
-.jl-bong { background: var(--surface-2, #f4f1fb); border-radius: 18px; padding: 14px 16px; min-height: 76px; display: flex; align-items: center; }
+.jl-bong { background: var(--surface-2, #edf8fb); border-radius: 18px; padding: 14px 16px; min-height: 76px; display: flex; align-items: center; }
 .jl-bong-chu { font-size: 16px; line-height: 1.5; text-align: left; }
 
 /* ---------------------------------------------------------------- lượt chơi (toàn màn hình) */
-.jl-chay { position: fixed; inset: 0; z-index: 70; background: var(--bg, #f7f5fd); display: flex; flex-direction: column; align-items: center; padding: 14px 16px 22px; overflow-y: auto; }
+.jl-chay { position: fixed; inset: 0; z-index: 70; background: var(--bg, #f5fbfd); display: flex; flex-direction: column; align-items: center; padding: 14px 16px 22px; overflow-y: auto; }
 .jl-chay > * { width: 100%; max-width: 560px; }
 .jl-chay-tren { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
 .jl-chay-tieu { text-align: center; font-size: 13px; color: var(--ink-2); font-weight: 650; margin: 4px 0 10px; }
@@ -140,7 +140,7 @@
 .jl-the-hoc {
   min-height: 300px; border-radius: 26px; background: var(--surface, #fff); box-shadow: 0 10px 30px rgba(40, 30, 90, .14);
   display: flex; align-items: center; justify-content: center; padding: 22px; cursor: pointer; outline: none;
-  border-top: 6px solid var(--m1, #6d3fd4);
+  border-top: 6px solid var(--m1, #285c6c);
 }
 .jl-the-mat { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; position: relative; }
 .jl-lon { font-size: 44px; font-weight: 800; line-height: 1.2; word-break: break-word; }
@@ -148,14 +148,14 @@
 .jl-lon.vi { font-size: 28px; }
 .jl-khung-han { font-size: 110px; line-height: 1.1; font-weight: 700; }
 .jl-nho-dong { font-size: 18px; color: var(--ink-2); }
-.jl-nghia { font-size: 21px; font-weight: 700; color: var(--m1, #6d3fd4); }
+.jl-nghia { font-size: 21px; font-weight: 700; color: var(--m1, #285c6c); }
 .jl-hv { font-size: 14px; color: var(--ink-2); }
 .jl-doc { font-size: 15px; color: var(--ink-2); }
 .jl-gt { font-size: 13px; color: var(--ink-2); max-width: 480px; line-height: 1.5; }
 .jl-vd { font-size: 17px; line-height: 1.6; margin-top: 4px; }
 .jl-vd-v { font-size: 13.5px; color: var(--ink-2); font-style: italic; }
 .jl-goi-y { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
-.jl-loa { border: none; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2, #f4f1fb); color: var(--m1, #6d3fd4); display: inline-grid; place-items: center; cursor: pointer; }
+.jl-loa { border: none; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2, #edf8fb); color: var(--m1, #285c6c); display: inline-grid; place-items: center; cursor: pointer; }
 .jl-loa svg { fill: currentColor; }
 .jl-loa.to { width: 84px; height: 84px; margin: 14px auto; background: linear-gradient(135deg, var(--m1), var(--m2)); color: #fff; box-shadow: 0 8px 20px rgba(60, 40, 160, .3); }
 .jl-diem { text-align: center; font-size: 13px; color: var(--ink-2); margin-top: 10px; }
@@ -164,18 +164,18 @@
 .jl-de { margin: 8px 0 16px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
 .jl-lenh { font-size: 14px; font-weight: 700; color: var(--ink-2); }
 .jl-cau { font-size: 24px; line-height: 1.7; font-weight: 600; word-break: break-word; }
-.jl-trong { display: inline-block; min-width: 3.4em; margin: 0 3px; border-bottom: 3px solid var(--m1, #6d3fd4); color: var(--m1, #6d3fd4); }
+.jl-trong { display: inline-block; min-width: 3.4em; margin: 0 3px; border-bottom: 3px solid var(--m1, #285c6c); color: var(--m1, #285c6c); }
 .jl-lc { display: grid; grid-template-columns: 1fr; gap: 10px; }
 @media (min-width: 560px) { .jl-lc { grid-template-columns: 1fr 1fr; } }
 .jl-lua {
   display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px 16px; border-radius: 16px; font-size: 16px; font-weight: 600;
-  border: 2px solid var(--line, #e7e2f4); background: var(--surface, #fff); color: var(--ink, #1a1430); cursor: pointer; transition: border-color .12s, background .12s, transform .1s;
+  border: 2px solid var(--line, #c7e2e9); background: var(--surface, #fff); color: var(--ink, #17313b); cursor: pointer; transition: border-color .12s, background .12s, transform .1s;
   min-height: 56px;
 }
-.jl-lua:hover:not(:disabled) { border-color: var(--m1, #6d3fd4); background: var(--surface-2, #f4f1fb); }
+.jl-lua:hover:not(:disabled) { border-color: var(--m1, #285c6c); background: var(--surface-2, #edf8fb); }
 .jl-lua:active:not(:disabled) { transform: scale(.985); }
 .jl-lua:disabled { cursor: default; }
-.jl-so { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line, #e7e2f4); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--ink-2); }
+.jl-so { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line, #c7e2e9); display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--ink-2); }
 .jl-lua-chu { flex: 1; min-width: 0; word-break: break-word; }
 .jl-lua.dung { border-color: #1fb26b; background: rgba(31, 178, 107, .14); }
 .jl-lua.dung .jl-so { background: #1fb26b; border-color: #1fb26b; color: #fff; }
@@ -189,7 +189,7 @@
 .jl-fb-tieude { font-size: 18px; font-weight: 800; }
 .jl-fb.dung .jl-fb-tieude { color: #148a52; }
 .jl-fb.sai .jl-fb-tieude { color: #c8323a; }
-.jl-fb-dap { font-size: 14px; line-height: 1.55; margin: 6px 0 10px; white-space: pre-line; color: var(--ink, #1a1430); }
+.jl-fb-dap { font-size: 14px; line-height: 1.55; margin: 6px 0 10px; white-space: pre-line; color: var(--ink, #17313b); }
 .jl-fb-nut { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .jl-bao { background: none; border: none; color: var(--ink-3); font-size: 12.5px; cursor: pointer; }
 .jl-bao:disabled { opacity: .5; }
@@ -198,8 +198,8 @@
 .jl-chay.ket-qua { justify-content: center; }
 .jl-kq { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 .jl-vong { width: 168px; height: 168px; border-radius: 50%; display: grid; place-items: center;
-  background: conic-gradient(var(--vong, #1fb26b) calc(var(--p) * 1%), var(--surface-3, #e9e4f7) 0); position: relative; animation: jl-nay .5s ease; }
-.jl-vong::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--bg, #f7f5fd); }
+  background: conic-gradient(var(--vong, #1fb26b) calc(var(--p) * 1%), var(--surface-3, #dceff4) 0); position: relative; animation: jl-nay .5s ease; }
+.jl-vong::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--bg, #f5fbfd); }
 .jl-vong b { position: relative; font-size: 40px; font-weight: 850; }
 .jl-vong.dat { --vong: #1fb26b; }
 .jl-vong.truot { --vong: #f0a030; }
@@ -209,7 +209,7 @@
 .jl-kq-phu { font-size: 14px; color: var(--ink-2); max-width: 420px; }
 .jl-sai { width: 100%; max-width: 480px; text-align: left; font-size: 13.5px; background: var(--surface, #fff); border-radius: 14px; padding: 8px 14px; }
 .jl-sai summary { cursor: pointer; font-weight: 700; }
-.jl-sai-dong { padding: 7px 0; border-top: 1px solid var(--line-soft, #f0ecf9); white-space: pre-line; line-height: 1.5; }
+.jl-sai-dong { padding: 7px 0; border-top: 1px solid var(--line-soft, #e3f1f5); white-space: pre-line; line-height: 1.5; }
 .jl-kq .jl-chay-nut { width: 100%; max-width: 420px; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -349,7 +349,7 @@
 .jl-the-hoc .the-dau { z-index: 3; }
 .jl-doc-khoi { display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .jl-doc { font-size: 16px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.jl-doc-nhan { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--m1, #6d3fd4); color: #fff; letter-spacing: .06em; }
+.jl-doc-nhan { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--m1, #285c6c); color: #fff; letter-spacing: .06em; }
 .jl-meo { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 8px; }
 .jl-chay-nut .jl-btn { white-space: nowrap; }
 
@@ -369,7 +369,7 @@
 /* ---------------------------------------------------------------- nút nhạc nền (cuối màn hình) */
 .jl-nhac {
   position: fixed; right: 22px; bottom: var(--jl-day, 18px); z-index: 85; width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer;
-  display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--m1, #6d3fd4), var(--m2, #a855f7));
+  display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--m1, #285c6c), var(--m2, #285c6c));
   box-shadow: 0 8px 22px rgba(40, 20, 120, .4); transition: transform .15s, opacity .2s;
 }
 .jl-nhac[hidden] { display: none; }
@@ -527,13 +527,13 @@ body.jlpt-toan .side { display: none; }
 .jl-nv-canh { flex: none; width: 104px; height: 104px; animation: jl-nv-vao .7s cubic-bezier(.2, 1.7, .4, 1) .15s backwards; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .35)); }
 @keyframes jl-nv-vao { 0% { transform: translateY(70px) scale(.4); opacity: 0; } 60% { transform: translateY(-10px) scale(1.05); opacity: 1; } 100% { transform: none; } }
 .jl-thoai .jl-bong {
-  flex: 1; min-width: 0; align-self: center; position: relative; cursor: pointer; background: rgba(255, 255, 255, .97); color: #1a1430;
+  flex: 1; min-width: 0; align-self: center; position: relative; cursor: pointer; background: rgba(255, 255, 255, .97); color: #17313b;
   border-radius: 18px; padding: 11px 14px 10px; box-shadow: 0 8px 22px rgba(0, 0, 0, .3); min-height: 0; display: flex; flex-direction: column; gap: 8px; align-items: stretch;
   animation: jl-bong-vao .5s cubic-bezier(.2, 1.5, .4, 1) .45s backwards; transform-origin: left center;
 }
 @keyframes jl-bong-vao { from { transform: scale(.2); opacity: 0; } to { transform: none; opacity: 1; } }
 .jl-thoai .jl-bong::before { content: ""; position: absolute; left: -7px; top: 50%; width: 16px; height: 16px; background: #fff; border-radius: 3px; transform: translateY(-50%) rotate(45deg); }
-.jl-thoai .jl-bong-chu { font-size: 14.5px; line-height: 1.45; color: #1a1430; text-align: left; }
+.jl-thoai .jl-bong-chu { font-size: 14.5px; line-height: 1.45; color: #17313b; text-align: left; }
 .jl-thoai .jl-bong-chu span { animation-delay: calc(.8s + var(--k, 0) * 24ms); }
 .jl-thoai .jl-btn { align-self: flex-end; padding: 7px 18px; font-size: 14px; }
 .jl-nv-ten { position: absolute; left: 14px; top: 10px; font-weight: 800; font-size: 12px; letter-spacing: .08em; color: #fff; text-transform: uppercase; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
@@ -558,11 +558,11 @@ body.jlpt-toan .side { display: none; }
 .jl-suutam .co { animation: jl-nay .6s cubic-bezier(.2, 1.6, .4, 1) backwards, jl-nhun 2.8s ease-in-out .6s infinite; }
 .jl-the-hoc:not(.dang-keo) .jl-the-mat { animation: jl-tho 4s ease-in-out infinite; }
 @keyframes jl-tho { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.012); } }
-.jl-khung-han { text-shadow: 0 6px 18px rgba(80, 40, 160, .22); }
+.jl-khung-han { text-shadow: 0 6px 18px rgba(40,92,108, .22); }
 .jl-loa.to { animation: jl-loa-nhip 1.8s ease-out infinite; }
 @keyframes jl-loa-nhip { 0% { box-shadow: 0 8px 20px rgba(60, 40, 160, .3), 0 0 0 0 rgba(120, 80, 220, .45); } 100% { box-shadow: 0 8px 20px rgba(60, 40, 160, .3), 0 0 0 22px rgba(120, 80, 220, 0); } }
 .jl-btn.chinh { animation: jl-btn-nhip 2.6s ease-in-out infinite; }
-@keyframes jl-btn-nhip { 0%, 100% { box-shadow: 0 6px 16px rgba(80, 40, 160, .28); } 50% { box-shadow: 0 8px 26px rgba(160, 90, 255, .55); } }
+@keyframes jl-btn-nhip { 0%, 100% { box-shadow: 0 6px 16px rgba(40,92,108, .28); } 50% { box-shadow: 0 8px 26px rgba(160, 90, 255, .55); } }
 .jl-vong.dat { animation: jl-nay .5s ease, jl-vong 1.1s cubic-bezier(.2, .8, .3, 1) both, jl-vong-sang 2.4s ease-in-out 1.4s infinite; }
 @keyframes jl-vong-sang { 0%, 100% { box-shadow: 0 10px 30px rgba(31, 178, 107, .25); } 50% { box-shadow: 0 10px 44px rgba(31, 178, 107, .6); } }
 .jl-st.co { animation: jl-sao-no .7s cubic-bezier(.2, 1.9, .4, 1) forwards, jl-st-lap 2.2s ease-in-out 1.8s infinite; }
@@ -572,7 +572,7 @@ body.jlpt-toan .side { display: none; }
 .jl-combo { animation: jl-combo-lua .7s ease-in-out infinite alternate; }
 @keyframes jl-combo-lua { from { transform: scale(1) rotate(-1.5deg); } to { transform: scale(1.07) rotate(1.5deg); } }
 .jl-combo.no { animation: jl-combo-no .5s cubic-bezier(.2, 1.8, .4, 1), jl-combo-lua .7s ease-in-out .5s infinite alternate; }
-.jl-tieude { background: linear-gradient(100deg, var(--ink, #1a1430) 30%, #7a4dff 50%, var(--ink, #1a1430) 70%); background-size: 240% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: jl-bong 6s linear infinite; }
+.jl-tieude { background: linear-gradient(100deg, var(--ink, #17313b) 30%, #7a4dff 50%, var(--ink, #17313b) 70%); background-size: 240% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: jl-bong 6s linear infinite; }
 .jl-chuong .jl-banner-ten { animation: jl-len .6s ease .3s backwards; }
 .jl-co { animation: jl-co 1.3s ease-in-out infinite; }
 
@@ -615,7 +615,7 @@ body.jlpt-toan .side { display: none; }
 /* nhật ký câu chuyện */
 .jl-nhatky { max-height: 80vh; }
 .jl-nk-ds { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; max-height: 58vh; }
-.jl-nk-chuong { position: sticky; top: 0; background: var(--surface, #fff); padding: 6px 0 4px; font-weight: 850; font-size: 13px; color: var(--m1, #6d3fd4); letter-spacing: .03em; }
+.jl-nk-chuong { position: sticky; top: 0; background: var(--surface, #fff); padding: 6px 0 4px; font-weight: 850; font-size: 13px; color: var(--m1, #285c6c); letter-spacing: .03em; }
 .jl-nk-dong { display: flex; gap: 8px; font-size: 14px; line-height: 1.5; }
 .jl-nk-nv { flex: none; }
 .jl-nghe-lai { align-self: flex-start; }
@@ -637,7 +637,7 @@ body.jlpt-toan .side { display: none; }
 .jl-bd-trong { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding-bottom: 110px; }
 .jl-bd.thu-gioi { }
 .jl-bd .jl-chuong { background: none; border-radius: 0; box-shadow: none; margin-top: 0; overflow: visible; display: flex; flex-direction: column; animation: none; }
-.jl-bd .jl-bd-dau { max-width: none; background: color-mix(in srgb, var(--bg, #f7f5fd) 82%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, .25); }
+.jl-bd .jl-bd-dau { max-width: none; background: color-mix(in srgb, var(--bg, #f5fbfd) 82%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, .25); }
 .jl-bd.leo-len .jl-chuong { flex-direction: column-reverse; }
 .jl-bd.leo-len .jl-bd-trong { display: flex; flex-direction: column-reverse; }
 .jl-ten-chuong {
@@ -713,6 +713,6 @@ body.jlpt-toan .side { display: none; }
 #scroller .jl-ten-chuong,
 #scroller .jl-bd > .jl-suutam,
 #scroller .jl-the-cap { -webkit-backdrop-filter: none; backdrop-filter: none; }
-#scroller .jl-bd .jl-bd-dau { background: var(--bg, #f7f5fd); }
+#scroller .jl-bd .jl-bd-dau { background: var(--bg, #f5fbfd); }
 #scroller .jl-ten-chuong { background: rgba(10, 12, 40, .86); }
 #scroller .jl-bd > .jl-suutam { background: rgba(10, 12, 40, .82); }

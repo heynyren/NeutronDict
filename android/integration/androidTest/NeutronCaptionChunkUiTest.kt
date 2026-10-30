@@ -8,6 +8,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.neutrondict.app.media.NeutronPastelTheme
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.text.style.TextDecoration
@@ -24,6 +26,9 @@ class NeutronCaptionChunkUiTest {
     private fun grouped(light:Boolean) {
         val app=InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("neutron_launcher",app.resources.getResourceEntryName(app.applicationInfo.icon))
+        assertEquals("RaKuLanG",app.applicationInfo.loadLabel(app.packageManager).toString())
+        NeutronPastelTheme.write(app,"blue")
+        assertEquals("blue",NeutronPastelTheme.read(app))
         studyPreferences(InstrumentationRegistry.getInstrumentation().targetContext).edit()
             .putString(APP_COLOR_THEME_PREFERENCE,if(light)"light" else "deep_teal").commit()
         val cue=CaptionDocumentParser.parse(
@@ -32,6 +37,7 @@ class NeutronCaptionChunkUiTest {
         val row=SubtitleSegment(0,1000,5000,cue.text,"Chúng tôi thực sự học mỗi ngày.",cue.words)
         var active by mutableStateOf(0)
         compose.setContent { DualSubTheme {
+            assertEquals(0xFF8BD4E6.toInt(),MaterialTheme.colorScheme.primary.toArgb())
             Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
                 CompactSubtitleCard(row,true,1f,{},activeWordIndex=active,
                     originalColor=MaterialTheme.colorScheme.onSurface,

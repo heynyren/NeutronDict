@@ -129,6 +129,31 @@ try{
   check("bấm nhạc liên tiếp trong lúc ghi không bị snapshot cũ đổi lại",
     await pc.evaluate(wanted=>JlptUI.trangThai().td.nhac===wanted,wanted));
 
+  // Một kết quả đọc bắt đầu trước cú bấm không được đổi lại lựa chọn đã lưu.
+  await pc.evaluate(()=>{
+    const original=chrome.storage.local.get.bind(chrome.storage.local);
+    window.__restoreJlptGet=original;let once=true;window.__staleReadHeld=false;
+    chrome.storage.local.get=async key=>{
+      const value=await original(key);
+      if(once && key==="jlpt"){once=false;window.__staleReadHeld=true;await new Promise(r=>{window.__releaseJlptRead=r;});}
+      return value;
+    };
+    window.__staleJlptRefresh=JlptUI.lamMoi(true);
+  });
+  await pc.waitForFunction(()=>window.__staleReadHeld);
+  const afterSlowRead=await pc.evaluate(async()=>{
+    const wanted=!JlptUI.trangThai().td.nhac;
+    document.querySelector(".jl-nhac").click();
+    await suaSoTay(async()=>{});
+    window.__releaseJlptRead();await window.__staleJlptRefresh;
+    chrome.storage.local.get=window.__restoreJlptGet;
+    return wanted;
+  });
+  check("kết quả đọc cũ không đổi lại lựa chọn nhạc vừa ghi",
+    await pc.evaluate(async wanted=>JlptUI.trangThai().td.nhac===wanted &&
+      (await chrome.storage.local.get("jlpt")).jlpt.nhac===wanted &&
+      document.querySelector(".jl-nhac").classList.contains("tat")===!wanted,afterSlowRead));
+
   // Học trên một màn đang giữ snapshot cũ sau khi cloud nhận chặng mới.
   const stale=await phone.evaluate(()=>JlptUI.trangThai().td);
   await pc.evaluate(async()=>{

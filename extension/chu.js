@@ -33,6 +33,7 @@
   function bang() { return goc.CHU_BANG || { en: {}, ja: {} }; }
 
   let ma = "vi";
+  const normalizedTables = new WeakMap();
 
   function hopLe(x) { return DS.indexOf(x) >= 0 ? x : "vi"; }
 
@@ -41,7 +42,14 @@
     if (ma === "vi") return vi;
     const b = bang()[ma];
     const k = String(vi == null ? "" : vi);
-    return (b && b[k]) || k;
+    if (!b) return k;
+    if (b[k]) return b[k];
+    let normalized=normalizedTables.get(b);
+    if (!normalized) {
+      normalized=Object.fromEntries(Object.entries(b).map(([key,value])=>[key.replace(/\s+/g," ").trim(),value]));
+      normalizedTables.set(b,normalized);
+    }
+    return normalized[k.replace(/\s+/g," ").trim()] || k;
   }
 
   /**
@@ -107,9 +115,11 @@
 
   /** Đổi ngôn ngữ giao diện và vẽ lại. */
   function dat(x, root) {
+    const before=ma;
     ma = hopLe(x);
     try { document.documentElement.lang = ma; } catch (e) { /* không có DOM thì thôi */ }
     ve(root);
+    if(before!==ma && goc.dispatchEvent && typeof CustomEvent!=="undefined") goc.dispatchEvent(new CustomEvent("rakulang-language",{detail:ma}));
     return ma;
   }
 

@@ -1,5 +1,5 @@
 /**
- * Trang Sổ tay NeutronDict.
+ * Trang Sổ tay RaKuLanG.
  *
  * Hai màn dùng chung một cột điều khiển bên trái:
  *   · Sổ tay  — danh sách mục đã lưu, sửa bản dịch, ghi chú, phân sổ con
@@ -4169,7 +4169,7 @@ function setStatus(t) { $("syncStatus").textContent = t; }
  * Mỗi ngôn ngữ một cloud riêng, đúng như hồi còn là hai extension.
  *
  * Cặp khoá của tiếng Anh giữ nguyên tên cũ ("syncUrl"/"syncToken"), nên người
- * đang dùng NeutronDict không phải khai lại gì — cloud tiếng Anh chạy tiếp y
+ * đang dùng RaKuLanG không phải khai lại gì — cloud tiếng Anh chạy tiếp y
  * như trước. Tiếng Nhật dùng cặp mới, khai một lần.
  */
 async function loadConfig() {
@@ -4738,7 +4738,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
  * `<span class="lb" data-chu>`. Xem chu.js.
  */
 function gaiIcon() {
-  $("brandMark").innerHTML = '<img src="icons/icon48.png" alt="NeutronDict" width="28" height="28" style="display:block;object-fit:contain">';
+  $("brandMark").innerHTML = '<img src="icons/icon48.png" alt="RaKuLanG" width="28" height="28" style="display:block;object-fit:contain">';
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });
@@ -4998,7 +4998,7 @@ function veNgu() {
   // Hướng dẫn đọc IPA chỉ có nghĩa với tiếng Anh.
   const ipa = $("ipaGuide");
   if (ipa) ipa.style.display = NGU === "ja" ? "none" : "";
-  document.title = (NGU === "ja" ? T("Sổ tay Nhật – Việt") : T("Sổ tay Anh – Việt")) + " · NeutronDict";
+  document.title = (NGU === "ja" ? T("Sổ tay Nhật – Việt") : T("Sổ tay Anh – Việt")) + " · RaKuLanG";
 }
 
 async function doiNgu(ngu) {
@@ -5023,7 +5023,12 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
 
 (async () => {
   gaiIcon();
-  await napChu();      // sau gaiIcon: nhãn do nó dựng ra mới có mặt để dịch
+  await napChu();
+  await RaKuPastel.start({
+    read: async () => (await chrome.storage.local.get("pastelTheme")).pastelTheme,
+    write: key => chrome.storage.local.set({pastelTheme:key})
+  });
+      // sau gaiIcon: nhãn do nó dựng ra mới có mặt để dịch
   const { settings } = await chrome.storage.local.get("settings");
   NGU = window.Ngu.hopLe((settings || {}).ngu);
   nguSanSang();

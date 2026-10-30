@@ -1,6 +1,7 @@
 /* One listening request at a time. Native playback reuses DualSub's one player. */
 (function(g){
 "use strict";
+const t=s=>g.T?g.T(s):s, t2=(s,v)=>g.T2?g.T2(s,v):s.replace(/\{(\w+)\}/g,(_,k)=>v[k]??"");
 let generation=0,active=false,stopping=Promise.resolve();
 const native=()=>g.Capacitor?.Plugins?.NeutronMedia;
 function cancel(){
@@ -35,8 +36,8 @@ async function play(item,options){
     clip=g.NeutronMediaImport?.sentenceYouTube(item,cache);
   }
   if(!clip || !native()?.playYouTubeSentence)
-    return tts(clip?"TTS · "+options.rate+"×":"TTS · chưa có mốc âm thanh gốc khớp toàn câu");
-  status("YouTube gốc · "+options.rate+"× · đang mở đoạn câu…");
+    return tts(clip?"TTS · "+options.rate+"×":t("TTS · chưa có mốc âm thanh gốc khớp toàn câu"));
+  status(t2("YouTube gốc · {rate}× · đang mở đoạn câu…",{rate:options.rate}));
   let result;
   const began=g.performance?.now() ?? Date.now();
   try{result=await native().playYouTubeSentence({...clip,rate:options.rate});}
@@ -44,16 +45,16 @@ async function play(item,options){
   finally{if(current())options.excludeWait?.(Math.max(0,(g.performance?.now() ?? Date.now())-began));}
   if(!current())return {kind:"cancelled"};
   if(result?.status==="completed"){
-    status("Đã nghe YouTube gốc · "+options.rate+"×");
+    status(t2("Đã nghe YouTube gốc · {rate}×",{rate:options.rate}));
     return {kind:"youtube"};
   }
   if(result?.status==="cancelled" || result?.status==="interrupted"){
-    status("Đã dừng đoạn YouTube · bấm Nghe để phát lại");
+    status(t("Đã dừng đoạn YouTube · bấm Nghe để phát lại"));
     return {kind:"cancelled"};
   }
   return tts(result?.reason==="setup"
-    ? "TTS · mở YouTube một lần để hoàn tất thiết lập nghe giọng gốc"
-    : "Chưa phát được YouTube gốc · đang dùng TTS "+options.rate+"×");
+    ? t("TTS · mở YouTube một lần để hoàn tất thiết lập nghe giọng gốc")
+    : t2("Chưa phát được YouTube gốc · đang dùng TTS {rate}×",{rate:options.rate}));
 }
 g.StudyListening={play,cancel};
 })(window);

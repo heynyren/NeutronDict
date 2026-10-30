@@ -280,7 +280,7 @@
       suuTam: ["🍙", "🌲", "💧", "🪨", "🧭", "🔥", "☁️", "🧣", "🌅"],
       thoai: {
         batDau: ["Chào bạn! Mình là Taro. Nghe nói ai lên được đỉnh Phú Sĩ lúc bình minh sẽ thi đỗ JLPT N3 đó!",
-                 "Đường lên có 9 trạm. Qua mỗi chặng phải đạt từ 60% trở lên thì mới được đi tiếp. Mình đi cùng bạn nhé!"],
+                 "Đường lên có 9 trạm. Bạn có thể chọn bất kỳ chặng nào; hoàn thành hết các chặng để mở bài kiểm tra cuối. Mình đi cùng bạn nhé!"],
         chuong: {
           1: "Trạm đầu tiên ở chân núi. Hít một hơi thật sâu — chữ Hán đầu tiên đang đợi bạn.",
           2: "Rừng tùng mù sương quá! Đừng lo, từng từ một thôi, đường sẽ hiện ra.",
@@ -329,7 +329,7 @@
       suuTam: ["🐚", "🌿", "⚓", "🦀", "🔦", "🐠", "🐙", "🫧", "🪸"],
       thoai: {
         batDau: ["Ahoy! Mình là Kai, rái cá lặn của Okinawa. Dưới đáy biển có một viên ngọc trai khổng lồ, ai tìm được sẽ đỗ JLPT N2!",
-                 "Mình sẽ lặn xuống từng tầng. Mỗi chặng phải đạt từ 60% mới được xuống tiếp. Sẵn sàng chưa?"],
+                 "Bạn có thể chọn bất kỳ tầng nào. Hoàn thành hết các chặng để mở bài kiểm tra cuối. Sẵn sàng chưa?"],
         chuong: {
           1: "Nước ấm và trong vắt. Rạn san hô nông nhiều đồ lắm, nhặt cẩn thận nhé!",
           2: "Rừng tảo bẹ đung đưa… đừng để bị quấn vào chân nào.",

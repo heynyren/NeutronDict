@@ -1,4 +1,4 @@
-# NeutronDict
+# RaKuLanG
 
 Từ điển & dịch **Anh – Việt**: tra từ khi bôi đen trên web/PDF, phiên âm **IPA** kèm hướng dẫn đọc, phát âm, định nghĩa & ví dụ tiếng Anh, sổ tay, ôn tập **SRS**, đồng bộ **Google Drive**. Gồm **extension máy tính** và **app Android**.
 
@@ -84,3 +84,6 @@ Android thì phải chạy được khi mất mạng.
 ## Giấy phép
 
 [MIT](LICENSE).
+
+## Tên và giao diện mới
+RaKuLanG là tên hiển thị mới của NeutronDict. Đổi màu tại **Cài đặt → Màu giao diện**; có 6 tông pastel, tự lưu trên máy. Không cần tạo lại sổ tay hay cấu hình đồng bộ. Kho GitHub và applicationId giữ nguyên để tiếp tục cập nhật dữ liệu hiện có.

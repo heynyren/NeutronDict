@@ -3,11 +3,11 @@
    Làm 3 việc:
    1. Chép native/MainActivity.java (nhận chữ từ menu bôi đen + nội dung Chia sẻ).
    2. Thêm 2 activity-alias vào AndroidManifest.xml:
-        - "Tra bằng NeutronDict"  (ACTION_PROCESS_TEXT) — menu bôi đen.
-        - "Lưu vào NeutronDict"   (ACTION_SEND)        — hiện trong bảng Chia sẻ, nhận cả link.
+        - "Tra bằng RaKuLanG"  (ACTION_PROCESS_TEXT) — menu bôi đen.
+        - "Lưu vào RaKuLanG"   (ACTION_SEND)        — hiện trong bảng Chia sẻ, nhận cả link.
    3. Khai quyền RECORD_AUDIO + MODIFY_AUDIO_SETTINGS — cần cho nút ghi âm
       đọc theo (shadowing). Thiếu quyền thứ hai là micro chết dù đã cho phép.
-   4. Đổi tên hiển thị app thành NeutronDict trong strings.xml. */
+   4. Đổi tên hiển thị app thành RaKuLanG trong strings.xml. */
 const fs = require("fs");
 const path = require("path");
 
@@ -35,7 +35,7 @@ if (!man.includes("PROCESS_TEXT")) {
         <activity-alias
             android:name=".ProcessTextActivity"
             android:targetActivity=".MainActivity"
-            android:label="Tra bằng NeutronDict"
+            android:label="@string/rakulang_process_text"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_TEXT" />
@@ -45,7 +45,7 @@ if (!man.includes("PROCESS_TEXT")) {
         </activity-alias>
 `;
   man = man.replace("</application>", alias + "    </application>");
-  console.log("✓ Đã thêm mục 'Tra bằng NeutronDict' vào menu bôi đen (AndroidManifest)");
+  console.log("✓ Đã thêm mục 'Tra bằng RaKuLanG' vào menu bôi đen (AndroidManifest)");
 } else {
   console.log("• AndroidManifest đã có PROCESS_TEXT — bỏ qua");
 }
@@ -56,7 +56,7 @@ if (!man.includes(".ShareActivity")) {
         <activity-alias
             android:name=".ShareActivity"
             android:targetActivity=".MainActivity"
-            android:label="Lưu vào NeutronDict"
+            android:label="@string/rakulang_share"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -66,7 +66,7 @@ if (!man.includes(".ShareActivity")) {
         </activity-alias>
 `;
   man = man.replace("</application>", shareAlias + "    </application>");
-  console.log("✓ Đã thêm mục 'Lưu vào NeutronDict' vào bảng Chia sẻ (AndroidManifest)");
+  console.log("✓ Đã thêm mục 'Lưu vào RaKuLanG' vào bảng Chia sẻ (AndroidManifest)");
 } else {
   console.log("• AndroidManifest đã có ShareActivity — bỏ qua");
 }
@@ -113,7 +113,18 @@ if (fs.existsSync(STRINGS)) {
   st = st.replace(/(<string name="app_name">)[^<]*(<\/string>)/, "$1NeutronDict$2");
   st = st.replace(/(<string name="title_activity_main">)[^<]*(<\/string>)/, "$1NeutronDict$2");
   fs.writeFileSync(STRINGS, st);
-  console.log("✓ Đã đổi tên hiển thị thành NeutronDict (strings.xml)");
+  console.log("✓ Đã đổi tên hiển thị thành RaKuLanG (strings.xml)");
 }
 
 console.log("\nXong. Tiếp theo: npx @capacitor/assets generate --android   (đổi icon)\nrồi: cd android && gradlew assembleDebug");
+
+const shellLabels = {
+  "": ["Tra bằng RaKuLanG", "Lưu vào RaKuLanG"],
+  "-en": ["Look up with RaKuLanG", "Save to RaKuLanG"],
+  "-ja": ["RaKuLanGで検索", "RaKuLanGに保存"]
+};
+for(const [suffix,labels] of Object.entries(shellLabels)){
+  const dir=path.join("android","app","src","main","res","values"+suffix);
+  fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(path.join(dir,"rakulang-shell.xml"),'<?xml version="1.0" encoding="utf-8"?><resources><string name="rakulang_process_text">'+labels[0]+'</string><string name="rakulang_share">'+labels[1]+'</string></resources>');
+}
