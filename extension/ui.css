@@ -26,24 +26,26 @@
    -------------------------------------------------------------------------- */
 :root {
   /* Nền và mặt giấy */
-  --bg: #f7f5fd;
+  --bg: #f5fbfd;
   --surface: #ffffff;
-  --surface-2: #f4f1fb;
-  --surface-3: #e9e4f7;
-  --line: #e7e2f4;
-  --line-soft: #f0ecf9;
+  --surface-2: #edf8fb;
+  --surface-3: #dceff4;
+  --line: #c7e2e9;
+  --line-soft: #e3f1f5;
 
   /* Chữ */
-  --ink: #1a1430;
-  --ink-2: rgba(26,20,48,.68);
-  --ink-3: rgba(26,20,48,.45);
+  --ink: #17313b;
+  --ink-2: rgba(23,49,59,.68);
+  --ink-3: rgba(23,49,59,.45);
 
   /* Màu nhấn — một cặp để chuyển sắc, dùng cho thứ đang được chọn */
-  --accent: #6d3fd4;
-  --accent-2: #a855f7;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(109,63,212,.10);
-  --accent-line: rgba(109,63,212,.24);
+  --accent: #285c6c;
+  --accent-2: #285c6c;
+  --accent-ink: #17313b;
+  --accent-fill: #8bd4e6;
+  --accent-fill-2: #b0e1ed;
+  --accent-soft: rgba(40,92,108,.10);
+  --accent-line: rgba(40,92,108,.24);
 
   /* Màu "thưởng" — chuỗi ngày, huy hiệu, mốc đạt được.
      Tách hẳn khỏi màu nhấn: màu nhấn nói "cái này đang chọn", màu thưởng nói
@@ -77,9 +79,9 @@
   --sh-1: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   --sh-2: 0 2px 4px rgba(16, 24, 40, 0.04), 0 8px 20px rgba(16, 24, 40, 0.08);
   --sh-pop: 0 8px 16px rgba(16, 24, 40, 0.08), 0 24px 56px rgba(16, 24, 40, 0.18);
-  --sh-accent: 0 4px 14px rgba(109,63,212,.28);
+  --sh-accent: 0 4px 14px rgba(40,92,108,.28);
 
-  --grad: linear-gradient(135deg, var(--accent), var(--accent-2));
+  --grad: linear-gradient(135deg, var(--accent-fill), var(--accent-fill-2));
   --grad-spark: linear-gradient(135deg, var(--spark), var(--spark-2));
 }
 
@@ -91,10 +93,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #100c1c;
-    --surface: #191428;
-    --surface-2: #221b35;
-    --surface-3: #2e2545;
+    --bg: #0c171e;
+    --surface: #12212a;
+    --surface-2: #1b2f39;
+    --surface-3: #2c414c;
     --line: rgba(255, 255, 255, 0.09);
     --line-soft: rgba(255, 255, 255, 0.06);
 
@@ -102,10 +104,10 @@
     --ink-2: rgba(238, 242, 250, 0.72);
     --ink-3: rgba(238, 242, 250, 0.44);
 
-    --accent: #b48cff;
-    --accent-2: #d9a6ff;
-    --accent-soft: rgba(180,140,255,.16);
-    --accent-line: rgba(180,140,255,.3);
+    --accent: #8bd4e6;
+    --accent-2: #b0e1ed;
+    --accent-soft: rgba(139,212,230,.16);
+    --accent-line: rgba(139,212,230,.3);
 
     --spark: #2fd6b6;
     --spark-2: #6ee7d2;
@@ -1321,3 +1323,24 @@ table.sodo tr.thieu td { opacity: .45; }
 .dien-o.nhac { animation: dien-nhac .4s ease-out; }
 @keyframes dien-nhac { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 45% { transform: translateX(6px); } 70% { transform: translateX(-3px); } }
 @media (prefers-reduced-motion: reduce) { .dien-o.nhac { animation: none; } }
+
+/* Pastel backgrounds use dark ink; links retain a readable darker shade. */
+.pastel-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.pastel-choice{display:flex;align-items:center;gap:8px;min-height:48px;padding:9px 11px;border:2px solid var(--line);border-radius:14px;cursor:pointer;background:var(--surface);font-size:13px;position:relative}
+.pastel-choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.pastel-choice:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.pastel-choice input{position:absolute;opacity:0;width:1px;height:1px;padding:0}
+.pastel-swatch{width:22px;height:22px;border-radius:50%;border:1px solid #17313b30;flex:none}
+
+/* RaKuLanG: consistent Material-style chrome, existing navigation and order. */
+:root{--r-xs:8px;--r-sm:12px;--r-md:16px;--r-lg:20px;--sh-1:0 1px 2px #0c243008;--sh-2:0 3px 12px #0c24300c;--grad:var(--accent-fill)}
+.card{border:1px solid var(--line-soft);box-shadow:none}
+.btn{font-weight:600;letter-spacing:0}
+.btn.primary,.btn.primary:hover{box-shadow:none}
+input,select,textarea{box-shadow:none}
+details.box{border:1px solid var(--line-soft);box-shadow:none;border-radius:16px}
+details.box>summary{font-weight:600}
+.pastel-choice{border-width:1px}
+.pastel-choice:has(input:checked){box-shadow:inset 0 0 0 1px var(--accent)}
+.brand .mark,.brandrow .mark{background:var(--accent-soft);box-shadow:none}
+@media(pointer:coarse){.pastel-choice{min-height:48px}.btn:not(.xs){min-height:44px}}

@@ -27,6 +27,8 @@
  */
 "use strict";
 (function (root) {
+  const t=s=>root.T?root.T(s):s;
+  const t2=(s,v)=>root.T2?root.T2(s,v):s.replace(/\{(\w+)\}/g,(_,k)=>v[k]??"");
 
   const NGAY = 86400000;
   const MUC_TIEU_MAC_DINH = 20;
@@ -475,7 +477,7 @@
   const el = (tag, cls, chu) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
-    if (chu != null) e.textContent = chu;
+    if (chu != null) e.textContent = t(chu);
     return e;
   };
 
@@ -497,22 +499,22 @@
     ring.style.setProperty("--p", String(Math.round(view.homNay.ti * 100)));
     const val = el("div", "val");
     val.appendChild(el("b", null, String(view.homNay.on)));
-    val.appendChild(el("span", null, "/ " + view.goal + " lượt"));
+    val.appendChild(el("span", null, "/ " + t2("{n} lượt",{n:view.goal})));
     ring.appendChild(val);
     hang.appendChild(ring);
 
     const ben = el("div", "grow");
     const tieu = el("div", "t-lead");
     tieu.textContent = view.homNay.dat
-      ? "Xong mục tiêu hôm nay"
-      : "Còn " + view.homNay.conLai + " lượt nữa là đạt";
+      ? t("Xong mục tiêu hôm nay")
+      : t2("Còn {n} lượt nữa là đạt",{n:view.homNay.conLai});
     ben.appendChild(tieu);
 
     const phu = el("div", "t-small muted");
     phu.style.marginTop = "2px";
     phu.textContent = view.homNay.dat
-      ? "Ôn thêm bao nhiêu cũng được, chuỗi ngày đã tính rồi."
-      : "Mỗi lượt ôn trong tab Học đều được tính vào đây.";
+      ? t("Ôn thêm bao nhiêu cũng được, chuỗi ngày đã tính rồi.")
+      : t("Mỗi lượt ôn trong tab Học đều được tính vào đây.");
     ben.appendChild(phu);
 
     const bar = el("div", "bar" + (view.homNay.dat ? " spark" : ""));
@@ -535,9 +537,9 @@
       s.appendChild(el("span", null, chu));
       return s;
     };
-    dong.appendChild(bit("check", view.homNay.nho + " nhớ", "var(--good)"));
-    dong.appendChild(bit("arrow-counter-clockwise", view.homNay.quen + " ôn lại", "var(--ink-3)"));
-    if (view.homNay.luu) dong.appendChild(bit("plus", view.homNay.luu + " mục mới", "var(--ink-3)"));
+    dong.appendChild(bit("check", t2("{n} nhớ",{n:view.homNay.nho}), "var(--good)"));
+    dong.appendChild(bit("arrow-counter-clockwise", t2("{n} ôn lại",{n:view.homNay.quen}), "var(--ink-3)"));
+    if (view.homNay.luu) dong.appendChild(bit("plus", t2("{n} mục mới",{n:view.homNay.luu}), "var(--ink-3)"));
     ben.appendChild(dong);
 
     hang.appendChild(ben);
@@ -571,7 +573,7 @@
       nhac.style.cssText = "margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:600";
       nhac.appendChild(icon("warning-circle", { size: 17 }));
       nhac.appendChild(el("span", "grow",
-        "Chuỗi " + view.chuoi.hienTai + " ngày đang treo — ôn đủ " + view.goal + " lượt hôm nay là giữ được."));
+        t2("Chuỗi {days} ngày đang treo — ôn đủ {goal} lượt hôm nay là giữ được.",{days:view.chuoi.hienTai,goal:view.goal})));
       card.appendChild(nhac);
     }
     return card;
@@ -607,7 +609,7 @@
         : d.on >= view.goal * 0.3 ? 2 : 1;
       o.dataset.lv = String(muc);
       if (d.on >= view.goal) o.dataset.goal = "1";
-      o.title = ngayVi(d.ngay) + " — " + d.on + " lượt ôn";
+      o.title = ngayVi(d.ngay) + " — " + t2("{n} lượt",{n:d.on});
       cot.appendChild(o);
       trongCot += 1;
     }
@@ -638,7 +640,7 @@
 
     const eb = el("div", "eyebrow");
     eb.appendChild(icon("medal-military", { size: 15 }));
-    eb.appendChild(el("span", null, "Huy hiệu " + daCo + "/" + HUY_HIEU.length));
+    eb.appendChild(el("span", null, t2("Huy hiệu {n}/{total}",{n:daCo,total:HUY_HIEU.length})));
     card.appendChild(eb);
 
     const ds = HUY_HIEU.slice().sort((a, b) => {
@@ -692,7 +694,7 @@
     card.appendChild(eb);
 
     const p = el("div", "t-small muted");
-    p.textContent = "Ôn đủ số lượt này là ngày đó được tính vào chuỗi. Đặt vừa sức thôi — chuỗi dài quan trọng hơn con số to.";
+    p.textContent = t("Ôn đủ số lượt này là ngày đó được tính vào chuỗi. Đặt vừa sức thôi — chuỗi dài quan trọng hơn con số to.");
     p.style.marginBottom = "12px";
     card.appendChild(p);
 
@@ -706,7 +708,7 @@
     hang.appendChild(inp);
 
     const nut = el("button", "btn primary");
-    nut.innerHTML = (root.Icon ? root.Icon("check", { size: 17 }) : "") + '<span class="lb">Lưu mục tiêu</span>';
+    nut.innerHTML = (root.Icon ? root.Icon("check", { size: 17 }) : "") + '<span class="lb">' + t("Lưu mục tiêu") + '</span>';
     nut.addEventListener("click", async () => {
       await theoDoi.datMucTieu(parseInt(inp.value, 10));
       veLai();
@@ -805,7 +807,7 @@
     card.appendChild(giay);
 
     card.appendChild(el("div", "kicker",
-      ds.length > 1 ? "Mở khoá " + ds.length + " huy hiệu!" : "Mở khoá huy hiệu!"));
+      ds.length > 1 ? t2("Mở khoá {n} huy hiệu!",{n:ds.length}) : t("Mở khoá huy hiệu!")));
 
     const khoi = el("div", "cel-badges" + (ds.length > 1 ? " many" : ""));
     ds.forEach((hh, i) => {
@@ -821,7 +823,7 @@
     card.appendChild(khoi);
 
     const nut = el("button", "btn primary block lg");
-    nut.innerHTML = (root.Icon ? root.Icon("sparkle", { size: 18 }) : "") + '<span class="lb">Tuyệt vời, học tiếp thôi!</span>';
+    nut.innerHTML = (root.Icon ? root.Icon("sparkle", { size: 18 }) : "") + '<span class="lb">' + t("Tuyệt vời, học tiếp thôi!") + '</span>';
     card.appendChild(nut);
 
     const dong = () => {

@@ -33,6 +33,8 @@
   function bang() { return goc.CHU_BANG || { en: {}, ja: {} }; }
 
   let ma = "vi";
+  const normalizedTables = new WeakMap();
+  const extraText = new WeakMap();
 
   function hopLe(x) { return DS.indexOf(x) >= 0 ? x : "vi"; }
 
@@ -41,7 +43,14 @@
     if (ma === "vi") return vi;
     const b = bang()[ma];
     const k = String(vi == null ? "" : vi);
-    return (b && b[k]) || k;
+    if (!b) return k;
+    if (b[k]) return b[k];
+    let normalized=normalizedTables.get(b);
+    if (!normalized) {
+      normalized=Object.fromEntries(Object.entries(b).map(([key,value])=>[key.replace(/\s+/g," ").trim(),value]));
+      normalizedTables.set(b,normalized);
+    }
+    return normalized[k.replace(/\s+/g," ").trim()] || k;
   }
 
   /**
@@ -94,6 +103,12 @@
       const truoc = nut.nodeValue.match(/^\s*/)[0];
       const sau = nut.nodeValue.match(/\s*$/)[0];
       nut.nodeValue = truoc + T(el.dataset.chuGoc) + sau;
+      // Mixed UI markup can have several direct text nodes around bold text/icons.
+      Array.from(el.childNodes).filter(n=>n.nodeType===3&&n!==nut&&n.nodeValue.trim()).forEach(n=>{
+        if(!extraText.has(n))extraText.set(n,n.nodeValue.trim());
+        const before=n.nodeValue.match(/^\s*/)[0],after=n.nodeValue.match(/\s*$/)[0];
+        n.nodeValue=before+T(extraText.get(n))+after;
+      });
     });
     r.querySelectorAll("[data-chu-ph]").forEach(function (el) {
       if (el.dataset.chuPhGoc === undefined) el.dataset.chuPhGoc = el.placeholder || "";
@@ -107,9 +122,11 @@
 
   /** Đổi ngôn ngữ giao diện và vẽ lại. */
   function dat(x, root) {
+    const before=ma;
     ma = hopLe(x);
     try { document.documentElement.lang = ma; } catch (e) { /* không có DOM thì thôi */ }
     ve(root);
+    if(before!==ma && goc.dispatchEvent && typeof CustomEvent!=="undefined") goc.dispatchEvent(new CustomEvent("rakulang-language",{detail:ma}));
     return ma;
   }
 

@@ -37,13 +37,14 @@
     if (onClick) b.addEventListener("click", onClick);
     return b;
   }
-  let luuDang = 0;
+  let luuDang = 0, banGhi = 0;
   const luu = async () => {
-    luuDang++;
+    luuDang++; banGhi++;
     try {
       const saved = await A.ghi(TD.chuan(td));
       // Giữ cả thao tác mới hơn trong UI nếu một lượt ghi trước vừa hoàn tất.
       if (saved) td = TD.tron(td, saved);
+      veNutNhac();
     } finally { luuDang--; }
   };
 
@@ -178,10 +179,12 @@
   /** Gọi mỗi lần người dùng mở màn này (dữ liệu có thể vừa được đồng bộ từ máy khác). */
   async function lamMoi(chiKhiDoi) {
     if (!A) return;
+    const truoc = banGhi, dangGhi = luuDang > 0;
     const fresh = TD.chuan(await A.doc());
-    const next = luuDang ? TD.tron(td, fresh) : TD.tron(fresh, td);
-    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) return;
+    const next = dangGhi || luuDang || banGhi !== truoc ? TD.tron(td, fresh) : TD.tron(fresh, td);
+    if (chiKhiDoi && JSON.stringify(next) === JSON.stringify(td)) { veNutNhac(); return; }
     td = next;
+    veNutNhac();
     // Chỉ gộp dữ liệu khi đang làm bài/đọc thoại; giữ nguyên câu và popup đang xem.
     if (luuDang || chay || root.querySelector(".jl-thoai, .jl-lop")) return;
     if (monId && mon) { veBanDo(false); capNhatNhac(); } else veChonMan();
@@ -464,7 +467,7 @@
       const xongCh = g.ds.filter((c) => TD.daXong(td, monId, c.id)).length;
       // tấm bảng tên nổi (không còn banner tách rời): cảnh nền liền một mạch phía sau
       const bang = el("div", "jl-ten-chuong");
-      bang.appendChild(el("span", null, g.ten));
+      bang.appendChild(el("span", null, T(g.ten)));
       bang.appendChild(el("small", null, xongCh + "/" + g.ds.length));
       sec.appendChild(bang);
 
@@ -568,9 +571,9 @@
     const them = (lines, ci) => {
       if (ci !== chuongCuoi) {
         chuongCuoi = ci;
-        ds.appendChild(el("div", "jl-nk-chuong", ci < 0 ? th.trum.ten : th.chuong[ci].ten));
+        ds.appendChild(el("div", "jl-nk-chuong", T(ci < 0 ? th.trum.ten : th.chuong[ci].ten)));
       }
-      lines.forEach((l) => { const r = el("div", "jl-nk-dong"); r.appendChild(el("span", "jl-nk-nv", th.nhanVat.emoji)); r.appendChild(el("span", null, l)); ds.appendChild(r); n++; });
+      lines.forEach((l) => { const r = el("div", "jl-nk-dong"); r.appendChild(el("span", "jl-nk-nv", th.nhanVat.emoji)); r.appendChild(el("span", null, T(l))); ds.appendChild(r); n++; });
     };
     if (truyen && TD.monCua(td, monId).thoai.batDau) them(truyen.batDau || [], 0);
     chang.forEach((c) => { if (daKe(c)) them(doanTruyen(c), c.ci); });
@@ -655,14 +658,14 @@
     const hien = () => {
       clearTimeout(hen);
       van.textContent = ""; van.classList.remove("xong");
-      Array.from(ds[i]).forEach((ch, k) => {
+      Array.from(T(ds[i])).forEach((ch, k) => {
         const sp = el("span", null, ch);
         sp.style.animationDelay = (i ? 80 : 850) + Math.min(k * 24, 2600) + "ms";
         van.appendChild(sp);
       });
       // nhân vật mở/ngậm miệng trong lúc chữ còn đang hiện
       nv.classList.add("noi");
-      hen = setTimeout(() => nv.classList.remove("noi"), (i ? 80 : 850) + Math.min(ds[i].length * 24, 2600) + 200);
+      hen = setTimeout(() => nv.classList.remove("noi"), (i ? 80 : 850) + Math.min(T(ds[i]).length * 24, 2600) + 200);
       bt.textContent = i < ds.length - 1 ? T("Tiếp") : T("Đi thôi!");
     };
     bong.addEventListener("click", (e) => { if (e.target !== bt) { van.classList.add("xong"); nv.classList.remove("noi"); } });

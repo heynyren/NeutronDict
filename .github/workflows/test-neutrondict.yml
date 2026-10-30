@@ -1,4 +1,4 @@
-name: Test NeutronDict
+name: Test RaKuLanG
 
 on:
   push:
@@ -56,13 +56,24 @@ jobs:
         run: |
           node kiem-tra/web-context-giao-dien.mjs "$GITHUB_WORKSPACE/extension"
           node kiem-tra/yt-source-giao-dien.mjs "$GITHUB_WORKSPACE/extension"
+      - name: Run priority UI and playback regressions
+        shell: bash
+        run: |
+          failed=0
+          for file in kiem-tra/rakulang-ui-giao-dien.mjs kiem-tra/jlpt-dong-bo-giao-dien.mjs kiem-tra/jlpt.mjs kiem-tra/youtube-background-ad.mjs; do
+            echo "::group::$file"
+            timeout 300s node "$file" "$GITHUB_WORKSPACE/extension" || failed=1
+            echo "::endgroup::"
+          done
+          exit "$failed"
+
       - name: Run browser tests
         shell: bash
         run: |
           set -u
           failed=0
           for file in kiem-tra/*.mjs; do
-            case "$file" in kiem-tra/web-context-giao-dien.mjs|kiem-tra/yt-source-giao-dien.mjs) continue;; esac
+            case "$file" in kiem-tra/web-context-giao-dien.mjs|kiem-tra/yt-source-giao-dien.mjs|kiem-tra/rakulang-ui-giao-dien.mjs|kiem-tra/jlpt-dong-bo-giao-dien.mjs|kiem-tra/jlpt.mjs|kiem-tra/youtube-background-ad.mjs) continue;; esac
             if ! grep -q '/opt/node22/lib/node_modules/playwright/index.mjs' "$file"; then
               continue
             fi
@@ -79,7 +90,7 @@ jobs:
       - name: Upload tested extension
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-extension-${{ steps.extension-version.outputs.value }}
+          name: RaKuLanG-extension-${{ steps.extension-version.outputs.value }}
           path: extension/
           retention-days: 7
           if-no-files-found: error
@@ -88,7 +99,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: NeutronDict-extension-ui
+          name: RaKuLanG-extension-ui
           path: ${{ runner.temp }}/nd-ui/
           if-no-files-found: ignore
           retention-days: 7

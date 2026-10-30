@@ -53,15 +53,17 @@ class NeutronCaptionTimingTest {
             resolver.resolve(true, true, 0, 1, null, 2_000, rows))
     }
 
-    @Test fun nearbyRowTransitionStillUsesOriginalKaraokeBehavior() {
+    @Test fun aRowCannotStartEarlyJustBecauseLiveCaptionsJumpAhead() {
         val rows = listOf(
             SubtitleSegment(0, 0, 3_000, "first"),
             SubtitleSegment(1, 3_000, 6_000, "second"))
         val resolver = CaptionHighlightResolver()
-        assertEquals(CaptionHighlightPosition(1, 0),
+        assertEquals(CaptionHighlightPosition(0, 0),
             resolver.resolve(true, true, 0, 0, KaraokePosition(1, 0), 2_800, rows))
-        assertEquals(CaptionHighlightPosition(1, 0),
+        assertEquals(CaptionHighlightPosition(0, 0),
             resolver.resolve(true, true, 0, 0, null, 2_900, rows))
+        assertEquals(CaptionHighlightPosition(1, 0),
+            resolver.resolve(true, true, 1, 0, KaraokePosition(1, 0), 3_000, rows))
     }
 
     @Test fun cursorChangesAtAnchorWithoutFixedEarlyOffset() {

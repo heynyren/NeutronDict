@@ -20,14 +20,16 @@ function fill(id, list) {
     ex.textContent = it.ex;
     const ei = document.createElement("span"); ei.className = "exipa"; ei.textContent = it.ipa; ex.appendChild(ei);
     const spk = document.createElement("button"); spk.className = "spk"; spk.textContent = "🔊";
-    spk.title = "Nghe ví dụ"; spk.addEventListener("click", () => speak(it.ex)); ex.appendChild(spk);
+    spk.title = T("Nghe ví dụ"); spk.addEventListener("click", () => speak(it.ex)); ex.appendChild(spk);
     info.appendChild(ex);
-    const vi = document.createElement("div"); vi.className = "vi"; vi.textContent = it.vi; info.appendChild(vi);
+    const vi = document.createElement("div"); vi.className = "vi"; vi.textContent = T(it.vi); info.appendChild(vi);
     cell.appendChild(info);
     box.appendChild(cell);
   });
 }
-(function () {
+(async function () {
+  const r=await chrome.storage.local.get('settings');
+  Chu.dat(Chu.hopLe(r.settings?.chu));
   const G = window.IPA_GUIDE;
   if (!G) return;
   fill("gVowels", G.VOWELS);
@@ -37,3 +39,5 @@ function fill(id, list) {
   // hâm nóng danh sách giọng đọc để phát âm ví dụ đỡ trễ
   try { speechSynthesis.getVoices(); } catch (e) {}
 })();
+
+RaKuPastel.start({read:async()=>(await chrome.storage.local.get("pastelTheme")).pastelTheme,write:async()=>{}});

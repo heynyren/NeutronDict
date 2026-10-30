@@ -18,6 +18,10 @@
   /** Ngăn sổ tay để lưu vào: "javi" hay "envi". */
   const nganLuu = () => self.Ngu.nganChinh(S.ngu);
   let host = null, root = null, boxEl = null, lastCtrl = false;
+  let pastelKey="blue";
+  chrome.storage.local.get("pastelTheme").then(r=>{pastelKey=RaKuPastel.normalize(r.pastelTheme);if(boxEl)RaKuPastel.paint(pastelKey,boxEl);});
+  chrome.storage.onChanged.addListener((ch,area)=>{if(area==="local"&&ch.pastelTheme){pastelKey=RaKuPastel.normalize(ch.pastelTheme.newValue);if(boxEl)RaKuPastel.paint(pastelKey,boxEl);}});
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{if(boxEl)RaKuPastel.paint(pastelKey,boxEl);});
   let anchor = { x: 0, y: 0 };
 
   /* Ngôn ngữ giao diện. Thẻ tra nằm trong shadow DOM do JS dựng ra, không có
@@ -57,24 +61,24 @@
       :host { all: initial; }
       * { box-sizing: border-box; }
       .box {
-        --surface: #fff; --surface-2: #f4f1fb; --ink: #1a1430;
-        --ink-2: rgba(26,20,48,.68); --ink-3: rgba(26,20,48,.45);
-        --line: rgba(26,20,48,.09); --accent: #6d3fd4; --accent-2: #a855f7;
-        --accent-soft: rgba(109,63,212,.10);
+        --surface: #fff; --surface-2: #edf8fb; --ink: #17313b;
+        --ink-2: rgba(23,49,59,.68); --ink-3: rgba(23,49,59,.45);
+        --line: rgba(23,49,59,.09); --accent: #285c6c; --accent-2: #285c6c;
+        --accent-soft: rgba(40,92,108,.10);
         --good: #12855b; --good-soft: rgba(18,133,91,.12);
         width: 348px; max-height: 360px; overflow-y: auto;
         background: var(--surface); color: var(--ink);
         font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         border-radius: 18px;
-        box-shadow: 0 2px 4px rgba(16,24,40,.06), 0 14px 40px rgba(109,63,212,.24);
+        box-shadow: 0 2px 4px rgba(16,24,40,.06), 0 14px 40px rgba(40,92,108,.24);
         padding: 12px 14px;
       }
       @media (prefers-color-scheme: dark) {
         .box {
-          --surface: #191428; --surface-2: #221b35; --ink: #f2f4f8;
+          --surface: #12212a; --surface-2: #1b2f39; --ink: #f2f4f8;
           --ink-2: rgba(238,242,250,.72); --ink-3: rgba(238,242,250,.44);
-          --line: rgba(255,255,255,.09); --accent: #b48cff; --accent-2: #d9a6ff;
-          --accent-soft: rgba(180,140,255,.16);
+          --line: rgba(255,255,255,.09); --accent: #8bd4e6; --accent-2: #b0e1ed;
+          --accent-soft: rgba(139,212,230,.16);
           --good: #2fd18a; --good-soft: rgba(47,209,138,.14);
           box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 16px 44px rgba(0,0,0,.6);
         }
@@ -177,6 +181,7 @@
     root.appendChild(box);
     document.documentElement.appendChild(host);
     boxEl = box;
+    RaKuPastel.paint(pastelKey,boxEl);
     const myHost = host;
     requestAnimationFrame(() => { if (myHost === host) place(); });
     return box;
@@ -911,11 +916,11 @@
     const s = document.createElement("style");
     s.id = "__neu_hl_style";
     s.textContent =
-      "mark.__neu_hl{background:#f6d5ff!important;color:inherit!important;" +
-      "box-shadow:0 0 0 3px #f6d5ff,0 0 0 5px #a855f7!important;border-radius:2px!important;" +
+      "mark.__neu_hl{background:#bce7f0!important;color:inherit!important;" +
+      "box-shadow:0 0 0 3px #bce7f0,0 0 0 5px #285c6c!important;border-radius:2px!important;" +
       "animation:__neu_pulse 1s ease-in-out 3!important;cursor:pointer}" +
-      "@keyframes __neu_pulse{0%,100%{box-shadow:0 0 0 3px #f6d5ff,0 0 0 5px #a855f7}" +
-      "50%{box-shadow:0 0 0 3px #fbe6ff,0 0 0 8px #c084fc}}" +
+      "@keyframes __neu_pulse{0%,100%{box-shadow:0 0 0 3px #bce7f0,0 0 0 5px #285c6c}" +
+      "50%{box-shadow:0 0 0 3px #def3f8,0 0 0 8px #66acbf}}" +
       ".__neu_toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);" +
       "background:#1c2430;color:#fff;font:13px/1.4 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;" +
       "padding:9px 14px;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.3);z-index:2147483647;" +
@@ -1071,7 +1076,7 @@
   function tryHighlight(note, tries) {
     if (doHighlight(note)) return;
     if (tries > 0) { setTimeout(() => tryHighlight(note, tries - 1), 400); return; }
-    neuToast(T("NeutronDict: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi)."));
+    neuToast(T("RaKuLanG: không tìm thấy vị trí của mục này trên trang (nội dung có thể đã thay đổi)."));
   }
   (function checkPendingHighlight() {
     try {

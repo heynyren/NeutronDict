@@ -141,8 +141,8 @@
     /* --- lời mở --- */
     const dau = [];
     dau.push(huong
-      ? T2("Tôi đang học từ vựng ({huong}) bằng app NeutronDict.", { huong: huong })
-      : T("Tôi đang học từ vựng bằng app NeutronDict."));
+      ? T2("Tôi đang học từ vựng ({huong}) bằng app RaKuLanG.", { huong: huong })
+      : T("Tôi đang học từ vựng bằng app RaKuLanG."));
     dau.push(T2("Tôi muốn hiểu cho đúng {loai} dưới đây, TRONG ĐÚNG NGỮ CẢNH tôi đã gặp nó.",
                 { loai: ten }));
     dau.push("");

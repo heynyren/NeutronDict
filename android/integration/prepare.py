@@ -75,14 +75,14 @@ patch(host, "  /** Phân loại intent:", """  @Override public void onResume() 
 appui = dual / "ui/DualSubApp.kt"
 text = appui.read_text()
 # Find the actual drawer implementation separately when upstream changes.
-put(main / "assets/neutron/BUILD.txt", "NeutronDict preview. App updates are distributed from the NeutronDict branch, not DualSub releases.")
+put(main / "assets/neutron/BUILD.txt", "RaKuLanG preview. App updates are distributed from the NeutronDict branch, not DualSub releases.")
 
 navigation = dual / "ui/AppNavigation.kt"
 patch(navigation, "    val drawer = rememberDrawerState(DrawerValue.Closed)", """    val context = androidx.compose.ui.platform.LocalContext.current
     val drawer = rememberDrawerState(DrawerValue.Closed)""")
 patch(navigation, "                            Spacer(Modifier.height(8.dp))", """                            Spacer(Modifier.height(8.dp))
                             NavigationDrawerItem(
-                                label = { Text("NeutronDict · Sổ tay và đọc báo") },
+                                label = { Text(androidx.compose.ui.res.stringResource(com.kienhoang.dualsubreplay.R.string.rakulang_notebook)) },
                                 selected = false,
                                 modifier = Modifier.testTag("open_neutrondict"),
                                 onClick = {
@@ -248,14 +248,14 @@ ET.SubElement(application, "activity", {
     A+"windowSoftInputMode":"adjustResize"
 })
 # Stable label in every locale (upstream has translated app_name).
-for values in (main / "res").glob("values*/strings*.xml"):
+for values in OUT.glob("app/src/*/res/values*/strings*.xml"):
     s = values.read_text()
-    s = re.sub(r'(<string name="app_name">).*?(</string>)', r'\g<1>NeutronDict Preview\2', s)
+    s = re.sub(r'(<string name="app_name">).*?(</string>)', r'\g<1>RaKuLanG\2', s)
     values.write_text(s)
 if application.get(A+"name") not in (None, "android.app.Application"):
     raise RuntimeError("Upstream introduced an Application class; integrate its initialization explicitly")
 application.set(A+"name", "com.neutrondict.app.media.NeutronApplication")
-application.set(A+"label", "NeutronDict Preview")
+application.set(A+"label", "RaKuLanG")
 # Preserve the original AI/WebView backup exclusions. Reader cache is expendable.
 manifest.write(manifest_path, encoding="utf-8", xml_declaration=True)
 # Source build records for reproducibility.
@@ -383,3 +383,171 @@ patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/CaptionFormatTest.
         // the cue starts. All later token starts are at least 90 ms apart.""",
       """        // Match the web extension: each token is active at its own anchor,
         // including the 30 ms opening token; never jump ahead by a fixed offset.""")
+
+# Preserve source chunk bounds while retaining lexical timings for word lookup/replay.
+patch(dual / "data/SubtitleModels.kt",
+      "data class SubtitleWord(\n    val text: String,\n    val startMs: Long,\n    val endMs: Long,\n)",
+      "data class SubtitleWord(\n    val text: String,\n    val startMs: Long,\n    val endMs: Long,\n    val highlightStartMs: Long = -1,\n    val highlightEndMs: Long = -1,\n)")
+patch(dual / "data/WordTiming.kt",
+      "SubtitleWord(text = token, startMs = cursor, endMs = safeEnd)",
+      "SubtitleWord(text = token, startMs = cursor, endMs = safeEnd, highlightStartMs = startMs, highlightEndMs = endMs)")
+patch(dual / "data/SubtitleStore.kt",
+      "        writeLong(word.endMs)",
+      "        writeLong(word.endMs)\n        writeLong(word.highlightStartMs)\n        writeLong(word.highlightEndMs)")
+patch(dual / "data/SubtitleStore.kt",
+      "SubtitleWord(readText(), readLong(), readLong())",
+      "SubtitleWord(readText(), readLong(), readLong(), readLong(), readLong())")
+patch(dual / "data/RecentCaptionTracks.kt", "const val VERSION = 4",
+      "const val VERSION = 5 // 5: preserve source highlight chunks, not estimated per-word cursors.")
+patch(dual / "data/RecentCaptionTracks.kt",
+      ".put(word.startMs).put(word.endMs)",
+      ".put(word.startMs).put(word.endMs).put(word.highlightStartMs).put(word.highlightEndMs)")
+patch(dual / "data/RecentCaptionTracks.kt",
+      "SubtitleWord(word.getString(0), word.getLong(1), word.getLong(2))",
+      "SubtitleWord(word.getString(0), word.getLong(1), word.getLong(2), word.optLong(3, -1), word.optLong(4, -1))")
+# Use the same original chunk on the transcript and on-video overlay; text/POS/taps stay intact.
+patch(dual / "ui/SubtitleWordHighlight.kt",
+      "subtitleWordSpans(text, words)", "neutronHighlightSpans(text, words)", count=2)
+# A timestamped current row is authoritative even when its words were only estimated.
+patch(dual / "ui/KaraokeTiming.kt",
+      """        val anchored = timedWords.isNotEmpty() && timedWords.all {
+            it.startMs >= 0 && it.endMs > it.startMs
+        } && timedWords.zipWithNext().all { (a, b) -> b.startMs >= a.startMs }""",
+      """        val anchored = timedRow != null &&
+            playbackTimeMs >= timedRow.startMs && playbackTimeMs < timedRow.endMs""")
+patch(dual / "ui/KaraokeTiming.kt",
+      "row.startMs <= playbackTimeMs + 1_000L", "row.startMs <= playbackTimeMs")
+
+# Always brand the integrated launcher too; generated Capacitor resources alone are not authoritative.
+bear_res = main / "res/drawable-nodpi"
+bear_res.mkdir(parents=True, exist_ok=True)
+shutil.copy2(ANDROID / "assets/icon.png", bear_res / "neutron_launcher.png")
+shutil.copy2(ANDROID / "assets/icon-foreground.png", bear_res / "neutron_launcher_foreground.png")
+put(main / "res/mipmap-anydpi-v26/neutron_launcher.xml",
+    '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@android:color/white"/><foreground android:drawable="@drawable/neutron_launcher_foreground"/></adaptive-icon>')
+put(main / "res/mipmap-anydpi/neutron_launcher.xml",
+    '<bitmap xmlns:android="http://schemas.android.com/apk/res/android" android:src="@drawable/neutron_launcher" android:gravity="fill"/>')
+branded_manifest = ET.parse(manifest_path)
+branded_app = branded_manifest.getroot().find("application")
+branded_app.set(A+"icon", "@mipmap/neutron_launcher")
+branded_app.set(A+"roundIcon", "@mipmap/neutron_launcher")
+branded_manifest.write(manifest_path, encoding="utf-8", xml_declaration=True)
+
+
+# RaKuLanG presets are separate from semantic subtitle/POS colors.
+colors = dual / "ui/SubtitleColors.kt"
+patch(colors, '    CYAN("cyan", R.string.settings_color_cyan, 0xFF13C6D7),', '''    PASTEL_BLUE("pastel_blue", R.string.settings_color_blue, 0xFF8BD4E6),
+    PASTEL_MINT("pastel_mint", R.string.settings_color_mint, 0xFFB4E2CE),
+    PASTEL_ROSE("pastel_rose", R.string.settings_color_rose, 0xFFF1C5D6),
+    PASTEL_PEACH("pastel_peach", R.string.rakulang_color_peach, 0xFFF6CFB4),
+    PASTEL_LAVENDER("pastel_lavender", R.string.settings_color_lavender, 0xFFD6CBEF),
+    PASTEL_BUTTER("pastel_butter", R.string.settings_color_amber, 0xFFF3E4AA),
+    CYAN("cyan", R.string.settings_color_cyan, 0xFF13C6D7),''')
+patch(colors, '?: Color(AppThemeAccentOption.CYAN.argb)', '?: Color(AppThemeAccentOption.PASTEL_BLUE.argb)')
+patch(colors, 'internal val DEFAULT_APP_THEME_ACCENT_KEY = AppThemeAccentOption.CYAN.key',
+              'internal val DEFAULT_APP_THEME_ACCENT_KEY = AppThemeAccentOption.PASTEL_BLUE.key')
+theme = dual / "ui/theme/Theme.kt"
+patch(theme, 'lightDualSubColorScheme(appThemeAccentColor(accentKey))',
+             'lightDualSubColorScheme(appThemeAccentColor(accentKey), accentKey.startsWith("pastel_"))')
+patch(theme, 'private fun lightDualSubColorScheme(accent: Color): ColorScheme {',
+             'private fun lightDualSubColorScheme(accent: Color, pastel: Boolean = false): ColorScheme {')
+patch(theme, 'val primary = lerp(accent, Color.Black, LIGHT_ACCENT_DARKENING)',
+             'val primary = lerp(accent, Color.Black, if (pastel) 0.55f else LIGHT_ACCENT_DARKENING)')
+# Reuse locale wrapping on pre-Android-13 devices too.
+patch(host, 'public class MainActivity extends BridgeActivity {', '''public class MainActivity extends BridgeActivity {
+  @Override protected void attachBaseContext(android.content.Context base) {
+    super.attachBaseContext(com.kienhoang.dualsubreplay.ui.NeutronInterface.wrap(base));
+  }''')
+
+# Localized integration chrome and error messages. Keep source-data errors stable.
+RAKU_STRINGS = {"rakulang_theme_error":{"vi":"Chưa lưu được màu. Hãy chọn lại.","en":"Could not save the color. Please select it again.","ja":"色を保存できませんでした。もう一度選んでください。"},"rakulang_color_peach":{"vi":"Đào","en":"Peach","ja":"ピーチ"},"rakulang_notebook":{"vi":"RaKuLanG · Sổ tay và đọc báo","en":"RaKuLanG · Notebook and news","ja":"RaKuLanG · 単語帳とニュース"},"rakulang_return":{"vi":"‹ RaKuLanG","en":"‹ RaKuLanG","ja":"‹ RaKuLanG"},"rakulang_lookup":{"vi":"Tra RaKuLanG","en":"Look up with RaKuLanG","ja":"RaKuLanGで検索"},"rakulang_opening":{"vi":"Đang mở bài…","en":"Opening article…","ja":"記事を開いています…"},"rakulang_offline":{"vi":"Bản đã lưu trên máy","en":"Saved on this device","ja":"この端末に保存した記事"},"rakulang_open_error":{"vi":"Chưa mở được bài. Kiểm tra mạng hoặc bấm tải lại.","en":"Could not open the article. Check your connection or tap Reload.","ja":"記事を開けませんでした。接続を確認するか、再読み込みしてください。"},"rakulang_page_closed":{"vi":"Trang đã đóng để giải phóng bộ nhớ. Hãy mở lại bài.","en":"The page was closed to free memory. Reopen the article.","ja":"メモリ確保のためページを閉じました。記事を開き直してください。"},"rakulang_reload":{"vi":"Tải lại","en":"Reload","ja":"再読み込み"},"rakulang_readable":{"vi":"Dễ đọc","en":"Reader view","ja":"読みやすく表示"},"rakulang_save_article":{"vi":"Lưu bài","en":"Save article","ja":"記事を保存"},"rakulang_saved_word":{"vi":"Đã lưu vào sổ tay RaKuLanG","en":"Saved to your RaKuLanG notebook","ja":"RaKuLanGの単語帳に保存しました"},"rakulang_select_word":{"vi":"Bôi đen từ rồi bấm Tra RaKuLanG.","en":"Select a word, then tap Look up with RaKuLanG.","ja":"単語を選択して「RaKuLanGで検索」をタップしてください。"},"rakulang_lookup_error":{"vi":"Chưa tra được từ.","en":"Could not look up this word.","ja":"単語を検索できませんでした。"},"rakulang_article_empty":{"vi":"Chưa lấy được nội dung bài.","en":"Could not extract the article text.","ja":"記事の本文を取得できませんでした。"},"rakulang_save_error":{"vi":"Không lưu được bài.","en":"Could not save the article.","ja":"記事を保存できませんでした。"},"rakulang_article_saved":{"vi":"Đã lưu bài để đọc ngoại tuyến","en":"Article saved for offline reading","ja":"オフライン閲覧用に記事を保存しました"},"rakulang_reopen":{"vi":"Mở lại RaKuLanG rồi thử tra lại.","en":"Reopen RaKuLanG and try the lookup again.","ja":"RaKuLanGを開き直して、もう一度検索してください。"},"rakulang_lookup_timeout":{"vi":"Tra từ chưa phản hồi. Kiểm tra mạng và thử lại.","en":"The lookup did not respond. Check your connection and try again.","ja":"検索の応答がありません。接続を確認して、もう一度お試しください。"},"rakulang_voice_error":{"vi":"Không lưu được cấu hình giọng đọc.","en":"Could not save voice settings.","ja":"音声設定を保存できませんでした。"},"rakulang_youtube_url":{"vi":"Đường dẫn YouTube không hợp lệ.","en":"Invalid YouTube URL.","ja":"YouTubeのURLが無効です。"},"rakulang_https_only":{"vi":"Chỉ mở địa chỉ HTTPS.","en":"Only HTTPS addresses can be opened.","ja":"HTTPSのアドレスのみ開けます。"},"rakulang_public_feed":{"vi":"Nguồn tin phải là địa chỉ Internet công khai.","en":"News feeds must use a public Internet address.","ja":"ニュース配信元には公開インターネットアドレスを使用してください。"},"rakulang_feed_url":{"vi":"Đường dẫn nguồn không hợp lệ.","en":"Invalid feed URL.","ja":"配信元のURLが無効です。"},"rakulang_feed_limit":{"vi":"Tối đa 12 nguồn tin.","en":"You can add up to 12 news feeds.","ja":"配信元は12件まで追加できます。"},"rakulang_feed_interval":{"vi":"Chu kỳ không hợp lệ.","en":"Invalid update interval.","ja":"更新間隔が無効です。"},"rakulang_feed_https":{"vi":"Nguồn RSS phải dùng HTTPS.","en":"RSS feeds must use HTTPS.","ja":"RSSの配信元にはHTTPSを使用してください。"},"rakulang_language_code":{"vi":"Mã ngôn ngữ không hợp lệ.","en":"Invalid language code.","ja":"言語コードが無効です。"},"rakulang_save_feed":{"vi":"Không lưu được nguồn.","en":"Could not save the feed.","ja":"配信元を保存できませんでした。"},"rakulang_load_feed":{"vi":"Chưa tải được nguồn.","en":"Could not load the feed.","ja":"配信元を読み込めませんでした。"},"rakulang_save_news":{"vi":"Không lưu được tin.","en":"Could not save the news.","ja":"ニュースを保存できませんでした。"},"rakulang_feed_size":{"vi":"Nguồn vượt giới hạn 4 MB.","en":"The feed exceeds the 4 MB limit.","ja":"配信データが上限の4 MBを超えています。"},"rakulang_xml_unsafe":{"vi":"XML không an toàn hoặc quá lớn.","en":"The XML is unsafe or too large.","ja":"XMLが安全でないか、サイズが大きすぎます。"},"rakulang_xml_dtd":{"vi":"XML chứa DTD.","en":"XML contains a DTD.","ja":"XMLにDTDが含まれています。"},"rakulang_article_invalid":{"vi":"Bài báo không hợp lệ.","en":"Invalid article.","ja":"記事が無効です。"},"rakulang_bookmark_limit":{"vi":"Đã có 200 bài đánh dấu. Hãy bỏ bớt bài cũ.","en":"You have 200 bookmarks. Remove some old ones first.","ja":"保存済みの記事が200件あります。古い記事をいくつか削除してください。"},"rakulang_azure_region":{"vi":"Mã vùng Azure không hợp lệ.","en":"Invalid Azure region code.","ja":"Azureのリージョンコードが無効です。"},"rakulang_azure_key":{"vi":"Khóa Azure không hợp lệ.","en":"Invalid Azure key.","ja":"Azureのキーが無効です。"},"rakulang_device_voice":{"vi":"Đang dùng giọng trên máy.","en":"Using the device voice.","ja":"端末の音声を使用しています。"},"rakulang_azure_retry":{"vi":"Azure tạm hết lượt hoặc chưa khả dụng · dùng giọng trên máy.","en":"Azure is temporarily unavailable or out of quota · using the device voice.","ja":"Azureが利用できないか上限に達しています · 端末の音声を使用します。"},"rakulang_azure_limit":{"vi":"Đã chạm giới hạn Azure của app tháng này · dùng giọng trên máy.","en":"This app's monthly Azure limit has been reached · using the device voice.","ja":"アプリ内のAzure月間上限に達しました · 端末の音声を使用します。"},"rakulang_azure_missing":{"vi":"Chưa có khóa Azure hợp lệ · dùng giọng trên máy.","en":"No valid Azure key · using the device voice.","ja":"有効なAzureキーがありません · 端末の音声を使用します。"},"rakulang_azure_bad_region":{"vi":"Vùng Azure không hợp lệ.","en":"Invalid Azure region.","ja":"Azureのリージョンが無効です。"},"rakulang_azure_unavailable":{"vi":"Azure chưa khả dụng · dùng giọng trên máy.","en":"Azure is unavailable · using the device voice.","ja":"Azureを利用できません · 端末の音声を使用します。"},"rakulang_audio_invalid":{"vi":"Audio không hợp lệ.","en":"Invalid audio.","ja":"音声データが無効です。"},"rakulang_azure_network":{"vi":"Azure lỗi hoặc mất mạng · dùng giọng trên máy.","en":"Azure failed or the connection was lost · using the device voice.","ja":"Azureのエラーまたは接続切れです · 端末の音声を使用します。"}}
+for suffix, language in (("", "en"), ("-vi", "vi"), ("-ja", "ja")):
+    resources = ET.Element("resources")
+    for key, translations in RAKU_STRINGS.items():
+        item = ET.SubElement(resources, "string", {"name":key, "formatted":"false"})
+        item.text = translations[language].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
+    target = main / ("res/values" + suffix) / "rakulang.xml"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    ET.ElementTree(resources).write(target, encoding="utf-8", xml_declaration=True)
+
+# User-facing YouTube module branding. Keep package names and attribution assets intact.
+patch(navigation, 'Text("DualSub Replay", style = MaterialTheme.typography.titleLarge)',
+                  'Text("Rakubidio", style = MaterialTheme.typography.titleLarge)')
+footer = dual / "ui/DrawerFooter.kt"
+patch(footer, '    CheckForUpdatesRow(onOpen = { scope.launch { beforeOpen() } })\n', '')
+footer_text = footer.read_text()
+link_start = footer_text.index('        Text("·", style = MaterialTheme.typography.labelSmall')
+link_end = footer_text.index('\n    }\n    if (showLicense)', link_start)
+footer.write_text(footer_text[:link_start] + footer_text[link_end:])
+
+
+# Post-ad recovery is driven by the native media poll, even with the screen off.
+put(main / "assets/neutron/youtube-ad-resume.js", (HERE / "youtube-ad-resume.js").read_text())
+patch(browser, "        NeutronPlayback.apply(webView)\n        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT)",
+               "        NeutronPlayback.apply(webView)\n        NeutronAdResume.apply(webView, !lifecycleStarted && !NeutronPlayback.activeStudy())\n        webView.evaluateJavascript(WEB_VIDEO_STATE_SCRIPT)")
+commands = dual / "playback/WebVideoPlayback.kt"
+patch(commands, '"const request = video.play(); if (request && request.catch) request.catch(function() {});"',
+                '"window.__rakuAdResume && window.__rakuAdResume.command(true); const request = video.play(); if (request && request.catch) request.catch(function() {});"')
+patch(commands, 'WebVideoCommand.Pause -> "video.pause();"',
+                'WebVideoCommand.Pause -> "window.__rakuAdResume && window.__rakuAdResume.command(false); video.pause();"')
+
+
+# Presets and legacy accents must wrap instead of spilling off a phone's settings row.
+appearance = dual / "ui/AppearanceCustomizationSettings.kt"
+patch(appearance, 'private fun SettingsColorSwatchRow(',
+                  '@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)\nprivate fun SettingsColorSwatchRow(')
+patch(appearance, '''    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    )''', '''    androidx.compose.foundation.layout.FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    )''')
+
+
+# Resource-based onboarding/help also uses the YouTube module name in every locale.
+for resource in OUT.glob("app/src/*/res/values*/*.xml"):
+    if "license" in resource.name.lower(): continue
+    document = ET.parse(resource)
+    changed = False
+    for item in document.getroot().findall("string"):
+        for node in item.iter():
+            for field in ("text", "tail"):
+                original = getattr(node, field)
+                if not original: continue
+                value = original
+                for old in ("DualSub Replay", "DualSub-Replay", "DualSub"):
+                    value = value.replace(old, "Rakubidio")
+                if value != original:
+                    setattr(node, field, value)
+                    changed = True
+    if changed: document.write(resource, encoding="utf-8", xml_declaration=True)
+
+
+# The assistant must accept and enumerate every accent the UI can save.
+ai_actions = dual / "assistant/AiActions.kt"
+patch(ai_actions, 'internal val AI_ACCENT_COLORS = listOf("cyan", "blue", "mint", "amber", "rose", "lavender")',
+                  'internal val AI_ACCENT_COLORS = listOf("pastel_blue", "pastel_mint", "pastel_rose", "pastel_peach", "pastel_lavender", "pastel_butter", "cyan", "blue", "mint", "amber", "rose", "lavender")')
+# Preserve the original strong-accent check explicitly, and add the new pastel/on-primary contract.
+color_test = OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/theme/AppColorThemeTest.kt"
+patch(color_test, '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
+        val light = scheme(AppColorThemeOption.LIGHT)''', '''    fun theLightThemeHasDarkTextAndADarkenedAccent() {
+        val light = dualSubColorScheme("cyan", AppColorThemeOption.LIGHT.key)''')
+patch(color_test, '    private fun lightness(color: Color)', '''    @Test
+    fun pastelAccentsAndButtonsStayReadableInBothThemes() {
+        for (key in listOf("pastel_blue", "pastel_mint", "pastel_rose", "pastel_peach", "pastel_lavender", "pastel_butter")) {
+            for (theme in listOf(AppColorThemeOption.LIGHT, AppColorThemeOption.DEEP_TEAL)) {
+                val colors=dualSubColorScheme(key,theme.key)
+                assertTrue(key+theme.key,contrast(colors.onPrimary,colors.primary)>=4.5f)
+                if (theme.isLight) {
+                    for (surface in listOf(colors.background,colors.surface,colors.surfaceContainerHigh,colors.primaryContainer)) {
+                        assertTrue(key+" accent on light surface",contrast(colors.primary,surface)>=4.5f)
+                    }
+                }
+            }
+        }
+        assertEquals(Color(0xFF8BD4E6),com.kienhoang.dualsubreplay.ui.appThemeAccentColor("pastel_blue"))
+    }
+
+    private fun lightness(color: Color)''')

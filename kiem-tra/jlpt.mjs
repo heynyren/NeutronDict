@@ -24,6 +24,23 @@ const sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent("serviceworker", { 
 const ID = sw.url().split("/")[2];
 const ket = [], loi = [];
 const soat = (t, d, c) => { ket.push(!!d); console.log("  " + (d ? "✓" : "✗") + " " + t + (c !== undefined && c !== "" ? "  (" + c + ")" : "")); };
+/** Read persisted state in the worker that the assertions use. Renderer reads can
+ * settle before the storage change notification reaches another context. */
+async function choJlpt(check) {
+  const until = Date.now() + 5000;
+  let value, reads = 0;
+  do {
+    value = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
+    reads++;
+    if (check(value)) {
+      if (reads > 1) console.log("  worker storage settled after " + reads + " reads");
+      return value;
+    }
+    await new Promise(r => setTimeout(r, 50));
+  } while (Date.now() < until);
+  throw new Error("Worker JLPT storage did not settle: " + JSON.stringify({nhac:value?.nhac,baoLoi:value?.baoLoi}));
+}
+
 for (let i = 0; i < 40; i++) {
   if (await sw.evaluate(() => !!(chrome.storage && chrome.storage.local)).catch(() => false)) break;
   await new Promise((r) => setTimeout(r, 250));
@@ -219,9 +236,9 @@ await pg.waitForSelector(".jl-lua");
 await pg.keyboard.press("1");
 await pg.waitForSelector(".jl-fb");
 await pg.click(".jl-bao");
-await pg.waitForFunction(async () => Object.keys((await chrome.storage.local.get("jlpt")).jlpt.baoLoi).length === 1);
-luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
-soat("câu bị báo được ghi lại", Object.keys(luu.baoLoi).length === 1);
+await pg.waitForFunction(() => document.querySelector(".jl-bao").disabled);
+luu = await choJlpt(d => Object.keys(d?.baoLoi || {}).length === 1);
+soat("câu bị báo được ghi lại", Object.keys(luu.baoLoi).length === 1,JSON.stringify({stored:Object.keys(luu.baoLoi),ui:await pg.evaluate(()=>Object.keys(JlptUI.trangThai().td.baoLoi))}));
 await pg.keyboard.press("Escape"); await pg.click(".jl-hoi .jl-btn.chinh"); await pg.waitForSelector(".jl-bd");
 
 console.log("\nNút nhạc nền");
@@ -229,13 +246,11 @@ const nhac = () => pg.evaluate(() => { const b = document.querySelector(".jl-nha
 let nh = await nhac();
 soat("nút nhạc nằm ở cuối màn hình, đang bật", !nh.an && !nh.tat && nh.r, JSON.stringify(nh));
 await pg.click(".jl-nhac");
-await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === false);
+luu = await choJlpt(d => d?.nhac === false);
 nh = await nhac();
-luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
-soat("bấm nút: tắt nhạc, lưu lựa chọn", nh.tat && luu.nhac === false);
+soat("bấm nút: tắt nhạc, lưu lựa chọn", nh.tat && luu.nhac === false, JSON.stringify({button:nh,stored:luu.nhac,ui:await pg.evaluate(()=>JlptUI.trangThai().td.nhac)}));
 await pg.click(".jl-nhac");
-await pg.waitForFunction(async () => (await chrome.storage.local.get("jlpt")).jlpt.nhac === true);
-luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
+luu = await choJlpt(d => d?.nhac === true);
 soat("bấm lần nữa: bật lại", luu.nhac === true);
 
 console.log("\nQuay về chọn cấp + chế độ thử");

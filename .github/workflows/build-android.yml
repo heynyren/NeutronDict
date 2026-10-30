@@ -99,8 +99,8 @@ jobs:
           sed -i -E 's/versionCode [0-9]+/versionCode 11/' "$f" || true
           grep -E 'versionName|versionCode' "$f" || true
 
-      - name: Generate branded icons (tuỳ chọn)
-        run: npx --yes @capacitor/assets generate --android || echo "Bỏ qua tạo icon — dùng icon mặc định."
+      - name: Generate NeutronDict polar bear icons
+        run: npx --yes @capacitor/assets generate --android
 
       - name: Build debug APK
         run: |
