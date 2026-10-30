@@ -383,3 +383,52 @@ patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/ui/CaptionFormatTest.
         // the cue starts. All later token starts are at least 90 ms apart.""",
       """        // Match the web extension: each token is active at its own anchor,
         // including the 30 ms opening token; never jump ahead by a fixed offset.""")
+
+# Preserve source chunk bounds while retaining lexical timings for word lookup/replay.
+patch(dual / "data/SubtitleModels.kt",
+      "data class SubtitleWord(\n    val text: String,\n    val startMs: Long,\n    val endMs: Long,\n)",
+      "data class SubtitleWord(\n    val text: String,\n    val startMs: Long,\n    val endMs: Long,\n    val highlightStartMs: Long = -1,\n    val highlightEndMs: Long = -1,\n)")
+patch(dual / "data/WordTiming.kt",
+      "SubtitleWord(text = token, startMs = cursor, endMs = safeEnd)",
+      "SubtitleWord(text = token, startMs = cursor, endMs = safeEnd, highlightStartMs = startMs, highlightEndMs = endMs)")
+patch(dual / "data/SubtitleStore.kt",
+      "        writeLong(word.endMs)",
+      "        writeLong(word.endMs)\n        writeLong(word.highlightStartMs)\n        writeLong(word.highlightEndMs)")
+patch(dual / "data/SubtitleStore.kt",
+      "SubtitleWord(readText(), readLong(), readLong())",
+      "SubtitleWord(readText(), readLong(), readLong(), readLong(), readLong())")
+patch(dual / "data/RecentCaptionTracks.kt", "const val VERSION = 4",
+      "const val VERSION = 5 // 5: preserve source highlight chunks, not estimated per-word cursors.")
+patch(dual / "data/RecentCaptionTracks.kt",
+      ".put(word.startMs).put(word.endMs)",
+      ".put(word.startMs).put(word.endMs).put(word.highlightStartMs).put(word.highlightEndMs)")
+patch(dual / "data/RecentCaptionTracks.kt",
+      "SubtitleWord(word.getString(0), word.getLong(1), word.getLong(2))",
+      "SubtitleWord(word.getString(0), word.getLong(1), word.getLong(2), word.optLong(3, -1), word.optLong(4, -1))")
+# Use the same original chunk on the transcript and on-video overlay; text/POS/taps stay intact.
+patch(dual / "ui/SubtitleWordHighlight.kt",
+      "subtitleWordSpans(text, words)", "neutronHighlightSpans(text, words)", count=2)
+# A timestamped current row is authoritative even when its words were only estimated.
+patch(dual / "ui/KaraokeTiming.kt",
+      """        val anchored = timedWords.isNotEmpty() && timedWords.all {
+            it.startMs >= 0 && it.endMs > it.startMs
+        } && timedWords.zipWithNext().all { (a, b) -> b.startMs >= a.startMs }""",
+      """        val anchored = timedRow != null &&
+            playbackTimeMs >= timedRow.startMs && playbackTimeMs < timedRow.endMs""")
+patch(dual / "ui/KaraokeTiming.kt",
+      "row.startMs <= playbackTimeMs + 1_000L", "row.startMs <= playbackTimeMs")
+
+# Always brand the integrated launcher too; generated Capacitor resources alone are not authoritative.
+bear_res = main / "res/drawable-nodpi"
+bear_res.mkdir(parents=True, exist_ok=True)
+shutil.copy2(ANDROID / "assets/icon.png", bear_res / "neutron_launcher.png")
+shutil.copy2(ANDROID / "assets/icon-foreground.png", bear_res / "neutron_launcher_foreground.png")
+put(main / "res/mipmap-anydpi-v26/neutron_launcher.xml",
+    '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@android:color/white"/><foreground android:drawable="@drawable/neutron_launcher_foreground"/></adaptive-icon>')
+put(main / "res/mipmap-anydpi/neutron_launcher.xml",
+    '<bitmap xmlns:android="http://schemas.android.com/apk/res/android" android:src="@drawable/neutron_launcher" android:gravity="fill"/>')
+branded_manifest = ET.parse(manifest_path)
+branded_app = branded_manifest.getroot().find("application")
+branded_app.set(A+"icon", "@mipmap/neutron_launcher")
+branded_app.set(A+"roundIcon", "@mipmap/neutron_launcher")
+branded_manifest.write(manifest_path, encoding="utf-8", xml_declaration=True)

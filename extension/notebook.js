@@ -4738,7 +4738,7 @@ $("spAdd").addEventListener("click", themDoanNoi);
  * `<span class="lb" data-chu>`. Xem chu.js.
  */
 function gaiIcon() {
-  $("brandMark").innerHTML = window.Icon("notebook", { size: 21, weight: "solid" });
+  $("brandMark").innerHTML = '<img src="icons/icon48.png" alt="NeutronDict" width="28" height="28" style="display:block;object-fit:contain">';
   $("icTool").innerHTML = window.Icon("export", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
   $("icSet").innerHTML = window.Icon("gear-six", { size: 18 });

@@ -5288,7 +5288,7 @@ document.addEventListener("visibilitychange", () => {
 /* ==================================================================== */
 
 function gaiIcon() {
-  $("brandMark").innerHTML = window.Icon("translate", { size: 18, weight: "solid" });
+  $("brandMark").innerHTML = '<img src="brand-mark.png" alt="NeutronDict" width="28" height="28" style="display:block;object-fit:contain">';
   $("icChu").innerHTML = window.Icon("translate", { size: 18 });
   $("icSync").innerHTML = window.Icon("cloud-arrow-up", { size: 18 });
   $("icBell").innerHTML = window.Icon("bell-ringing", { size: 18 });

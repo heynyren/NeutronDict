@@ -93,7 +93,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root = Path("android/integration/build/app/build/reports/androidTests/connected/debug")
-          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
+          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
               report = root / (name + ".html")
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
@@ -101,7 +101,7 @@ jobs:
           images = Path("android/integration/build/app/build")
           target = Path("android/integration/ui-evidence")
           target.mkdir(exist_ok=True)
-          for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png"):
+          for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png", "caption-chunk-dark.png", "caption-chunk-light.png"):
               # AGP versions place collected images under additional-output or test-result artifacts.
               matches = list(images.rglob(name))
               assert matches, "Missing native UI screenshot: " + name

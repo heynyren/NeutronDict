@@ -772,7 +772,7 @@ document.getElementById("ipaGuide").addEventListener("click", openGuide);
  * dấu data-chu viết sẵn trong HTML. Nên nhãn do nó tạo ra phải tự mang dấu.
  */
 function gaiIcon() {
-  document.getElementById("brandMark").innerHTML = window.Icon("translate", { size: 17, weight: "solid" });
+  document.getElementById("brandMark").innerHTML = '<img src="icons/icon48.png" alt="NeutronDict" width="26" height="26" style="display:block;object-fit:contain">';
   goEl.innerHTML = window.Icon("magnifying-glass", { size: 15 }) + '<span class="lb" data-chu>Tra</span>';
   bookEl.innerHTML = window.Icon("notebook", { size: 16 }) + '<span class="lb" data-chu>Sổ tay &amp; tiến độ</span>';
   document.getElementById("ipaGuide").innerHTML =
