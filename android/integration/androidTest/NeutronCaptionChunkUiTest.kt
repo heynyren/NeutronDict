@@ -47,7 +47,8 @@ class NeutronCaptionChunkUiTest {
         } }
         compose.onNodeWithText(cue.text).assertIsDisplayed()
         fun range() = compose.onNodeWithText(cue.text).fetchSemanticsNode()
-            .config[androidx.compose.ui.semantics.SemanticsProperties.Text].single().spanStyles
+            .config[androidx.compose.ui.semantics.SemanticsProperties.Text]
+            .single { it.text == cue.text }.spanStyles
             .single { it.item.textDecoration==TextDecoration.Underline }
         val first=range()
         assertEquals(0,first.start);assertEquals("we really learn".length,first.end)
