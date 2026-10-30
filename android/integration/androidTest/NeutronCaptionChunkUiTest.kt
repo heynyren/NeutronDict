@@ -22,6 +22,8 @@ import org.junit.Test
 class NeutronCaptionChunkUiTest {
     @get:Rule val compose=createComposeRule()
     private fun grouped(light:Boolean) {
+        val app=InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("neutron_launcher",app.resources.getResourceEntryName(app.applicationInfo.icon))
         studyPreferences(InstrumentationRegistry.getInstrumentation().targetContext).edit()
             .putString(APP_COLOR_THEME_PREFERENCE,if(light)"light" else "deep_teal").commit()
         val cue=CaptionDocumentParser.parse(
