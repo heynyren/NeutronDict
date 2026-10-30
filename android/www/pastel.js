@@ -22,7 +22,7 @@ function paint(key,target){
   "--surface-2":shade(dark ? .10:.16),"--surface-3":shade(dark ? .18:.30),
   "--line":shade(dark ? .28:.48),"--line-soft":shade(dark ? .16:.25),
   "--ink":dark?"#edf5f7":"#17313b","--ink-2":dark?"rgba(237,245,247,.78)":"rgba(23,49,59,.76)",
-  "--ink-3":dark?"rgba(237,245,247,.64)":"rgba(23,49,59,.65)",
+  "--ink-3":dark?"rgba(237,245,247,.64)":"rgba(23,49,59,.70)",
   "--accent":dark?p.fill:p.ink,"--accent-2":dark?mix(p.fill,"#ffffff",.2):p.ink,
   "--accent-ink":"#17313b","--accent-fill":p.fill,"--accent-fill-2":mix(p.fill,"#ffffff",.30),
   "--accent-soft":shade(dark ? .16:.20),"--accent-line":shade(dark ? .35:.60),

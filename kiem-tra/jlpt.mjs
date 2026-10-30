@@ -220,8 +220,9 @@ await pg.keyboard.press("1");
 await pg.waitForSelector(".jl-fb");
 await pg.click(".jl-bao");
 await pg.waitForFunction(async () => Object.keys((await chrome.storage.local.get("jlpt")).jlpt.baoLoi).length === 1);
+await pg.waitForFunction(() => document.querySelector(".jl-bao").disabled);
 luu = await sw.evaluate(async () => (await chrome.storage.local.get("jlpt")).jlpt);
-soat("câu bị báo được ghi lại", Object.keys(luu.baoLoi).length === 1);
+soat("câu bị báo được ghi lại", Object.keys(luu.baoLoi).length === 1,JSON.stringify({stored:Object.keys(luu.baoLoi),ui:await pg.evaluate(()=>Object.keys(JlptUI.trangThai().td.baoLoi))}));
 await pg.keyboard.press("Escape"); await pg.click(".jl-hoi .jl-btn.chinh"); await pg.waitForSelector(".jl-bd");
 
 console.log("\nNút nhạc nền");

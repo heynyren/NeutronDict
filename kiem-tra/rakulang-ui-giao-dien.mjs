@@ -22,16 +22,31 @@ try{
  await page.locator("#setBox").evaluate(e=>e.open=true);
  await page.waitForSelector(".pastel-picker input",{state:"attached"});
  assert.equal(await page.locator(".pastel-picker input").count(),6);
+ async function settleTheme(p,mode){
+  await p.waitForFunction(mode=>getComputedStyle(document.body).color===(mode==="dark"?"rgb(237, 245, 247)":"rgb(23, 49, 59)"),mode);
+  await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+  await p.evaluate(()=>document.getAnimations().forEach(a=>{if(Number.isFinite(a.effect?.getComputedTiming().endTime))a.finish();}));
+ }
  async function checkColors(p){
   const colors=await p.evaluate(()=>{
    const target=document.querySelector(".btn.primary"),s=getComputedStyle(target),body=getComputedStyle(document.body);
    const rgb=v=>v.match(/[\d.]+/g).slice(0,3).map(Number);
    const lum=v=>rgb(v).map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4}).reduce((s,x,i)=>s+x*[.2126,.7152,.0722][i],0);
    const contrast=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
-   return {button:contrast(s.color,s.backgroundColor),body:contrast(body.color,body.backgroundColor),width:document.documentElement.scrollWidth,viewport:innerWidth};
+   const canvas=document.createElement("canvas");canvas.width=canvas.height=1;const g=canvas.getContext("2d");
+   const composite=(fg,bg)=>{g.clearRect(0,0,1,1);g.fillStyle=bg;g.fillRect(0,0,1,1);g.fillStyle=fg;g.fillRect(0,0,1,1);return"rgb("+[...g.getImageData(0,0,1,1).data].slice(0,3).join(",")+")";};
+   const nav=document.querySelector("nav"),navBg=nav?composite(getComputedStyle(nav).backgroundColor,body.backgroundColor):null;
+   const navigation=nav?[...nav.querySelectorAll("button")].filter(b=>b.getBoundingClientRect().width>0).map(b=>contrast(composite(getComputedStyle(b).color,navBg),navBg)):[];
+   const media=[...document.querySelectorAll(".media-bar .btn")].filter(b=>b.getBoundingClientRect().width>0).map(b=>{
+    const style=getComputedStyle(b),bg=composite(style.backgroundColor,body.backgroundColor);
+    return contrast(composite(style.color,bg),bg);
+   });
+   return {button:contrast(s.color,s.backgroundColor),body:contrast(body.color,body.backgroundColor),navigation,media,width:document.documentElement.scrollWidth,viewport:innerWidth};
   });
   assert.ok(colors.button>=4.5,"button contrast "+JSON.stringify(colors));
   assert.ok(colors.body>=4.5,"body contrast "+JSON.stringify(colors));
+  assert.ok(colors.navigation.every(c=>c>=4.5),"navigation contrast "+JSON.stringify(colors));
+  assert.ok(colors.media.every(c=>c>=4.5),"media controls contrast "+JSON.stringify(colors));
   assert.ok(colors.width<=colors.viewport+1,"horizontal overflow "+JSON.stringify(colors));
  }
  await page.locator("#pastelSettings").scrollIntoViewIfNeeded();
@@ -58,7 +73,7 @@ try{
  assert.match(await page.locator("#progressBody").innerText(),/Daily goal/);
  assert.doesNotMatch(await page.locator("#progressBody").innerText(),/Mục tiêu|Huy hiệu|lượt ôn|Chuỗi ngày/);
  await page.locator("#pageList").click();
- for(const mode of ["light","dark"]){await page.emulateMedia({colorScheme:mode});await page.locator("#pastelSettings").scrollIntoViewIfNeeded();await page.screenshot({path:join(evidence,"rakulang-extension-"+mode+".png")});}
+ for(const mode of ["light","dark"]){await page.emulateMedia({colorScheme:mode});await settleTheme(page,mode);await page.locator("#pastelSettings").scrollIntoViewIfNeeded();await page.screenshot({animations:"disabled",path:join(evidence,"rakulang-extension-"+mode+".png")});}
  const popup=await ctx.newPage();await popup.goto("chrome-extension://"+id+"/popup.html");
  await popup.waitForFunction(()=>document.documentElement.dataset.pastel==="blue");
  assert.equal(await popup.locator(".brandrow .nm").innerText(),"RaKuLanG");await checkColors(popup);
@@ -98,10 +113,10 @@ try{
  assert.doesNotMatch(await mobile.locator("#newsDialog").innerText(),/Nguồn tin|Thêm nguồn|Xem thêm/);
  await mobile.locator("#newsClose").click();
  for(const mode of ["light","dark"]){
-  await mobile.emulateMedia({colorScheme:mode});
+  await mobile.emulateMedia({colorScheme:mode});await settleTheme(mobile,mode);
   await mobile.locator("#pastelSettings").scrollIntoViewIfNeeded();
   await checkColors(mobile);
-  await mobile.screenshot({path:join(evidence,"rakulang-android-"+mode+".png")});
+  await mobile.screenshot({animations:"disabled",path:join(evidence,"rakulang-android-"+mode+".png")});
  }
  await mobile.reload();await mobile.waitForFunction(()=>window.NeutronReady);
  assert.equal(await mobile.evaluate(()=>document.documentElement.dataset.pastel),"mint");
