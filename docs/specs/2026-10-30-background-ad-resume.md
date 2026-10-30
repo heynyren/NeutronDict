@@ -14,3 +14,6 @@ AdSkipScripts.restore chỉ khôi phục muted/playbackRate; không ghi nhận �
 - Giữ WebView visible trong thời gian phục hồi hợp lệ; không bật màn hình, không giữ wake lock mới, không tạo player thứ hai.
 - Chromium fixture của chính script: pre-roll/mid-roll, thay video element, pause chủ động, video mới, quảng cáo liên tiếp, buffering/seeking, hết deadline, setting off và study guard; device suite kiểm tra build/native wiring.
 - Kiểm thử mô phỏng không xác nhận được quảng cáo YouTube thật hoặc hành vi tiết kiệm pin của từng điện thoại; nêu giới hạn khi báo cáo.
+
+## Chi tiết chuyển video sau quảng cáo
+Nếu class ad biến mất trước khi YouTube thay element video quảng cáo đã ended, vẫn giữ deadline 15 giây và chờ element nội dung sẵn sàng. Không gọi play khi ended; kết thúc nội dung bình thường không có chuyển tiếp ad thì không phát lại.

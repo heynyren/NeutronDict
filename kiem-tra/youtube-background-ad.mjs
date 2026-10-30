@@ -61,8 +61,18 @@ try{
  for(const end of [false,true]){
   await fresh();await tick(false);await ad(true);await tick(true);await ad(false);
   await page.evaluate(end=>{window.state.paused=true;if(end)window.state.ended=true;else window.__dualSubAdSkip.config.ads=false;},end);
-  assert.equal(await tick(true),"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
+  assert.equal(await tick(true),end?"recovering":"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
+  if(end){await page.evaluate(()=>window.now+=15001);assert.equal(await tick(true),"idle");}
  }
+ // YouTube may clear ad-showing before replacing the old, ended ad element.
+ await fresh();await tick(false);await ad(true);await tick(true);await ad(false);
+ await page.evaluate(()=>{window.state.paused=true;window.state.ended=true;});
+ assert.equal(await tick(true),"recovering");assert.equal(await page.evaluate(()=>window.state.plays),0);
+ await page.evaluate(()=>{window.state.ended=false;window.now+=1000;});
+ await tick(true);assert.equal(await page.evaluate(()=>window.state.plays),1);
+ // A genuine content end without an ad transition is never restarted.
+ await fresh();await tick(false);await page.evaluate(()=>{window.state.paused=true;window.state.ended=true;});
+ assert.equal(await tick(true),"idle");assert.equal(await page.evaluate(()=>window.state.plays),0);
  await page.route("https://example.org",r=>r.fulfill({contentType:"text/html",body:"<p>other origin</p>"}));
  await page.goto("https://example.org");assert.equal(await page.evaluate(source),false);
  console.log("Background ads: post-ad playback, manual pause, DOM replacement, video switch, Study/foreground guard, buffering/seeking, bounded retries, quota-off/ended and origin isolation passed.");

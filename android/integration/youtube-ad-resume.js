@@ -26,9 +26,9 @@ function tick(backgroundAllowed){
  if(hadAd){hadAd=false;deadline=wanted&&!blocked?now+15000:0;lastTry=0;}
  if(!v.paused&&!v.ended){wasPlaying=true;blocked=false;deadline=0;return"playing";}
  if(!deadline){wasPlaying=false;return"idle";}
- if(!allow||blocked||v.ended||now>deadline){deadline=0;wanted=false;wasPlaying=false;return"idle";}
+ if(!allow||blocked||now>deadline){deadline=0;wanted=false;wasPlaying=false;return"idle";}
  // Buffering and seeks may finish later; the deadline remains bounded.
- if(v.readyState>=2&&!v.seeking&&now-lastTry>=1000){
+ if(!v.ended&&v.readyState>=2&&!v.seeking&&now-lastTry>=1000){
   lastTry=now;
   try{const request=v.play();if(request?.catch)request.catch(()=>{});}catch(_){}
  }
