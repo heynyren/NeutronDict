@@ -34,6 +34,14 @@ async function snapshot(p,name){
  await p.evaluate(()=>document.getAnimations().forEach(a=>{if(Number.isFinite(a.effect?.getComputedTiming().endTime))a.finish();}));
  await p.screenshot({path:join(evidence,name+".png")});
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),"horizontal overflow: "+name);
+ const layout=await p.evaluate(()=>{
+   const game=document.querySelector(".jl-kaiwa");if(!game)return null;
+   return {width:game.scrollWidth,client:game.clientWidth,buttons:[...game.querySelectorAll(".jl-chay-nut .jl-btn,.jl-fb-nut .jl-btn.chinh")].map(b=>{
+     const r=b.getBoundingClientRect();return {text:b.textContent,left:r.left,right:r.right};
+   }),viewport:innerWidth,musicVisible:!!document.querySelector(".jl-nhac:not([hidden])")};
+ });
+ if(layout){assert.ok(layout.width<=layout.client+1,JSON.stringify(layout));assert.ok(layout.buttons.every(b=>b.left>=0&&b.right<=layout.viewport+1),JSON.stringify(layout));assert.equal(layout.musicVisible,false);}
+
 }
 async function exercise(p,name,open,read){
  const errors=[];p.on("pageerror",e=>errors.push(e.message));

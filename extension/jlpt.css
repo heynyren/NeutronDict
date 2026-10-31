@@ -696,3 +696,8 @@ body.jlpt-toan .side { display: none; }
 #scroller .jl-goc { margin: -12px -12px calc(-1 * (env(safe-area-inset-bottom) + 84px)); }
 #scroller .jl-chon { padding: 12px 12px calc(env(safe-area-inset-bottom) + 96px); }
 .jl-thoai.di, .jl-thoai.di > * { pointer-events: none; }
+
+/* Kaiwa has longer action labels and no soundtrack. Keep every action in the phone viewport. */
+.jl-kaiwa .jl-chay-nut { flex-wrap: wrap; }
+.jl-kaiwa .jl-chay-nut .jl-btn { flex: 1 1 110px; min-width: 0; white-space: normal; }
+.jl-kaiwa .jl-btn.chinh { background: #176b80; color: #fff; }

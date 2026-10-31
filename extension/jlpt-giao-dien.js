@@ -143,7 +143,7 @@
   function veNutNhac() {
     if (!nutNhac) return;
     const bat = td.nhac !== false;
-    nutNhac.hidden = !(NH && NH.kha());
+    nutNhac.hidden = monId === "kaiwa" || !(NH && NH.kha());
     nutNhac.classList.toggle("tat", !bat);
     nutNhac.innerHTML = icon("speaker-high", 22) + "<span class=\"jl-nhac-nt\">♪</span>";   // gạch chéo khi tắt do CSS vẽ (.tat::after)
     nutNhac.title = bat ? T("Tắt nhạc nền") : T("Bật nhạc nền");
@@ -701,7 +701,7 @@
   }
 
   function khungChay() {
-    const o = el("div", "jl-chay");
+    const o = el("div", "jl-chay" + (monId === "kaiwa" ? " jl-kaiwa" : ""));
     const th = TH.MON[monId];
     o.style.setProperty("--m1", th.mau[0]); o.style.setProperty("--m2", th.mau[1]);
     // Cảnh của chương đang chơi làm nền mờ dưới đáy màn hình; nội dung nằm trên.

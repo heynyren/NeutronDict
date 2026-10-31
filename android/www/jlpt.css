@@ -716,3 +716,8 @@ body.jlpt-toan .side { display: none; }
 #scroller .jl-bd .jl-bd-dau { background: var(--bg, #f5fbfd); }
 #scroller .jl-ten-chuong { background: rgba(10, 12, 40, .86); }
 #scroller .jl-bd > .jl-suutam { background: rgba(10, 12, 40, .82); }
+
+/* Kaiwa has longer action labels and no soundtrack. Keep every action in the phone viewport. */
+.jl-kaiwa .jl-chay-nut { flex-wrap: wrap; }
+.jl-kaiwa .jl-chay-nut .jl-btn { flex: 1 1 110px; min-width: 0; white-space: normal; }
+.jl-kaiwa .jl-btn.chinh { background: #176b80; color: #fff; }
