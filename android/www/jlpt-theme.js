@@ -262,7 +262,47 @@
     return '<svg viewBox="0 0 380 124" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="124" fill="#12354a"/><circle cx="310" cy="30" r="16" fill="#f3e4aa"/>'+[0,70,145,230,310].map((x,i)=>'<rect x="'+x+'" y="'+(65-i%2*20)+'" width="58" height="68" rx="4" fill="#20566c"/><rect x="'+(x+12)+'" y="76" width="30" height="18" rx="3" fill="#8bd4e6"/>').join("")+lanterns+'<path d="M0 112Q190 100 380 112V124H0Z" fill="#367d8a"/></svg>';
   }
 
+  function canhN45(id, ci, tong, rong) {
+    const progress=Math.max(0, Math.min(1, ci / Math.max(1,tong-1)));
+    const suffix=id+"_"+ci+(rong?"w":"s");
+    let svg=canhSapCo(id).replaceAll("jlN"+id.slice(1), "jlScene"+suffix);
+    if(id==="n5")svg=svg.replaceAll("#ffd9e6",tron("#fff0f5","#ffd0de",progress)).replaceAll("#ffb7cf",tron("#f3b7cb","#e7a5bb",progress));
+    else svg=svg.replaceAll("#1d2b5e",tron("#365b83","#172d51",progress)).replaceAll("#7a86c4",tron("#a7c8e0","#607baf",progress));
+    return svg.replace('viewBox="'+KHUNG_RONG+'"','viewBox="'+(rong?KHUNG_RONG:KHUNG)+'"');
+  }
+
+
+  /** Full-screen scenes keep their proportions on both a tall phone and a wide monitor. */
+  function canhN45Full(monId, ci, ti) {
+    const W=Math.max(38,Math.min(190,(ti||1.6)*100)),t=Math.max(0,Math.min(1,ci/5));
+    const id="jlN45"+monId+ci+"_"+Math.round(W),snow=monId==="n4";
+    const top=snow?tron("#42698b","#1a3558",t):tron("#ffeaf1","#f9d2df",t);
+    const low=snow?"#bcdde8":"#fff2db";
+    let art='<defs><linearGradient id="'+id+'" x2="0" y2="1"><stop stop-color="'+top+'"/><stop offset="1" stop-color="'+low+'"/></linearGradient></defs><rect width="'+W+'" height="100" fill="url(#'+id+')"/>';
+    art+='<circle cx="'+(W*.76)+'" cy="'+(13+t*5)+'" r="5" fill="'+(snow?'#f8f6e7':'#fff9e8')+'"/>';
+    art+='<path d="M0 79L'+(W*.18)+' 61L'+(W*.40)+' 79L'+(W*.67)+' 57L'+W+' 78V100H0Z" fill="'+(snow?'#9abbd4':'#e8b9c9')+'" opacity=".5"/>';
+    art+='<path d="M0 87Q'+(W*.3)+' 80 '+(W*.5)+' 87T'+W+' 86V100H0Z" fill="'+(snow?'#edf6fb':'#bad7ab')+'"/>';
+    if(snow){
+      for(const x of [W*.12,W*.78]){
+        art+='<g transform="translate('+x+' 78)"><rect width="9" height="9" rx="1" fill="#735849"/><path d="M-2 1L4.5 -4L11 1" stroke="#fff" stroke-width="2" fill="#6a5362"/><rect x="2" y="3" width="2" height="3" fill="#ffd57d"/><rect x="6" y="3" width="2" height="3" fill="#ffd57d"/></g>';
+      }
+      art+='<ellipse cx="'+(W*.5)+'" cy="94" rx="'+Math.min(14,W*.25)+'" ry="4" fill="#76bad0"/>';
+      for(const x of [W*.44,W*.54])art+='<path class="jl-troi-doc" d="M'+x+' 91q-2 -3 0 -6t0 -6" stroke="#fff" stroke-width="1.2" opacity=".65" fill="none"/>';
+      for(let i=0;i<10;i++)art+='<circle cx="'+((i*17+7)%W)+'" cy="'+(5+(i*23)%75)+'" r=".4" fill="#fff" opacity=".75"/>';
+    }else{
+      art+='<path d="M'+(W*.35)+' 100Q'+(W*.35)+' 89 '+(W*.60)+' 83L'+(W*.68)+' 85Q'+(W*.43)+' 92 '+(W*.47)+' 100Z" fill="#e8c7af"/>';
+      for(const x of [W*.10,W*.89]){
+        art+='<path d="M'+x+' 91v-20m0 6l-4 -5m4 3l4 -6" stroke="#806052" stroke-width="1.6" fill="none"/>';
+        for(let i=0;i<7;i++)art+='<circle cx="'+(x+Math.cos(i*2)*4)+'" cy="'+(69+Math.sin(i*2)*3)+'" r="3" fill="'+(i%2?'#f5b3cb':'#fbd1df')+'"/>';
+      }
+      art+='<g transform="translate('+(W*.62)+' 76)"><rect width="7" height="10" fill="#b95d59"/><path d="M-2 1L3.5 -3L9 1M-1 -3L3.5 -6L8 -3" stroke="#775460" stroke-width="1.4" fill="none"/></g>';
+    }
+    return '<svg viewBox="0 0 '+W+' 100" preserveAspectRatio="none" aria-hidden="true">'+art+'</svg>';
+  }
+
   const MON = {
+    n5: {...{"id":"n5","cap":"N5","emoji":"🌸","khi":"canh","xemTruoc":2,"ten":"Con đường hoa anh đào Kyoto","phu":"Từng bước xây nền tảng từ vựng, chữ Hán và ngữ pháp N5.","mau":["#8b3659","#ffd9e6"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Kyoto · Khởi hành","mau":["#493052","#82506d"]},{"ten":"Kyoto · Con đường hoa","mau":["#4a3b61","#82506d"]},{"ten":"Kyoto · Bên dòng sông","mau":["#374b63","#82506d"]},{"ten":"Kyoto · Khu vườn yên tĩnh","mau":["#3e4c54","#82506d"]},{"ten":"Kyoto · Dưới tán anh đào","mau":["#56384f","#82506d"]}],"trum":{"ten":"Kyoto · Lễ hội hoa anh đào","mau":["#493052","#82506d"]},"suuTam":["🌱","🌸","🎐","🍵","🌺"],"thoai":{"batDau":["Cùng Raku dạo bước dưới tán hoa anh đào và khám phá N5!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình N5 ở Kyoto!"]}},canh:(ci,tong,rong)=>canhN45("n5",ci,tong,rong)},
+    n4: {...{"id":"n4","cap":"N4","emoji":"♨️","khi":"canh","xemTruoc":2,"ten":"Làng suối nước nóng trong tuyết","phu":"Ôn từ vựng, chữ Hán và ngữ pháp N4 giữa ngôi làng mùa đông.","mau":["#295d80","#b8d9ec"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Làng tuyết · Cổng làng","mau":["#233f5d","#406481"]},{"ten":"Làng tuyết · Rừng thông","mau":["#2d4264","#406481"]},{"ten":"Làng tuyết · Quán trà","mau":["#34536b","#406481"]},{"ten":"Làng tuyết · Dòng suối ấm","mau":["#285769","#406481"]},{"ten":"Làng tuyết · Ánh đèn đêm","mau":["#344e70","#406481"]}],"trum":{"ten":"Làng tuyết · Lễ hội mùa đông","mau":["#233f5d","#406481"]},"suuTam":["❄️","🌲","🍵","♨️","🏮"],"thoai":{"batDau":["Cùng Raku khám phá N4 trong ngôi làng suối nước nóng!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình N4 ở làng tuyết!"]}},canh:(ci,tong,rong)=>canhN45("n4",ci,tong,rong)},
     kaiwa: {"id":"kaiwa","cap":"Kaiwa Nihongo","emoji":"🏮","khi":"canh","xemTruoc":4,"ten":"Kaiwa Nihongo","phu":"Khẩu ngữ Nhật và tiếng Osaka · khóa bổ trợ ngoài các cấp JLPT.","mau":["#176b80","#8bd4e6"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Nameraka · Biến âm","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Câu nói tự nhiên","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Giữ nhịp hội thoại","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Ý định và sắc thái","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Lời nói hằng ngày","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Giao tiếp và đáp lời","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Gia đình và ẩm thực","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Văn hóa trò chuyện","mau":["#163e52","#245b6d"]}],"trum":{"ten":"Kaiwa · Thử thách hội thoại","mau":["#163e52","#276f7c"]},"suuTam":["🗣️","💬","🎐","🤝","🏮","🍵","🍣","🍬"],"thoai":{"batDau":["Cùng Raku khám phá tiếng Nhật trong những cuộc trò chuyện hằng ngày!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình Kaiwa Nihongo!"]},canh:canhKaiwa},
     n3: {
       id: "n3", cap: "N3", emoji: "🗻", khi: "canh", xemTruoc: 8, leoLen: true,
@@ -366,9 +406,7 @@
 
   /** Màn "sắp có": hiện trên bản đồ chọn màn nhưng chưa chơi được. */
   const SAP_CO = [
-    { id: "n1", cap: "N1", emoji: "🎆", ten: "Tàu đêm đến ngày hội pháo hoa" },
-    { id: "n4", cap: "N4", emoji: "♨️", ten: "Làng suối nước nóng trong tuyết" },
-    { id: "n5", cap: "N5", emoji: "🌸", ten: "Con đường hoa anh đào Kyoto" }
+    { id: "n1", cap: "N1", emoji: "🎆", ten: "Tàu đêm đến ngày hội pháo hoa" }
   ];
 
   /** Hai màu nền của một chương (hoặc của trùm cuối khi `ci` = -1). */
@@ -385,12 +423,12 @@
 
   /** SVG nhân vật của một màn (đã gắn sẵn hoạt ảnh). */
   function nhanVat(mon) {
-    if (mon === "kaiwa") {
+    if (["kaiwa","n4","n5"].includes(mon)) {
       const icon = goc.chrome?.runtime?.getURL ? goc.chrome.runtime.getURL("icons/icon128.png") : "brand-mark.png";
       return '<svg class="jl-nv-svg" viewBox="0 0 128 128" aria-label="Raku"><image href="' + icon + '" width="128" height="128"/></svg>';
     }
     return mon === "n2" ? veKai() : veTaro();
   }
 
-  goc.JlptTheme = { MON, SAP_CO, mauChuong, canh, canhSapCo, nhanVat, tron };
+  goc.JlptTheme = { canhN45Full, MON, SAP_CO, mauChuong, canh, canhSapCo, nhanVat, tron };
 })(typeof self !== "undefined" ? self : this);

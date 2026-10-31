@@ -47,7 +47,7 @@ async function exercise(p,name,open,read){
  const errors=[];p.on("pageerror",e=>errors.push(e.message));
  await open();await p.waitForSelector('.jl-the[data-mon="kaiwa"]');
  assert.equal(await p.locator(".jl-the").count(),6);
- assert.equal(await p.locator(".jl-the.sap").count(),3);
+ assert.equal(await p.locator(".jl-the.sap").count(),1);
  await snapshot(p,"kaiwa-"+name+"-courses");
  await p.locator('.jl-the[data-mon="kaiwa"]').click();await p.waitForSelector(".jl-thoai");await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.equal(await p.evaluate(()=>JlptUI.trangThai().monId),"kaiwa");

@@ -3,7 +3,7 @@
  *
  *   node kiem-tra/jlpt-android.mjs [thư-mục-android/www]
  *
- * Tab JLPT chỉ có ở tiếng Nhật; vào màn N3; chơi một chặng bằng chạm; luật 60%; nút Quay lại của Android
+ * Tab JLPT chỉ có ở tiếng Nhật; vào màn N3; chơi một chặng bằng chạm; hoàn thành chặng; nút Quay lại của Android
  * đóng từng lớp (hỏi thoát khi đang chơi, về chọn màn khi đang ở bản đồ); không thanh tab nào chen vào lúc chơi.
  */
 import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
@@ -42,13 +42,27 @@ try {
   soat("tiếng Nhật: tab JLPT hiện", await p.evaluate(() => getComputedStyle(document.getElementById("navJlpt")).display !== "none"));
   await p.evaluate(() => document.getElementById("navJlpt").click());
   await p.waitForSelector(".jl-the");
-  soat("hiện 6 thẻ màn (N3, N2 và Kaiwa mở song song)", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 6 && t[2].dataset.mon === "kaiwa" && !t[2].classList.contains("sap") && !t[0].classList.contains("khoa") && !t[1].classList.contains("khoa") && !t[1].classList.contains("sap"); }));
+  soat("hiện 5 màn mở và N1 sắp có", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 6 && t[4].dataset.mon === "kaiwa" && t.slice(0,5).every(x=>!x.classList.contains("sap")) && t[5].classList.contains("sap") && !t[0].classList.contains("khoa") && !t[1].classList.contains("khoa") && !t[1].classList.contains("sap"); }));
   await cho(600);                                   // chờ hết hoạt ảnh trượt của tab (lúc đang trượt, fixed tính theo khung đang dịch)
-  soat("điện thoại: nút nhạc nền nằm TRÊN thanh tab dưới, bấm được", await p.evaluate(() => { const b = document.querySelector(".jl-nhac"); if (!b || b.hidden) return false; const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); const nv = document.getElementById("navJlpt").getBoundingClientRect(); return b.contains(e) && r.bottom <= nv.top + 2; }));
+  soat("màn chọn cấp không có nhạc nền của một khóa cụ thể", await p.evaluate(() => document.querySelector(".jl-nhac")?.hidden === true));
   await p.tap('.jl-the[data-mon="n3"]');
   await p.waitForSelector(".jl-thoai");
   await xongThoai(p);
   await p.waitForSelector(".jl-bd");
+  const nhac = await p.evaluate(() => {
+    const b = document.querySelector(".jl-nhac");
+    if (!b || b.hidden) return { ok: false, reason: "music control hidden in N3" };
+    const r = b.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    const nav = document.getElementById("navJlpt").getBoundingClientRect();
+    return { ok: b.contains(hit) && r.top >= 0 && r.bottom <= innerHeight && (!nav.height || r.bottom <= nav.top + 2),
+      button: r.toJSON(), nav: nav.toJSON(), hit: hit?.className };
+  });
+  soat("N3: nút nhạc nền nằm trong màn hình, trên thanh tab nếu hiện, bấm được", nhac.ok, JSON.stringify(nhac));
+  const nhacTruoc = await p.getAttribute(".jl-nhac", "aria-pressed");
+  await p.tap(".jl-nhac");
+  soat("chạm nút nhạc N3 thay đổi trạng thái bật/tắt", (await p.getAttribute(".jl-nhac", "aria-pressed")) !== nhacTruoc);
+  await p.tap(".jl-nhac");
   soat("cảnh nền liền mạch: 10 khung chồng, sân khấu dính đầu vùng cuộn, tràn sát hai mép", await p.evaluate(() => { const k = document.querySelector(".jl-gioi-khung").getBoundingClientRect(); return document.querySelectorAll(".jl-gioi-lop").length === 10 && Math.abs(k.left) < 1 && Math.abs(k.right - innerWidth) < 1 && !document.querySelector(".jl-banner"); }));
   soat("N3 leo núi LÊN: lúc vào là chân núi (khung 1 hiện), nút chặng 1 ở dưới cùng", await p.evaluate(() => { const l = [...document.querySelectorAll(".jl-gioi-lop")]; const n = [...document.querySelectorAll(".jl-nut")]; return !l[0].classList.contains("an") && l.slice(1).every((x) => x.classList.contains("an") || +x.style.opacity === 0) && n[0].getBoundingClientRect().top > n[n.length - 1].getBoundingClientRect().top; }));
   soat("bản đồ N3: 227 chặng", await p.evaluate(() => document.querySelectorAll(".jl-nut").length === 227));

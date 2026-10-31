@@ -1,0 +1,2565 @@
+{
+  "N5": {
+    "zipSha256": "1b75e0b8ac1bfd24e397e70d048518a4851899a738ac2f1dacfa5bea96317437",
+    "integrity": "ok",
+    "foreignKeyErrors": [],
+    "checksumMismatches": [],
+    "inputCounts": {
+      "sources": 9,
+      "source_units": 1356,
+      "grammar": 101,
+      "grammar_senses": 111,
+      "vocabulary": 432,
+      "vocabulary_senses": 451,
+      "kanji": 201,
+      "kanji_entries": 484,
+      "examples": 163,
+      "example_occurrences": 163,
+      "example_vocabulary": 277,
+      "ruby_annotations": 0,
+      "questions": 202,
+      "choices": 0,
+      "content_blocks": 1355,
+      "kanji_links": 281,
+      "chunks": 1368,
+      "quality_issues": 54,
+      "source_coverage": 9,
+      "media_assets": 0,
+      "lessons": 25,
+      "vocabulary_candidates": 591,
+      "excluded_inputs": 0,
+      "answer_entries": 19
+    },
+    "counts": {
+      "vocabulary": 355,
+      "grammar": 86,
+      "kanji": 115,
+      "chapters": 5,
+      "lessons": 25
+    },
+    "mergedVocabulary": [
+      {
+        "id": "voc_7d1ed6873b0328e90987",
+        "into": "voc_d675c258d9fd82e7056b",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_2eb6960ad2c75d9337cd",
+        "into": "voc_ab41ad5aa4d7041591e5",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_f96e829ee856c5375e4f",
+        "into": "voc_fd8aba0f3996bf9e3ad0",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_c250a7c7140a978de4a4",
+        "into": "voc_e429321567c0b9e7d3fb",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_fb940a38d91a76aa489a",
+        "into": "voc_c28d27c29dfce6af3d94",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_58cca5ea3830421a3b1a",
+        "into": "voc_4545f7adb9c992a74059",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_46448f85f39b787e36fd",
+        "into": "voc_4559fa3663ac86264291",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_fd391ed06737abe1d395",
+        "into": "voc_cb7a823a2abcc700605c",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_f3bf944e92319007b39c",
+        "into": "voc_234a696519d49757e0e1",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_f8b2eea3d825d9a056a4",
+        "into": "voc_edce819df4e913b8dd51",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_e964a2cef35315ffe569",
+        "into": "voc_8525575a52f0e76b312c",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_59a92f1726caf958c2da",
+        "into": "voc_fbe00de61213556d317e",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_1bef526844a30f49f725",
+        "into": "voc_b86c4716f538fa101e73",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_c2712e013112dfa7edc3",
+        "into": "voc_e329e57be71281fe19a0",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_b54db90dbb6d75bb20fc",
+        "into": "voc_967d4680c4070ded30d1",
+        "reason": "same reviewed reading and meaning"
+      }
+    ],
+    "excludedVocabulary": [
+      {
+        "id": "voc_2fb180904a7e78ed9362",
+        "w": "館",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a3ef70af244a966a402d",
+        "w": "ト",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_abbb122aff7eab8fd6a5",
+        "w": "こう",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_13559e76aec341879867",
+        "w": "た",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_4d250138921a5d086512",
+        "w": "えん",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_b8dab09875080d301efe",
+        "w": "す",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_4c328a275e75fcd3cb76",
+        "w": "な",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3efa7aec46992ee3d38c",
+        "w": "ひと",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_6d393bf0c82b98f0ebff",
+        "w": "つ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_ed2cd1caf05c3fe1866e",
+        "w": "イス",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_498733f19dfd8b22eff3",
+        "w": "まいります",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3b2f68478ca4cdd87a43",
+        "w": "ま",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_040bb5da12e4c4e90591",
+        "w": "願いします",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_44437479d2b553355498",
+        "w": "イド",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_1fe132a10f6560494eba",
+        "w": "ます",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_05e421b45bd8b3de852c",
+        "w": "たか",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_6bac049c16f55695fa98",
+        "w": "すか",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_d786521be118f6e71913",
+        "w": "まで",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_68b08dc6f20d987eaa54",
+        "w": "の",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0b5c5dab1f8d8913ffa6",
+        "w": "ませんか",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_673cb67e2b67bb5736d2",
+        "w": "キチン",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_dd982381e60b0cd51708",
+        "w": "くしょ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_eda6969e6b01f9e6d910",
+        "w": "ましょう",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a2ff5d6ac100301fc710",
+        "w": "せわ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_18f5843ae2a8d3c7bd00",
+        "w": "じこ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_9d48dbe09d9a223e9bfb",
+        "w": "にだ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_cef1a0ef9b702bc879e5",
+        "w": "あ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_7a091f572dae4863b361",
+        "w": "べ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_6b959cdd9c8d237b5b55",
+        "w": "と",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_747714179a1d21dc88eb",
+        "w": "ほす",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_9d5892f43998cf056aa2",
+        "w": "こ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_40395d3be7d4e6a785bf",
+        "w": "きんこう",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_c3c85c405751d0c228ed",
+        "w": "て",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_7ea79d2bc8895084e56e",
+        "w": "だい",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_08fe33f0e1c210e1064a",
+        "w": "上",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_fe60f1b040381a7d4eac",
+        "w": "なが",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_b6361504eab46b38b975",
+        "w": "せんだい",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_543e751a5e1125eca626",
+        "w": "ぎ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a969ffb691b4386c89e4",
+        "w": "上る",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_6e49729be06f433b1342",
+        "w": "たま",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_59772bc3c0b464dc4f72",
+        "w": "ご",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a47ad2113a11f72e4001",
+        "w": "かに",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5d08df6f41e6e5e4caa3",
+        "w": "すみ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_07a2533e869e6a159d39",
+        "w": "テール",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_ff3aa3782f48b38acd09",
+        "w": "あつい",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_00a33fb0b9ea723b60b4",
+        "w": "すく",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a0ba7efcf136faab4849",
+        "w": "なか",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_e2ee3bb65bf516f96fa0",
+        "w": "に",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_54495f93cab3e125f224",
+        "w": "つつ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_dec9bab4ad94408da850",
+        "w": "こうびん",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_4b30e78ae725479085a6",
+        "w": "な",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_886bcfe104213b9674c7",
+        "w": "れる",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_8d525b5e6fe5a3799413",
+        "w": "ございます",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_4c79e4b4170f00d89845",
+        "w": "あっ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_dc0c076747b3c142deaf",
+        "w": "名",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_405881d5ec184196568c",
+        "w": "ふた",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_00fe63d4842909d2be71",
+        "w": "る",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_02d5877ec33152788614",
+        "w": "かざ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_fc4672f75be6cac853e1",
+        "w": "どころ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_669b9316bdec0f40861a",
+        "w": "んで",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_6a74171dd6740103671a",
+        "w": "かさ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_f990e56129729ab865fa",
+        "w": "ひ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      }
+    ],
+    "excludedGrammar": [
+      {
+        "id": "gram_d02a24bd58f018e0aac7",
+        "p": "おて",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c9203a2bdf55e3508693",
+        "p": "Danh từ [の中 ] で何ノどこ / だれ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_8f13d0e0f1b744de7204",
+        "p": "そうですれ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_9e865083faf45156bd37",
+        "p": "Động từ th をないないと ……",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_5472a8dd8cd35de29e58",
+        "p": "Động từ thé て",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_92819d3744564b6892cb",
+        "p": "Bang dai từ chi thi こそあど và tính từ chỉ thị tương ứng",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_35cabb10c42824616cf3",
+        "p": "お一",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_87bc8cb2c4b1474bcc25",
+        "p": "[や ]",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_20735e8ba2fe29e0175a",
+        "p": "[から] [ET]",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_58b6e9ea51ef39d7a064",
+        "p": "[か ]",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_ddbd493c266c6d1b506c",
+        "p": "[ね ]",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_4fffc07f29c5d814bbe5",
+        "p": "[Thể ない ]",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3b0b23cf817073d1b948",
+        "p": "じぶんで",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_83e4745edf4f85008b20",
+        "p": "あまり Quyền từ điển đó không tốt lắm. (8)",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_2ffde5d0e9d37d89e7be",
+        "p": "とくに Trong bộ phim đó, nhân vật người cha diễn đặc biệt tốt. (15)",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      }
+    ],
+    "excludedKanji": [
+      {
+        "id": "kanji_3b829ba13832b6550d9d",
+        "c": "館",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_db5ba671d244ee828461",
+        "c": "上",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_85217f7aff7784143843",
+        "c": "日",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_83831c3f910cf940c661",
+        "c": "本",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_de7754f7eec877d5e8e1",
+        "c": "語",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bf728630db0bf67cd361",
+        "c": "光",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_51a75f4634dfa8598a0a",
+        "c": "一",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0b44401f360a9ac569b2",
+        "c": "神",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_88731a8fb9d850bf6f0b",
+        "c": "形",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_99369fd992de0273541a",
+        "c": "絵",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1625179badc027f0d0a2",
+        "c": "月",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a567bdaa11367f260f07",
+        "c": "中",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_469e009b15a00cf1b308",
+        "c": "東",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_22c95798a9323bb53fc1",
+        "c": "使",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_641a3c3040dbb644d611",
+        "c": "社",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3c1e31a193cda379e8e8",
+        "c": "金",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_50537ea054075dbfb9e6",
+        "c": "図",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fc7edd399a5c4b93723e",
+        "c": "十",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_08002c6675f7436cb3d3",
+        "c": "円",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_5618dc0903030d38d24c",
+        "c": "者",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f30071fa503a5928e623",
+        "c": "半",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ae06002f9a0af101093b",
+        "c": "校",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_53e5e276999d5674f7c3",
+        "c": "駅",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7bafa8a1f2dc627d3825",
+        "c": "今",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f36b4109a9a6c8ef4362",
+        "c": "週",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_013e76a0f1722fe8367b",
+        "c": "員",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fe053083dc87bba916ce",
+        "c": "町",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4a5ff677e1dbd37c59fe",
+        "c": "方",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8d732a6088d111fee380",
+        "c": "庫",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1bac16bd0a6594230ea8",
+        "c": "間",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0e826095b60ccf039478",
+        "c": "外",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9213ab05890bafa22324",
+        "c": "木",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b0a1eab5f902df03059f",
+        "c": "花",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_be93c785b2bd90ea21b1",
+        "c": "読",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7e005ba311f86fa76eb0",
+        "c": "茶",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_aaded36a83022ef18af2",
+        "c": "店",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_de9f18b00a5686117993",
+        "c": "画",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_124d60580dfa9072dbea",
+        "c": "雨",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7ff9df9923a86fd93571",
+        "c": "作",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_48c518de61a1f490e6c6",
+        "c": "親",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_90ce0f66f09488f205e5",
+        "c": "有",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ca31a5dd16c96822043d",
+        "c": "鉄",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a519542a5fb4163581e0",
+        "c": "夜",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b94fe089317d1e5f2ed6",
+        "c": "曜",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b9f0c815459caa83d43d",
+        "c": "西",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_01bc01b32975b903cf2b",
+        "c": "北",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4a7e9a926adb81a1034a",
+        "c": "同",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_142a111bdbd817ad0e2b",
+        "c": "知",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2df23c9b4094d780db1d",
+        "c": "持",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2148f60f4f002fcbaaaf",
+        "c": "吉",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8482432c0274b8eefff7",
+        "c": "夏",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_38eebae5f97a6a11dd0c",
+        "c": "院",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_13c12b064b635e069c22",
+        "c": "下",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0cff3c9b1cdea5254ca3",
+        "c": "林",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_e2c37ece4e87bd64148f",
+        "c": "輪",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4134580dd4b42b7edf21",
+        "c": "働",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f7bff9ed8550c8612de4",
+        "c": "刀",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a8df40502f55bec88b32",
+        "c": "数",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_001d9c64f7f1d3816df6",
+        "c": "座",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c8ae97be80f3867c089e",
+        "c": "家",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_43d5113b6e5986e5265a",
+        "c": "歳",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_31496f18e0118e25b4cf",
+        "c": "課",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_680faf1b23a67c9980d5",
+        "c": "練",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_62ef900a8f5d5bff6407",
+        "c": "年",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_6da3e5c03ac7e66cdc5f",
+        "c": "回",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c2e1872f89b14a40bd98",
+        "c": "陽",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_6a007737421eae83ebbb",
+        "c": "困",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bcf21a24c89f2c1e1e2e",
+        "c": "所",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_89bf5aeae15854eba192",
+        "c": "相",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3ecade35371c924e290e",
+        "c": "切",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_63ba256fdb4a9064948e",
+        "c": "長",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_5f8e490558897efa493c",
+        "c": "森",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_6ad4bb53e07de0a9a75c",
+        "c": "紀",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_de396510bb75ff7370e6",
+        "c": "医",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3677ef77b1574d162d7c",
+        "c": "文",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7d053f4bf3af5496181d",
+        "c": "注",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_756c86276bcc8b4682db",
+        "c": "思",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_50c0bf3e25a95f5edb17",
+        "c": "味",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cc2ae1dfcd2f2f6c6dad",
+        "c": "楽",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_5b1d378fe68d01d11932",
+        "c": "趣",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a223d4521ae8f28761ac",
+        "c": "普",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bec69dd92eb838233785",
+        "c": "音",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_471b2d253aac6f48f141",
+        "c": "映",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7c18dba3144b6dcd05de",
+        "c": "土",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1e82f9b0b67529c5bc8e",
+        "c": "犬",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f867f34178594f891eb7",
+        "c": "好",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      }
+    ],
+    "excludedQuestionPages": 202,
+    "excludedVocabularyCandidates": 591,
+    "rawExamplesNotImported": 163,
+    "editorialExamples": 86,
+    "limitations": [
+      "Source level labels are curricular, not official JLPT lists.",
+      "Raw OCR meanings/readings are retained in source-selection; editorial fixes are separate.",
+      "Exercise pages have no verified keys; none are used as graded questions.",
+      "Examples are newly authored and translated for the reviewed grammar; they are not verbatim source sentences.",
+      "Audio files are not included; existing TTS handles listening.",
+      "Known unimported source files remain outside this course."
+    ]
+  },
+  "N4": {
+    "zipSha256": "45eb90f140c36166a872ff39219ee966db204b278f3117151dcbca0a3db594ee",
+    "integrity": "ok",
+    "foreignKeyErrors": [],
+    "checksumMismatches": [],
+    "inputCounts": {
+      "sources": 38,
+      "source_units": 978,
+      "grammar": 174,
+      "grammar_senses": 180,
+      "vocabulary": 581,
+      "vocabulary_senses": 687,
+      "kanji": 567,
+      "kanji_entries": 607,
+      "examples": 342,
+      "example_occurrences": 351,
+      "example_vocabulary": 154,
+      "ruby_annotations": 193,
+      "questions": 221,
+      "choices": 0,
+      "content_blocks": 977,
+      "kanji_links": 1791,
+      "chunks": 986,
+      "quality_issues": 53,
+      "source_coverage": 38,
+      "media_assets": 637,
+      "lessons": 25,
+      "vocabulary_candidates": 819,
+      "excluded_inputs": 6,
+      "answer_entries": 1
+    },
+    "counts": {
+      "vocabulary": 510,
+      "grammar": 104,
+      "kanji": 397,
+      "chapters": 5,
+      "lessons": 25
+    },
+    "mergedVocabulary": [
+      {
+        "id": "voc_fa78b5cf253f55af0eed",
+        "into": "voc_fa221ff59959efd4c9c7",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_0e888acaf7e7fa69f844",
+        "into": "voc_8298ae8b3c0edb8a028b",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_7c976ee0fd9593832079",
+        "into": "voc_634bdfa7291db9f481e8",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_f05ef614064c92e52486",
+        "into": "voc_f1e6926e83b5184c6129",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_701d411b83d211f75d6b",
+        "into": "voc_711e975a76eda9437f8b",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_b4ca626a8aca78580b8a",
+        "into": "voc_b0d5168af1132c380d63",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_abb0b4cabae2156eab2c",
+        "into": "voc_3dfd2cbf2e03650d1fc0",
+        "reason": "same reviewed reading and meaning"
+      },
+      {
+        "id": "voc_456d8151325c16b858eb",
+        "into": "voc_e3e4b48dc608fc56285a",
+        "reason": "same reviewed reading and meaning"
+      }
+    ],
+    "excludedVocabulary": [
+      {
+        "id": "voc_8dad7f622aef31d6fa95",
+        "w": "音",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_7ced9dc785d4bebecb84",
+        "w": "カ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5e76cda8110846e6ce81",
+        "w": "呈します",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5c5c429492a3fa2411f0",
+        "w": "丁",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_7d14250a2c839f51c560",
+        "w": "三宮",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0ff6357f082713e71ced",
+        "w": "月",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_8e692d287f6e29fdc78e",
+        "w": "温",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_ee7580bd5b84a96e1034",
+        "w": "ていない",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_10400a0ee3a1865e40c3",
+        "w": "細い",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_9aa862a41d738829a586",
+        "w": "こます",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_1a766d949a9dbd92c752",
+        "w": "困ります",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_dddd2db20129ff4624ff",
+        "w": "村",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_daa2cbd8a45ab52fa1f1",
+        "w": "ハング",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_f41d538823965b2d44cf",
+        "w": "会",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0b2a83017ea0c575f162",
+        "w": "丸",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3756c8a91ee334c9dada",
+        "w": "朱",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_ee2217c9365f3fd8e9d2",
+        "w": "運びます",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3767cfc6045434fbb053",
+        "w": "注意します",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a1db92fc76776805fb40",
+        "w": "漫画",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_aa7db5cd7b61d81ebb99",
+        "w": "じゅう",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_f1f9772af2348f968fae",
+        "w": "はあ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a93b13c793871ca9d776",
+        "w": "ボーランド",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_bbc376c47f2a5dd14b6d",
+        "w": "信じます",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_d96a3358f0c0bf12e9e2",
+        "w": "用意します",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_04f96754643fc6c79755",
+        "w": "本",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_9600792a1dcd72e7f244",
+        "w": "次",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_acff43a1ddaa747d3f6e",
+        "w": "障害",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_e2fd0167289bf049ab2b",
+        "w": "フン",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_94e201731748030f031f",
+        "w": "こ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_da99b25b7ed23422465e",
+        "w": "まいにち",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_23ed4a5063fd2bdd83b3",
+        "w": "うんてん",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_65b046c8133a7f0d8a8e",
+        "w": "この",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3bab56f6fbb9b5fb6659",
+        "w": "の",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_454d2af134cafacb7790",
+        "w": "る",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_640276e47d1a1783cf24",
+        "w": "もらい",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a3f444556dd0ef4e7e4a",
+        "w": "留学",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_a49891645e4b0d1ed8cc",
+        "w": "ワイン",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_91639f51e83cb3bc6594",
+        "w": "つける",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_283013ded35b355ae0f9",
+        "w": "もうす",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5c052eb3f9747ce5e90d",
+        "w": "お金",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0e4c61c5aa2ce6f23d70",
+        "w": "はなや",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5a6ae7dffe0865a6b53f",
+        "w": "か",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_d16d196d7eaf850c0ff7",
+        "w": "開く",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_657e4a251b07e2970ec7",
+        "w": "ぶつか",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_aa0e462fb34684d9fcb1",
+        "w": "その",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_7a25a349f504ab5f6324",
+        "w": "こんやく",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_51814b6591b706ec00e3",
+        "w": "友だち",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_40223f8492c4a697d505",
+        "w": "どろ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_3fd270437a4a17a262c5",
+        "w": "かいしゃ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_818c44882eb6354f6101",
+        "w": "アニメ",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_c861f2b2971316849b0e",
+        "w": "彼女",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_eaf963d891d7fe6ceb0c",
+        "w": "テト",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_912f01139ea23530e95d",
+        "w": "これは",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_86111f808ee7774b97f8",
+        "w": "めずらしい",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0cbd1eb8e1e8720274c1",
+        "w": "副詞",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_747ab5a547874df77bae",
+        "w": "し",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_40806ee9b0c926993e93",
+        "w": "泊る",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_5224482f7023244c65f1",
+        "w": "わかり",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_eb744f4b114ebed269e1",
+        "w": "とうと",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_48b2a9faf7551b250c19",
+        "w": "な",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_c501c05bcf9a0acb6343",
+        "w": "で",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_ef7e438072edb3942884",
+        "w": "おは",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      },
+      {
+        "id": "voc_0b8954b4442d1cc3cba8",
+        "w": "お",
+        "reason": "OCR fragment, mismatched meaning, ambiguous source, or duplicate surface"
+      }
+    ],
+    "excludedGrammar": [
+      {
+        "id": "gram_26a5ad9dd7a72a005b4e",
+        "p": "Sự khác nhau giữa「 ～でしょう」 và「 ～そうです」",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_98fe7b50cc5d2c1a2ccd",
+        "p": "(もう／ぜんぶ) + V てしまいます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_5f45eb2820b1b42a10d0",
+        "p": "N(nơi chốn) に行きます／来ます／帰ります",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_95ec656b8f177c84da9a",
+        "p": "それ／その／そう",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_6276009ad6dfd2c66cbe",
+        "p": "ありました",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c69a41b6b7e98e66898b",
+        "p": "～すぎる",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_baa89942d38ce8cf6539",
+        "p": "Ⅴやすい/Ⅴにくい",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_014bf6d2efc1d210a147",
+        "p": "N にする",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_a122ad76c93441694e61",
+        "p": "もらいます→ いただきます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_228be0a073df4deb839e",
+        "p": "くれます→ くださいます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_098cfb49e5603871c54d",
+        "p": "A（い）＋ さ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_426a74ca5a716939e125",
+        "p": "～んです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_8a7cf681fc84ecbebb9d",
+        "p": "～んですが",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_e6ece056c2131a36b228",
+        "p": "謙譲語: khiêm nhường ngữ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c54d1dae56f044103de1",
+        "p": "Ⅴる/N ＋ の",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_0f266d3c40e247385a0c",
+        "p": "V るのは/が A です",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_8dbeaa37bc877361038a",
+        "p": "V るのをわすれました",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_da85892d8e982ae9db47",
+        "p": "V る/たのを知っていますか",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_87e5313f4127cabee96e",
+        "p": "場合は、～",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3b50747998f1b8e55c1f",
+        "p": "のに、～",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_addd030595c403a00cc0",
+        "p": "V た/V ないほうがいいです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3e6696a60855f08493f1",
+        "p": "～でしょう",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c54c042198037267dada",
+        "p": "Lượng từ + で",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_d22777c3740e4ee20cbf",
+        "p": "V させてていただけませんか",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_549d5abf62a69762ed02",
+        "p": "V1 る・V1 ない ＋ように、V2",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_5539422dca7575978c0e",
+        "p": "V る ＋ ようになります",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3b190f06c16c8bc161b1",
+        "p": "～ところ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3fb3afb36ba4bb748177",
+        "p": "～ばかり",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_acafa7ae1d6255ecb0c5",
+        "p": "命令形・禁止形",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_a9de3e8be11345c424ea",
+        "p": "Bạn bè thân thiết nói với nhau, có thể thêm よ để làm",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_03a151230d15c29dbab5",
+        "p": "～という意味です",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_91f2ebd07426cf220610",
+        "p": "V1 ば＋V2",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_fcb9d83912a6f6b2fa32",
+        "p": "まだ～V ていません",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c0c0568408fe2e062031",
+        "p": "～予定です",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_a2f19a813e8c6803c309",
+        "p": "V てあります",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_168bcd8a90d6fc9be154",
+        "p": "V て/A いくて・A なで、～",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_eb0e851a0a02442f20d5",
+        "p": "N ＋ で",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_1ef50f4b4ee3c7482868",
+        "p": "N の・V る ＋ 途中で",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_253dfb3c28df40d86255",
+        "p": "可能形 (thể khả năng)",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_12a9863f421b95db28f5",
+        "p": "場所 (địa điểm) にN ができます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_cbd5c11e81f7ee6d9c05",
+        "p": "N(lượng từ)しかＶません",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_317492768ad36dedb089",
+        "p": "N1 は～が、N2 は～",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_74dcf8b7b058982c8a0c",
+        "p": "V る・V た・N の ＋とおりに、 V2",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_63214b6a81abbcc400ca",
+        "p": "V た/の＋あとで、 V2",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_c03ccdf24034e50f3c7e",
+        "p": "～ために",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_0f28de4f887c4f96a512",
+        "p": "あげます→ やります",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_f85e031cdeeaeca4ebdc",
+        "p": "V ます ＋ そうです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_822fc32bd3b0d39a6f34",
+        "p": "A い・A な＋ そうです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_29ae43e3bb80233594c5",
+        "p": "V てきます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_1415581d9ffdcdcd1924",
+        "p": "～そうです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_08cae41ee7a4b1644771",
+        "p": "～ようです",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_5ba60d6ed7f1be294441",
+        "p": "受身形 (thể bị động)",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_04b27892adcd8c65b976",
+        "p": "N1 はN2 にV受身",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_9573db3b012db1a04db2",
+        "p": "N が/は V 受身",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_1a7a028e339f035461b4",
+        "p": "ながら",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_bec00758fc4ef8244df8",
+        "p": "V ています",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_1e6283bae55571f5ec94",
+        "p": "～し、～し、それに",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_5687aef0f9eefd9cd47d",
+        "p": "～し、～し、（それで）",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_f06a25399c3303faa5c1",
+        "p": "まだ Động từ (thé khang định)",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_f0f2f49296686bff3b92",
+        "p": "Từ nghỉ van Động từ thé điều kiện \\ いいて",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_d615d6e8cc201944acd6",
+        "p": "Động từ thé nguyên dạng ように",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_4b2008f847c02514d72d",
+        "p": "Danh từ (VAUviec) が / は Động từ bị động",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_086cb3c71ed5ecf7ca6b",
+        "p": "Danh từ に Động từ",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_b78ea821e63d304bff09",
+        "p": "Động từ the ます",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_3c4948227e258654471d",
+        "p": "Tinh từ đuôi い (この) プー <",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_7aa239efd55e6f6480d1",
+        "p": "Lượng từ (chỉ khoảng thời gian) に — E!",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_a13a68091b2ec516d3f4",
+        "p": "でき",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_028facb3c1802b6abd8f",
+        "p": "それに",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_cffcf52e490922b14efb",
+        "p": "それで",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      },
+      {
+        "id": "gram_eab7b9fbe6c28387ed80",
+        "p": "よくこの喫茶店に来るんですか",
+        "reason": "Duplicate structure, OCR fragment, or unusable heading"
+      }
+    ],
+    "excludedKanji": [
+      {
+        "id": "kanji_a523477108776640c543",
+        "c": "丁",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9dabef686a60d8db05fb",
+        "c": "朱",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_08dddeac1319d6e86030",
+        "c": "点",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_172fb7e67b9b09dd2a61",
+        "c": "次",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_413c06bcef7c934d06ea",
+        "c": "能",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8540d76b7974a6c67553",
+        "c": "令",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_be93c785b2bd90ea21b1",
+        "c": "読",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_884e97995130b8b96677",
+        "c": "言",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_acdaf6361c8415da170c",
+        "c": "身",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3281e6bbe759e685855b",
+        "c": "途",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8ff87668daeec2ef1d24",
+        "c": "場",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8c25bf8f2e05ffb9ddce",
+        "c": "詞",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f2792c46ceebe9421b28",
+        "c": "疑",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ed0ad3385f30716adba8",
+        "c": "謙",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c6d6f13522c8221eca87",
+        "c": "譲",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cb7780164fddd56b6bb3",
+        "c": "寧",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2b684a9bc670a7673a8f",
+        "c": "敬",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_25bd63d817d756acb3eb",
+        "c": "特",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ffabbb99c417275a4fb4",
+        "c": "尊",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7154fb20c68901b1652a",
+        "c": "役",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f004f1d84cf962dcb4cf",
+        "c": "条",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a2f77db0e9b9ab53b822",
+        "c": "向",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bcf21a24c89f2c1e1e2e",
+        "c": "所",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2c377a9b555f98bab88f",
+        "c": "喫",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_aaded36a83022ef18af2",
+        "c": "店",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_37e73021d3b8b20435e0",
+        "c": "呈",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3dff5402e49a27953bb0",
+        "c": "宮",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a4c3313deb180960469d",
+        "c": "三",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f2bb727cbc9a5b601efb",
+        "c": "供",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3c1e31a193cda379e8e8",
+        "c": "金",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_320d1ab4f80f59609052",
+        "c": "開",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_23fa6f37cdf00853bf56",
+        "c": "友",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0ab4610b9257c2985566",
+        "c": "女",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_35a943e91674e6810e3d",
+        "c": "彼",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_79e5dcf869d5f77ea46f",
+        "c": "副",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9ceb8855be4e8bdcc72b",
+        "c": "泊",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7a661802fe6165405b61",
+        "c": "時",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_dabf82cfeb14a42eab14",
+        "c": "阪",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_eb100cbabc568d535175",
+        "c": "渡",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cbba0a98abd10ccc947c",
+        "c": "住",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_94dfd066633ff6145a0d",
+        "c": "弁",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ed948ae4e2816d7f9ef4",
+        "c": "辺",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_43d5113b6e5986e5265a",
+        "c": "歳",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9a56a4f7b1211a27be2f",
+        "c": "買",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_419c745398dffb654b26",
+        "c": "朝",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8436738202727432d7d5",
+        "c": "紙",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_935d53cddb95b7cd4aae",
+        "c": "強",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b6636b03891de4b23493",
+        "c": "勉",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c994c4b419be9d6385da",
+        "c": "銀",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_916f61d4564817b03c61",
+        "c": "換",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_dbc879e139da5b0af3c7",
+        "c": "私",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c55038b272b109b8bfdb",
+        "c": "字",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fc9f0d61dd80076ae5f0",
+        "c": "漢",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_6dceec1fb8eb52ce6833",
+        "c": "飲",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1f2ee56f9be0b800d61c",
+        "c": "寝",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2151f794596cfe91833e",
+        "c": "晩",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_917540c6475c9448880b",
+        "c": "頭",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_48c518de61a1f490e6c6",
+        "c": "親",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_124d60580dfa9072dbea",
+        "c": "雨",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1940119f0571646018c3",
+        "c": "多",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a03068bbbf36181c88c5",
+        "c": "壊",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_34eb96f43db7be038442",
+        "c": "宿",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_feb074cc340e5dd64c70",
+        "c": "題",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_50537ea054075dbfb9e6",
+        "c": "図",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b5f0f70d8d1a3e828112",
+        "c": "壁",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bc9c62e3da8b2f135025",
+        "c": "貼",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_628d8d9a6f4b14573d52",
+        "c": "符",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_e957ecd57fc8e72dbbf7",
+        "c": "終",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_790e7ba7d0225a32c412",
+        "c": "消",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9bdba881f8edda0e1527",
+        "c": "末",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_756c86276bcc8b4682db",
+        "c": "思",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_976ce12569d90913f8ba",
+        "c": "張",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_34ceaffd8849892915f0",
+        "c": "熱",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_af635b1fc4359ca08adf",
+        "c": "呂",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2afea0a3e1e17eaca6ea",
+        "c": "丈",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a344c50fdb6e195f94ba",
+        "c": "夫",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bd0fd6c08f85085fc9d6",
+        "c": "病",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_c313bfaa8f635a30a8c8",
+        "c": "田",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b94fe089317d1e5f2ed6",
+        "c": "曜",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fbda90cd370b15d7d5cf",
+        "c": "進",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_866b1a02385718e1dc30",
+        "c": "迷",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fe9c846c529745bab359",
+        "c": "京",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_469e009b15a00cf1b308",
+        "c": "東",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fc1a6dc7ac704ab829ef",
+        "c": "初",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_31496f18e0118e25b4cf",
+        "c": "課",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_06441d6b046a5c93cac4",
+        "c": "際",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1df9720a3e586eee834f",
+        "c": "議",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b7488a2d40a3868b23e5",
+        "c": "兄",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f1d9eb390e4a841ea5ff",
+        "c": "弟",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a5d6966e0e8e902d8ef9",
+        "c": "荷",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f867f34178594f891eb7",
+        "c": "好",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_51a5d681a99c0e3bf2c6",
+        "c": "名",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2bd2d5fa6fb1e89ce6d6",
+        "c": "鈴",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9213ab05890bafa22324",
+        "c": "木",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fe053083dc87bba916ce",
+        "c": "町",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_93b62d17f91dbecd4fc1",
+        "c": "暑",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7eabb36ba1ab565b65e9",
+        "c": "都",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ea41a71f44c44e6924e6",
+        "c": "準",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7afa87315468fb157046",
+        "c": "実",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_105e631b3fdd0634d583",
+        "c": "乾",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8b7c6d87472d8688d4b0",
+        "c": "酒",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_229c02a0b53a5c343b63",
+        "c": "測",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a810bf845a307382118e",
+        "c": "猫",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b481cb1bcb3f18baeb07",
+        "c": "魚",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_94f892c4974a83c126a0",
+        "c": "械",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_6134a83bcc81bca0744a",
+        "c": "誕",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2b264025e323409f4ab5",
+        "c": "借",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4134580dd4b42b7edf21",
+        "c": "働",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0fd8abd280cfc0416b1f",
+        "c": "族",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_47f600bcd4e549adef23",
+        "c": "辞",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_687627144bb34cd948a7",
+        "c": "直",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_42432e177334fd076f36",
+        "c": "降",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_de43089cdc95387bf63c",
+        "c": "昨",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f67152fcd80bb5bef4be",
+        "c": "産",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bcff2c6f93b451c059a0",
+        "c": "薬",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ec235ef81f73362dccc6",
+        "c": "髪",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4ca8d4f77574e43a0b51",
+        "c": "短",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_65a1fe6854ab52ff7df4",
+        "c": "飯",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_116f3cb4ee894d24974e",
+        "c": "束",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_0201c422a7fc856c99b8",
+        "c": "昼",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_963e4f4abf641ba99d8f",
+        "c": "忙",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fc2d4ab36f05f86a03fb",
+        "c": "通",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ffcdc1fb53a85b7d17d6",
+        "c": "藤",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1ecd10d4a775e7b90d53",
+        "c": "部",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f0f0327bc55750d6c437",
+        "c": "加",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_e7c7fb50f3db8408eacd",
+        "c": "早",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_8b3a70dc6742a0c44a9d",
+        "c": "撮",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_eecaf7bb139f9c37a82f",
+        "c": "写",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bb84e87aaf6c6a6d147c",
+        "c": "戸",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1b3d2c8799c34efa1988",
+        "c": "博",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_d5c4cb326eec6a3b62bb",
+        "c": "江",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cd248cebb3aa9f4f4cd8",
+        "c": "階",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f8c6e3e86baa0c2cec31",
+        "c": "横",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_30e9a99125f537f2cd61",
+        "c": "願",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cabfc0267afca2730d18",
+        "c": "難",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3ae2613a80c3e2da7d61",
+        "c": "甘",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_74ddfce916304e24567d",
+        "c": "涼",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_99369fd992de0273541a",
+        "c": "絵",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1a3205c3a91ea555ab36",
+        "c": "母",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_941a6b78f2fff3156a9e",
+        "c": "記",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4fe718261ff8972de2e4",
+        "c": "奥",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_eb2d6d3d9e97b321cbbe",
+        "c": "勤",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_b458097c1442d6256e3c",
+        "c": "召",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_d1c6621a7dfec51aea55",
+        "c": "変",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_2f79e1fce5422a8460de",
+        "c": "肉",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_9171e2d7bdd92eccd5a9",
+        "c": "寒",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_08002c6675f7436cb3d3",
+        "c": "円",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_fc227df4fc9497283ce0",
+        "c": "万",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_73b904e3bd7aea0ea612",
+        "c": "喜",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f8b7e530a50a8e5848ea",
+        "c": "録",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7eccd1115f3460149d0a",
+        "c": "始",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_bc34178ca1d8b55a04ca",
+        "c": "貯",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_03aeb7c768b4cb8e1cfc",
+        "c": "近",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_150617a89b449d773c44",
+        "c": "最",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_99ae21ea6c39ccc19fba",
+        "c": "去",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_be7255b7e4f313df095b",
+        "c": "告",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_3366645622a780903cf8",
+        "c": "白",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_f035c560d7054ef31a23",
+        "c": "窓",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_7a209f8a3ee05fe9d396",
+        "c": "給",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_a7bee35f18c1c7824622",
+        "c": "牛",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_1014368cdc99e456a540",
+        "c": "乳",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_4e49452494a2a422ab82",
+        "c": "古",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_04e22fbab2edc9dccb6c",
+        "c": "転",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_693e132f27eb39e77593",
+        "c": "声",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_732f5ac8475cde9c8bfb",
+        "c": "粧",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_180c4d78e9d76be55a1e",
+        "c": "辛",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_ca4c64d9ae27fa4a3aed",
+        "c": "父",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_928c9c83b8a4947f2361",
+        "c": "介",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_cda1a0167f404edf7b59",
+        "c": "紹",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      },
+      {
+        "id": "kanji_562ac777223f47fe057a",
+        "c": "参",
+        "reason": "Not present in retained vocabulary; observed characters are not an official JLPT list"
+      }
+    ],
+    "excludedQuestionPages": 221,
+    "excludedVocabularyCandidates": 819,
+    "rawExamplesNotImported": 342,
+    "editorialExamples": 104,
+    "limitations": [
+      "Source level labels are curricular, not official JLPT lists.",
+      "Raw OCR meanings/readings are retained in source-selection; editorial fixes are separate.",
+      "Exercise pages have no verified keys; none are used as graded questions.",
+      "Examples are newly authored and translated for the reviewed grammar; they are not verbatim source sentences.",
+      "Audio files are not included; existing TTS handles listening.",
+      "Known unimported source files remain outside this course."
+    ]
+  }
+}
