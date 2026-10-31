@@ -18,7 +18,7 @@
   const MOC_SAO = [60, 80, 95];      // 1, 2, 3 sao
 
   /** Thứ tự hiển thị các màn (từ dễ đến khó). */
-  const THU_TU_MON = ["n5", "n4", "n3", "n2", "n1"];
+  const THU_TU_MON = ["n5", "n4", "n3", "n2", "n1", "kaiwa"];
 
   function macDinh() {
     return { v: 1, ngoc: 0, ngayCuoi: "", chuoi: 0, thu: false, nhac: true, mon: {}, sai: {}, baoLoi: {} };

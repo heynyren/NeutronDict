@@ -76,9 +76,9 @@ await pg.waitForSelector(".jl-the", { timeout: 10000 });
 
 console.log("\nChọn màn");
 const the = await pg.evaluate(() => [...document.querySelectorAll(".jl-the")].map((e) => ({ t: e.textContent.slice(0, 40), khoa: e.classList.contains("khoa"), sap: e.classList.contains("sap") })));
-soat("5 thẻ: N3 và N2 mở song song, N1/N4/N5 sắp có", the.length === 5 && !the[0].khoa && !the[1].khoa && !the[0].sap && !the[1].sap && the.slice(2).every((x) => x.sap), JSON.stringify(the.map((x) => x.t.slice(0, 18))));
-soat("thẻ chọn màn có cảnh vẽ động làm nền (cả N1/N4/N5 sắp có cũng có cảnh chuyển động)", (await pg.$$(".jl-the-canh svg")).length === 5);
-soat("N3/N2 có nhân vật ló mặt trên thẻ (SVG tự cử động)", (await pg.$$(".jl-the-nv .jl-nv-svg")).length === 2);
+soat("6 thẻ: N3, N2 và Kaiwa mở song song, N1/N4/N5 sắp có", the.length === 6 && !the[0].khoa && !the[1].khoa && !the[0].sap && !the[1].sap && !the[2].khoa && !the[2].sap && the.slice(3).every((x) => x.sap), JSON.stringify(the.map((x) => x.t.slice(0, 18))));
+soat("thẻ chọn màn có cảnh vẽ động làm nền (cả N1/N4/N5 sắp có cũng có cảnh chuyển động)", (await pg.$$(".jl-the-canh svg")).length === 6);
+soat("N3/N2 có nhân vật ló mặt trên thẻ (SVG tự cử động)", (await pg.$$(".jl-the-nv .jl-nv-svg")).length === 3);
 soat("hạt trôi + nút nhạc nền hiện ở màn chọn", !!(await pg.$(".jl-nhac")));
 const rongPc = await pg.evaluate(() => { const g = document.querySelector(".jl-chon").getBoundingClientRect(); return g.width; });
 soat("máy tính: khung chọn màn rộng hơn 900px (không bó như điện thoại)", rongPc > 900, Math.round(rongPc));

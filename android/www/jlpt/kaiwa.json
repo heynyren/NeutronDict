@@ -1,0 +1,3991 @@
+{
+  "id": "kaiwa",
+  "cap": "Kaiwa Nihongo",
+  "schema": 1,
+  "version": 1,
+  "description": "Khẩu ngữ Nhật và tiếng Osaka; khóa bổ trợ, không phải cấp JLPT chính thức.",
+  "sources": [
+    {
+      "id": "nameraka",
+      "title": "Nameraka Nihongo Kaiwa — bản tiếng Việt do người dùng cung cấp",
+      "file": "Nameraka_Nihongo_Kaiwa_Overleaf.zip",
+      "sha256": "ebcacc2bcbb11c380bd7c7c340f5b675a104cded7c22b2e3a7081d3018bdf5c6",
+      "coverage": "23 bài; trích chọn 61 mục. Bản dịch ví dụ và lời giải được biên tập riêng để học."
+    },
+    {
+      "id": "osaka",
+      "title": "Osaka — Nhật–Việt song ngữ",
+      "file": "transcript_osaka_ja_vi.txt",
+      "sha256": "dbac67468e2aa1f6244f528239700c787ec14de1c4be03e13dc013587118100b",
+      "coverage": "16 chủ đề; 48 mục từ các đoạn inferred. Không dùng đoạn uncertain. Chưa đối chiếu âm thanh; không tạo mốc thời gian."
+    }
+  ],
+  "chuong": [
+    {
+      "so": 1,
+      "ten": "Nameraka · Biến âm",
+      "bai": [
+        {
+          "so": 1,
+          "ten": "Nameraka · てる・てく・とく",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-01-pp-01",
+              "p": "てる",
+              "cn": "てる",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "てる",
+              "m": "Rút gọn của ている: đang hoặc đang ở trạng thái",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-01",
+                "file": "chapters/part1_start.tex",
+                "lesson": 1,
+                "page": 12,
+                "quote": "待ってるよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "待ってるよ。",
+                "translation": "Tớ đang chờ nhé.",
+                "answer": "Rút gọn của ている: đang hoặc đang ở trạng thái",
+                "wrong": [
+                  "Sẽ thử làm lần đầu",
+                  "Đã bị bắt buộc làm",
+                  "Cấm người khác làm"
+                ],
+                "explanation": "Rút gọn của ている: đang hoặc đang ở trạng thái. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-01-pp-02",
+              "p": "てく",
+              "cn": "てく",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "てく",
+              "m": "Rút gọn của ていく: làm rồi đi / tiếp diễn ra xa",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-01",
+                "file": "chapters/part1_start.tex",
+                "lesson": 1,
+                "page": 12,
+                "quote": "子供を連れてくよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "子供を連れてくよ。",
+                "translation": "Tớ sẽ dẫn con đi nhé.",
+                "answer": "Rút gọn của ていく: làm rồi đi / tiếp diễn ra xa",
+                "wrong": [
+                  "Dẫn con quay về",
+                  "Đã dẫn con đi xong từ lâu",
+                  "Không được dẫn con đi"
+                ],
+                "explanation": "Rút gọn của ていく: làm rồi đi / tiếp diễn ra xa. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-01-pp-03",
+              "p": "とく",
+              "cn": "とく",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "とく",
+              "m": "Rút gọn của ておく: làm sẵn, làm trước",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-01",
+                "file": "chapters/part1_start.tex",
+                "lesson": 1,
+                "page": 12,
+                "quote": "買っとくよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "買っとくよ。",
+                "translation": "Tớ sẽ mua sẵn nhé.",
+                "answer": "Rút gọn của ておく: làm sẵn, làm trước",
+                "wrong": [
+                  "Đã lỡ mua mất rồi",
+                  "Đang được mua cho",
+                  "Không cần mua"
+                ],
+                "explanation": "Rút gọn của ておく: làm sẵn, làm trước. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "待ってるよ。",
+              "v": "Tớ đang chờ nhé.",
+              "g": "kaiwa-nam-01-pp-01"
+            },
+            {
+              "j": "子供を連れてくよ。",
+              "v": "Tớ sẽ dẫn con đi nhé.",
+              "g": "kaiwa-nam-01-pp-02"
+            },
+            {
+              "j": "買っとくよ。",
+              "v": "Tớ sẽ mua sẵn nhé.",
+              "g": "kaiwa-nam-01-pp-03"
+            }
+          ]
+        },
+        {
+          "so": 2,
+          "ten": "Nameraka · ちゃ・じゃ・きゃ",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-02-pp-01",
+              "p": "ちゃう",
+              "cn": "ちゃう",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ちゃう",
+              "m": "Rút gọn của てしまう: làm xong hoặc lỡ làm",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-02",
+                "file": "chapters/lesson02.tex",
+                "lesson": 2,
+                "page": 24,
+                "quote": "食べちゃう",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "食べちゃう",
+                "translation": "Ăn hết / ăn mất.",
+                "answer": "Rút gọn của てしまう: làm xong hoặc lỡ làm",
+                "wrong": [
+                  "Không được ăn",
+                  "Đang thử ăn",
+                  "Muốn được ăn"
+                ],
+                "explanation": "Rút gọn của てしまう: làm xong hoặc lỡ làm. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-02-pp-02",
+              "p": "ちゃいけない",
+              "cn": "ちゃいけない",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ちゃいけない",
+              "m": "Rút gọn của てはいけない: không được làm",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-02",
+                "file": "chapters/lesson02.tex",
+                "lesson": 2,
+                "page": 24,
+                "quote": "食べちゃいけない",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "食べちゃいけない",
+                "translation": "Không được ăn.",
+                "answer": "Rút gọn của てはいけない: không được làm",
+                "wrong": [
+                  "Phải ăn ngay",
+                  "Ăn trước đi",
+                  "Chắc đã ăn rồi"
+                ],
+                "explanation": "Rút gọn của てはいけない: không được làm. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-02-pp-03",
+              "p": "なきゃ",
+              "cn": "なきゃ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "なきゃ",
+              "m": "Rút gọn của なければ: phải làm trong mẫu này",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-02",
+                "file": "chapters/lesson02.tex",
+                "lesson": 2,
+                "page": 24,
+                "quote": "食べなきゃだめ",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "食べなきゃだめ",
+                "translation": "Phải ăn mới được.",
+                "answer": "Rút gọn của なければ: phải làm trong mẫu này",
+                "wrong": [
+                  "Không được ăn",
+                  "Có lẽ không ăn",
+                  "Đã ăn quá nhiều"
+                ],
+                "explanation": "Rút gọn của なければ: phải làm trong mẫu này. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "食べちゃう",
+              "v": "Ăn hết / ăn mất.",
+              "g": "kaiwa-nam-02-pp-01"
+            },
+            {
+              "j": "食べちゃいけない",
+              "v": "Không được ăn.",
+              "g": "kaiwa-nam-02-pp-02"
+            },
+            {
+              "j": "食べなきゃだめ",
+              "v": "Phải ăn mới được.",
+              "g": "kaiwa-nam-02-pp-03"
+            }
+          ]
+        },
+        {
+          "so": 3,
+          "ten": "Nameraka · たって・だって",
+          "tu": [
+            {
+              "id": "kaiwa-nam-03-tu-01",
+              "w": "どっちだって",
+              "hv": "",
+              "r": "どっちだって",
+              "m": "Bên nào cũng được",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-03",
+                "file": "chapters/lesson03.tex",
+                "lesson": 3,
+                "page": 37,
+                "quote": "どっちだってかまわない。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どっちだってかまわない。",
+                "translation": "Bên nào cũng không sao.",
+                "answer": "Bên nào cũng được",
+                "wrong": [
+                  "Chỉ bên trái mới được",
+                  "Không được chọn bên nào",
+                  "Chỉ được chọn cả hai cùng lúc"
+                ],
+                "explanation": "Bên nào cũng được. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-03-pp-01",
+              "p": "たって",
+              "cn": "たって",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "たって",
+              "m": "Cách nói thân mật của ても: dù có làm",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-03",
+                "file": "chapters/lesson03.tex",
+                "lesson": 3,
+                "page": 36,
+                "quote": "さがしたって見つからないんだ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "さがしたって見つからないんだ。",
+                "translation": "Dù có tìm cũng không thấy.",
+                "answer": "Cách nói thân mật của ても: dù có làm",
+                "wrong": [
+                  "Cứ tìm là chắc chắn thấy",
+                  "Vì chưa tìm nên không thấy",
+                  "Định tìm sau khi đã thấy"
+                ],
+                "explanation": "Cách nói thân mật của ても: dù có làm. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-03-pp-02",
+              "p": "だって",
+              "cn": "だって",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "だって",
+              "m": "Cách nói thân mật của でも: dù có / ngay cả",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-03",
+                "file": "chapters/lesson03.tex",
+                "lesson": 3,
+                "page": 36,
+                "quote": "急いだって間にあわないね。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "急いだって間にあわないね。",
+                "translation": "Dù có vội cũng không kịp nhỉ.",
+                "answer": "Cách nói thân mật của でも: dù có / ngay cả",
+                "wrong": [
+                  "Hễ vội là chắc chắn kịp",
+                  "Vì đã đến sớm",
+                  "Đừng vội vì còn nhiều giờ"
+                ],
+                "explanation": "Cách nói thân mật của でも: dù có / ngay cả. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "さがしたって見つからないんだ。",
+              "v": "Dù có tìm cũng không thấy.",
+              "g": "kaiwa-nam-03-pp-01"
+            },
+            {
+              "j": "急いだって間にあわないね。",
+              "v": "Dù có vội cũng không kịp nhỉ.",
+              "g": "kaiwa-nam-03-pp-02"
+            },
+            {
+              "j": "どっちだってかまわない。",
+              "v": "Bên nào cũng không sao.",
+              "t": "kaiwa-nam-03-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 4,
+          "ten": "Nameraka · って・て",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-04-pp-01",
+              "p": "って",
+              "cn": "って",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "って",
+              "m": "Nêu điều muốn hỏi rõ: cái gọi là…",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-04",
+                "file": "chapters/lesson04.tex",
+                "lesson": 4,
+                "page": 51,
+                "quote": "えっ、アクアランドってなに？",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "えっ、アクアランドってなに？",
+                "translation": "Ủa, Aqua Land là gì?",
+                "answer": "Nêu điều muốn hỏi rõ: cái gọi là…",
+                "wrong": [
+                  "Ra lệnh đi ngay",
+                  "Phủ nhận chuyện đã nghe",
+                  "Hứa sẽ mua vé"
+                ],
+                "explanation": "Nêu điều muốn hỏi rõ: cái gọi là…. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-04-pp-02",
+              "p": "っていう",
+              "cn": "っていう",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "っていう",
+              "m": "Cách nói thân mật của という: được gọi là",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-04",
+                "file": "chapters/lesson04.tex",
+                "lesson": 4,
+                "page": 52,
+                "quote": "エンゼルフィッシュっていうのよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "エンゼルフィッシュっていうのよ。",
+                "translation": "Nó được gọi là cá ông tiên.",
+                "answer": "Cách nói thân mật của という: được gọi là",
+                "wrong": [
+                  "Không phải cá ông tiên",
+                  "Tôi muốn ăn cá",
+                  "Tôi không biết tên cá"
+                ],
+                "explanation": "Cách nói thân mật của という: được gọi là. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-04-pp-03",
+              "p": "って思ってる",
+              "cn": "っておもってる",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "っておもってる",
+              "m": "Thay と trong lời dẫn suy nghĩ",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-04",
+                "file": "chapters/lesson04.tex",
+                "lesson": 4,
+                "page": 51,
+                "quote": "よかったって思ってるんだよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "よかったって思ってるんだよ。",
+                "translation": "Tôi nghĩ là tốt đấy.",
+                "answer": "Thay と trong lời dẫn suy nghĩ",
+                "wrong": [
+                  "Tôi được bảo là không tốt",
+                  "Tôi cấm người ta nghĩ",
+                  "Tôi chưa từng suy nghĩ"
+                ],
+                "explanation": "Thay と trong lời dẫn suy nghĩ. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "えっ、アクアランドってなに？",
+              "v": "Ủa, Aqua Land là gì?",
+              "g": "kaiwa-nam-04-pp-01"
+            },
+            {
+              "j": "エンゼルフィッシュっていうのよ。",
+              "v": "Nó được gọi là cá ông tiên.",
+              "g": "kaiwa-nam-04-pp-02"
+            },
+            {
+              "j": "よかったって思ってるんだよ。",
+              "v": "Tôi nghĩ là tốt đấy.",
+              "g": "kaiwa-nam-04-pp-03"
+            }
+          ]
+        },
+        {
+          "so": 5,
+          "ten": "Nameraka · ん",
+          "tu": [
+            {
+              "id": "kaiwa-nam-05-tu-01",
+              "w": "ぼくんち",
+              "hv": "",
+              "r": "ぼくんち",
+              "m": "Nhà của tôi, cách nói thân mật",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-05",
+                "file": "chapters/lesson05.tex",
+                "lesson": 5,
+                "page": 69,
+                "quote": "ぼくんち",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ぼくんち",
+                "translation": "Nhà tôi.",
+                "answer": "Nhà của tôi, cách nói thân mật",
+                "wrong": [
+                  "Nhà ga",
+                  "Phòng làm việc của sếp",
+                  "Trường của bạn"
+                ],
+                "explanation": "Nhà của tôi, cách nói thân mật. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-05-pp-01",
+              "p": "ん",
+              "cn": "ん",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ん",
+              "m": "Phủ định rút gọn của ない trong cách nói này",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-05",
+                "file": "chapters/lesson05.tex",
+                "lesson": 5,
+                "page": 68,
+                "quote": "わからんから",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "わからんから",
+                "translation": "Vì không hiểu.",
+                "answer": "Phủ định rút gọn của ない trong cách nói này",
+                "wrong": [
+                  "Vì đã hiểu hết",
+                  "Vì đang giải thích",
+                  "Vì muốn được hiểu"
+                ],
+                "explanation": "Phủ định rút gọn của ない trong cách nói này. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-05-pp-02",
+              "p": "んの",
+              "cn": "んの",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "んの",
+              "m": "ら行 đổi thành ん trong lời nói nhanh",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-05",
+                "file": "chapters/lesson05.tex",
+                "lesson": 5,
+                "page": 69,
+                "quote": "何してんの",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "何してんの",
+                "translation": "Đang làm gì thế?",
+                "answer": "ら行 đổi thành ん trong lời nói nhanh",
+                "wrong": [
+                  "Đã hứa sẽ làm gì",
+                  "Không được làm việc gì",
+                  "Đã được ai làm hộ"
+                ],
+                "explanation": "ら行 đổi thành ん trong lời nói nhanh. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "わからんから",
+              "v": "Vì không hiểu.",
+              "g": "kaiwa-nam-05-pp-01"
+            },
+            {
+              "j": "何してんの",
+              "v": "Đang làm gì thế?",
+              "g": "kaiwa-nam-05-pp-02"
+            },
+            {
+              "j": "ぼくんち",
+              "v": "Nhà tôi.",
+              "t": "kaiwa-nam-05-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 6,
+          "ten": "Nameraka · 変化した言葉",
+          "tu": [
+            {
+              "id": "kaiwa-nam-06-tu-01",
+              "w": "こないだ",
+              "hv": "",
+              "r": "こないだ",
+              "m": "Hôm nọ, dạo trước",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-06",
+                "file": "chapters/lesson06.tex",
+                "lesson": 6,
+                "page": 81,
+                "quote": "こないだ",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "こないだ",
+                "translation": "Hôm nọ.",
+                "answer": "Hôm nọ, dạo trước",
+                "wrong": [
+                  "Ngay ngày mai",
+                  "Mỗi ngày",
+                  "Vĩnh viễn"
+                ],
+                "explanation": "Hôm nọ, dạo trước. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-06-tu-02",
+              "w": "どっち",
+              "hv": "",
+              "r": "どっち",
+              "m": "Bên nào / cái nào trong hai, thân mật của どちら",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-06",
+                "file": "chapters/lesson06.tex",
+                "lesson": 6,
+                "page": 80,
+                "quote": "どっち",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どっち",
+                "translation": "Bên nào?",
+                "answer": "Bên nào / cái nào trong hai, thân mật của どちら",
+                "wrong": [
+                  "Tất cả mọi nơi",
+                  "Không có gì",
+                  "Một lần nữa"
+                ],
+                "explanation": "Bên nào / cái nào trong hai, thân mật của どちら. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-06-tu-03",
+              "w": "とこ",
+              "hv": "",
+              "r": "とこ",
+              "m": "Cách nói ngắn của ところ: chỗ / nơi",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-06",
+                "file": "chapters/lesson06.tex",
+                "lesson": 6,
+                "page": 80,
+                "quote": "とこ",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "とこ",
+                "translation": "Chỗ, nơi.",
+                "answer": "Cách nói ngắn của ところ: chỗ / nơi",
+                "wrong": [
+                  "Lời cảm ơn",
+                  "Số lượng",
+                  "Tốc độ"
+                ],
+                "explanation": "Cách nói ngắn của ところ: chỗ / nơi. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-06-pp-01",
+              "p": "りゃ",
+              "cn": "りゃ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "りゃ",
+              "m": "Dạng nói rút gọn của れば: nếu",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-06",
+                "file": "chapters/lesson06.tex",
+                "lesson": 6,
+                "page": 82,
+                "quote": "考えりゃ",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "考えりゃ",
+                "translation": "Nếu nghĩ kỹ.",
+                "answer": "Dạng nói rút gọn của れば: nếu",
+                "wrong": [
+                  "Dù không nghĩ",
+                  "Vừa nghĩ xong",
+                  "Đừng suy nghĩ"
+                ],
+                "explanation": "Dạng nói rút gọn của れば: nếu. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "こないだ",
+              "v": "Hôm nọ.",
+              "t": "kaiwa-nam-06-tu-01"
+            },
+            {
+              "j": "どっち",
+              "v": "Bên nào?",
+              "t": "kaiwa-nam-06-tu-02"
+            },
+            {
+              "j": "とこ",
+              "v": "Chỗ, nơi.",
+              "t": "kaiwa-nam-06-tu-03"
+            },
+            {
+              "j": "考えりゃ",
+              "v": "Nếu nghĩ kỹ.",
+              "g": "kaiwa-nam-06-pp-01"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 2,
+      "ten": "Nameraka · Câu nói tự nhiên",
+      "bai": [
+        {
+          "so": 7,
+          "ten": "Nameraka · 助詞の省略",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-07-pp-01",
+              "p": "助詞の省略",
+              "cn": "じょしのしょうりゃく",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "じょしのしょうりゃく",
+              "m": "Lược trợ từ khi ngữ cảnh vẫn rõ nghĩa",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-07",
+                "file": "chapters/lesson07.tex",
+                "lesson": 7,
+                "page": 98,
+                "quote": "くだけた会話では「を」がよく省略されます。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "くだけた会話では「を」がよく省略されます。",
+                "translation": "Trong hội thoại thân mật, を thường được lược bỏ.",
+                "answer": "Lược trợ từ khi ngữ cảnh vẫn rõ nghĩa",
+                "wrong": [
+                  "Mọi trợ từ luôn phải bỏ",
+                  "Chỉ văn viết mới lược trợ từ",
+                  "Bỏ trợ từ luôn làm câu lịch sự hơn"
+                ],
+                "explanation": "Lược trợ từ khi ngữ cảnh vẫn rõ nghĩa. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-07-pp-02",
+              "p": "は",
+              "cn": "は",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "は",
+              "m": "は chỉ chủ đề cũng thường được lược trong hội thoại",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-07",
+                "file": "chapters/lesson07.tex",
+                "lesson": 7,
+                "page": 98,
+                "quote": "また、文の主題としての「は」は、話し言葉ではよく省略されます。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "また、文の主題としての「は」は、話し言葉ではよく省略されます。",
+                "translation": "Trong lời nói, は nêu chủ đề cũng thường được lược.",
+                "answer": "は chỉ chủ đề cũng thường được lược trong hội thoại",
+                "wrong": [
+                  "は luôn biến thành を",
+                  "は chỉ dùng trong câu phủ định",
+                  "は bắt buộc lặp hai lần"
+                ],
+                "explanation": "は chỉ chủ đề cũng thường được lược trong hội thoại. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "くだけた会話では「を」がよく省略されます。",
+              "v": "Trong hội thoại thân mật, を thường được lược bỏ.",
+              "g": "kaiwa-nam-07-pp-01"
+            },
+            {
+              "j": "また、文の主題としての「は」は、話し言葉ではよく省略されます。",
+              "v": "Trong lời nói, は nêu chủ đề cũng thường được lược.",
+              "g": "kaiwa-nam-07-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 8,
+          "ten": "Nameraka · 短縮句",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-08-pp-01",
+              "p": "て",
+              "cn": "て",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "て",
+              "m": "Yêu cầu thân mật, lược ください",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-08",
+                "file": "chapters/lesson08.tex",
+                "lesson": 8,
+                "page": 112,
+                "quote": "入って。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "入って。",
+                "translation": "Vào đi.",
+                "answer": "Yêu cầu thân mật, lược ください",
+                "wrong": [
+                  "Đừng vào",
+                  "Tôi đã ra ngoài",
+                  "Tôi không thể vào"
+                ],
+                "explanation": "Yêu cầu thân mật, lược ください. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-08-pp-02",
+              "p": "たら",
+              "cn": "たら",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "たら",
+              "m": "Gợi ý, lược phần どうですか",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-08",
+                "file": "chapters/lesson08.tex",
+                "lesson": 8,
+                "page": 113,
+                "quote": "やってみたら",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "やってみたら",
+                "translation": "Thử làm xem sao?",
+                "answer": "Gợi ý, lược phần どうですか",
+                "wrong": [
+                  "Chắc chắn đã làm xong",
+                  "Tuyệt đối không được thử",
+                  "Tôi chưa từng được phép làm"
+                ],
+                "explanation": "Gợi ý, lược phần どうですか. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-08-pp-03",
+              "p": "ないと",
+              "cn": "ないと",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ないと",
+              "m": "Lược いけない: cần phải làm",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-08",
+                "file": "chapters/lesson08.tex",
+                "lesson": 8,
+                "page": 113,
+                "quote": "がんばらないと。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "がんばらないと。",
+                "translation": "Phải cố gắng thôi.",
+                "answer": "Lược いけない: cần phải làm",
+                "wrong": [
+                  "Không cần cố",
+                  "Đã cố quá nhiều",
+                  "Cấm cố gắng"
+                ],
+                "explanation": "Lược いけない: cần phải làm. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-08-pp-04",
+              "p": "って？",
+              "cn": "って",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "って",
+              "m": "Hỏi lại điều vừa nghe",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-08",
+                "file": "chapters/lesson08.tex",
+                "lesson": 8,
+                "page": 114,
+                "quote": "合格したって？",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "合格したって？",
+                "translation": "Cậu nói là đã đậu à?",
+                "answer": "Hỏi lại điều vừa nghe",
+                "wrong": [
+                  "Tôi bắt cậu phải thi",
+                  "Tôi biết chắc cậu trượt",
+                  "Không có kỳ thi nào"
+                ],
+                "explanation": "Hỏi lại điều vừa nghe. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "入って。",
+              "v": "Vào đi.",
+              "g": "kaiwa-nam-08-pp-01"
+            },
+            {
+              "j": "やってみたら",
+              "v": "Thử làm xem sao?",
+              "g": "kaiwa-nam-08-pp-02"
+            },
+            {
+              "j": "がんばらないと。",
+              "v": "Phải cố gắng thôi.",
+              "g": "kaiwa-nam-08-pp-03"
+            },
+            {
+              "j": "合格したって？",
+              "v": "Cậu nói là đã đậu à?",
+              "g": "kaiwa-nam-08-pp-04"
+            }
+          ]
+        },
+        {
+          "so": 9,
+          "ten": "Nameraka · 決まり文句",
+          "tu": [
+            {
+              "id": "kaiwa-nam-09-tu-01",
+              "w": "お大事に",
+              "hv": "",
+              "r": "おだいじに",
+              "m": "Chúc giữ gìn sức khỏe, mau khỏe",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-09",
+                "file": "chapters/lesson09.tex",
+                "lesson": 9,
+                "page": 131,
+                "quote": "どうぞお大事に。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どうぞお大事に。",
+                "translation": "Chúc chóng khỏe.",
+                "answer": "Chúc giữ gìn sức khỏe, mau khỏe",
+                "wrong": [
+                  "Chúc mừng kết hôn",
+                  "Mời ăn thật nhiều",
+                  "Chúc ngủ ngon"
+                ],
+                "explanation": "Chúc giữ gìn sức khỏe, mau khỏe. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-09-tu-02",
+              "w": "おかまいなく",
+              "hv": "",
+              "r": "おかまいなく",
+              "m": "Xin đừng bận tâm tiếp đãi",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-09",
+                "file": "chapters/lesson09.tex",
+                "lesson": 9,
+                "page": 132,
+                "quote": "どうぞおかまいなく。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どうぞおかまいなく。",
+                "translation": "Xin đừng bận tâm.",
+                "answer": "Xin đừng bận tâm tiếp đãi",
+                "wrong": [
+                  "Xin hãy đến bệnh viện",
+                  "Xin hãy trả tiền",
+                  "Xin đừng đi trước"
+                ],
+                "explanation": "Xin đừng bận tâm tiếp đãi. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-09-tu-03",
+              "w": "お先に",
+              "hv": "",
+              "r": "おさきに",
+              "m": "Xin đi trước / mời đi trước, tùy lượt nói",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-09",
+                "file": "chapters/lesson09.tex",
+                "lesson": 9,
+                "page": 133,
+                "quote": "お先に失礼します。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "お先に失礼します。",
+                "translation": "Tôi xin phép về trước.",
+                "answer": "Xin đi trước / mời đi trước, tùy lượt nói",
+                "wrong": [
+                  "Tôi xin đến muộn",
+                  "Tôi chưa từng đến đây",
+                  "Tôi sẽ ở lại mãi"
+                ],
+                "explanation": "Xin đi trước / mời đi trước, tùy lượt nói. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-09-tu-04",
+              "w": "よいお年を",
+              "hv": "",
+              "r": "よいおとしを",
+              "m": "Chúc đón một năm mới tốt lành",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-09",
+                "file": "chapters/lesson09.tex",
+                "lesson": 9,
+                "page": 132,
+                "quote": "どうぞよいお年を。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どうぞよいお年を。",
+                "translation": "Chúc đón năm mới tốt lành.",
+                "answer": "Chúc đón một năm mới tốt lành",
+                "wrong": [
+                  "Chúc mau khỏi bệnh",
+                  "Chúc mừng món ăn ngon",
+                  "Xin lỗi đã đến muộn"
+                ],
+                "explanation": "Chúc đón một năm mới tốt lành. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [],
+          "vd": [
+            {
+              "j": "どうぞお大事に。",
+              "v": "Chúc chóng khỏe.",
+              "t": "kaiwa-nam-09-tu-01"
+            },
+            {
+              "j": "どうぞおかまいなく。",
+              "v": "Xin đừng bận tâm.",
+              "t": "kaiwa-nam-09-tu-02"
+            },
+            {
+              "j": "お先に失礼します。",
+              "v": "Tôi xin phép về trước.",
+              "t": "kaiwa-nam-09-tu-03"
+            },
+            {
+              "j": "どうぞよいお年を。",
+              "v": "Chúc đón năm mới tốt lành.",
+              "t": "kaiwa-nam-09-tu-04"
+            }
+          ]
+        },
+        {
+          "so": 10,
+          "ten": "Nameraka · くり返し",
+          "tu": [
+            {
+              "id": "kaiwa-nam-10-tu-01",
+              "w": "そうそう",
+              "hv": "",
+              "r": "そうそう",
+              "m": "Đúng rồi, đúng rồi: đồng tình hoặc xác nhận",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-10",
+                "file": "chapters/lesson10.tex",
+                "lesson": 10,
+                "page": 150,
+                "quote": "そうそう",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "そうそう",
+                "translation": "Đúng rồi, đúng rồi.",
+                "answer": "Đúng rồi, đúng rồi: đồng tình hoặc xác nhận",
+                "wrong": [
+                  "Tuyệt đối không",
+                  "Tạm biệt mãi mãi",
+                  "Xin hãy im lặng"
+                ],
+                "explanation": "Đúng rồi, đúng rồi: đồng tình hoặc xác nhận. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-10-tu-02",
+              "w": "どれどれ",
+              "hv": "",
+              "r": "どれどれ",
+              "m": "Đâu nào, để xem nào",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-10",
+                "file": "chapters/lesson10.tex",
+                "lesson": 10,
+                "page": 150,
+                "quote": "どれどれ",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どれどれ",
+                "translation": "Đâu nào, để xem nào.",
+                "answer": "Đâu nào, để xem nào",
+                "wrong": [
+                  "Tôi hoàn toàn phản đối",
+                  "Tôi đã về rồi",
+                  "Xin chia buồn"
+                ],
+                "explanation": "Đâu nào, để xem nào. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-10-pp-01",
+              "p": "来た、来た",
+              "cn": "きた、きた",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "きた、きた",
+              "m": "Lặp để bộc lộ điều mong đợi vừa xảy ra",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-10",
+                "file": "chapters/lesson10.tex",
+                "lesson": 10,
+                "page": 150,
+                "quote": "あ、来た、来た。やっと来たよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "あ、来た、来た。やっと来たよ。",
+                "translation": "A, đến rồi, đến rồi. Cuối cùng cũng đến.",
+                "answer": "Lặp để bộc lộ điều mong đợi vừa xảy ra",
+                "wrong": [
+                  "Thông báo hai người khác nhau đã đến",
+                  "Yêu cầu người nghe đến hai lần",
+                  "Khẳng định sẽ không bao giờ đến"
+                ],
+                "explanation": "Lặp để bộc lộ điều mong đợi vừa xảy ra. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "そうそう",
+              "v": "Đúng rồi, đúng rồi.",
+              "t": "kaiwa-nam-10-tu-01"
+            },
+            {
+              "j": "どれどれ",
+              "v": "Đâu nào, để xem nào.",
+              "t": "kaiwa-nam-10-tu-02"
+            },
+            {
+              "j": "あ、来た、来た。やっと来たよ。",
+              "v": "A, đến rồi, đến rồi. Cuối cùng cũng đến.",
+              "g": "kaiwa-nam-10-pp-01"
+            }
+          ]
+        },
+        {
+          "so": 11,
+          "ten": "Nameraka · あいまい表現",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-11-pp-01",
+              "p": "なんか",
+              "cn": "なんか",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "なんか",
+              "m": "Nêu một ví dụ, gợi ý nhẹ nhàng",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-11",
+                "file": "chapters/lesson11.tex",
+                "lesson": 11,
+                "page": 167,
+                "quote": "商品券なんかどうかな。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "商品券なんかどうかな。",
+                "translation": "Phiếu quà tặng chẳng hạn thì sao nhỉ?",
+                "answer": "Nêu một ví dụ, gợi ý nhẹ nhàng",
+                "wrong": [
+                  "Bắt buộc chỉ được tặng tiền mặt",
+                  "Khẳng định không có món quà nào",
+                  "Hỏi nơi mua thuốc"
+                ],
+                "explanation": "Nêu một ví dụ, gợi ý nhẹ nhàng. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-11-pp-02",
+              "p": "でも",
+              "cn": "でも",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "でも",
+              "m": "Nêu ví dụ để rủ rê, đề xuất",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-11",
+                "file": "chapters/lesson11.tex",
+                "lesson": 11,
+                "page": 167,
+                "quote": "いつか、ご一緒に食事でもしませんか。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いつか、ご一緒に食事でもしませんか。",
+                "translation": "Hôm nào cùng đi ăn chẳng hạn nhé?",
+                "answer": "Nêu ví dụ để rủ rê, đề xuất",
+                "wrong": [
+                  "Cấm cùng ăn",
+                  "Xác nhận đã ăn xong",
+                  "Yêu cầu phải nhịn ăn"
+                ],
+                "explanation": "Nêu ví dụ để rủ rê, đề xuất. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-11-pp-03",
+              "p": "とか",
+              "cn": "とか",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "とか",
+              "m": "Nêu một khả năng, để ngỏ những khả năng khác",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-11",
+                "file": "chapters/lesson11.tex",
+                "lesson": 11,
+                "page": 169,
+                "quote": "それとも、ホームシックになったとか？",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "それとも、ホームシックになったとか？",
+                "translation": "Hay là bị nhớ nhà chẳng hạn?",
+                "answer": "Nêu một khả năng, để ngỏ những khả năng khác",
+                "wrong": [
+                  "Khẳng định chắc chắn không nhớ nhà",
+                  "Ra lệnh phải về nước",
+                  "Nói rằng đã mua một ngôi nhà"
+                ],
+                "explanation": "Nêu một khả năng, để ngỏ những khả năng khác. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "商品券なんかどうかな。",
+              "v": "Phiếu quà tặng chẳng hạn thì sao nhỉ?",
+              "g": "kaiwa-nam-11-pp-01"
+            },
+            {
+              "j": "いつか、ご一緒に食事でもしませんか。",
+              "v": "Hôm nào cùng đi ăn chẳng hạn nhé?",
+              "g": "kaiwa-nam-11-pp-02"
+            },
+            {
+              "j": "それとも、ホームシックになったとか？",
+              "v": "Hay là bị nhớ nhà chẳng hạn?",
+              "g": "kaiwa-nam-11-pp-03"
+            }
+          ]
+        },
+        {
+          "so": 12,
+          "ten": "Nameraka · 語順の変化",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-12-pp-01",
+              "p": "語順の変化",
+              "cn": "ごじゅんのへんか",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ごじゅんのへんか",
+              "m": "Đưa phần bổ sung ra sau khi đã nói ý chính",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-12",
+                "file": "chapters/lesson12.tex",
+                "lesson": 12,
+                "page": 188,
+                "quote": "どうしたの、いったい？",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どうしたの、いったい？",
+                "translation": "Rốt cuộc đã xảy ra chuyện gì?",
+                "answer": "Đưa phần bổ sung ra sau khi đã nói ý chính",
+                "wrong": [
+                  "Câu bắt buộc sai ngữ pháp",
+                  "Câu chỉ là lời chào",
+                  "Câu báo đã kết thúc công việc"
+                ],
+                "explanation": "Đưa phần bổ sung ra sau khi đã nói ý chính. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-12-pp-02",
+              "p": "後置",
+              "cn": "こうち",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "こうち",
+              "m": "Thành phần chỉ đối tượng được bổ sung sau",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-12",
+                "file": "chapters/lesson12.tex",
+                "lesson": 12,
+                "page": 190,
+                "quote": "いいわね、独身の人は。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いいわね、独身の人は。",
+                "translation": "Sướng nhỉ, những người độc thân ấy.",
+                "answer": "Thành phần chỉ đối tượng được bổ sung sau",
+                "wrong": [
+                  "Người nói đang xin phép kết hôn",
+                  "Người nói phủ nhận có người độc thân",
+                  "Người nói hỏi giờ tàu"
+                ],
+                "explanation": "Thành phần chỉ đối tượng được bổ sung sau. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "どうしたの、いったい？",
+              "v": "Rốt cuộc đã xảy ra chuyện gì?",
+              "g": "kaiwa-nam-12-pp-01"
+            },
+            {
+              "j": "いいわね、独身の人は。",
+              "v": "Sướng nhỉ, những người độc thân ấy.",
+              "g": "kaiwa-nam-12-pp-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 3,
+      "ten": "Nameraka · Giữ nhịp hội thoại",
+      "bai": [
+        {
+          "so": 13,
+          "ten": "Nameraka · 会話を進める",
+          "tu": [
+            {
+              "id": "kaiwa-nam-13-tu-01",
+              "w": "ところで",
+              "hv": "",
+              "r": "ところで",
+              "m": "Nhân tiện, chuyển sang đề tài khác",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-13",
+                "file": "chapters/lesson13.tex",
+                "lesson": 13,
+                "page": 204,
+                "quote": "ところで",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ところで",
+                "translation": "Nhân tiện…",
+                "answer": "Nhân tiện, chuyển sang đề tài khác",
+                "wrong": [
+                  "Cảm ơn rất nhiều",
+                  "Xin giữ gìn sức khỏe",
+                  "Chúc mừng năm mới"
+                ],
+                "explanation": "Nhân tiện, chuyển sang đề tài khác. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-13-tu-02",
+              "w": "実は",
+              "hv": "",
+              "r": "じつは",
+              "m": "Thật ra, mở đầu điều muốn nói",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-13",
+                "file": "chapters/lesson13.tex",
+                "lesson": 13,
+                "page": 203,
+                "quote": "実はね",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "実はね",
+                "translation": "Thật ra là…",
+                "answer": "Thật ra, mở đầu điều muốn nói",
+                "wrong": [
+                  "Tuyệt đối không được",
+                  "Xin hãy đi trước",
+                  "Hẹn gặp tuần sau"
+                ],
+                "explanation": "Thật ra, mở đầu điều muốn nói. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-13-tu-03",
+              "w": "このへんで",
+              "hv": "",
+              "r": "このへんで",
+              "m": "Đến đây thôi, kết thúc cuộc nói chuyện",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-13",
+                "file": "chapters/lesson13.tex",
+                "lesson": 13,
+                "page": 204,
+                "quote": "じゃ、このへんで…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "じゃ、このへんで…",
+                "translation": "Vậy, mình dừng ở đây nhé…",
+                "answer": "Đến đây thôi, kết thúc cuộc nói chuyện",
+                "wrong": [
+                  "Hãy kể thêm thật nhiều",
+                  "Tôi chưa đến đây bao giờ",
+                  "Đây là giá bán"
+                ],
+                "explanation": "Đến đây thôi, kết thúc cuộc nói chuyện. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [],
+          "vd": [
+            {
+              "j": "ところで",
+              "v": "Nhân tiện…",
+              "t": "kaiwa-nam-13-tu-01"
+            },
+            {
+              "j": "実はね",
+              "v": "Thật ra là…",
+              "t": "kaiwa-nam-13-tu-02"
+            },
+            {
+              "j": "じゃ、このへんで…",
+              "v": "Vậy, mình dừng ở đây nhé…",
+              "t": "kaiwa-nam-13-tu-03"
+            }
+          ]
+        },
+        {
+          "so": 14,
+          "ten": "Nameraka · 話を切り出す",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-14-pp-01",
+              "p": "ですが…",
+              "cn": "ですが",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ですが",
+              "m": "Mở lời và chờ người nghe đáp lại",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-14",
+                "file": "chapters/lesson14.tex",
+                "lesson": 14,
+                "page": 214,
+                "quote": "課長、次回の会議のことですが…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "課長、次回の会議のことですが…",
+                "translation": "Thưa trưởng phòng, về cuộc họp tới…",
+                "answer": "Mở lời và chờ người nghe đáp lại",
+                "wrong": [
+                  "Khẳng định cuộc họp bị hủy",
+                  "Cấm trưởng phòng phát biểu",
+                  "Báo cuộc họp đã kết thúc"
+                ],
+                "explanation": "Mở lời và chờ người nghe đáp lại. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-14-pp-02",
+              "p": "まして…",
+              "cn": "まして",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "まして",
+              "m": "Dẫn chuyện bằng thể lịch sự và để người nghe phản hồi",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-14",
+                "file": "chapters/lesson14.tex",
+                "lesson": 14,
+                "page": 213,
+                "quote": "連休に家族で久しぶりに京都へ行きまして…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "連休に家族で久しぶりに京都へ行きまして…",
+                "translation": "Kỳ nghỉ dài tôi cùng gia đình đi Kyoto sau lâu ngày…",
+                "answer": "Dẫn chuyện bằng thể lịch sự và để người nghe phản hồi",
+                "wrong": [
+                  "Ra lệnh người nghe đi Kyoto",
+                  "Khẳng định chưa từng đi Kyoto",
+                  "Cấm gia đình đi du lịch"
+                ],
+                "explanation": "Dẫn chuyện bằng thể lịch sự và để người nghe phản hồi. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "課長、次回の会議のことですが…",
+              "v": "Thưa trưởng phòng, về cuộc họp tới…",
+              "g": "kaiwa-nam-14-pp-01"
+            },
+            {
+              "j": "連休に家族で久しぶりに京都へ行きまして…",
+              "v": "Kỳ nghỉ dài tôi cùng gia đình đi Kyoto sau lâu ngày…",
+              "g": "kaiwa-nam-14-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 15,
+          "ten": "Nameraka · 答える",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-15-pp-01",
+              "p": "が…",
+              "cn": "が",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "が",
+              "m": "Trả lời lịch sự, để ngỏ bước trao đổi tiếp theo",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-15",
+                "file": "chapters/lesson15.tex",
+                "lesson": 15,
+                "page": 228,
+                "quote": "はい、ございますが…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "はい、ございますが…",
+                "translation": "Vâng, có ạ…",
+                "answer": "Trả lời lịch sự, để ngỏ bước trao đổi tiếp theo",
+                "wrong": [
+                  "Chắc chắn là từ chối bán",
+                  "Không có món đó",
+                  "Yêu cầu ngừng nói chuyện"
+                ],
+                "explanation": "Trả lời lịch sự, để ngỏ bước trao đổi tiếp theo. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-15-pp-02",
+              "p": "けど…",
+              "cn": "けど",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "けど",
+              "m": "Đồng ý rồi chờ người kia nói tiếp",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-15",
+                "file": "chapters/lesson15.tex",
+                "lesson": 15,
+                "page": 228,
+                "quote": "いいですけど…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いいですけど…",
+                "translation": "Được, nhưng… / được thôi…",
+                "answer": "Đồng ý rồi chờ người kia nói tiếp",
+                "wrong": [
+                  "Luôn có nghĩa là cấm",
+                  "Khẳng định đã mất đồ",
+                  "Báo giá chính xác"
+                ],
+                "explanation": "Đồng ý rồi chờ người kia nói tiếp. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "はい、ございますが…",
+              "v": "Vâng, có ạ…",
+              "g": "kaiwa-nam-15-pp-01"
+            },
+            {
+              "j": "いいですけど…",
+              "v": "Được, nhưng… / được thôi…",
+              "g": "kaiwa-nam-15-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 16,
+          "ten": "Nameraka · 反応を見ながら話す",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-16-pp-01",
+              "p": "ね",
+              "cn": "ね",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ね",
+              "m": "Ngắt nhịp và mời người nghe phản hồi khi dẫn chuyện",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-16",
+                "file": "chapters/lesson16.tex",
+                "lesson": 16,
+                "page": 243,
+                "quote": "実はね。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "実はね。",
+                "translation": "Thật ra là nhé…",
+                "answer": "Ngắt nhịp và mời người nghe phản hồi khi dẫn chuyện",
+                "wrong": [
+                  "Hỏi số lượng chính xác",
+                  "Ra lệnh bắt buộc",
+                  "Phủ định hoàn toàn"
+                ],
+                "explanation": "Ngắt nhịp và mời người nghe phản hồi khi dẫn chuyện. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-16-pp-02",
+              "p": "さ",
+              "cn": "さ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "さ",
+              "m": "Trợ từ hội thoại thân mật để giữ nhịp kể",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-16",
+                "file": "chapters/lesson16.tex",
+                "lesson": 16,
+                "page": 243,
+                "quote": "しばらく会えなくなるからさ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "しばらく会えなくなるからさ。",
+                "translation": "Vì một thời gian sẽ không gặp nhau được ấy.",
+                "answer": "Trợ từ hội thoại thân mật để giữ nhịp kể",
+                "wrong": [
+                  "Một đơn vị đo thời gian",
+                  "Kính ngữ cao nhất",
+                  "Dấu hiệu của câu mệnh lệnh cấm"
+                ],
+                "explanation": "Trợ từ hội thoại thân mật để giữ nhịp kể. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "実はね。",
+              "v": "Thật ra là nhé…",
+              "g": "kaiwa-nam-16-pp-01"
+            },
+            {
+              "j": "しばらく会えなくなるからさ。",
+              "v": "Vì một thời gian sẽ không gặp nhau được ấy.",
+              "g": "kaiwa-nam-16-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 17,
+          "ten": "Nameraka · あいづち",
+          "tu": [
+            {
+              "id": "kaiwa-nam-17-tu-01",
+              "w": "なるほど",
+              "hv": "",
+              "r": "なるほど",
+              "m": "Ra vậy, tôi hiểu rồi: thể hiện đang theo dõi",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-17",
+                "file": "chapters/lesson17.tex",
+                "lesson": 17,
+                "page": 253,
+                "quote": "なるほど。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "なるほど。",
+                "translation": "Ra vậy.",
+                "answer": "Ra vậy, tôi hiểu rồi: thể hiện đang theo dõi",
+                "wrong": [
+                  "Tôi tuyệt đối không đồng ý",
+                  "Xin đừng nói nữa",
+                  "Chúc mau khỏe"
+                ],
+                "explanation": "Ra vậy, tôi hiểu rồi: thể hiện đang theo dõi. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-17-tu-02",
+              "w": "ふーん",
+              "hv": "",
+              "r": "ふーん",
+              "m": "Ừm / thế à, phản hồi khi nghe",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-17",
+                "file": "chapters/lesson17.tex",
+                "lesson": 17,
+                "page": 253,
+                "quote": "ふーん。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ふーん。",
+                "translation": "Ừm, thế à.",
+                "answer": "Ừm / thế à, phản hồi khi nghe",
+                "wrong": [
+                  "Bắt buộc phải là lời hứa",
+                  "Tên một món ăn",
+                  "Mệnh lệnh đi ra ngoài"
+                ],
+                "explanation": "Ừm / thế à, phản hồi khi nghe. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [],
+          "vd": [
+            {
+              "j": "なるほど。",
+              "v": "Ra vậy.",
+              "t": "kaiwa-nam-17-tu-01"
+            },
+            {
+              "j": "ふーん。",
+              "v": "Ừm, thế à.",
+              "t": "kaiwa-nam-17-tu-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 4,
+      "ten": "Nameraka · Ý định và sắc thái",
+      "bai": [
+        {
+          "so": 18,
+          "ten": "Nameraka · 確かめる",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-18-pp-01",
+              "p": "ですね",
+              "cn": "ですね",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ですね",
+              "m": "Xác nhận lại thông tin với người nghe",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-18",
+                "file": "chapters/lesson18.tex",
+                "lesson": 18,
+                "page": 271,
+                "quote": "8階ですね。どうもありがとう。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "8階ですね。どうもありがとう。",
+                "translation": "Tầng 8 đúng không. Cảm ơn nhé.",
+                "answer": "Xác nhận lại thông tin với người nghe",
+                "wrong": [
+                  "Khẳng định tầng 8 đã đóng cửa",
+                  "Yêu cầu đổi sang tầng 9",
+                  "Xin lỗi vì làm hỏng thang máy"
+                ],
+                "explanation": "Xác nhận lại thông tin với người nghe. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-18-pp-02",
+              "p": "ね",
+              "cn": "ね",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ね",
+              "m": "Nhắc lại giờ vừa thống nhất để xác nhận",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-18",
+                "file": "chapters/lesson18.tex",
+                "lesson": 18,
+                "page": 271,
+                "quote": "6時ね。いいわよ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "6時ね。いいわよ。",
+                "translation": "6 giờ nhé. Được thôi.",
+                "answer": "Nhắc lại giờ vừa thống nhất để xác nhận",
+                "wrong": [
+                  "Phủ nhận có cuộc hẹn",
+                  "Ra lệnh hẹn lúc 7 giờ",
+                  "Hỏi giá của chiếc đồng hồ"
+                ],
+                "explanation": "Nhắc lại giờ vừa thống nhất để xác nhận. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "8階ですね。どうもありがとう。",
+              "v": "Tầng 8 đúng không. Cảm ơn nhé.",
+              "g": "kaiwa-nam-18-pp-01"
+            },
+            {
+              "j": "6時ね。いいわよ。",
+              "v": "6 giờ nhé. Được thôi.",
+              "g": "kaiwa-nam-18-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 19,
+          "ten": "Nameraka · 主張を伝える",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-19-pp-01",
+              "p": "よ",
+              "cn": "よ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "よ",
+              "m": "Báo cho người nghe thông tin mình biết",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-19",
+                "file": "chapters/lesson19.tex",
+                "lesson": 19,
+                "page": 285,
+                "quote": "田中さーん、お荷物ですよ。はんこお願いします。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "田中さーん、お荷物ですよ。はんこお願いします。",
+                "translation": "Anh Tanaka ơi, có hàng đấy. Cho tôi xin đóng dấu.",
+                "answer": "Báo cho người nghe thông tin mình biết",
+                "wrong": [
+                  "Hỏi người nghe có nhớ hàng hay không",
+                  "Phủ nhận có hàng",
+                  "Xin lỗi vì không giao hàng"
+                ],
+                "explanation": "Báo cho người nghe thông tin mình biết. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-19-pp-02",
+              "p": "よ",
+              "cn": "よ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "よ",
+              "m": "Đính chính thông tin người kia hiểu sai",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-19",
+                "file": "chapters/lesson19.tex",
+                "lesson": 19,
+                "page": 286,
+                "quote": "ちがうわよ。あれは飛行機の光よ。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ちがうわよ。あれは飛行機の光よ。",
+                "translation": "Không phải đâu. Đó là ánh đèn máy bay.",
+                "answer": "Đính chính thông tin người kia hiểu sai",
+                "wrong": [
+                  "Đồng ý rằng đó chắc chắn là sao",
+                  "Hỏi giá vé máy bay",
+                  "Xin người kia tắt đèn"
+                ],
+                "explanation": "Đính chính thông tin người kia hiểu sai. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "田中さーん、お荷物ですよ。はんこお願いします。",
+              "v": "Anh Tanaka ơi, có hàng đấy. Cho tôi xin đóng dấu.",
+              "g": "kaiwa-nam-19-pp-01"
+            },
+            {
+              "j": "ちがうわよ。あれは飛行機の光よ。",
+              "v": "Không phải đâu. Đó là ánh đèn máy bay.",
+              "g": "kaiwa-nam-19-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 20,
+          "ten": "Nameraka · お礼・あやまる",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-20-pp-01",
+              "p": "まして…",
+              "cn": "まして",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "まして",
+              "m": "Lời cảm ơn có thể để lửng phần cuối",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-20",
+                "file": "chapters/lesson20.tex",
+                "lesson": 20,
+                "page": 302,
+                "quote": "いつもお世話になりまして…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いつもお世話になりまして…",
+                "translation": "Cảm ơn anh/chị luôn giúp đỡ…",
+                "answer": "Lời cảm ơn có thể để lửng phần cuối",
+                "wrong": [
+                  "Thông báo ngày nghỉ",
+                  "Bắt buộc phải là lời từ chối",
+                  "Yêu cầu người nghe xin lỗi"
+                ],
+                "explanation": "Lời cảm ơn có thể để lửng phần cuối. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-20-pp-02",
+              "p": "まして…",
+              "cn": "まして",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "まして",
+              "m": "Để lửng lời xin lỗi một cách lịch sự",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-20",
+                "file": "chapters/lesson20.tex",
+                "lesson": 20,
+                "page": 303,
+                "quote": "電車の事故で遅くなりまして…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "電車の事故で遅くなりまして…",
+                "translation": "Xin lỗi, tôi đến muộn vì sự cố tàu điện…",
+                "answer": "Để lửng lời xin lỗi một cách lịch sự",
+                "wrong": [
+                  "Chúc mừng vì tàu chạy sớm",
+                  "Mời người nghe đi du lịch",
+                  "Cấm người nghe lên tàu"
+                ],
+                "explanation": "Để lửng lời xin lỗi một cách lịch sự. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "いつもお世話になりまして…",
+              "v": "Cảm ơn anh/chị luôn giúp đỡ…",
+              "g": "kaiwa-nam-20-pp-01"
+            },
+            {
+              "j": "電車の事故で遅くなりまして…",
+              "v": "Xin lỗi, tôi đến muộn vì sự cố tàu điện…",
+              "g": "kaiwa-nam-20-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 21,
+          "ten": "Nameraka · 文句・断る",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-21-pp-01",
+              "p": "ちょっと…",
+              "cn": "ちょっと",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ちょっと",
+              "m": "Từ chối khéo trong lời đáp về lời mời",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-21",
+                "file": "chapters/lesson21.tex",
+                "lesson": 21,
+                "page": 313,
+                "quote": "土曜日ですか。土曜日はちょっと…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "土曜日ですか。土曜日はちょっと…",
+                "translation": "Thứ bảy à. Thứ bảy thì hơi khó…",
+                "answer": "Từ chối khéo trong lời đáp về lời mời",
+                "wrong": [
+                  "Đồng ý chắc chắn tham dự",
+                  "Yêu cầu thêm đúng một phút",
+                  "Xác nhận thứ bảy là hôm nay"
+                ],
+                "explanation": "Từ chối khéo trong lời đáp về lời mời. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-21-pp-02",
+              "p": "どうも…",
+              "cn": "どうも",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "どうも",
+              "m": "Ngập ngừng nêu điều không hài lòng",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-21",
+                "file": "chapters/lesson21.tex",
+                "lesson": 21,
+                "page": 314,
+                "quote": "犬の声がどうも…",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "犬の声がどうも…",
+                "translation": "Tiếng chó sủa thì thật là…",
+                "answer": "Ngập ngừng nêu điều không hài lòng",
+                "wrong": [
+                  "Lời cảm ơn tiếng chó",
+                  "Khen chó hát rất hay",
+                  "Báo con chó đã ngủ"
+                ],
+                "explanation": "Ngập ngừng nêu điều không hài lòng. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "土曜日ですか。土曜日はちょっと…",
+              "v": "Thứ bảy à. Thứ bảy thì hơi khó…",
+              "g": "kaiwa-nam-21-pp-01"
+            },
+            {
+              "j": "犬の声がどうも…",
+              "v": "Tiếng chó sủa thì thật là…",
+              "g": "kaiwa-nam-21-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 22,
+          "ten": "Nameraka · 申し出を断る",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-22-pp-01",
+              "p": "から",
+              "cn": "から",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "から",
+              "m": "Nêu lý do để từ chối lời nhường ghế",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-22",
+                "file": "chapters/lesson22.tex",
+                "lesson": 22,
+                "page": 328,
+                "quote": "いえいえ、わたしは次の駅で降りますから。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いえいえ、わたしは次の駅で降りますから。",
+                "translation": "Không cần đâu, tôi xuống ở ga tiếp theo rồi.",
+                "answer": "Nêu lý do để từ chối lời nhường ghế",
+                "wrong": [
+                  "Nhận lời ngồi và hứa đi xa",
+                  "Hỏi tên nhà ga",
+                  "Mời người khác xuống tàu"
+                ],
+                "explanation": "Nêu lý do để từ chối lời nhường ghế. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-22-pp-02",
+              "p": "ので",
+              "cn": "ので",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "ので",
+              "m": "Nêu lý do để khéo từ chối nhắn lại",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-22",
+                "file": "chapters/lesson22.tex",
+                "lesson": 22,
+                "page": 329,
+                "quote": "いいえ、またお電話させていただきますので。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いいえ、またお電話させていただきますので。",
+                "translation": "Không cần đâu, tôi sẽ gọi lại ạ.",
+                "answer": "Nêu lý do để khéo từ chối nhắn lại",
+                "wrong": [
+                  "Yêu cầu chuyển lời ngay lập tức",
+                  "Báo số điện thoại sai",
+                  "Khẳng định sẽ không gọi nữa"
+                ],
+                "explanation": "Nêu lý do để khéo từ chối nhắn lại. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "いえいえ、わたしは次の駅で降りますから。",
+              "v": "Không cần đâu, tôi xuống ở ga tiếp theo rồi.",
+              "g": "kaiwa-nam-22-pp-01"
+            },
+            {
+              "j": "いいえ、またお電話させていただきますので。",
+              "v": "Không cần đâu, tôi sẽ gọi lại ạ.",
+              "g": "kaiwa-nam-22-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 23,
+          "ten": "Nameraka · 問いかける",
+          "tu": [],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-nam-23-pp-01",
+              "p": "っけ",
+              "cn": "っけ",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "っけ",
+              "m": "Hỏi lại điều đã biết nhưng quên",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-23",
+                "file": "chapters/lesson23.tex",
+                "lesson": 23,
+                "page": 341,
+                "quote": "あの人はだれだったっけ？",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "あの人はだれだったっけ？",
+                "translation": "Người kia là ai ấy nhỉ?",
+                "answer": "Hỏi lại điều đã biết nhưng quên",
+                "wrong": [
+                  "Cấm nhắc tên người đó",
+                  "Thông báo người đó đã đến",
+                  "Cam kết lần đầu gặp người đó"
+                ],
+                "explanation": "Hỏi lại điều đã biết nhưng quên. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-23-pp-02",
+              "p": "そうかしら",
+              "cn": "そうかしら",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "そうかしら",
+              "m": "Tỏ ý nghi ngờ hoặc không hẳn đồng tình",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-23",
+                "file": "chapters/lesson23.tex",
+                "lesson": 23,
+                "page": 342,
+                "quote": "そうかしら。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "そうかしら。",
+                "translation": "Có thật thế không nhỉ?",
+                "answer": "Tỏ ý nghi ngờ hoặc không hẳn đồng tình",
+                "wrong": [
+                  "Đồng ý hoàn toàn, không chút nghi ngờ",
+                  "Xin phép về trước",
+                  "Yêu cầu đổi số điện thoại"
+                ],
+                "explanation": "Tỏ ý nghi ngờ hoặc không hẳn đồng tình. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            },
+            {
+              "id": "kaiwa-nam-23-pp-03",
+              "p": "じゃないかな",
+              "cn": "じゃないかな",
+              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "r": "じゃないかな",
+              "m": "Nêu ý kiến một cách dè dặt",
+              "source": {
+                "id": "nameraka",
+                "ref": "NM-23",
+                "file": "chapters/lesson23.tex",
+                "lesson": 23,
+                "page": 342,
+                "quote": "ぼくも悪かったけど、君にも少し責任があるんじゃないかな。",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ぼくも悪かったけど、君にも少し責任があるんじゃないかな。",
+                "translation": "Tớ cũng có lỗi, nhưng cậu cũng có một phần trách nhiệm đấy nhỉ.",
+                "answer": "Nêu ý kiến một cách dè dặt",
+                "wrong": [
+                  "Khẳng định cậu hoàn toàn vô can",
+                  "Yêu cầu đền toàn bộ tiền ngay",
+                  "Hỏi có phải hôm nay là chủ nhật"
+                ],
+                "explanation": "Nêu ý kiến một cách dè dặt. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "あの人はだれだったっけ？",
+              "v": "Người kia là ai ấy nhỉ?",
+              "g": "kaiwa-nam-23-pp-01"
+            },
+            {
+              "j": "そうかしら。",
+              "v": "Có thật thế không nhỉ?",
+              "g": "kaiwa-nam-23-pp-02"
+            },
+            {
+              "j": "ぼくも悪かったけど、君にも少し責任があるんじゃないかな。",
+              "v": "Tớ cũng có lỗi, nhưng cậu cũng có một phần trách nhiệm đấy nhỉ.",
+              "g": "kaiwa-nam-23-pp-03"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 5,
+      "ten": "Osaka · Lời nói hằng ngày",
+      "bai": [
+        {
+          "so": 1,
+          "ten": "Osaka · 大阪弁と共通語",
+          "tu": [
+            {
+              "id": "kaiwa-osk-01-tu-01",
+              "w": "共通語",
+              "hv": "",
+              "r": "きょうつうご",
+              "m": "Tiếng dùng chung, tiếng Nhật phổ thông",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-003",
+                "section": 1,
+                "quote": "共通語になじみがない",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "共通語になじみがない",
+                "translation": "Không quen tiếng phổ thông.",
+                "answer": "Tiếng dùng chung, tiếng Nhật phổ thông",
+                "wrong": [
+                  "Tên riêng của tiếng Osaka",
+                  "Một loại tiếng lóng mạng",
+                  "Một hệ chữ viết cổ"
+                ],
+                "explanation": "Tiếng dùng chung, tiếng Nhật phổ thông. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-01-pp-01",
+              "p": "おらんかった",
+              "cn": "おらんかった",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "おらんかった",
+              "m": "Không có / đã không có ai ở đó",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-003",
+                "section": 1,
+                "quote": "おらんかったよな",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おらんかったよな",
+                "translation": "Hồi ấy chẳng có ai nhỉ.",
+                "answer": "Không có / đã không có ai ở đó",
+                "wrong": [
+                  "Ngày mai sẽ có rất đông",
+                  "Mọi người đều đã hiểu",
+                  "Không được phép bước vào"
+                ],
+                "explanation": "Không có / đã không có ai ở đó. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-01-pp-02",
+              "p": "見れてます",
+              "cn": "みれてます",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "みれてます",
+              "m": "Thể khả năng khẩu ngữ của 見られています",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-011",
+                "section": 1,
+                "quote": "違和感なく見れてます",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "違和感なく見れてます",
+                "translation": "Tôi xem mà không thấy gượng.",
+                "answer": "Thể khả năng khẩu ngữ của 見られています",
+                "wrong": [
+                  "Bị bắt phải ngừng xem",
+                  "Không thể nhìn thấy gì",
+                  "Chưa từng xem lần nào"
+                ],
+                "explanation": "Thể khả năng khẩu ngữ của 見られています. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "おらんかったよな",
+              "v": "Hồi ấy chẳng có ai nhỉ.",
+              "g": "kaiwa-osk-01-pp-01"
+            },
+            {
+              "j": "違和感なく見れてます",
+              "v": "Tôi xem mà không thấy gượng.",
+              "g": "kaiwa-osk-01-pp-02"
+            },
+            {
+              "j": "共通語になじみがない",
+              "v": "Không quen tiếng phổ thông.",
+              "t": "kaiwa-osk-01-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 2,
+          "ten": "Osaka · 口癖と恩着せ",
+          "tu": [
+            {
+              "id": "kaiwa-osk-02-tu-01",
+              "w": "おる",
+              "hv": "",
+              "r": "おる",
+              "m": "いる: có người, tồn tại trong cách nói Kansai này",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-015",
+                "section": 2,
+                "quote": "覚えてる人、めっちゃおる",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "覚えてる人、めっちゃおる",
+                "translation": "Có rất nhiều người vẫn nhớ.",
+                "answer": "いる: có người, tồn tại trong cách nói Kansai này",
+                "wrong": [
+                  "Mọi người đều quên",
+                  "Không ai được phép nhớ",
+                  "Tất cả đang trở về nhà"
+                ],
+                "explanation": "いる: có người, tồn tại trong cách nói Kansai này. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-02-pp-01",
+              "p": "奢ったったやん",
+              "cn": "おごったったやん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "おごったったやん",
+              "m": "Tôi đã bao cậu rồi mà, nhắc chuyện mình đã đãi",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-014",
+                "section": 2,
+                "quote": "奢ったったやん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "奢ったったやん",
+                "translation": "Tôi đã bao cậu rồi mà.",
+                "answer": "Tôi đã bao cậu rồi mà, nhắc chuyện mình đã đãi",
+                "wrong": [
+                  "Tôi chưa bao cậu bao giờ",
+                  "Cậu luôn bao tôi",
+                  "Ngày mai cửa hàng nghỉ"
+                ],
+                "explanation": "Tôi đã bao cậu rồi mà, nhắc chuyện mình đã đãi. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-02-pp-02",
+              "p": "言わへん",
+              "cn": "いわへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "いわへん",
+              "m": "言わない: không nói",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-015",
+                "section": 2,
+                "quote": "男には言うけど、女には言わへんよね",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "男には言うけど、女には言わへんよね",
+                "translation": "Nói với nam giới nhưng không nói với nữ giới nhỉ.",
+                "answer": "言わない: không nói",
+                "wrong": [
+                  "Đã nói với tất cả mọi người",
+                  "Chỉ nói bằng chữ viết",
+                  "Không nghe thấy tiếng ai"
+                ],
+                "explanation": "言わない: không nói. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "奢ったったやん",
+              "v": "Tôi đã bao cậu rồi mà.",
+              "g": "kaiwa-osk-02-pp-01"
+            },
+            {
+              "j": "男には言うけど、女には言わへんよね",
+              "v": "Nói với nam giới nhưng không nói với nữ giới nhỉ.",
+              "g": "kaiwa-osk-02-pp-02"
+            },
+            {
+              "j": "覚えてる人、めっちゃおる",
+              "v": "Có rất nhiều người vẫn nhớ.",
+              "t": "kaiwa-osk-02-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 3,
+          "ten": "Osaka · 明日のパン",
+          "tu": [
+            {
+              "id": "kaiwa-osk-03-tu-01",
+              "w": "言うてる",
+              "hv": "",
+              "r": "いうてる",
+              "m": "言っている: đang nói / hay nói",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-021",
+                "section": 3,
+                "quote": "明日のパン結構言うてるよ",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "明日のパン結構言うてるよ",
+                "translation": "Hay nói “bánh mì ngày mai” lắm.",
+                "answer": "言っている: đang nói / hay nói",
+                "wrong": [
+                  "Chưa bao giờ nhắc đến",
+                  "Chỉ nghe mà không nói",
+                  "Đã viết thành sách"
+                ],
+                "explanation": "言っている: đang nói / hay nói. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-03-pp-01",
+              "p": "買えへん",
+              "cn": "かえへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "かえへん",
+              "m": "買えない: không thể mua",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-021",
+                "section": 3,
+                "quote": "3日も4日も先のパン買えへんから",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "3日も4日も先のパン買えへんから",
+                "translation": "Vì không thể mua bánh cho tận ba bốn ngày sau.",
+                "answer": "買えない: không thể mua",
+                "wrong": [
+                  "Đã mua hết bánh hôm nay",
+                  "Đang bắt người khác mua",
+                  "Muốn bán hết bánh ngay"
+                ],
+                "explanation": "買えない: không thể mua. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-03-pp-02",
+              "p": "ちゃうやん",
+              "cn": "ちゃうやん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "ちゃうやん",
+              "m": "違うじゃない: chẳng phải… mà / đâu có phải",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-025",
+                "section": 3,
+                "quote": "じゃあ、明日のパンちゃうやん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "じゃあ、明日のパンちゃうやん",
+                "translation": "Thế thì đâu phải bánh mì cho ngày mai nữa.",
+                "answer": "違うじゃない: chẳng phải… mà / đâu có phải",
+                "wrong": [
+                  "Đúng là bánh cho ngày mai",
+                  "Ngày mai chắc chắn không ăn bánh",
+                  "Xin thêm một ổ bánh"
+                ],
+                "explanation": "違うじゃない: chẳng phải… mà / đâu có phải. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "3日も4日も先のパン買えへんから",
+              "v": "Vì không thể mua bánh cho tận ba bốn ngày sau.",
+              "g": "kaiwa-osk-03-pp-01"
+            },
+            {
+              "j": "じゃあ、明日のパンちゃうやん",
+              "v": "Thế thì đâu phải bánh mì cho ngày mai nữa.",
+              "g": "kaiwa-osk-03-pp-02"
+            },
+            {
+              "j": "明日のパン結構言うてるよ",
+              "v": "Hay nói “bánh mì ngày mai” lắm.",
+              "t": "kaiwa-osk-03-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 4,
+          "ten": "Osaka · いじりと距離感",
+          "tu": [
+            {
+              "id": "kaiwa-osk-04-tu-01",
+              "w": "いじる",
+              "hv": "",
+              "r": "いじる",
+              "m": "Trêu chọc ai đó trong cuộc trò chuyện",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-029",
+                "section": 4,
+                "quote": "好きやからいじる",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "好きやからいじる",
+                "translation": "Vì quý nên mới trêu.",
+                "answer": "Trêu chọc ai đó trong cuộc trò chuyện",
+                "wrong": [
+                  "Sửa máy móc trong ngữ cảnh này",
+                  "Ra lệnh sa thải",
+                  "Cảm ơn bằng thư trang trọng"
+                ],
+                "explanation": "Trêu chọc ai đó trong cuộc trò chuyện. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-04-pp-01",
+              "p": "ええねん",
+              "cn": "ええねん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "ええねん",
+              "m": "いいんだ: cứ làm vậy là được trong lời khuyên này",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-028",
+                "section": 4,
+                "quote": "いじったったらええねん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "いじったったらええねん",
+                "translation": "Cứ trêu một chút là được ấy mà.",
+                "answer": "いいんだ: cứ làm vậy là được trong lời khuyên này",
+                "wrong": [
+                  "Tuyệt đối cấm đùa",
+                  "Bắt buộc phải xin nghỉ việc",
+                  "Chỉ được giữ im lặng"
+                ],
+                "explanation": "いいんだ: cứ làm vậy là được trong lời khuyên này. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-04-pp-02",
+              "p": "やから",
+              "cn": "やから",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "やから",
+              "m": "だから: vì là / bởi vì",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-029",
+                "section": 4,
+                "quote": "好きやからいじる",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "好きやからいじる",
+                "translation": "Vì quý nên mới trêu.",
+                "answer": "だから: vì là / bởi vì",
+                "wrong": [
+                  "Mặc dù ghét nhưng im lặng",
+                  "Đã hứa sẽ không gặp",
+                  "Nếu trời mưa thì về"
+                ],
+                "explanation": "だから: vì là / bởi vì. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "いじったったらええねん",
+              "v": "Cứ trêu một chút là được ấy mà.",
+              "g": "kaiwa-osk-04-pp-01"
+            },
+            {
+              "j": "好きやからいじる",
+              "v": "Vì quý nên mới trêu.",
+              "t": "kaiwa-osk-04-tu-01"
+            },
+            {
+              "j": "好きやからいじる",
+              "v": "Vì quý nên mới trêu.",
+              "g": "kaiwa-osk-04-pp-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 6,
+      "ten": "Osaka · Giao tiếp và đáp lời",
+      "bai": [
+        {
+          "so": 5,
+          "ten": "Osaka · 知らんけど",
+          "tu": [
+            {
+              "id": "kaiwa-osk-05-tu-01",
+              "w": "言うてた",
+              "hv": "",
+              "r": "いうてた",
+              "m": "言っていた: đã nói / có nói",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-035",
+                "section": 5,
+                "quote": "みたいなこと言うてたで",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "みたいなこと言うてたで",
+                "translation": "Có nói kiểu như thế đấy.",
+                "answer": "言っていた: đã nói / có nói",
+                "wrong": [
+                  "Chưa từng nói",
+                  "Sắp bắt đầu nghe",
+                  "Chỉ đang ngủ"
+                ],
+                "explanation": "言っていた: đã nói / có nói. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-05-pp-01",
+              "p": "知らんけど",
+              "cn": "しらんけど",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "しらんけど",
+              "m": "Nói vậy thôi, không dám chắc; để ngỏ độ tin cậy",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-033",
+                "section": 5,
+                "quote": "ここまっすぐ行ったら100均あるんちゃうかな。知らんけど",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ここまっすぐ行ったら100均あるんちゃうかな。知らんけど",
+                "translation": "Đi thẳng chắc có cửa hàng 100 yên. Mà tôi cũng không chắc.",
+                "answer": "Nói vậy thôi, không dám chắc; để ngỏ độ tin cậy",
+                "wrong": [
+                  "Cam đoan chắc chắn có",
+                  "Ra lệnh không được đi",
+                  "Thông báo đã đóng cửa vĩnh viễn"
+                ],
+                "explanation": "Nói vậy thôi, không dám chắc; để ngỏ độ tin cậy. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-05-pp-02",
+              "p": "あるんちゃうかな",
+              "cn": "あるんちゃうかな",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "あるんちゃうかな",
+              "m": "あるのではないかな: có lẽ có nhỉ",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-033",
+                "section": 5,
+                "quote": "あるんちゃうかな",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "あるんちゃうかな",
+                "translation": "Có lẽ là có nhỉ.",
+                "answer": "あるのではないかな: có lẽ có nhỉ",
+                "wrong": [
+                  "Chắc chắn không tồn tại",
+                  "Không được phép sở hữu",
+                  "Đã mất sạch từ lâu"
+                ],
+                "explanation": "あるのではないかな: có lẽ có nhỉ. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "ここまっすぐ行ったら100均あるんちゃうかな。知らんけど",
+              "v": "Đi thẳng chắc có cửa hàng 100 yên. Mà tôi cũng không chắc.",
+              "g": "kaiwa-osk-05-pp-01"
+            },
+            {
+              "j": "あるんちゃうかな",
+              "v": "Có lẽ là có nhỉ.",
+              "g": "kaiwa-osk-05-pp-02"
+            },
+            {
+              "j": "みたいなこと言うてたで",
+              "v": "Có nói kiểu như thế đấy.",
+              "t": "kaiwa-osk-05-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 6,
+          "ten": "Osaka · 店員さんとの会話",
+          "tu": [
+            {
+              "id": "kaiwa-osk-06-tu-01",
+              "w": "おおきに",
+              "hv": "",
+              "r": "おおきに",
+              "m": "Cảm ơn, cách nói Kansai",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-037",
+                "section": 6,
+                "quote": "おおきに、ありがとう",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おおきに、ありがとう",
+                "translation": "Cảm ơn, cảm ơn nhé.",
+                "answer": "Cảm ơn, cách nói Kansai",
+                "wrong": [
+                  "Xin tạm biệt",
+                  "Đừng làm thế",
+                  "Tôi không biết"
+                ],
+                "explanation": "Cảm ơn, cách nói Kansai. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-06-tu-02",
+              "w": "タメ口",
+              "hv": "",
+              "r": "ためぐち",
+              "m": "Cách nói thân mật, không dùng kính ngữ",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-037",
+                "section": 6,
+                "quote": "店員さんにはタメ口で",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "店員さんにはタメ口で",
+                "translation": "Nói thân mật với nhân viên quán.",
+                "answer": "Cách nói thân mật, không dùng kính ngữ",
+                "wrong": [
+                  "Lời chào bằng văn bản",
+                  "Lối nói kính ngữ cao nhất",
+                  "Một loại phương ngữ cổ"
+                ],
+                "explanation": "Cách nói thân mật, không dùng kính ngữ. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-06-pp-01",
+              "p": "ええで",
+              "cn": "ええで",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "ええで",
+              "m": "いいよ: tốt / được đấy, thân mật",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-037",
+                "section": 6,
+                "quote": "フレンドリーな方がええで",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "フレンドリーな方がええで",
+                "translation": "Thân thiện thì tốt hơn đấy.",
+                "answer": "いいよ: tốt / được đấy, thân mật",
+                "wrong": [
+                  "Không được thân thiện",
+                  "Đã hết giờ bán hàng",
+                  "Bắt buộc phải xin lỗi"
+                ],
+                "explanation": "いいよ: tốt / được đấy, thân mật. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "おおきに、ありがとう",
+              "v": "Cảm ơn, cảm ơn nhé.",
+              "t": "kaiwa-osk-06-tu-01"
+            },
+            {
+              "j": "店員さんにはタメ口で",
+              "v": "Nói thân mật với nhân viên quán.",
+              "t": "kaiwa-osk-06-tu-02"
+            },
+            {
+              "j": "フレンドリーな方がええで",
+              "v": "Thân thiện thì tốt hơn đấy.",
+              "g": "kaiwa-osk-06-pp-01"
+            }
+          ]
+        },
+        {
+          "so": 7,
+          "ten": "Osaka · 笑いに変える返し",
+          "tu": [
+            {
+              "id": "kaiwa-osk-07-tu-01",
+              "w": "オチ",
+              "hv": "",
+              "r": "オチ",
+              "m": "Câu chốt, nút kết gây cười trong câu chuyện",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-046",
+                "section": 7,
+                "quote": "オチをつけないと話になんない",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "オチをつけないと話になんない",
+                "translation": "Không có câu chốt thì chẳng thành chuyện.",
+                "answer": "Câu chốt, nút kết gây cười trong câu chuyện",
+                "wrong": [
+                  "Địa điểm bắt đầu chuyến đi",
+                  "Ngày hết hạn của vé",
+                  "Cách đọc kính ngữ"
+                ],
+                "explanation": "Câu chốt, nút kết gây cười trong câu chuyện. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-07-tu-02",
+              "w": "返し",
+              "hv": "",
+              "r": "かえし",
+              "m": "Cách đáp lại, nhất là đáp hài hước",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-046",
+                "section": 7,
+                "quote": "返し方次第で失敗をチャンスに",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "返し方次第で失敗をチャンスに",
+                "translation": "Tùy cách đáp mà biến thất bại thành cơ hội.",
+                "answer": "Cách đáp lại, nhất là đáp hài hước",
+                "wrong": [
+                  "Tiền vé khứ hồi",
+                  "Tên một món ăn",
+                  "Tờ đơn xin nghỉ phép"
+                ],
+                "explanation": "Cách đáp lại, nhất là đáp hài hước. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-07-pp-01",
+              "p": "てんねん",
+              "cn": "てんねん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "てんねん",
+              "m": "ているんだ: giải thích trạng thái đang có",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-045",
+                "section": 7,
+                "quote": "開けてんねん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "開けてんねん",
+                "translation": "Tôi cố tình để mở đấy.",
+                "answer": "ているんだ: giải thích trạng thái đang có",
+                "wrong": [
+                  "Tôi chưa từng mở",
+                  "Tôi không thể mở được",
+                  "Cấm người khác mở"
+                ],
+                "explanation": "ているんだ: giải thích trạng thái đang có. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "開けてんねん",
+              "v": "Tôi cố tình để mở đấy.",
+              "g": "kaiwa-osk-07-pp-01"
+            },
+            {
+              "j": "オチをつけないと話になんない",
+              "v": "Không có câu chốt thì chẳng thành chuyện.",
+              "t": "kaiwa-osk-07-tu-01"
+            },
+            {
+              "j": "返し方次第で失敗をチャンスに",
+              "v": "Tùy cách đáp mà biến thất bại thành cơ hội.",
+              "t": "kaiwa-osk-07-tu-02"
+            }
+          ]
+        },
+        {
+          "so": 8,
+          "ten": "Osaka · 気にしい",
+          "tu": [
+            {
+              "id": "kaiwa-osk-08-tu-01",
+              "w": "気にしい",
+              "hv": "",
+              "r": "きにしい",
+              "m": "Người hay để ý, lo nghĩ về mọi chuyện",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-049",
+                "section": 8,
+                "quote": "気にしいとは大阪弁で、物事を何でも気にする人のこと。",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "気にしいとは大阪弁で、物事を何でも気にする人のこと。",
+                "translation": "Ki ni shii chỉ người chuyện gì cũng để ý.",
+                "answer": "Người hay để ý, lo nghĩ về mọi chuyện",
+                "wrong": [
+                  "Người chẳng quan tâm điều gì",
+                  "Người luôn quên tên mình",
+                  "Nhân viên chỉ làm ca đêm"
+                ],
+                "explanation": "Người hay để ý, lo nghĩ về mọi chuyện. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-08-pp-01",
+              "p": "誰からやった？",
+              "cn": "だれからやった",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "だれからやった",
+              "m": "Ai vừa gọi đấy? trong ngữ cảnh điện thoại",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-050",
+                "section": 8,
+                "quote": "誰からやった？",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "誰からやった？",
+                "translation": "Ai vừa gọi đấy?",
+                "answer": "Ai vừa gọi đấy? trong ngữ cảnh điện thoại",
+                "wrong": [
+                  "Bạn định gọi cho ai ngày mai",
+                  "Ai đã mua điện thoại",
+                  "Điện thoại này giá bao nhiêu"
+                ],
+                "explanation": "Ai vừa gọi đấy? trong ngữ cảnh điện thoại. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-08-pp-02",
+              "p": "わからへん",
+              "cn": "わからへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "わからへん",
+              "m": "わからない: không biết, không hiểu",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-059",
+                "section": 8,
+                "quote": "その天ぷらが何かわからへん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "その天ぷらが何かわからへん",
+                "translation": "Không biết món tempura đó là gì.",
+                "answer": "わからない: không biết, không hiểu",
+                "wrong": [
+                  "Biết rõ mọi nguyên liệu",
+                  "Không được ăn tempura",
+                  "Đã gọi thêm một suất"
+                ],
+                "explanation": "わからない: không biết, không hiểu. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "気にしいとは大阪弁で、物事を何でも気にする人のこと。",
+              "v": "Ki ni shii chỉ người chuyện gì cũng để ý.",
+              "t": "kaiwa-osk-08-tu-01"
+            },
+            {
+              "j": "誰からやった？",
+              "v": "Ai vừa gọi đấy?",
+              "g": "kaiwa-osk-08-pp-01"
+            },
+            {
+              "j": "その天ぷらが何かわからへん",
+              "v": "Không biết món tempura đó là gì.",
+              "g": "kaiwa-osk-08-pp-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 7,
+      "ten": "Osaka · Gia đình và ẩm thực",
+      "bai": [
+        {
+          "so": 9,
+          "ten": "Osaka · なにわの会話",
+          "tu": [
+            {
+              "id": "kaiwa-osk-09-tu-01",
+              "w": "あんた",
+              "hv": "",
+              "r": "あんた",
+              "m": "あなた: bạn / anh / chị, cách gọi thân mật",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-065",
+                "section": 9,
+                "quote": "あんた、どっか行こ、今から",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "あんた、どっか行こ、今から",
+                "translation": "Này, đi đâu đó với tôi ngay bây giờ nhé.",
+                "answer": "あなた: bạn / anh / chị, cách gọi thân mật",
+                "wrong": [
+                  "Tên một địa điểm",
+                  "Cách gọi kính trọng khách hàng",
+                  "Đơn vị đếm người"
+                ],
+                "explanation": "あなた: bạn / anh / chị, cách gọi thân mật. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-09-tu-02",
+              "w": "カミングアウト",
+              "hv": "",
+              "r": "カミングアウト",
+              "m": "Công khai, tiết lộ điều trước đó chưa nói",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-064",
+                "section": 9,
+                "quote": "30代もカミングアウト",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "30代もカミングアウト",
+                "translation": "Người ngoài ba mươi cũng tiết lộ tuổi.",
+                "answer": "Công khai, tiết lộ điều trước đó chưa nói",
+                "wrong": [
+                  "Từ chối tiết lộ tuổi",
+                  "Nói dối về nơi ở",
+                  "Thông báo giờ đóng cửa"
+                ],
+                "explanation": "Công khai, tiết lộ điều trước đó chưa nói. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-09-pp-01",
+              "p": "行こ",
+              "cn": "いこ",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "いこ",
+              "m": "行こう: đi nào, rút gọn ý chí / rủ rê",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-065",
+                "section": 9,
+                "quote": "どっか行こ、今から",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "どっか行こ、今から",
+                "translation": "Giờ đi đâu đó nào.",
+                "answer": "行こう: đi nào, rút gọn ý chí / rủ rê",
+                "wrong": [
+                  "Đã đi về từ lâu",
+                  "Không được đi đâu",
+                  "Không thể bước đi"
+                ],
+                "explanation": "行こう: đi nào, rút gọn ý chí / rủ rê. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "あんた、どっか行こ、今から",
+              "v": "Này, đi đâu đó với tôi ngay bây giờ nhé.",
+              "t": "kaiwa-osk-09-tu-01"
+            },
+            {
+              "j": "どっか行こ、今から",
+              "v": "Giờ đi đâu đó nào.",
+              "g": "kaiwa-osk-09-pp-01"
+            },
+            {
+              "j": "30代もカミングアウト",
+              "v": "Người ngoài ba mươi cũng tiết lộ tuổi.",
+              "t": "kaiwa-osk-09-tu-02"
+            }
+          ]
+        },
+        {
+          "so": 10,
+          "ten": "Osaka · おかんの青春",
+          "tu": [
+            {
+              "id": "kaiwa-osk-10-tu-01",
+              "w": "おかん",
+              "hv": "",
+              "r": "おかん",
+              "m": "Mẹ, má; cách gọi thân mật Kansai",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-066",
+                "section": 10,
+                "quote": "大阪のおかん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "大阪のおかん",
+                "translation": "Các bà mẹ Osaka.",
+                "answer": "Mẹ, má; cách gọi thân mật Kansai",
+                "wrong": [
+                  "Ông nội",
+                  "Con trai út",
+                  "Cô giáo chủ nhiệm"
+                ],
+                "explanation": "Mẹ, má; cách gọi thân mật Kansai. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-10-pp-01",
+              "p": "いてる",
+              "cn": "いてる",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "いてる",
+              "m": "いる: có người / đang ở đó trong cách nói này",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-073",
+                "section": 10,
+                "quote": "同じような時間に電話かけてくる人がいてるんですよ。",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "同じような時間に電話かけてくる人がいてるんですよ。",
+                "translation": "Có người hay gọi đến vào khoảng giờ giống nhau.",
+                "answer": "いる: có người / đang ở đó trong cách nói này",
+                "wrong": [
+                  "Chẳng ai từng gọi đến",
+                  "Tất cả cuộc gọi đều bị chặn",
+                  "Ngày mai sẽ sửa điện thoại"
+                ],
+                "explanation": "いる: có người / đang ở đó trong cách nói này. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-10-pp-02",
+              "p": "やった",
+              "cn": "やった",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "やった",
+              "m": "だった: đã là / hồi đó là",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-073",
+                "section": 10,
+                "quote": "うぶな女やったしね",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "うぶな女やったしね",
+                "translation": "Hồi đó tôi cũng là cô gái ngây thơ mà.",
+                "answer": "だった: đã là / hồi đó là",
+                "wrong": [
+                  "Ngày mai sẽ trở thành người khác",
+                  "Không được phép làm nữ giới",
+                  "Đang đặt tên một nhân vật"
+                ],
+                "explanation": "だった: đã là / hồi đó là. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "大阪のおかん",
+              "v": "Các bà mẹ Osaka.",
+              "t": "kaiwa-osk-10-tu-01"
+            },
+            {
+              "j": "同じような時間に電話かけてくる人がいてるんですよ。",
+              "v": "Có người hay gọi đến vào khoảng giờ giống nhau.",
+              "g": "kaiwa-osk-10-pp-01"
+            },
+            {
+              "j": "うぶな女やったしね",
+              "v": "Hồi đó tôi cũng là cô gái ngây thơ mà.",
+              "g": "kaiwa-osk-10-pp-02"
+            }
+          ]
+        },
+        {
+          "so": 11,
+          "ten": "Osaka · おとんと家族",
+          "tu": [
+            {
+              "id": "kaiwa-osk-11-tu-01",
+              "w": "おとん",
+              "hv": "",
+              "r": "おとん",
+              "m": "Bố, ba; cách gọi thân mật Kansai",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-085",
+                "section": 11,
+                "quote": "おとんにも青春があった",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おとんにも青春があった",
+                "translation": "Bố cũng từng có thời thanh xuân.",
+                "answer": "Bố, ba; cách gọi thân mật Kansai",
+                "wrong": [
+                  "Mẹ chưa từng đi học",
+                  "Chị gái đang về nhà",
+                  "Ông giáo đang ngủ"
+                ],
+                "explanation": "Bố, ba; cách gọi thân mật Kansai. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-11-tu-02",
+              "w": "キラキラ",
+              "hv": "",
+              "r": "キラキラ",
+              "m": "Lấp lánh; ở đây tả vẻ rạng rỡ",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-086",
+                "section": 11,
+                "quote": "キラキラ、キラキラ光ってた",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "キラキラ、キラキラ光ってた",
+                "translation": "Tỏa sáng lấp lánh, lấp lánh ấy.",
+                "answer": "Lấp lánh; ở đây tả vẻ rạng rỡ",
+                "wrong": [
+                  "Tối om, không thấy gì",
+                  "Im lặng tuyệt đối",
+                  "Di chuyển rất chậm"
+                ],
+                "explanation": "Lấp lánh; ở đây tả vẻ rạng rỡ. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-11-pp-01",
+              "p": "じゃないねんけど",
+              "cn": "じゃないねんけど",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "じゃないねんけど",
+              "m": "じゃないんだけど: giải thích rằng không phải thế",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-082",
+                "section": 11,
+                "quote": "カツラじゃないねんけど",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "カツラじゃないねんけど",
+                "translation": "Không phải tóc giả cả đầu đâu, nhưng…",
+                "answer": "じゃないんだけど: giải thích rằng không phải thế",
+                "wrong": [
+                  "Đúng là tóc giả cả đầu",
+                  "Không được phép cắt tóc",
+                  "Tôi sẽ nhuộm tóc ngày mai"
+                ],
+                "explanation": "じゃないんだけど: giải thích rằng không phải thế. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "おとんにも青春があった",
+              "v": "Bố cũng từng có thời thanh xuân.",
+              "t": "kaiwa-osk-11-tu-01"
+            },
+            {
+              "j": "カツラじゃないねんけど",
+              "v": "Không phải tóc giả cả đầu đâu, nhưng…",
+              "g": "kaiwa-osk-11-pp-01"
+            },
+            {
+              "j": "キラキラ、キラキラ光ってた",
+              "v": "Tỏa sáng lấp lánh, lấp lánh ấy.",
+              "t": "kaiwa-osk-11-tu-02"
+            }
+          ]
+        },
+        {
+          "so": 12,
+          "ten": "Osaka · 寿司の締め",
+          "tu": [
+            {
+              "id": "kaiwa-osk-12-tu-01",
+              "w": "玉赤",
+              "hv": "",
+              "r": "ぎょくあか",
+              "m": "Trứng trong canh miso đỏ, gọi tắt trong đoạn này",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-104",
+                "section": 12,
+                "quote": "玉、卵と赤だしの短縮",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "玉、卵と赤だしの短縮",
+                "translation": "玉 chỉ trứng, 赤 là cách gọi tắt của akadashi.",
+                "answer": "Trứng trong canh miso đỏ, gọi tắt trong đoạn này",
+                "wrong": [
+                  "Cơm cuộn cá ngừ",
+                  "Bánh mì phủ bơ",
+                  "Trứng cuộn với mì"
+                ],
+                "explanation": "Trứng trong canh miso đỏ, gọi tắt trong đoạn này. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-12-tu-02",
+              "w": "鉄砲",
+              "hv": "",
+              "r": "てっぽう",
+              "m": "Trong đoạn về sushi: cuộn bầu khô có wasabi",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-095",
+                "section": 12,
+                "quote": "鉄砲って、かんぴょうにわさび入れること",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "鉄砲って、かんぴょうにわさび入れること",
+                "translation": "Teppō là cho wasabi vào cuộn bầu khô.",
+                "answer": "Trong đoạn về sushi: cuộn bầu khô có wasabi",
+                "wrong": [
+                  "Súng dùng để săn cá trong đoạn này",
+                  "Một loại trà lạnh",
+                  "Cơm cuộn không có nhân"
+                ],
+                "explanation": "Trong đoạn về sushi: cuộn bầu khô có wasabi. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-12-pp-01",
+              "p": "見えへん",
+              "cn": "みえへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "みえへん",
+              "m": "見えない: không thấy / trông không…",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-098",
+                "section": 12,
+                "quote": "正直、おいしそうに見えへんわ。",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "正直、おいしそうに見えへんわ。",
+                "translation": "Nói thật, trông không có vẻ ngon.",
+                "answer": "見えない: không thấy / trông không…",
+                "wrong": [
+                  "Trông ngon tuyệt vời",
+                  "Tôi chắc chắn đã ăn",
+                  "Món ăn đã hết sạch"
+                ],
+                "explanation": "見えない: không thấy / trông không…. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "正直、おいしそうに見えへんわ。",
+              "v": "Nói thật, trông không có vẻ ngon.",
+              "g": "kaiwa-osk-12-pp-01"
+            },
+            {
+              "j": "玉、卵と赤だしの短縮",
+              "v": "玉 chỉ trứng, 赤 là cách gọi tắt của akadashi.",
+              "t": "kaiwa-osk-12-tu-01"
+            },
+            {
+              "j": "鉄砲って、かんぴょうにわさび入れること",
+              "v": "Teppō là cho wasabi vào cuộn bầu khô.",
+              "t": "kaiwa-osk-12-tu-02"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "so": 8,
+      "ten": "Osaka · Văn hóa trò chuyện",
+      "bai": [
+        {
+          "so": 13,
+          "ten": "Osaka · ポン酢の会話",
+          "tu": [
+            {
+              "id": "kaiwa-osk-13-tu-01",
+              "w": "ダジャレ",
+              "hv": "",
+              "r": "ダジャレ",
+              "m": "Chơi chữ dựa trên âm gần giống",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-114",
+                "section": 13,
+                "quote": "おとん渾身のダジャレ",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おとん渾身のダジャレ",
+                "translation": "Câu chơi chữ bố dốc sức nghĩ ra.",
+                "answer": "Chơi chữ dựa trên âm gần giống",
+                "wrong": [
+                  "Một lời xin lỗi trang trọng",
+                  "Một bài báo khoa học",
+                  "Một loại nước chấm"
+                ],
+                "explanation": "Chơi chữ dựa trên âm gần giống. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-13-pp-01",
+              "p": "もたれへん",
+              "cn": "もたれへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "もたれへん",
+              "m": "Không bị nặng bụng, khó tiêu theo cảm nhận người nói",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-108",
+                "section": 13,
+                "quote": "ポン酢かけたら、もたれへん気するやん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ポン酢かけたら、もたれへん気するやん",
+                "translation": "Rưới ponzu vào thấy như đỡ nặng bụng ấy.",
+                "answer": "Không bị nặng bụng, khó tiêu theo cảm nhận người nói",
+                "wrong": [
+                  "Một cam kết chữa được bệnh dạ dày",
+                  "Chắc chắn không còn dầu trong món ăn",
+                  "Tuyệt đối không được ăn ponzu"
+                ],
+                "explanation": "Không bị nặng bụng, khó tiêu theo cảm nhận người nói. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-13-pp-02",
+              "p": "使ったる",
+              "cn": "つかったる",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "つかったる",
+              "m": "使ってあげる: để tôi dùng cho, giọng thân mật",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-108",
+                "section": 13,
+                "quote": "使ったるわ",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "使ったるわ",
+                "translation": "Để tôi dùng cho.",
+                "answer": "使ってあげる: để tôi dùng cho, giọng thân mật",
+                "wrong": [
+                  "Không được dùng",
+                  "Đã dùng hết rồi",
+                  "Tôi không biết dùng"
+                ],
+                "explanation": "使ってあげる: để tôi dùng cho, giọng thân mật. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "ポン酢かけたら、もたれへん気するやん",
+              "v": "Rưới ponzu vào thấy như đỡ nặng bụng ấy.",
+              "g": "kaiwa-osk-13-pp-01"
+            },
+            {
+              "j": "使ったるわ",
+              "v": "Để tôi dùng cho.",
+              "g": "kaiwa-osk-13-pp-02"
+            },
+            {
+              "j": "おとん渾身のダジャレ",
+              "v": "Câu chơi chữ bố dốc sức nghĩ ra.",
+              "t": "kaiwa-osk-13-tu-01"
+            }
+          ]
+        },
+        {
+          "so": 14,
+          "ten": "Osaka · 大阪から東京へ",
+          "tu": [
+            {
+              "id": "kaiwa-osk-14-tu-01",
+              "w": "ほんだら",
+              "hv": "",
+              "r": "ほんだら",
+              "m": "そうしたら: thế rồi / vậy thì",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-125",
+                "section": 14,
+                "quote": "ほんだらちょっとばかにされたっすもん。",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "ほんだらちょっとばかにされたっすもん。",
+                "translation": "Thế rồi tôi hơi bị chọc quê ấy.",
+                "answer": "そうしたら: thế rồi / vậy thì",
+                "wrong": [
+                  "Chắc chắn chưa xảy ra chuyện gì",
+                  "Đây là lời cảm ơn",
+                  "Bắt buộc phải dừng nói"
+                ],
+                "explanation": "そうしたら: thế rồi / vậy thì. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-14-tu-02",
+              "w": "おもろい",
+              "hv": "",
+              "r": "おもろい",
+              "m": "面白い: thú vị, hài hước",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-131",
+                "section": 14,
+                "quote": "おもろいと思われる",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おもろいと思われる",
+                "translation": "Bị nghĩ là hài hước.",
+                "answer": "面白い: thú vị, hài hước",
+                "wrong": [
+                  "Bị xem là luôn buồn ngủ",
+                  "Bị cho là giàu có",
+                  "Bị xem là nói nhỏ"
+                ],
+                "explanation": "面白い: thú vị, hài hước. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-14-pp-01",
+              "p": "気ぃつけや",
+              "cn": "きいつけや",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "きいつけや",
+              "m": "気をつけてね: nhớ cẩn thận nhé, thân mật",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-125",
+                "section": 14,
+                "quote": "気ぃつけや",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "気ぃつけや",
+                "translation": "Nhớ cẩn thận nhé.",
+                "answer": "気をつけてね: nhớ cẩn thận nhé, thân mật",
+                "wrong": [
+                  "Quên hết đi",
+                  "Đừng lo vì chắc chắn an toàn",
+                  "Đi ngủ ngay lập tức"
+                ],
+                "explanation": "気をつけてね: nhớ cẩn thận nhé, thân mật. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "ほんだらちょっとばかにされたっすもん。",
+              "v": "Thế rồi tôi hơi bị chọc quê ấy.",
+              "t": "kaiwa-osk-14-tu-01"
+            },
+            {
+              "j": "気ぃつけや",
+              "v": "Nhớ cẩn thận nhé.",
+              "g": "kaiwa-osk-14-pp-01"
+            },
+            {
+              "j": "おもろいと思われる",
+              "v": "Bị nghĩ là hài hước.",
+              "t": "kaiwa-osk-14-tu-02"
+            }
+          ]
+        },
+        {
+          "so": 15,
+          "ten": "Osaka · 食べ物のさんづけ",
+          "tu": [
+            {
+              "id": "kaiwa-osk-15-tu-01",
+              "w": "おかゆさん",
+              "hv": "",
+              "r": "おかゆさん",
+              "m": "Cháo; thêm さん tạo cách gọi thân thuộc",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-134",
+                "section": 15,
+                "quote": "おかゆさん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "おかゆさん",
+                "translation": "Cháo.",
+                "answer": "Cháo; thêm さん tạo cách gọi thân thuộc",
+                "wrong": [
+                  "Một người tên Okayu",
+                  "Cơm nắm",
+                  "Một loại kẹo"
+                ],
+                "explanation": "Cháo; thêm さん tạo cách gọi thân thuộc. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-15-tu-02",
+              "w": "お揚げさん",
+              "hv": "",
+              "r": "おあげさん",
+              "m": "Đậu phụ chiên mỏng, cách gọi thân thuộc",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-136",
+                "section": 15,
+                "quote": "お揚げさん",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "お揚げさん",
+                "translation": "Đậu phụ chiên.",
+                "answer": "Đậu phụ chiên mỏng, cách gọi thân thuộc",
+                "wrong": [
+                  "Gà nướng",
+                  "Khoai sống",
+                  "Mì lạnh"
+                ],
+                "explanation": "Đậu phụ chiên mỏng, cách gọi thân thuộc. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-15-tu-03",
+              "w": "お芋さん",
+              "hv": "",
+              "r": "おいもさん",
+              "m": "Khoai lang trong ngữ cảnh người nói xác nhận",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-136",
+                "section": 15,
+                "quote": "「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」",
+                "translation": "“Oimo-san là loại khoai nào ạ?” — “Khoai lang.”",
+                "answer": "Khoai lang trong ngữ cảnh người nói xác nhận",
+                "wrong": [
+                  "Khoai tây trong ngữ cảnh này",
+                  "Củ cải trắng",
+                  "Nấm hương"
+                ],
+                "explanation": "Khoai lang trong ngữ cảnh người nói xác nhận. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [],
+          "vd": [
+            {
+              "j": "おかゆさん",
+              "v": "Cháo.",
+              "t": "kaiwa-osk-15-tu-01"
+            },
+            {
+              "j": "お揚げさん",
+              "v": "Đậu phụ chiên.",
+              "t": "kaiwa-osk-15-tu-02"
+            },
+            {
+              "j": "「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」",
+              "v": "“Oimo-san là loại khoai nào ạ?” — “Khoai lang.”",
+              "t": "kaiwa-osk-15-tu-03"
+            }
+          ]
+        },
+        {
+          "so": 16,
+          "ten": "Osaka · あめちゃん",
+          "tu": [
+            {
+              "id": "kaiwa-osk-16-tu-01",
+              "w": "あめちゃん",
+              "hv": "",
+              "r": "あめちゃん",
+              "m": "Kẹo, cách gọi trìu mến / thân thuộc",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-140",
+                "section": 16,
+                "quote": "大阪ってあめちゃんっていうのに",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "大阪ってあめちゃんっていうのに",
+                "translation": "Ở Osaka gọi là ame-chan vậy mà…",
+                "answer": "Kẹo, cách gọi trìu mến / thân thuộc",
+                "wrong": [
+                  "Mưa rào",
+                  "Một đứa trẻ tên Ame",
+                  "Bánh mì nướng"
+                ],
+                "explanation": "Kẹo, cách gọi trìu mến / thân thuộc. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "han": [],
+          "pp": [
+            {
+              "id": "kaiwa-osk-16-pp-01",
+              "p": "食べへん",
+              "cn": "たべへん",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "たべへん",
+              "m": "食べない: không ăn",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-140",
+                "section": 16,
+                "quote": "配ってるだけで食べへんとか？",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "配ってるだけで食べへんとか？",
+                "translation": "Hay là chỉ phát cho người khác chứ không ăn?",
+                "answer": "食べない: không ăn",
+                "wrong": [
+                  "Đã ăn hết một mình",
+                  "Không thể chia cho người khác",
+                  "Đang xin thêm kẹo"
+                ],
+                "explanation": "食べない: không ăn. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            },
+            {
+              "id": "kaiwa-osk-16-pp-02",
+              "p": "古いんちゃうかな",
+              "cn": "ふるいんちゃうかな",
+              "gt": "Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe.",
+              "r": "ふるいんちゃうかな",
+              "m": "古いのではないかな: có lẽ cũ rồi nhỉ",
+              "source": {
+                "id": "osaka",
+                "ref": "OSK-142",
+                "section": 16,
+                "quote": "古いんちゃうかな、多分古い",
+                "status": "inferred",
+                "translation": "editorial"
+              },
+              "quiz": {
+                "context": "古いんちゃうかな、多分古い",
+                "translation": "Chắc cũ rồi nhỉ, có lẽ cũ rồi.",
+                "answer": "古いのではないかな: có lẽ cũ rồi nhỉ",
+                "wrong": [
+                  "Chắc chắn mới làm hôm nay",
+                  "Cấm giữ kẹo trong túi",
+                  "Không biết kẹo là gì"
+                ],
+                "explanation": "古いのではないかな: có lẽ cũ rồi nhỉ. Cách dùng trong hội thoại Osaka; mức độ thân mật phụ thuộc quan hệ giữa người nói và người nghe."
+              }
+            }
+          ],
+          "vd": [
+            {
+              "j": "大阪ってあめちゃんっていうのに",
+              "v": "Ở Osaka gọi là ame-chan vậy mà…",
+              "t": "kaiwa-osk-16-tu-01"
+            },
+            {
+              "j": "配ってるだけで食べへんとか？",
+              "v": "Hay là chỉ phát cho người khác chứ không ăn?",
+              "g": "kaiwa-osk-16-pp-01"
+            },
+            {
+              "j": "古いんちゃうかな、多分古い",
+              "v": "Chắc cũ rồi nhỉ, có lẽ cũ rồi.",
+              "g": "kaiwa-osk-16-pp-02"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

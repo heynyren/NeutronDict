@@ -257,7 +257,13 @@
 
   /* ================================================================ dữ liệu màn */
 
+  function canhKaiwa(ci, tong, rong) {
+    const lanterns = [40,100,160,220,280,340].map((x,i) => '<g transform="translate('+x+' '+(24+i%2*10)+')"><path d="M0 -24V0" stroke="#91a8b5"/><rect x="-8" width="16" height="22" rx="6" fill="'+(i%2?'#f6cfb4':'#8bd4e6')+'"/><path d="M-5 7H5M-5 15H5" stroke="#365469"/></g>').join("");
+    return '<svg viewBox="0 0 380 124" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="124" fill="#12354a"/><circle cx="310" cy="30" r="16" fill="#f3e4aa"/>'+[0,70,145,230,310].map((x,i)=>'<rect x="'+x+'" y="'+(65-i%2*20)+'" width="58" height="68" rx="4" fill="#20566c"/><rect x="'+(x+12)+'" y="76" width="30" height="18" rx="3" fill="#8bd4e6"/>').join("")+lanterns+'<path d="M0 112Q190 100 380 112V124H0Z" fill="#367d8a"/></svg>';
+  }
+
   const MON = {
+    kaiwa: {"id":"kaiwa","cap":"Kaiwa Nihongo","emoji":"🏮","khi":"canh","xemTruoc":4,"ten":"Kaiwa Nihongo","phu":"Khẩu ngữ Nhật và tiếng Osaka · khóa bổ trợ ngoài các cấp JLPT.","mau":["#176b80","#8bd4e6"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Nameraka · Biến âm","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Câu nói tự nhiên","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Giữ nhịp hội thoại","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Ý định và sắc thái","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Lời nói hằng ngày","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Giao tiếp và đáp lời","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Gia đình và ẩm thực","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Văn hóa trò chuyện","mau":["#163e52","#245b6d"]}],"trum":{"ten":"Kaiwa · Thử thách hội thoại","mau":["#163e52","#276f7c"]},"suuTam":["🗣️","💬","🎐","🤝","🏮","🍵","🍣","🍬"],"thoai":{"batDau":["Cùng Raku khám phá tiếng Nhật trong những cuộc trò chuyện hằng ngày!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình Kaiwa Nihongo!"]},canh:canhKaiwa},
     n3: {
       id: "n3", cap: "N3", emoji: "🗻", khi: "canh", xemTruoc: 8, leoLen: true,
       ten: "Chinh phục núi Phú Sĩ",
@@ -378,7 +384,13 @@
   }
 
   /** SVG nhân vật của một màn (đã gắn sẵn hoạt ảnh). */
-  function nhanVat(mon) { return mon === "n2" ? veKai() : veTaro(); }
+  function nhanVat(mon) {
+    if (mon === "kaiwa") {
+      const icon = goc.chrome?.runtime?.getURL ? goc.chrome.runtime.getURL("icons/icon128.png") : "brand-mark.png";
+      return '<svg class="jl-nv-svg" viewBox="0 0 128 128" aria-label="Raku"><image href="' + icon + '" width="128" height="128"/></svg>';
+    }
+    return mon === "n2" ? veKai() : veTaro();
+  }
 
   goc.JlptTheme = { MON, SAP_CO, mauChuong, canh, canhSapCo, nhanVat, tron };
 })(typeof self !== "undefined" ? self : this);

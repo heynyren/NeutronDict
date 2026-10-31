@@ -108,6 +108,13 @@
       ds.push({ id: "c" + ch.so + "boss", loai: "boss-chuong", chuong: ch.so, bai: 0, ci: ci, items: [], phan: 1, tongPhan: 1, soCau: 20 });
     });
     ds.push({ id: "boss", loai: "boss", chuong: 0, bai: 0, ci: -1, items: [], phan: 1, tongPhan: 1, soCau: 30 });
+    if (mon.id === "kaiwa") ds.forEach(c => {
+      const pool = c.loai === "boss" ? mon._idx.tu.concat(mon._idx.pp) :
+        c.loai === "boss-chuong" ? mon._idx.chuongTu[c.ci].concat(mon._idx.chuongPp[c.ci]) : c.items;
+      c.soCau = Math.min(c.loai === "boss" ? 30 : c.loai === "boss-chuong" ? 20 : pool.length, pool.length);
+      const lesson = mon.chuong[c.ci]?.bai.find(b => b.so === c.bai);
+      c.lessonTitle = lesson?.ten || "";
+    });
     mon._chang = ds;
     return ds;
   }
@@ -348,6 +355,7 @@
     const rng = o.rng || Math.random;
     const baoLoi = o.baoLoi || {};
     let ds = [];
+    if (mon.id === "kaiwa") return dungDeKaiwa(mon, chang, rng, baoLoi);
     if (chang.loai === "tu") ds = dungTu(mon, chang.items, chang.soCau, rng, baoLoi, Math.floor(rng() * KIEU_TU.length));
     else if (chang.loai === "han") ds = dungHan(mon, chang.items, chang.soCau, rng, baoLoi);
     else if (chang.loai === "pp") {
@@ -369,6 +377,21 @@
       if (ds.length < n) ds = ds.concat(dungTu(mon, tuP.filter((t) => !ds.some((q) => q.mucId === t.id)), n - ds.length, rng, baoLoi));
     }
     return xaoTron(ds, rng).slice(0, chang.soCau);
+  }
+
+  // Kaiwa choices are authored per context: never pick synonyms from another card as distractors.
+  function dungDeKaiwa(mon, chang, rng, baoLoi) {
+    const pool = chang.loai === "boss" ? mon._idx.tu.concat(mon._idx.pp) :
+      chang.loai === "boss-chuong" ? mon._idx.chuongTu[chang.ci].concat(mon._idx.chuongPp[chang.ci]) : chang.items;
+    return xaoTron(pool, rng).map(item => {
+      const q = item.quiz, id = item.id + ":context";
+      if (!q || baoLoi[id] || q.wrong.length !== 3 || new Set([q.answer, ...q.wrong]).size !== 4) return null;
+      const o = lap(q.answer, q.wrong, rng);
+      return {id, mucId:item.id, kieu:item.p ? "pp-context" : "tu-context",
+        de:{lenh:"Chọn cách hiểu phù hợp với ngữ cảnh", chinh:q.context, phu:item.p || item.w},
+        ...o, source:item.source,
+        dapAn:{p:item.p, w:item.w, r:item.r, m:q.answer, cau:q.context, dich:q.translation, explanation:q.explanation}};
+    }).filter(Boolean).slice(0, chang.soCau);
   }
 
   /* ------------------------------------------------------------ thẻ học nhanh */
