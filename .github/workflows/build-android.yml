@@ -5,7 +5,7 @@ name: Build Android APK
 # Release "latest-debug".
 on:
   push:
-    branches: [ main, codex/kaiwa-caption-sync ]
+    branches: [ main, codex/kaiwa-caption-sync, codex/jlpt-n4-n5 ]
     paths:
       - 'android/**'
       - '.github/workflows/build-android.yml'

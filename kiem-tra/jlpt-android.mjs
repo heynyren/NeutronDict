@@ -42,7 +42,7 @@ try {
   soat("tiếng Nhật: tab JLPT hiện", await p.evaluate(() => getComputedStyle(document.getElementById("navJlpt")).display !== "none"));
   await p.evaluate(() => document.getElementById("navJlpt").click());
   await p.waitForSelector(".jl-the");
-  soat("hiện 6 thẻ màn (N3, N2 và Kaiwa mở song song)", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 6 && t[2].dataset.mon === "kaiwa" && !t[2].classList.contains("sap") && !t[0].classList.contains("khoa") && !t[1].classList.contains("khoa") && !t[1].classList.contains("sap"); }));
+  soat("hiện 5 màn mở và N1 sắp có", await p.evaluate(() => { const t = [...document.querySelectorAll(".jl-the")]; return t.length === 6 && t[4].dataset.mon === "kaiwa" && t.slice(0,5).every(x=>!x.classList.contains("sap")) && t[5].classList.contains("sap") && !t[0].classList.contains("khoa") && !t[1].classList.contains("khoa") && !t[1].classList.contains("sap"); }));
   await cho(600);                                   // chờ hết hoạt ảnh trượt của tab (lúc đang trượt, fixed tính theo khung đang dịch)
   soat("điện thoại: nút nhạc nền nằm TRÊN thanh tab dưới, bấm được", await p.evaluate(() => { const b = document.querySelector(".jl-nhac"); if (!b || b.hidden) return false; const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); const nv = document.getElementById("navJlpt").getBoundingClientRect(); return b.contains(e) && r.bottom <= nv.top + 2; }));
   await p.tap('.jl-the[data-mon="n3"]');

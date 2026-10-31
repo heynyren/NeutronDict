@@ -143,7 +143,7 @@
   function veNutNhac() {
     if (!nutNhac) return;
     const bat = td.nhac !== false;
-    nutNhac.hidden = monId === "kaiwa" || !(NH && NH.kha());
+    nutNhac.hidden = !["n2", "n3"].includes(monId) || !(NH && NH.kha());
     nutNhac.classList.toggle("tat", !bat);
     nutNhac.innerHTML = icon("speaker-high", 22) + "<span class=\"jl-nhac-nt\">♪</span>";   // gạch chéo khi tắt do CSS vẽ (.tat::after)
     nutNhac.title = bat ? T("Tắt nhạc nền") : T("Bật nhạc nền");
@@ -192,7 +192,7 @@
 
   /* ================================================================ chọn màn */
 
-  const TRUM = { n3: "boss", n2: "boss", kaiwa: "boss" };    // màn có dữ liệu → id trùm cuối
+  const TRUM = { n5: "boss", n4: "boss", n3: "boss", n2: "boss", kaiwa: "boss" };    // màn có dữ liệu → id trùm cuối
 
   function veChonMan() {
     monId = null; mon = null; chang = [];
@@ -328,7 +328,7 @@
     const kh = el("div", "jl-gioi-khung");
     g.appendChild(kh);
     const lop = [];
-    for (let k = 0; k < (CG ? (monId === "kaiwa" ? mon.chuong.length + 1 : CG.SO_KHUNG) : 0); k++) {
+    for (let k = 0; k < (CG ? (mon.chuong.length + 1) : 0); k++) {
       const l = el("div", "jl-gioi-lop an");
       l.style.zIndex = String(k);
       l.dataset.k = String(k);
@@ -701,12 +701,12 @@
   }
 
   function khungChay() {
-    const o = el("div", "jl-chay" + (monId === "kaiwa" ? " jl-kaiwa" : ""));
+    const o = el("div", "jl-chay" + (["kaiwa","n4","n5"].includes(monId) ? " jl-kaiwa" : ""));
     const th = TH.MON[monId];
     o.style.setProperty("--m1", th.mau[0]); o.style.setProperty("--m2", th.mau[1]);
     // Cảnh của chương đang chơi làm nền mờ dưới đáy màn hình; nội dung nằm trên.
     const nen = el("div", "jl-chay-canh");
-    nen.innerHTML = CG ? CG.ve(monId, chay.c.ci < 0 ? 9 : chay.c.ci, (goc.innerWidth || 1000) / (goc.innerHeight || 700)) : TH.canh(monId, chay.c.ci, true);
+    nen.innerHTML = CG ? CG.ve(monId, chay.c.ci < 0 ? mon.chuong.length : chay.c.ci, (goc.innerWidth || 1000) / (goc.innerHeight || 700)) : TH.canh(monId, chay.c.ci, true);
     o.appendChild(nen);
     o.appendChild(khiQuyen(th, "chay"));
     root.appendChild(o);
@@ -842,7 +842,7 @@
     }
     if (chay.lat && the.muc.source) {
       mat.appendChild(el("div", "jl-vd-v", T("Nguồn") + ": " + nguonKaiwa(the.muc.source)));
-      mat.appendChild(el("div", "jl-vd-v", T("Bản dịch biên tập cho bài học")));
+      mat.appendChild(el("div", "jl-vd-v", T(the.muc.source.exampleEditorial ? "Ví dụ và bản dịch biên tập cho bài học" : "Bản dịch biên tập cho bài học")));
     }
     if (!chay.lat) mat.appendChild(el("div", "jl-goi-y", T("Chạm để lật thẻ")));
     card.appendChild(mat);
@@ -986,6 +986,7 @@
   }
 
   function nguonKaiwa(s) {
+    if (s.id === "n4" || s.id === "n5") return s.title + (s.page ? " · " + T("trang") + " " + s.page : "");
     return s.id === "osaka" ? s.ref + " · " + T("Bản dựng từ phụ đề, chưa đối chiếu âm thanh") :
       "Nameraka · " + T("Bài") + " " + s.lesson + " · " + T("trang") + " " + s.page;
   }

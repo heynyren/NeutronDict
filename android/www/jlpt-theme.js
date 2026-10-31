@@ -262,7 +262,18 @@
     return '<svg viewBox="0 0 380 124" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="124" fill="#12354a"/><circle cx="310" cy="30" r="16" fill="#f3e4aa"/>'+[0,70,145,230,310].map((x,i)=>'<rect x="'+x+'" y="'+(65-i%2*20)+'" width="58" height="68" rx="4" fill="#20566c"/><rect x="'+(x+12)+'" y="76" width="30" height="18" rx="3" fill="#8bd4e6"/>').join("")+lanterns+'<path d="M0 112Q190 100 380 112V124H0Z" fill="#367d8a"/></svg>';
   }
 
+  function canhN45(id, ci, tong, rong) {
+    const progress=Math.max(0, Math.min(1, ci / Math.max(1,tong-1)));
+    const suffix=id+"_"+ci+(rong?"w":"s");
+    let svg=canhSapCo(id).replaceAll("jlN"+id.slice(1), "jlScene"+suffix);
+    if(id==="n5")svg=svg.replaceAll("#ffd9e6",tron("#fff0f5","#ffd0de",progress)).replaceAll("#ffb7cf",tron("#f3b7cb","#e7a5bb",progress));
+    else svg=svg.replaceAll("#1d2b5e",tron("#365b83","#172d51",progress)).replaceAll("#7a86c4",tron("#a7c8e0","#607baf",progress));
+    return svg.replace('viewBox="'+KHUNG_RONG+'"','viewBox="'+(rong?KHUNG_RONG:KHUNG)+'"');
+  }
+
   const MON = {
+    n5: {...{"id":"n5","cap":"N5","emoji":"🌸","khi":"canh","xemTruoc":2,"ten":"Con đường hoa anh đào Kyoto","phu":"Từng bước xây nền tảng từ vựng, chữ Hán và ngữ pháp N5.","mau":["#8b3659","#ffd9e6"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Kyoto · Khởi hành","mau":["#493052","#82506d"]},{"ten":"Kyoto · Con đường hoa","mau":["#4a3b61","#82506d"]},{"ten":"Kyoto · Bên dòng sông","mau":["#374b63","#82506d"]},{"ten":"Kyoto · Khu vườn yên tĩnh","mau":["#3e4c54","#82506d"]},{"ten":"Kyoto · Dưới tán anh đào","mau":["#56384f","#82506d"]}],"trum":{"ten":"Kyoto · Lễ hội hoa anh đào","mau":["#493052","#82506d"]},"suuTam":["🌱","🌸","🎐","🍵","🌺"],"thoai":{"batDau":["Cùng Raku dạo bước dưới tán hoa anh đào và khám phá N5!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình N5 ở Kyoto!"]}},canh:(ci,tong,rong)=>canhN45("n5",ci,tong,rong)},
+    n4: {...{"id":"n4","cap":"N4","emoji":"♨️","khi":"canh","xemTruoc":2,"ten":"Làng suối nước nóng trong tuyết","phu":"Ôn từ vựng, chữ Hán và ngữ pháp N4 giữa ngôi làng mùa đông.","mau":["#295d80","#b8d9ec"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Làng tuyết · Cổng làng","mau":["#233f5d","#406481"]},{"ten":"Làng tuyết · Rừng thông","mau":["#2d4264","#406481"]},{"ten":"Làng tuyết · Quán trà","mau":["#34536b","#406481"]},{"ten":"Làng tuyết · Dòng suối ấm","mau":["#285769","#406481"]},{"ten":"Làng tuyết · Ánh đèn đêm","mau":["#344e70","#406481"]}],"trum":{"ten":"Làng tuyết · Lễ hội mùa đông","mau":["#233f5d","#406481"]},"suuTam":["❄️","🌲","🍵","♨️","🏮"],"thoai":{"batDau":["Cùng Raku khám phá N4 trong ngôi làng suối nước nóng!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình N4 ở làng tuyết!"]}},canh:(ci,tong,rong)=>canhN45("n4",ci,tong,rong)},
     kaiwa: {"id":"kaiwa","cap":"Kaiwa Nihongo","emoji":"🏮","khi":"canh","xemTruoc":4,"ten":"Kaiwa Nihongo","phu":"Khẩu ngữ Nhật và tiếng Osaka · khóa bổ trợ ngoài các cấp JLPT.","mau":["#176b80","#8bd4e6"],"nhanVat":{"ten":"Raku","emoji":"🐻‍❄️"},"chuong":[{"ten":"Nameraka · Biến âm","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Câu nói tự nhiên","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Giữ nhịp hội thoại","mau":["#163e52","#245b6d"]},{"ten":"Nameraka · Ý định và sắc thái","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Lời nói hằng ngày","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Giao tiếp và đáp lời","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Gia đình và ẩm thực","mau":["#163e52","#245b6d"]},{"ten":"Osaka · Văn hóa trò chuyện","mau":["#163e52","#245b6d"]}],"trum":{"ten":"Kaiwa · Thử thách hội thoại","mau":["#163e52","#276f7c"]},"suuTam":["🗣️","💬","🎐","🤝","🏮","🍵","🍣","🍬"],"thoai":{"batDau":["Cùng Raku khám phá tiếng Nhật trong những cuộc trò chuyện hằng ngày!","Chọn bất kỳ chặng nào. Làm hết các chặng để mở bài cuối."],"chuong":{},"xongChuong":{},"thang":["Bạn đã hoàn thành hành trình Kaiwa Nihongo!"]},canh:canhKaiwa},
     n3: {
       id: "n3", cap: "N3", emoji: "🗻", khi: "canh", xemTruoc: 8, leoLen: true,
@@ -366,9 +377,7 @@
 
   /** Màn "sắp có": hiện trên bản đồ chọn màn nhưng chưa chơi được. */
   const SAP_CO = [
-    { id: "n1", cap: "N1", emoji: "🎆", ten: "Tàu đêm đến ngày hội pháo hoa" },
-    { id: "n4", cap: "N4", emoji: "♨️", ten: "Làng suối nước nóng trong tuyết" },
-    { id: "n5", cap: "N5", emoji: "🌸", ten: "Con đường hoa anh đào Kyoto" }
+    { id: "n1", cap: "N1", emoji: "🎆", ten: "Tàu đêm đến ngày hội pháo hoa" }
   ];
 
   /** Hai màu nền của một chương (hoặc của trùm cuối khi `ci` = -1). */
@@ -385,7 +394,7 @@
 
   /** SVG nhân vật của một màn (đã gắn sẵn hoạt ảnh). */
   function nhanVat(mon) {
-    if (mon === "kaiwa") {
+    if (["kaiwa","n4","n5"].includes(mon)) {
       const icon = goc.chrome?.runtime?.getURL ? goc.chrome.runtime.getURL("icons/icon128.png") : "brand-mark.png";
       return '<svg class="jl-nv-svg" viewBox="0 0 128 128" aria-label="Raku"><image href="' + icon + '" width="128" height="128"/></svg>';
     }

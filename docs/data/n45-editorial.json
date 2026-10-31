@@ -1,0 +1,6270 @@
+{
+  "N5": {
+    "vocabulary": [
+      {
+        "id": "voc_2107cb0b5cf2ce21ce45",
+        "m": "cái kia (xa cả người nói và người nghe)",
+        "sourceIndex": 0
+      },
+      {
+        "id": "voc_e6519a757fd920059952",
+        "m": "… đó (bổ nghĩa cho danh từ)",
+        "sourceIndex": 1
+      },
+      {
+        "id": "voc_5771f69fd9cf7b6e22da",
+        "m": "… kia (bổ nghĩa cho danh từ)",
+        "sourceIndex": 2
+      },
+      {
+        "id": "voc_2f7e0216f0c626632ef8",
+        "m": "tạp chí",
+        "sourceIndex": 3
+      },
+      {
+        "id": "voc_edce819df4e913b8dd51",
+        "m": "báo",
+        "sourceIndex": 4
+      },
+      {
+        "id": "voc_0c08bece55a90c1af73f",
+        "m": "sổ tay",
+        "sourceIndex": 5
+      },
+      {
+        "id": "voc_e8b29a6176c1b3047597",
+        "m": "danh thiếp",
+        "sourceIndex": 6
+      },
+      {
+        "id": "voc_abe5f367e668f05c83b4",
+        "m": "thẻ",
+        "sourceIndex": 7
+      },
+      {
+        "id": "voc_002f73d3561472ccddd1",
+        "m": "thẻ điện thoại",
+        "sourceIndex": 8
+      },
+      {
+        "id": "voc_08ad19ca13a4c7820663",
+        "m": "bút chì",
+        "sourceIndex": 9
+      },
+      {
+        "id": "voc_5bbed96a2c9b6cb8acdd",
+        "m": "chìa khóa",
+        "sourceIndex": 10
+      },
+      {
+        "id": "voc_d8318bbe92d126763b25",
+        "m": "đồng hồ",
+        "sourceIndex": 11
+      },
+      {
+        "id": "voc_533e71e4d27ce6dd85b9",
+        "m": "cặp sách; túi xách",
+        "sourceIndex": 12
+      },
+      {
+        "id": "voc_32306a8af41b06444d4e",
+        "m": "băng cát xét",
+        "r": "カセットテープ",
+        "sourceIndex": 13
+      },
+      {
+        "id": "voc_e2a121197d4a092450df",
+        "m": "máy ghi âm",
+        "sourceIndex": 14
+      },
+      {
+        "id": "voc_dab5a65665954ebd83a4",
+        "m": "ô tô; xe hơi",
+        "sourceIndex": 15
+      },
+      {
+        "id": "voc_b636e9ba620230e0be9e",
+        "m": "phòng học",
+        "sourceIndex": 16
+      },
+      {
+        "id": "voc_8b77250cd3d5be5d9ccd",
+        "m": "quầy tiếp tân",
+        "sourceIndex": 17
+      },
+      {
+        "id": "voc_e6d83b970e17bce580c7",
+        "m": "đất nước của anh/chị",
+        "sourceIndex": 18
+      },
+      {
+        "id": "voc_6c606a3dfb165e56e05b",
+        "m": "điện thoại",
+        "sourceIndex": 19
+      },
+      {
+        "id": "voc_234a696519d49757e0e1",
+        "m": "quầy bán hàng",
+        "sourceIndex": 20
+      },
+      {
+        "id": "voc_b683112e1bcd7e6008ad",
+        "m": "nghỉ; nghỉ ngơi",
+        "r": "やすみます",
+        "sourceIndex": 21
+      },
+      {
+        "id": "voc_94e483e18c96b476fccf",
+        "m": "kết thúc",
+        "r": "おわります",
+        "sourceIndex": 22
+      },
+      {
+        "id": "voc_fd8aba0f3996bf9e3ad0",
+        "m": "buổi sáng (trước 12 giờ trưa)",
+        "sourceIndex": 23
+      },
+      {
+        "id": "voc_9c1dbafb4cf1dc92957d",
+        "m": "buổi chiều (sau 12 giờ trưa)",
+        "sourceIndex": 24
+      },
+      {
+        "id": "voc_c7edbbef4b30aca55f88",
+        "m": "buổi sáng",
+        "r": "あさ",
+        "sourceIndex": 25
+      },
+      {
+        "id": "voc_97aff01d156318d27d42",
+        "m": "buổi trưa",
+        "sourceIndex": 26
+      },
+      {
+        "id": "voc_3c894e11c7fd3bd96eff",
+        "m": "số; số hiệu",
+        "sourceIndex": 27
+      },
+      {
+        "id": "voc_a45bdd8255e8919fed2a",
+        "m": "số mấy",
+        "sourceIndex": 28
+      },
+      {
+        "id": "voc_39e97cad82b86951c127",
+        "m": "nhìn; xem",
+        "r": "みます",
+        "sourceIndex": 32
+      },
+      {
+        "id": "voc_bdeb3121ffb167d0ed35",
+        "m": "rượu",
+        "r": "おさけ",
+        "sourceIndex": 33
+      },
+      {
+        "id": "voc_d675c258d9fd82e7056b",
+        "m": "ngày mai",
+        "r": "あした",
+        "sourceIndex": 35
+      },
+      {
+        "id": "voc_d997de93e69c37cbbe3c",
+        "m": "hành lý",
+        "sourceIndex": 37
+      },
+      {
+        "id": "voc_573c7ddafaef4afc19d2",
+        "m": "lạnh (thời tiết)",
+        "r": "さむい",
+        "sourceIndex": 39
+      },
+      {
+        "id": "voc_e429321567c0b9e7d3fb",
+        "m": "lạnh (khi chạm vào)",
+        "r": "つめたい",
+        "sourceIndex": 40
+      },
+      {
+        "id": "voc_4559fa3663ac86264291",
+        "m": "hoa anh đào",
+        "r": "さくら",
+        "sourceIndex": 41
+      },
+      {
+        "id": "voc_9d2f8422ae3f854c5ed4",
+        "m": "cuộc sống; sinh hoạt",
+        "sourceIndex": 42
+      },
+      {
+        "id": "voc_f09375fb84b7791ecc07",
+        "m": "xin phép (khi ra vào hoặc ra về)",
+        "sourceIndex": 43
+      },
+      {
+        "id": "voc_58370e0a27ccc3a1846c",
+        "m": "xin mời lại đến chơi",
+        "sourceIndex": 44
+      },
+      {
+        "id": "voc_c28d27c29dfce6af3d94",
+        "m": "món ăn; việc nấu ăn",
+        "sourceIndex": 45
+      },
+      {
+        "id": "voc_2023945ec8284c07481b",
+        "m": "bóng chày",
+        "sourceIndex": 46
+      },
+      {
+        "id": "voc_f22164d954090e1d7bf3",
+        "m": "kịch Kabuki truyền thống Nhật",
+        "sourceIndex": 47
+      },
+      {
+        "id": "voc_f1ff12f98a83295eb21f",
+        "m": "việc cần làm",
+        "sourceIndex": 48
+      },
+      {
+        "id": "voc_b86c4716f538fa101e73",
+        "m": "vợ của người khác",
+        "sourceIndex": 49
+      },
+      {
+        "id": "voc_ab41ad5aa4d7041591e5",
+        "m": "hoàn toàn không (đi với phủ định)",
+        "sourceIndex": 50
+      },
+      {
+        "id": "voc_8525575a52f0e76b312c",
+        "m": "xin nhờ; làm ơn",
+        "sourceIndex": 51
+      },
+      {
+        "id": "voc_b7337a22687cc62b86e3",
+        "m": "góc; khu vực",
+        "sourceIndex": 54
+      },
+      {
+        "id": "voc_b39173c4ee34c681cbb8",
+        "m": "chuyển phát nhanh",
+        "sourceIndex": 57
+      },
+      {
+        "id": "voc_17b14c07f40bd8acdb5c",
+        "m": "anh trai (cách gọi lịch sự)",
+        "sourceIndex": 58
+      },
+      {
+        "id": "voc_ddbe3fb1e950893c5953",
+        "m": "chị gái (cách gọi lịch sự)",
+        "sourceIndex": 59
+      },
+      {
+        "id": "voc_f2553f347f0d964ad347",
+        "m": "em trai của người khác",
+        "sourceIndex": 60
+      },
+      {
+        "id": "voc_5234d64592351a06b642",
+        "m": "đi vào",
+        "r": "はいります",
+        "sourceIndex": 62
+      },
+      {
+        "id": "voc_7c4f791b06e4c72bb5f9",
+        "m": "đi ra",
+        "r": "でます",
+        "sourceIndex": 63
+      },
+      {
+        "id": "voc_4545f7adb9c992a74059",
+        "m": "câu cá",
+        "sourceIndex": 64
+      },
+      {
+        "id": "voc_b31b3f9b6c9cf2ee030f",
+        "m": "cuộc họp",
+        "sourceIndex": 65
+      },
+      {
+        "id": "voc_1ff4c857201476d15c1c",
+        "m": "đăng ký",
+        "sourceIndex": 66
+      },
+      {
+        "id": "voc_13e1957e60cb404cd761",
+        "m": "ti vi",
+        "sourceIndex": 67
+      },
+      {
+        "id": "voc_ca98f90e2bae950caa8d",
+        "m": "tắt (đèn; thiết bị)",
+        "r": "けします",
+        "sourceIndex": 68
+      },
+      {
+        "id": "voc_825a1e49189a838b5381",
+        "m": "mở (cửa)",
+        "r": "あけます",
+        "sourceIndex": 69
+      },
+      {
+        "id": "voc_96049ba40175a50c8dcb",
+        "m": "đóng (cửa)",
+        "r": "しめます",
+        "sourceIndex": 70
+      },
+      {
+        "id": "voc_9417f97a6ad96390889c",
+        "m": "gọi",
+        "r": "よびます",
+        "sourceIndex": 71
+      },
+      {
+        "id": "voc_2314537b967db3851438",
+        "m": "dạy; chỉ cho biết",
+        "r": "おしえます",
+        "sourceIndex": 72
+      },
+      {
+        "id": "voc_7d2ce4a75fb55d79dff0",
+        "m": "thêm một chút nữa",
+        "sourceIndex": 73
+      },
+      {
+        "id": "voc_4d42208933b0742e68c8",
+        "m": "tài liệu",
+        "sourceIndex": 76
+      },
+      {
+        "id": "voc_b3ad924b2a6e39dbb26e",
+        "m": "thẻ bảo hiểm",
+        "sourceIndex": 79
+      },
+      {
+        "id": "voc_3140ae11a1124634a9e0",
+        "m": "sưu tầm; thu thập",
+        "r": "あつめます",
+        "sourceIndex": 81
+      },
+      {
+        "id": "voc_967d4680c4070ded30d1",
+        "m": "lời cầu nguyện; việc cầu nguyện",
+        "sourceIndex": 82
+      },
+      {
+        "id": "voc_0123b58def542af851ab",
+        "m": "tình trạng; trạng thái",
+        "sourceIndex": 84
+      },
+      {
+        "id": "voc_081aee6614cb12f103d6",
+        "m": "cần",
+        "r": "いります",
+        "sourceIndex": 86
+      },
+      {
+        "id": "voc_cb7a823a2abcc700605c",
+        "m": "vật giá",
+        "sourceIndex": 87
+      },
+      {
+        "id": "voc_cfa223b803e3eb335823",
+        "m": "kimono (trang phục Nhật)",
+        "r": "きもの",
+        "sourceIndex": 88
+      },
+      {
+        "id": "voc_e329e57be71281fe19a0",
+        "m": "lúc đầu; phần đầu",
+        "r": "はじめ",
+        "sourceIndex": 89
+      },
+      {
+        "id": "voc_e8eea61d3a203ac3bba6",
+        "m": "nghe; hỏi",
+        "r": "ききます",
+        "sourceIndex": 94
+      },
+      {
+        "id": "voc_bd22d34acd39ee7f2aec",
+        "m": "chạm; sờ",
+        "r": "さわります",
+        "sourceIndex": 95
+      },
+      {
+        "id": "voc_f63cecda31d6448d511c",
+        "m": "chuyển động; hoạt động",
+        "r": "うごきます",
+        "sourceIndex": 96
+      },
+      {
+        "id": "voc_b2b373495add6d406098",
+        "m": "cửa hàng đồ điện",
+        "sourceIndex": 97
+      },
+      {
+        "id": "voc_293904a7782ed0b23e60",
+        "m": "máy móc",
+        "sourceIndex": 98
+      },
+      {
+        "id": "voc_6249907bbe6aefddd517",
+        "m": "gửi; đưa tiễn",
+        "r": "おくります",
+        "sourceIndex": 99
+      },
+      {
+        "id": "voc_854240e1ef98b5193329",
+        "m": "chuẩn bị",
+        "sourceIndex": 100
+      },
+      {
+        "id": "voc_336fd7d886613b1821ca",
+        "m": "tất cả",
+        "sourceIndex": 101
+      },
+      {
+        "id": "voc_fbe00de61213556d317e",
+        "m": "quê; vùng nông thôn",
+        "r": "いなか",
+        "sourceIndex": 102
+      },
+      {
+        "id": "voc_a3344b929be436cc72c3",
+        "m": "một trăm triệu",
+        "sourceIndex": 103
+      },
+      {
+        "id": "voc_2f7680cddce00a0543ab",
+        "m": "lần đầu tiên",
+        "sourceIndex": 106
+      },
+      {
+        "id": "voc_33aed7d48c8a19a4e206",
+        "m": "tôi",
+        "sourceIndex": 108
+      },
+      {
+        "id": "voc_9e188e25d30a7f8603fa",
+        "m": "bạn; anh; chị (ngôi thứ hai)",
+        "sourceIndex": 109
+      },
+      {
+        "id": "voc_f6a84f754b16be3997c9",
+        "m": "vâng; dạ",
+        "sourceIndex": 110
+      },
+      {
+        "id": "voc_01c6dd8577e6e0a553a1",
+        "m": "vâng (trong hội thoại)",
+        "sourceIndex": 111
+      },
+      {
+        "id": "voc_0555c92798f7b7eff2b7",
+        "m": "không",
+        "sourceIndex": 112
+      },
+      {
+        "id": "voc_9eac4ae035e69a000061",
+        "m": "đúng vậy",
+        "sourceIndex": 113
+      },
+      {
+        "id": "voc_6643c4e1d4196344c053",
+        "m": "không phải; khác",
+        "sourceIndex": 114
+      },
+      {
+        "id": "voc_1da11236d175a37091e2",
+        "m": "người",
+        "r": "ひと",
+        "sourceIndex": 117
+      },
+      {
+        "id": "voc_f444beae450bca8ac030",
+        "m": "con chó",
+        "sourceIndex": 118
+      },
+      {
+        "id": "voc_d940352b1fdec5adf338",
+        "m": "nhà",
+        "sourceIndex": 119
+      },
+      {
+        "id": "voc_15fd4ca1ff5f8f06c137",
+        "m": "ông; ông cụ",
+        "sourceIndex": 120
+      },
+      {
+        "id": "voc_0827cb2de66cd7d78304",
+        "m": "người lớn",
+        "sourceIndex": 121
+      },
+      {
+        "id": "voc_f88e0557d6c1c415fef9",
+        "m": "có; tồn tại (đồ vật)",
+        "sourceIndex": 122
+      },
+      {
+        "id": "voc_7eb8bf3757e16a719805",
+        "m": "phía nào; cái nào (lịch sự)",
+        "sourceIndex": 123
+      },
+      {
+        "id": "voc_c8c2f3412296dcab17d9",
+        "m": "thế giới",
+        "sourceIndex": 124
+      },
+      {
+        "id": "voc_75b46efeaf09f707b711",
+        "m": "Indonesia",
+        "sourceIndex": 125
+      },
+      {
+        "id": "voc_ec8db162ddfceaf4b180",
+        "m": "Hàn Quốc",
+        "sourceIndex": 126
+      },
+      {
+        "id": "voc_e9d6e281598c94b1c73a",
+        "m": "Thái Lan",
+        "sourceIndex": 127
+      },
+      {
+        "id": "voc_9b0e7752d7a48b6eadf4",
+        "m": "Đài Loan",
+        "sourceIndex": 128
+      },
+      {
+        "id": "voc_86f99a7bfcf0dfce8c3c",
+        "m": "Trung Quốc",
+        "sourceIndex": 129
+      },
+      {
+        "id": "voc_942c24404a2eb4993d0f",
+        "m": "nước Anh",
+        "sourceIndex": 130
+      },
+      {
+        "id": "voc_e3faf4911ee8326848be",
+        "m": "thầy; cô; giáo viên",
+        "r": "せんせい",
+        "sourceIndex": 132
+      },
+      {
+        "id": "voc_88b5dd35e114e340284c",
+        "m": "học sinh; sinh viên",
+        "r": "がくせい",
+        "sourceIndex": 133
+      },
+      {
+        "id": "voc_a530440d378fc0a1cba2",
+        "m": "du học sinh",
+        "sourceIndex": 134
+      },
+      {
+        "id": "voc_3dea54f6197ba19573d8",
+        "m": "trường học",
+        "sourceIndex": 135
+      },
+      {
+        "id": "voc_241b5f73ad3f4802c0b7",
+        "m": "đi",
+        "r": "いく",
+        "sourceIndex": 136
+      },
+      {
+        "id": "voc_8afdea146fbf3fc47efe",
+        "m": "đến",
+        "r": "くる",
+        "sourceIndex": 137
+      },
+      {
+        "id": "voc_c19172a86ece28bf1817",
+        "m": "về",
+        "sourceIndex": 138
+      },
+      {
+        "id": "voc_af54bb55e9453cad4ead",
+        "m": "tháng một",
+        "sourceIndex": 139
+      },
+      {
+        "id": "voc_7d1ed6873b0328e90987",
+        "m": "ngày mai",
+        "sourceIndex": 140
+      },
+      {
+        "id": "voc_f7dd0cf3f941599979b2",
+        "m": "tuần (khoảng thời gian)",
+        "sourceIndex": 141
+      },
+      {
+        "id": "voc_50cc8c5e36453aa4397d",
+        "m": "làm",
+        "sourceIndex": 142
+      },
+      {
+        "id": "voc_6a78d28d0a8c81cd0343",
+        "m": "tiếng Nhật",
+        "sourceIndex": 143
+      },
+      {
+        "id": "voc_e326aac8d213715fb4f1",
+        "m": "chậm rãi; thong thả",
+        "sourceIndex": 146
+      },
+      {
+        "id": "voc_94cf06c5e11e12e46017",
+        "m": "nói",
+        "r": "いう",
+        "sourceIndex": 147
+      },
+      {
+        "id": "voc_07ed08403f6b66e01402",
+        "m": "một lần nữa",
+        "sourceIndex": 148
+      },
+      {
+        "id": "voc_2a3da20fdff76022eb93",
+        "m": "hiểu",
+        "sourceIndex": 149
+      },
+      {
+        "id": "voc_204493cd7ec1075a6fcf",
+        "m": "một chút",
+        "sourceIndex": 150
+      },
+      {
+        "id": "voc_7ae7a414e8f28c30b3c5",
+        "m": "tốt; giỏi; thường xuyên",
+        "sourceIndex": 151
+      },
+      {
+        "id": "voc_13509bc2c8b3680b5c6b",
+        "m": "đại khái; nhìn chung",
+        "sourceIndex": 152
+      },
+      {
+        "id": "voc_2eb6960ad2c75d9337cd",
+        "m": "hoàn toàn không (đi với phủ định)",
+        "sourceIndex": 153
+      },
+      {
+        "id": "voc_b3d5f2d0e592301436bf",
+        "m": "viết",
+        "sourceIndex": 154
+      },
+      {
+        "id": "voc_e6ef7a9acb61df8527a4",
+        "m": "nghe; hỏi",
+        "sourceIndex": 155
+      },
+      {
+        "id": "voc_5a617a2f9c3614f6770e",
+        "m": "tra cứu; tìm hiểu",
+        "sourceIndex": 156
+      },
+      {
+        "id": "voc_268fe092fc6e55392b20",
+        "m": "mua",
+        "sourceIndex": 157
+      },
+      {
+        "id": "voc_1acc8f6915d82b496166",
+        "m": "bài tập về nhà",
+        "sourceIndex": 158
+      },
+      {
+        "id": "voc_34dab742d47b4a61ca59",
+        "m": "bài báo cáo",
+        "sourceIndex": 159
+      },
+      {
+        "id": "voc_30bd23faddd94f272871",
+        "m": "thư viện",
+        "sourceIndex": 160
+      },
+      {
+        "id": "voc_930dab74f354a5c03809",
+        "m": "hiệu sách",
+        "sourceIndex": 161
+      },
+      {
+        "id": "voc_1b2bc0e03f50377d0e9c",
+        "m": "ghi nhớ",
+        "sourceIndex": 162
+      },
+      {
+        "id": "voc_8e8902281694e7ff4061",
+        "m": "quên",
+        "sourceIndex": 163
+      },
+      {
+        "id": "voc_9a273ee131cbf4a4fa7a",
+        "m": "ví dụ",
+        "sourceIndex": 164
+      },
+      {
+        "id": "voc_80573704a29d67944feb",
+        "m": "công ty",
+        "sourceIndex": 166
+      },
+      {
+        "id": "voc_9089270f643c37f6b397",
+        "m": "làm việc",
+        "sourceIndex": 168
+      },
+      {
+        "id": "voc_02e8bc4290da2eb9815a",
+        "m": "ngày nghỉ",
+        "sourceIndex": 169
+      },
+      {
+        "id": "voc_ef2f0d9bc0b902da7a3d",
+        "m": "bận rộn",
+        "sourceIndex": 170
+      },
+      {
+        "id": "voc_29f0230bcd9bf92fd927",
+        "m": "nhà máy",
+        "sourceIndex": 171
+      },
+      {
+        "id": "voc_90149a1c0668f7b4880b",
+        "m": "dạy; chỉ cho biết",
+        "sourceIndex": 173
+      },
+      {
+        "id": "voc_b3458a0dd34493fa162c",
+        "m": "làm; tạo ra",
+        "sourceIndex": 174
+      },
+      {
+        "id": "voc_dc339201ea45a793c605",
+        "m": "nhân viên công ty",
+        "sourceIndex": 175
+      },
+      {
+        "id": "voc_064835fffb09dddd3180",
+        "m": "… nào (bổ nghĩa cho danh từ)",
+        "sourceIndex": 176
+      },
+      {
+        "id": "voc_e6e90a4d04fc5d81df7b",
+        "m": "máy tính",
+        "sourceIndex": 177
+      },
+      {
+        "id": "voc_91df4a1a2efc987560b4",
+        "m": "Internet",
+        "sourceIndex": 178
+      },
+      {
+        "id": "voc_e0c794edf938d2d4c7ff",
+        "m": "mấy phút",
+        "r": "なんぷん",
+        "sourceIndex": 180
+      },
+      {
+        "id": "voc_acb77b61d8b85f80d876",
+        "m": "bút",
+        "sourceIndex": 181
+      },
+      {
+        "id": "voc_f96e829ee856c5375e4f",
+        "m": "buổi sáng (trước 12 giờ trưa)",
+        "sourceIndex": 182
+      },
+      {
+        "id": "voc_9f79a49df5ca0e835d32",
+        "m": "bây giờ",
+        "sourceIndex": 183
+      },
+      {
+        "id": "voc_e09df9288106c444de37",
+        "m": "mấy tiếng (khoảng thời gian)",
+        "sourceIndex": 184
+      },
+      {
+        "id": "voc_0b7657b68289d899ad31",
+        "m": "bức tranh",
+        "sourceIndex": 185
+      },
+      {
+        "id": "voc_1a395e4d9caff6a862b7",
+        "m": "bạn bè",
+        "sourceIndex": 187
+      },
+      {
+        "id": "voc_0a938b2a98c06cf9c516",
+        "m": "như thế nào",
+        "sourceIndex": 188
+      },
+      {
+        "id": "voc_161a78f023cb00966809",
+        "m": "mọi người",
+        "sourceIndex": 189
+      },
+      {
+        "id": "voc_3f2f160ad1f1fbe2ae58",
+        "m": "dễ thương",
+        "sourceIndex": 190
+      },
+      {
+        "id": "voc_8a2f66c5dd2bd9c1f520",
+        "m": "đẹp trai; phong độ",
+        "sourceIndex": 191
+      },
+      {
+        "id": "voc_e0598a85d5b3eb60b223",
+        "m": "thông minh",
+        "sourceIndex": 192
+      },
+      {
+        "id": "voc_9f38c64418ac43bd4c5d",
+        "m": "chiều cao; lưng",
+        "sourceIndex": 193
+      },
+      {
+        "id": "voc_1899b41c2a22b09a1980",
+        "m": "cao; đắt",
+        "sourceIndex": 194
+      },
+      {
+        "id": "voc_dd47ed3e6314efa84f53",
+        "m": "thấp",
+        "sourceIndex": 195
+      },
+      {
+        "id": "voc_b8eaf5cc43032f39ec0c",
+        "m": "to; lớn",
+        "sourceIndex": 196
+      },
+      {
+        "id": "voc_64e26996b96be65b615d",
+        "m": "nhỏ",
+        "sourceIndex": 197
+      },
+      {
+        "id": "voc_6c2cb79fb0315e63818f",
+        "m": "ngắn",
+        "sourceIndex": 199
+      },
+      {
+        "id": "voc_99eb556b33524a975b5a",
+        "m": "cởi (quần áo)",
+        "sourceIndex": 200
+      },
+      {
+        "id": "voc_05f69d264e1e3edd7b54",
+        "m": "mặc (quần; váy); đi (giày)",
+        "sourceIndex": 201
+      },
+      {
+        "id": "voc_2fe21b2f98b22aef6732",
+        "m": "đeo (kính)",
+        "sourceIndex": 202
+      },
+      {
+        "id": "voc_3a7f7118df197922598d",
+        "m": "cà vạt",
+        "sourceIndex": 203
+      },
+      {
+        "id": "voc_d7cdd88dfb8eb5c8c4b1",
+        "m": "chơi",
+        "sourceIndex": 204
+      },
+      {
+        "id": "voc_7b43081294e6afb38118",
+        "m": "đón",
+        "sourceIndex": 205
+      },
+      {
+        "id": "voc_63ea29c568e2f591add7",
+        "m": "dẫn đi",
+        "sourceIndex": 206
+      },
+      {
+        "id": "voc_a442d75adda39996dc55",
+        "m": "dẫn đến",
+        "sourceIndex": 207
+      },
+      {
+        "id": "voc_fd540314edcfabf0567c",
+        "m": "con voi",
+        "sourceIndex": 208
+      },
+      {
+        "id": "voc_c4c7927c187e0dfcd382",
+        "m": "con ngựa",
+        "sourceIndex": 209
+      },
+      {
+        "id": "voc_70d5d559619c49580f6e",
+        "m": "đền Thần đạo",
+        "sourceIndex": 210
+      },
+      {
+        "id": "voc_df58bd770d0f7ce9f94c",
+        "m": "nghỉ trọ",
+        "sourceIndex": 211
+      },
+      {
+        "id": "voc_0407a6104bfad1c6742c",
+        "m": "sảnh",
+        "sourceIndex": 212
+      },
+      {
+        "id": "voc_fe1f03f39bfdf2875115",
+        "m": "quà mang về sau chuyến đi",
+        "sourceIndex": 213
+      },
+      {
+        "id": "voc_b0b6194f706a2836d8ba",
+        "m": "buổi trưa; ban ngày",
+        "sourceIndex": 216
+      },
+      {
+        "id": "voc_170ccc23fe82340a1c5b",
+        "m": "mỗi sáng",
+        "sourceIndex": 218
+      },
+      {
+        "id": "voc_96dcc92fa4802345f3d9",
+        "m": "mỗi tối",
+        "sourceIndex": 219
+      },
+      {
+        "id": "voc_3c01bdcd03063774e9f2",
+        "m": "sáng nay",
+        "sourceIndex": 220
+      },
+      {
+        "id": "voc_599d3e602e74c2f136fd",
+        "m": "nhìn; xem",
+        "sourceIndex": 221
+      },
+      {
+        "id": "voc_9bb2ef50db46e872d769",
+        "m": "sớm; nhanh",
+        "sourceIndex": 222
+      },
+      {
+        "id": "voc_efcbcd659eb500bf4b99",
+        "m": "muộn; chậm",
+        "sourceIndex": 223
+      },
+      {
+        "id": "voc_c9897575a4d8911037b1",
+        "m": "khuôn mặt",
+        "sourceIndex": 224
+      },
+      {
+        "id": "voc_2c1c17ae97975a8c5582",
+        "m": "răng",
+        "sourceIndex": 225
+      },
+      {
+        "id": "voc_71188c96397944012f00",
+        "m": "ăn",
+        "sourceIndex": 226
+      },
+      {
+        "id": "voc_bf2b97674ed6a5291aab",
+        "m": "cơm trưa",
+        "sourceIndex": 227
+      },
+      {
+        "id": "voc_18c93809e648ade7c5ac",
+        "m": "cơm tối",
+        "sourceIndex": 228
+      },
+      {
+        "id": "voc_e583ba666b571a9cec7d",
+        "m": "nhiều",
+        "sourceIndex": 229
+      },
+      {
+        "id": "voc_b6edf03be50dbee674cb",
+        "m": "nước",
+        "r": "みず",
+        "sourceIndex": 231
+      },
+      {
+        "id": "voc_3fa48993aa506d3b3d18",
+        "m": "nước nóng",
+        "sourceIndex": 232
+      },
+      {
+        "id": "voc_c250a7c7140a978de4a4",
+        "m": "lạnh (khi chạm vào)",
+        "sourceIndex": 233
+      },
+      {
+        "id": "voc_ca94cd3b473bb1b720e4",
+        "m": "cho vào",
+        "sourceIndex": 234
+      },
+      {
+        "id": "voc_045b1ed788daf888ee2c",
+        "m": "sữa",
+        "sourceIndex": 235
+      },
+      {
+        "id": "voc_fb940a38d91a76aa489a",
+        "m": "món ăn; việc nấu ăn",
+        "sourceIndex": 236
+      },
+      {
+        "id": "voc_1ddc07943ec20653823f",
+        "m": "mì udon",
+        "sourceIndex": 237
+      },
+      {
+        "id": "voc_5a6437e4049c5d5aeaa0",
+        "m": "cái gì đó",
+        "r": "なにか",
+        "sourceIndex": 238
+      },
+      {
+        "id": "voc_f9c0323712446effe3e6",
+        "m": "đi vào",
+        "r": "はいる",
+        "sourceIndex": 239
+      },
+      {
+        "id": "voc_36462f05aa5b95cd6c94",
+        "m": "nhà hàng",
+        "sourceIndex": 240
+      },
+      {
+        "id": "voc_b6750b63c797cdfd665e",
+        "m": "riêng từng phần; riêng biệt",
+        "sourceIndex": 243
+      },
+      {
+        "id": "voc_7cb4a376049628d55be5",
+        "m": "thế nào",
+        "sourceIndex": 244
+      },
+      {
+        "id": "voc_e06a1e485ab371396050",
+        "m": "ngọt",
+        "sourceIndex": 245
+      },
+      {
+        "id": "voc_b65da043333f608e01ec",
+        "m": "cay",
+        "sourceIndex": 246
+      },
+      {
+        "id": "voc_83d4ee212f38ce1d9ddd",
+        "m": "ngon",
+        "sourceIndex": 247
+      },
+      {
+        "id": "voc_357e0e55b7aed460b922",
+        "m": "đói bụng",
+        "sourceIndex": 248
+      },
+      {
+        "id": "voc_cd3f02a708bb22b20b1c",
+        "m": "không … lắm (đi với phủ định)",
+        "sourceIndex": 249
+      },
+      {
+        "id": "voc_25ee2c9405e9f0506a95",
+        "m": "cái nào; phía nào (thân mật)",
+        "sourceIndex": 250
+      },
+      {
+        "id": "voc_bc8a14fa833d665e775b",
+        "m": "học từ ai đó",
+        "sourceIndex": 251
+      },
+      {
+        "id": "voc_9d8d631dae20952736de",
+        "m": "ảnh; hình chụp",
+        "sourceIndex": 252
+      },
+      {
+        "id": "voc_0c0945362599e9e94e33",
+        "m": "chụp (ảnh)",
+        "sourceIndex": 253
+      },
+      {
+        "id": "voc_984c19817723388c8d9b",
+        "m": "máy ảnh",
+        "sourceIndex": 254
+      },
+      {
+        "id": "voc_6a1e3342968d7638470c",
+        "m": "vẽ",
+        "sourceIndex": 255
+      },
+      {
+        "id": "voc_b6b798fbde14ba253ce8",
+        "m": "bảo tàng mỹ thuật",
+        "sourceIndex": 256
+      },
+      {
+        "id": "voc_dc32c69d52301412ad20",
+        "m": "karaoke",
+        "sourceIndex": 257
+      },
+      {
+        "id": "voc_e322800fa88195a0ded0",
+        "m": "cùng nhau",
+        "sourceIndex": 258
+      },
+      {
+        "id": "voc_b2c1054868dfe4739c2d",
+        "m": "bài hát",
+        "sourceIndex": 259
+      },
+      {
+        "id": "voc_c01e9406d51233b6d9ba",
+        "m": "hát",
+        "sourceIndex": 260
+      },
+      {
+        "id": "voc_0e07d6293fe829451024",
+        "m": "đàn guitar",
+        "sourceIndex": 262
+      },
+      {
+        "id": "voc_816cd7b04b1a079054f6",
+        "m": "chơi đàn",
+        "sourceIndex": 263
+      },
+      {
+        "id": "voc_f104f22f1cee803a91bd",
+        "m": "phim điện ảnh",
+        "sourceIndex": 264
+      },
+      {
+        "id": "voc_b9a5e037caff3c61ce69",
+        "m": "kết thúc",
+        "sourceIndex": 265
+      },
+      {
+        "id": "voc_019aaf65fb9e2b81bd56",
+        "m": "truyện tranh",
+        "sourceIndex": 266
+      },
+      {
+        "id": "voc_ef5e0c3654329fc6081f",
+        "m": "phần mềm",
+        "sourceIndex": 267
+      },
+      {
+        "id": "voc_118378f68680009738d6",
+        "m": "trượt tuyết",
+        "sourceIndex": 268
+      },
+      {
+        "id": "voc_f77222ab2655c9f10382",
+        "m": "khiêu vũ; nhảy múa",
+        "sourceIndex": 269
+      },
+      {
+        "id": "voc_58cca5ea3830421a3b1a",
+        "m": "câu cá",
+        "sourceIndex": 271
+      },
+      {
+        "id": "voc_a55ff466b580d9c466f7",
+        "m": "núi",
+        "r": "やま",
+        "sourceIndex": 272
+      },
+      {
+        "id": "voc_c5f869794baa100aed91",
+        "m": "trận đấu",
+        "sourceIndex": 273
+      },
+      {
+        "id": "voc_12d798a638938c939ded",
+        "m": "thắng",
+        "sourceIndex": 274
+      },
+      {
+        "id": "voc_60fd81867c50cc74a740",
+        "m": "bóng đá",
+        "sourceIndex": 275
+      },
+      {
+        "id": "voc_a5e78a1884d2a3c4af40",
+        "m": "xấu; không tốt",
+        "sourceIndex": 276
+      },
+      {
+        "id": "voc_31aea83c2692582b093e",
+        "m": "nghĩ",
+        "sourceIndex": 279
+      },
+      {
+        "id": "voc_4e0fce4b714b57d35c00",
+        "m": "có lẽ",
+        "sourceIndex": 280
+      },
+      {
+        "id": "voc_3f85b2475c7d9200ada8",
+        "m": "mang đến",
+        "sourceIndex": 281
+      },
+      {
+        "id": "voc_47735de7095c3c70be6d",
+        "m": "mang đi",
+        "sourceIndex": 282
+      },
+      {
+        "id": "voc_c37446cfeed379e6d47a",
+        "m": "nhất; số một",
+        "sourceIndex": 283
+      },
+      {
+        "id": "voc_0eadcfa4fb0185fee1b7",
+        "m": "trở thành",
+        "sourceIndex": 284
+      },
+      {
+        "id": "voc_9cc9704fb057737f3292",
+        "m": "ngắm hoa",
+        "sourceIndex": 285
+      },
+      {
+        "id": "voc_46448f85f39b787e36fd",
+        "m": "hoa anh đào",
+        "sourceIndex": 286
+      },
+      {
+        "id": "voc_61866a76f9ebd92fc144",
+        "m": "rất",
+        "sourceIndex": 287
+      },
+      {
+        "id": "voc_3d9b1b8b735de4236941",
+        "m": "thật sự",
+        "sourceIndex": 288
+      },
+      {
+        "id": "voc_acc59a8df9b19f630867",
+        "m": "đương nhiên",
+        "sourceIndex": 290
+      },
+      {
+        "id": "voc_152b4ffcb1ccb6d39560",
+        "m": "rẻ",
+        "sourceIndex": 291
+      },
+      {
+        "id": "voc_dbdd066e7e1a9a95e3aa",
+        "m": "một chút",
+        "sourceIndex": 292
+      },
+      {
+        "id": "voc_15dd6b5159c412cc4ef4",
+        "m": "đủ",
+        "sourceIndex": 294
+      },
+      {
+        "id": "voc_fd391ed06737abe1d395",
+        "m": "vật giá",
+        "sourceIndex": 295
+      },
+      {
+        "id": "voc_0bdb5eed7f452d88c4a3",
+        "m": "cửa hàng",
+        "sourceIndex": 297
+      },
+      {
+        "id": "voc_e7bb7f9f2fcebb73e62d",
+        "m": "bán",
+        "sourceIndex": 298
+      },
+      {
+        "id": "voc_f3bf944e92319007b39c",
+        "m": "quầy bán hàng",
+        "sourceIndex": 299
+      },
+      {
+        "id": "voc_c5b44bfdc453795ad3f2",
+        "m": "vé",
+        "sourceIndex": 300
+      },
+      {
+        "id": "voc_aa5a46e98ac80d3053a5",
+        "m": "ca ta lô; tập giới thiệu sản phẩm",
+        "sourceIndex": 301
+      },
+      {
+        "id": "voc_f8b2eea3d825d9a056a4",
+        "m": "báo",
+        "sourceIndex": 302
+      },
+      {
+        "id": "voc_c18e8e2cca61b268600e",
+        "m": "có thể",
+        "sourceIndex": 303
+      },
+      {
+        "id": "voc_8a3c351b6fa32e043dca",
+        "m": "cách làm (hậu tố)",
+        "sourceIndex": 304
+      },
+      {
+        "id": "voc_11cfc72f84b742d2cf99",
+        "m": "bưu điện",
+        "sourceIndex": 305
+      },
+      {
+        "id": "voc_c2f9445c32279edd73b1",
+        "m": "bức thư",
+        "sourceIndex": 306
+      },
+      {
+        "id": "voc_79d00cf5ecbd17b09903",
+        "m": "bưu thiếp",
+        "sourceIndex": 307
+      },
+      {
+        "id": "voc_5b9a0f6be8d90a221cd8",
+        "m": "thiệp chúc năm mới",
+        "sourceIndex": 308
+      },
+      {
+        "id": "voc_179b6c21da5018d9f627",
+        "m": "gửi (thư); đưa ra",
+        "sourceIndex": 309
+      },
+      {
+        "id": "voc_67ab45d2505c7ae58beb",
+        "m": "thư điện tử",
+        "sourceIndex": 310
+      },
+      {
+        "id": "voc_a3bfeff0785f7adc8dbf",
+        "m": "nhẹ",
+        "sourceIndex": 313
+      },
+      {
+        "id": "voc_54ff5d918595a1851fe0",
+        "m": "cho; tặng (từ mình cho người khác)",
+        "sourceIndex": 314
+      },
+      {
+        "id": "voc_57e323cd5bc01bb6fdd9",
+        "m": "cho; tặng (người khác cho mình)",
+        "sourceIndex": 315
+      },
+      {
+        "id": "voc_19cc38f968eecb877050",
+        "m": "quà tặng",
+        "sourceIndex": 316
+      },
+      {
+        "id": "voc_6004504afe84df51a9e9",
+        "m": "bữa tiệc",
+        "sourceIndex": 317
+      },
+      {
+        "id": "voc_eb7bc1b137a2b8beca6b",
+        "m": "bắt đầu",
+        "sourceIndex": 318
+      },
+      {
+        "id": "voc_ab66fd95e0b90ed4214e",
+        "m": "lên; đi (tàu xe)",
+        "sourceIndex": 321
+      },
+      {
+        "id": "voc_2128194c5cc584e7242a",
+        "m": "đổi tàu; đổi tuyến",
+        "sourceIndex": 323
+      },
+      {
+        "id": "voc_0f4b93713b0f90543837",
+        "m": "tàu nhanh",
+        "sourceIndex": 324
+      },
+      {
+        "id": "voc_212cbdc96180aee4375d",
+        "m": "tàu tốc hành",
+        "sourceIndex": 325
+      },
+      {
+        "id": "voc_beb53a9921aae867ba96",
+        "m": "tàu cao tốc Shinkansen",
+        "sourceIndex": 326
+      },
+      {
+        "id": "voc_53c3b6b7ce01f27b2b7d",
+        "m": "tàu điện ngầm",
+        "sourceIndex": 327
+      },
+      {
+        "id": "voc_ac3c972a27cdae795034",
+        "m": "gửi; đưa tiễn",
+        "sourceIndex": 328
+      },
+      {
+        "id": "voc_7cba8716fff47a3c7624",
+        "m": "bãi đỗ xe",
+        "sourceIndex": 329
+      },
+      {
+        "id": "voc_3f6189d4ed14c5f85636",
+        "m": "dừng; đỗ (xe)",
+        "sourceIndex": 330
+      },
+      {
+        "id": "voc_7f3d0700c52c23f29eba",
+        "m": "xe đạp",
+        "sourceIndex": 331
+      },
+      {
+        "id": "voc_7db303f5ce132b180120",
+        "m": "máy bay",
+        "sourceIndex": 332
+      },
+      {
+        "id": "voc_7ab34db8484973e1d8ef",
+        "m": "nơi lên tàu xe",
+        "sourceIndex": 333
+      },
+      {
+        "id": "voc_f151e136feeafc54e580",
+        "m": "mất; tốn (thời gian hoặc tiền)",
+        "sourceIndex": 334
+      },
+      {
+        "id": "voc_7a2e33402c807002f53a",
+        "m": "gần",
+        "sourceIndex": 335
+      },
+      {
+        "id": "voc_79ef09db762dd32f67ad",
+        "m": "xa",
+        "sourceIndex": 336
+      },
+      {
+        "id": "voc_af30f241027e97e6bb99",
+        "m": "suốt; hơn hẳn",
+        "sourceIndex": 337
+      },
+      {
+        "id": "voc_b01b7e72e8bafe94644e",
+        "m": "thường; phần lớn",
+        "sourceIndex": 338
+      },
+      {
+        "id": "voc_9a5ae2f76ba340b5572d",
+        "m": "thỉnh thoảng",
+        "sourceIndex": 339
+      },
+      {
+        "id": "voc_54ac324d51c2ec2bc41e",
+        "m": "chỉ",
+        "sourceIndex": 340
+      },
+      {
+        "id": "voc_39b6327c6322013032d5",
+        "m": "con đường",
+        "sourceIndex": 341
+      },
+      {
+        "id": "voc_4458aeef3851c20b4d65",
+        "m": "thẳng",
+        "sourceIndex": 342
+      },
+      {
+        "id": "voc_82dbc0051aaf10433411",
+        "m": "rẽ",
+        "sourceIndex": 343
+      },
+      {
+        "id": "voc_ad4b4da27840fef47fbf",
+        "m": "băng qua",
+        "sourceIndex": 344
+      },
+      {
+        "id": "voc_d1ec72453bb94441719c",
+        "m": "ngã tư",
+        "sourceIndex": 345
+      },
+      {
+        "id": "voc_e0bfa354186fd13bebc4",
+        "m": "đèn giao thông",
+        "sourceIndex": 346
+      },
+      {
+        "id": "voc_5765405600fa5be80fff",
+        "m": "cây cầu",
+        "sourceIndex": 348
+      },
+      {
+        "id": "voc_22a5da9d6a0e6a9e2a61",
+        "m": "bên cạnh",
+        "sourceIndex": 350
+      },
+      {
+        "id": "voc_a441a304c120b67cc8b4",
+        "m": "đi ra; rời khỏi",
+        "sourceIndex": 352
+      },
+      {
+        "id": "voc_66b44473d344d1012d54",
+        "m": "gặp",
+        "sourceIndex": 353
+      },
+      {
+        "id": "voc_3c27f9c4d80a187d7fc3",
+        "m": "chờ",
+        "sourceIndex": 354
+      },
+      {
+        "id": "voc_63fa8477c17933462a7b",
+        "m": "không tiện; không có thời gian",
+        "sourceIndex": 355
+      },
+      {
+        "id": "voc_74100d470e5db7c2ca4e",
+        "m": "thay đổi",
+        "sourceIndex": 356
+      },
+      {
+        "id": "voc_e964a2cef35315ffe569",
+        "m": "xin nhờ; làm ơn",
+        "sourceIndex": 357
+      },
+      {
+        "id": "voc_a5d0383ebbcbed151128",
+        "m": "tôi đi đây (và sẽ quay về)",
+        "sourceIndex": 358
+      },
+      {
+        "id": "voc_d310259562624729c410",
+        "m": "nhà",
+        "sourceIndex": 359
+      },
+      {
+        "id": "voc_151b716f7060c53f41be",
+        "m": "căn phòng",
+        "sourceIndex": 360
+      },
+      {
+        "id": "voc_7bb4e56342ad92610cfd",
+        "m": "cửa sổ",
+        "sourceIndex": 361
+      },
+      {
+        "id": "voc_f5ceae09f9389ab84d1d",
+        "m": "cánh cửa",
+        "sourceIndex": 362
+      },
+      {
+        "id": "voc_254da52911f79e74f98b",
+        "m": "phòng ăn kết hợp bếp",
+        "sourceIndex": 364
+      },
+      {
+        "id": "voc_c35117ca9069d9e05e04",
+        "m": "bàn ăn",
+        "sourceIndex": 365
+      },
+      {
+        "id": "voc_abff7c409faf1386438b",
+        "m": "ghế",
+        "sourceIndex": 366
+      },
+      {
+        "id": "voc_f8ff0ffaecffb511d21b",
+        "m": "ngồi",
+        "sourceIndex": 367
+      },
+      {
+        "id": "voc_b29ba0bb2f143ce2f3a2",
+        "m": "đứng",
+        "sourceIndex": 368
+      },
+      {
+        "id": "voc_3061059a285efaf58eb3",
+        "m": "địa chỉ",
+        "sourceIndex": 369
+      },
+      {
+        "id": "voc_b047415e84edc7f16576",
+        "m": "công trình; tòa nhà",
+        "sourceIndex": 370
+      },
+      {
+        "id": "voc_8a3084fc5e471a9797a3",
+        "m": "căn hộ",
+        "sourceIndex": 371
+      },
+      {
+        "id": "voc_ef59a1a6e9bb9f97500b",
+        "m": "ký túc xá",
+        "sourceIndex": 372
+      },
+      {
+        "id": "voc_a86c4dbbdf7053595cc2",
+        "m": "tòa nhà",
+        "sourceIndex": 373
+      },
+      {
+        "id": "voc_2d5b1415ef5fc266ffa9",
+        "m": "cầu thang",
+        "sourceIndex": 374
+      },
+      {
+        "id": "voc_dd8a78e055e33c971da8",
+        "m": "thang cuốn",
+        "sourceIndex": 375
+      },
+      {
+        "id": "voc_59a92f1726caf958c2da",
+        "m": "quê; vùng nông thôn",
+        "sourceIndex": 377
+      },
+      {
+        "id": "voc_bc59252bfef90d75ab1e",
+        "m": "khu vườn",
+        "sourceIndex": 378
+      },
+      {
+        "id": "voc_8fd17c54876dd3a7eaee",
+        "m": "tòa thị chính",
+        "sourceIndex": 379
+      },
+      {
+        "id": "voc_0d21ecf1b2b7d35a785b",
+        "m": "chồng của người khác",
+        "sourceIndex": 380
+      },
+      {
+        "id": "voc_1bef526844a30f49f725",
+        "m": "vợ của người khác",
+        "sourceIndex": 381
+      },
+      {
+        "id": "voc_cd024d09179603aed047",
+        "m": "xin được anh/chị giúp đỡ",
+        "sourceIndex": 382
+      },
+      {
+        "id": "voc_7d3d8c0fa457624323bf",
+        "m": "hãy cẩn thận",
+        "sourceIndex": 383
+      },
+      {
+        "id": "voc_9e34864a993949ffbb27",
+        "m": "cuối tuần",
+        "sourceIndex": 384
+      },
+      {
+        "id": "voc_c2712e013112dfa7edc3",
+        "m": "lúc đầu; phần đầu",
+        "sourceIndex": 385
+      },
+      {
+        "id": "voc_36d59e31139f660ec723",
+        "m": "kết thúc; phần cuối",
+        "sourceIndex": 386
+      },
+      {
+        "id": "voc_1a00c1cc6fefe8160f9a",
+        "m": "tuần trước",
+        "sourceIndex": 387
+      },
+      {
+        "id": "voc_7a53170e5c8445646720",
+        "m": "tháng trước",
+        "sourceIndex": 388
+      },
+      {
+        "id": "voc_9818f678747ac70730ff",
+        "m": "bật (đèn; thiết bị)",
+        "sourceIndex": 389
+      },
+      {
+        "id": "voc_a9332ebe778801a766dd",
+        "m": "tắt (đèn; thiết bị)",
+        "sourceIndex": 390
+      },
+      {
+        "id": "voc_fa2d0ded8bcea293bd3c",
+        "m": "sáng; sáng sủa",
+        "sourceIndex": 391
+      },
+      {
+        "id": "voc_703bae383e3854ee07c2",
+        "m": "tối",
+        "sourceIndex": 392
+      },
+      {
+        "id": "voc_4dd6f5cc7d191949e9d8",
+        "m": "sản phẩm",
+        "sourceIndex": 393
+      },
+      {
+        "id": "voc_58e6e5cd5a4c7785b1b8",
+        "m": "bệnh viện",
+        "sourceIndex": 394
+      },
+      {
+        "id": "voc_d0c2883ec4d8be1575a9",
+        "m": "bệnh cúm",
+        "sourceIndex": 395
+      },
+      {
+        "id": "voc_c5262c9864b26c4989e3",
+        "m": "cổ họng",
+        "sourceIndex": 396
+      },
+      {
+        "id": "voc_6d30f7fb3d7432a0e4ee",
+        "m": "sức khỏe",
+        "sourceIndex": 398
+      },
+      {
+        "id": "voc_23a89c1874e4178b127e",
+        "m": "mệt mỏi",
+        "sourceIndex": 399
+      },
+      {
+        "id": "voc_1a0033c7b78126a79909",
+        "m": "buồn ngủ",
+        "sourceIndex": 400
+      },
+      {
+        "id": "voc_8524c0d9f59151f12710",
+        "m": "hút",
+        "sourceIndex": 401
+      },
+      {
+        "id": "voc_15837bfcd879c74391a6",
+        "m": "cấm hút thuốc",
+        "sourceIndex": 402
+      },
+      {
+        "id": "voc_b9d52194ffb54b7922d1",
+        "m": "ăn kiêng",
+        "sourceIndex": 403
+      },
+      {
+        "id": "voc_81e4063f8b2f6bd78bb7",
+        "m": "hộ chiếu",
+        "sourceIndex": 405
+      },
+      {
+        "id": "voc_73372e1708a6f000e56b",
+        "m": "đại sứ quán",
+        "sourceIndex": 406
+      },
+      {
+        "id": "voc_8530acea628070c57ae5",
+        "m": "đánh mất",
+        "sourceIndex": 407
+      },
+      {
+        "id": "voc_7e1e260076b9b45d1a88",
+        "m": "cho mượn",
+        "sourceIndex": 408
+      },
+      {
+        "id": "voc_bde85792299f37b28b2c",
+        "m": "mượn",
+        "sourceIndex": 409
+      },
+      {
+        "id": "voc_a1fce6a94b889376d4a3",
+        "m": "cần",
+        "sourceIndex": 410
+      },
+      {
+        "id": "voc_b54db90dbb6d75bb20fc",
+        "m": "lời cầu nguyện; việc cầu nguyện",
+        "sourceIndex": 411
+      },
+      {
+        "id": "voc_b858d1ec397c026b03fc",
+        "m": "chạm; sờ",
+        "sourceIndex": 412
+      },
+      {
+        "id": "voc_58e6955ad933e886f9d5",
+        "m": "tương lai",
+        "sourceIndex": 413
+      },
+      {
+        "id": "voc_a0da4a8b253d668df5b0",
+        "m": "ước mơ; giấc mơ",
+        "sourceIndex": 414
+      },
+      {
+        "id": "voc_1de668cc73970807deb8",
+        "m": "nhà nghiên cứu",
+        "sourceIndex": 415
+      },
+      {
+        "id": "voc_0e4ea7fd7519d8c3f5aa",
+        "m": "chuyên môn",
+        "sourceIndex": 416
+      },
+      {
+        "id": "voc_d432db284e790b42f27a",
+        "m": "kinh tế",
+        "sourceIndex": 417
+      },
+      {
+        "id": "voc_65458ebfd0dc8ff8b365",
+        "m": "Trái Đất",
+        "sourceIndex": 418
+      },
+      {
+        "id": "voc_e3621c67aa76e533fb7d",
+        "m": "nghỉ; bỏ; thôi",
+        "sourceIndex": 419
+      },
+      {
+        "id": "voc_e126882b2b7bc868b8f9",
+        "m": "suy nghĩ",
+        "sourceIndex": 420
+      },
+      {
+        "id": "voc_3124849be82ab6ef3a80",
+        "m": "đã; rồi",
+        "sourceIndex": 421
+      },
+      {
+        "id": "voc_2102739a21c10b2218e1",
+        "m": "và; sau đó",
+        "sourceIndex": 422
+      },
+      {
+        "id": "voc_2f9935dccaa1ec92f1cf",
+        "m": "trước",
+        "sourceIndex": 423
+      },
+      {
+        "id": "voc_4859001dd2f6a59d8ef5",
+        "m": "ngay; ngay lập tức",
+        "sourceIndex": 424
+      },
+      {
+        "id": "voc_ec133bdc5d96a275350a",
+        "m": "sau đó",
+        "sourceIndex": 425
+      },
+      {
+        "id": "voc_822111f607b91bd71470",
+        "m": "vì vậy",
+        "sourceIndex": 426
+      },
+      {
+        "id": "voc_41fb5cb4f7b5410cfcbf",
+        "m": "đến mức như thế",
+        "sourceIndex": 427
+      },
+      {
+        "id": "voc_97ab117cb11ec37b2d40",
+        "m": "dần dần",
+        "sourceIndex": 428
+      },
+      {
+        "id": "voc_96d404c0c4deaa8edd0e",
+        "m": "mọi người (lịch sự)",
+        "sourceIndex": 429
+      },
+      {
+        "id": "voc_e8eb5e4c3c23e738ac1c",
+        "m": "nhưng",
+        "sourceIndex": 430
+      }
+    ],
+    "grammar": [
+      {
+        "id": "gram_8a4a71aa327b56a7d316",
+        "lesson": 1,
+        "p": "N1 は N2 です",
+        "m": "Giới thiệu hoặc xác nhận danh tính",
+        "j": "わたしは学生です。",
+        "v": "Tôi là sinh viên.",
+        "category": 0
+      },
+      {
+        "id": "gram_5d5aa3c8f803a1aa2c82",
+        "lesson": 1,
+        "p": "N1 は N2 じゃありません",
+        "m": "Phủ định danh tính hoặc thuộc tính",
+        "j": "わたしは先生じゃありません。",
+        "v": "Tôi không phải giáo viên.",
+        "category": 0
+      },
+      {
+        "id": "gram_00a637b9abf24cd72fdf",
+        "lesson": 1,
+        "p": "～か",
+        "m": "Đặt câu hỏi",
+        "j": "田中さんは学生ですか。",
+        "v": "Anh Tanaka có phải sinh viên không?",
+        "category": 0
+      },
+      {
+        "id": "gram_96021ec6822f72f31464",
+        "lesson": 1,
+        "p": "N も",
+        "m": "Nêu một đối tượng cũng giống như vậy",
+        "j": "わたしも学生です。",
+        "v": "Tôi cũng là sinh viên.",
+        "category": 0
+      },
+      {
+        "id": "gram_130cf33b16a4aa3e8685",
+        "lesson": 1,
+        "p": "N1 の N2",
+        "m": "Nêu quan hệ giữa hai danh từ",
+        "j": "日本語の先生です。",
+        "v": "Đó là giáo viên tiếng Nhật.",
+        "category": 0
+      },
+      {
+        "id": "gram_b5b7d78deb792d9b31d2",
+        "lesson": 1,
+        "p": "～さん",
+        "m": "Gọi tên người khác một cách lịch sự",
+        "j": "田中さん、こんにちは。",
+        "v": "Chào anh/chị Tanaka.",
+        "category": 0
+      },
+      {
+        "id": "gram_30fd5be6fb70c576a1e1",
+        "lesson": 2,
+        "p": "これ・それ・あれ",
+        "m": "Chỉ đồ vật theo khoảng cách",
+        "j": "これはわたしの本です。",
+        "v": "Đây là sách của tôi.",
+        "category": 6
+      },
+      {
+        "id": "gram_b1b7b314d6dfdd86c3d2",
+        "lesson": 2,
+        "p": "この・その・あの + N",
+        "m": "Bổ nghĩa cho danh từ chỉ vật cụ thể",
+        "j": "この本はおもしろいです。",
+        "v": "Quyển sách này thú vị.",
+        "category": 6
+      },
+      {
+        "id": "gram_d26275f99ca3fd214980",
+        "lesson": 2,
+        "p": "そうです・そうじゃありません",
+        "m": "Xác nhận hoặc phủ định thông tin",
+        "j": "はい、そうです。",
+        "v": "Vâng, đúng vậy.",
+        "category": 0
+      },
+      {
+        "id": "gram_1879489e4fceff7c8ffc",
+        "lesson": 2,
+        "p": "～か、～か",
+        "m": "Hỏi lựa chọn giữa hai khả năng",
+        "j": "これはペンですか、えんぴつですか。",
+        "v": "Đây là bút mực hay bút chì?",
+        "category": 0
+      },
+      {
+        "id": "gram_798951ac4b455cd1fc13",
+        "lesson": 2,
+        "p": "N1 の N2",
+        "m": "Nêu người sở hữu đồ vật",
+        "j": "これはわたしのかばんです。",
+        "v": "Đây là túi của tôi.",
+        "category": 0
+      },
+      {
+        "id": "gram_bea66e4aa74738893638",
+        "lesson": 2,
+        "p": "そうですか",
+        "m": "Đáp lại khi tiếp nhận thông tin mới",
+        "j": "来週帰ります。そうですか。",
+        "v": "Tuần sau tôi về. À, vậy à.",
+        "category": 0
+      },
+      {
+        "id": "gram_c5a9b1dbba7f6333ea24",
+        "lesson": 3,
+        "p": "お + N",
+        "m": "Thêm sắc thái lịch sự hoặc kính trọng",
+        "j": "お国はどちらですか。",
+        "v": "Anh/chị đến từ nước nào?",
+        "category": 6
+      },
+      {
+        "id": "gram_a57717f62f8ccf3b3ce7",
+        "lesson": 3,
+        "p": "ここ・そこ・あそこ",
+        "m": "Chỉ địa điểm theo khoảng cách",
+        "j": "ここは教室です。",
+        "v": "Đây là phòng học.",
+        "category": 6
+      },
+      {
+        "id": "gram_46e8cb232acf45bcca88",
+        "lesson": 3,
+        "p": "N は địa điểm です",
+        "m": "Nói người hoặc vật ở đâu",
+        "j": "受付は一階です。",
+        "v": "Quầy tiếp tân ở tầng một.",
+        "category": 6
+      },
+      {
+        "id": "gram_6e0d52fbcb3a4240a476",
+        "lesson": 3,
+        "p": "どこ・どちら",
+        "m": "Hỏi địa điểm hoặc phương hướng",
+        "j": "駅はどこですか。",
+        "v": "Nhà ga ở đâu?",
+        "category": 6
+      },
+      {
+        "id": "gram_dfcdc76ef7ad9c7596dd",
+        "lesson": 4,
+        "p": "Vます",
+        "m": "Nói hành động bằng thể lịch sự",
+        "j": "毎朝、新聞を読みます。",
+        "v": "Sáng nào tôi cũng đọc báo.",
+        "category": 0
+      },
+      {
+        "id": "gram_fd5558e6ecf856074474",
+        "lesson": 4,
+        "p": "～ね",
+        "m": "Tìm sự đồng tình từ người nghe",
+        "j": "今日は寒いですね。",
+        "v": "Hôm nay lạnh nhỉ.",
+        "category": 0
+      },
+      {
+        "id": "gram_be905121b31b12469393",
+        "lesson": 5,
+        "p": "địa điểm へ行きます",
+        "m": "Nêu hướng hoặc đích di chuyển",
+        "j": "京都へ行きます。",
+        "v": "Tôi đi Kyoto.",
+        "category": 6
+      },
+      {
+        "id": "gram_5f5f54201585aa7db4a7",
+        "lesson": 5,
+        "p": "phương tiện で行きます",
+        "m": "Nêu phương tiện di chuyển",
+        "j": "電車で学校へ行きます。",
+        "v": "Tôi đi học bằng tàu điện.",
+        "category": 0
+      },
+      {
+        "id": "gram_baf74e6583ea13ba68c4",
+        "lesson": 5,
+        "p": "người と V",
+        "m": "Nêu người cùng thực hiện hành động",
+        "j": "友だちと映画を見ます。",
+        "v": "Tôi xem phim cùng bạn.",
+        "category": 0
+      },
+      {
+        "id": "gram_051e2d3f7b9263a49eff",
+        "lesson": 5,
+        "p": "いつ",
+        "m": "Hỏi thời điểm",
+        "j": "いつ日本へ行きますか。",
+        "v": "Khi nào bạn đi Nhật?",
+        "category": 8
+      },
+      {
+        "id": "gram_6cd104f001a379b3bfa2",
+        "lesson": 6,
+        "p": "địa điểm で V",
+        "m": "Nêu nơi hành động diễn ra",
+        "j": "図書館で勉強します。",
+        "v": "Tôi học ở thư viện.",
+        "category": 6
+      },
+      {
+        "id": "gram_fc88d636870ddbea1482",
+        "lesson": 6,
+        "p": "N をします",
+        "m": "Nói hoạt động được thực hiện",
+        "j": "日曜日にテニスをします。",
+        "v": "Chủ nhật tôi chơi quần vợt.",
+        "category": 0
+      },
+      {
+        "id": "gram_dd049fce6d0578d215be",
+        "lesson": 6,
+        "p": "何をしますか",
+        "m": "Hỏi người khác làm gì",
+        "j": "休みの日に何をしますか。",
+        "v": "Ngày nghỉ bạn làm gì?",
+        "category": 0
+      },
+      {
+        "id": "gram_d1fb91ecadfff2108b0f",
+        "lesson": 6,
+        "p": "なん・なに",
+        "m": "Hỏi về sự vật hoặc nội dung",
+        "j": "これは何ですか。",
+        "v": "Đây là cái gì?",
+        "category": 0
+      },
+      {
+        "id": "gram_9e62894318ed470bab37",
+        "lesson": 6,
+        "p": "Vませんか",
+        "m": "Mời người nghe cùng làm",
+        "j": "いっしょに昼ごはんを食べませんか。",
+        "v": "Bạn ăn trưa cùng tôi nhé?",
+        "category": 1
+      },
+      {
+        "id": "gram_aadc837fca9395a68629",
+        "lesson": 7,
+        "p": "công cụ で V",
+        "m": "Nêu công cụ hoặc phương tiện làm việc",
+        "j": "はしでごはんを食べます。",
+        "v": "Tôi ăn cơm bằng đũa.",
+        "category": 0
+      },
+      {
+        "id": "gram_8069663b562fef257271",
+        "lesson": 7,
+        "p": "～は tiếng ～ で何ですか",
+        "m": "Hỏi cách nói bằng một ngôn ngữ",
+        "j": "これは日本語で何ですか。",
+        "v": "Cái này tiếng Nhật gọi là gì?",
+        "category": 0
+      },
+      {
+        "id": "gram_e16d2f3416dcc5a1f9a8",
+        "lesson": 7,
+        "p": "người にあげます",
+        "m": "Nêu người nhận đồ mình tặng",
+        "j": "妹に本をあげます。",
+        "v": "Tôi tặng sách cho em gái.",
+        "category": 0
+      },
+      {
+        "id": "gram_a0e3fb18ee702053ff5c",
+        "lesson": 7,
+        "p": "người にもらいます",
+        "m": "Nêu người mà mình nhận đồ từ đó",
+        "j": "友だちに本をもらいました。",
+        "v": "Tôi nhận sách từ bạn.",
+        "category": 0
+      },
+      {
+        "id": "gram_299b5f76fdf5e57952dd",
+        "lesson": 8,
+        "p": "N は A です",
+        "m": "Miêu tả đặc điểm của đối tượng",
+        "j": "この町は静かです。",
+        "v": "Thị trấn này yên tĩnh.",
+        "category": 0
+      },
+      {
+        "id": "gram_ef0a574ce999c44b28e6",
+        "lesson": 8,
+        "p": "Aな + N・Aい + N",
+        "m": "Dùng tính từ bổ nghĩa cho danh từ",
+        "j": "静かな町に住んでいます。",
+        "v": "Tôi sống ở một thị trấn yên tĩnh.",
+        "category": 0
+      },
+      {
+        "id": "gram_3ea7f19e1f1ec520b72e",
+        "lesson": 8,
+        "p": "あまり～ない",
+        "m": "Diễn tả mức độ không cao",
+        "j": "この店はあまり高くないです。",
+        "v": "Cửa hàng này không đắt lắm.",
+        "category": 0
+      },
+      {
+        "id": "gram_0b85c8723bf62379c981",
+        "lesson": 8,
+        "p": "どんな N",
+        "m": "Hỏi đặc điểm hoặc tính chất",
+        "j": "どんな映画が好きですか。",
+        "v": "Bạn thích loại phim như thế nào?",
+        "category": 0
+      },
+      {
+        "id": "gram_16a331ec4bdd0dde13e1",
+        "lesson": 8,
+        "p": "どれ",
+        "m": "Hỏi lựa chọn một vật trong nhiều vật",
+        "j": "あなたのかばんはどれですか。",
+        "v": "Túi của bạn là cái nào?",
+        "category": 0
+      },
+      {
+        "id": "gram_0dffe257d56d75e0c794",
+        "lesson": 9,
+        "p": "～から、～",
+        "m": "Nêu lý do",
+        "j": "雨ですから、出かけません。",
+        "v": "Vì trời mưa nên tôi không ra ngoài.",
+        "category": 7
+      },
+      {
+        "id": "gram_01f706c841087af50f01",
+        "lesson": 9,
+        "p": "どうして",
+        "m": "Hỏi lý do",
+        "j": "どうして遅れましたか。",
+        "v": "Vì sao bạn đến muộn?",
+        "category": 7
+      },
+      {
+        "id": "gram_149c232603c71d7ba51d",
+        "lesson": 10,
+        "p": "N は địa điểm にあります／います",
+        "m": "Nói vị trí tồn tại",
+        "j": "本は机の上にあります。",
+        "v": "Quyển sách ở trên bàn.",
+        "category": 6
+      },
+      {
+        "id": "gram_bb935bd2709136c2e014",
+        "lesson": 10,
+        "p": "N の vị trí",
+        "m": "Nêu vị trí tương đối",
+        "j": "いすの下にねこがいます。",
+        "v": "Có một con mèo dưới ghế.",
+        "category": 6
+      },
+      {
+        "id": "gram_8d7af720f34a11f5cc63",
+        "lesson": 10,
+        "p": "N や N",
+        "m": "Liệt kê một vài ví dụ tiêu biểu",
+        "j": "店でパンや牛乳を買いました。",
+        "v": "Tôi mua những thứ như bánh mì và sữa ở cửa hàng.",
+        "category": 0
+      },
+      {
+        "id": "gram_da39e4494f4815987a0b",
+        "lesson": 10,
+        "p": "～はありませんか",
+        "m": "Hỏi xem có vật mình cần hay không",
+        "j": "すみません、地図はありませんか。",
+        "v": "Xin lỗi, ở đây có bản đồ không ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_a38ffeb6cebfc4e8516e",
+        "lesson": 10,
+        "p": "～ですか",
+        "m": "Hỏi lại để xác nhận",
+        "j": "二階ですか。",
+        "v": "Tầng hai phải không ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_f7a47c20251150a47d82",
+        "lesson": 11,
+        "p": "khoảng thời gian に～回",
+        "m": "Nêu tần suất",
+        "j": "一週間に二回、泳ぎます。",
+        "v": "Tôi bơi hai lần một tuần.",
+        "category": 8
+      },
+      {
+        "id": "gram_4228e427c1550feca004",
+        "lesson": 11,
+        "p": "N／lượng từ だけ",
+        "m": "Giới hạn số lượng hoặc phạm vi",
+        "j": "りんごを一つだけ買います。",
+        "v": "Tôi chỉ mua một quả táo.",
+        "category": 8
+      },
+      {
+        "id": "gram_3b584be6008c4f25e90c",
+        "lesson": 12,
+        "p": "N／Aな でした",
+        "m": "Nói trạng thái trong quá khứ",
+        "j": "昨日は雨でした。",
+        "v": "Hôm qua trời mưa.",
+        "category": 0
+      },
+      {
+        "id": "gram_2d1d074d41b89ef28088",
+        "lesson": 12,
+        "p": "Aかったです",
+        "m": "Nói tính chất trong quá khứ",
+        "j": "昨日は寒かったです。",
+        "v": "Hôm qua trời lạnh.",
+        "category": 0
+      },
+      {
+        "id": "gram_c7639a592db9c3a5e7b5",
+        "lesson": 12,
+        "p": "A は B より～",
+        "m": "So sánh hai đối tượng",
+        "j": "新幹線はバスより速いです。",
+        "v": "Shinkansen nhanh hơn xe buýt.",
+        "category": 4
+      },
+      {
+        "id": "gram_ad9bfd5ee2eacce69581",
+        "lesson": 12,
+        "p": "A と B とどちらが～",
+        "m": "Hỏi so sánh giữa hai đối tượng",
+        "j": "コーヒーとお茶とどちらが好きですか。",
+        "v": "Bạn thích cà phê hay trà hơn?",
+        "category": 4
+      },
+      {
+        "id": "gram_f36d7910d82f620342a3",
+        "lesson": 12,
+        "p": "～がいちばん～",
+        "m": "Nêu đối tượng ở mức cao nhất",
+        "j": "一年で八月がいちばん暑いです。",
+        "v": "Trong năm, tháng tám nóng nhất.",
+        "category": 4
+      },
+      {
+        "id": "gram_23777c39aff17faf8c3b",
+        "lesson": 13,
+        "p": "Vたいです",
+        "m": "Diễn tả mong muốn của người nói",
+        "j": "日本へ行きたいです。",
+        "v": "Tôi muốn đi Nhật.",
+        "category": 2
+      },
+      {
+        "id": "gram_636b9b028718c71d9ac3",
+        "lesson": 13,
+        "p": "địa điểm に入ります／を出ます",
+        "m": "Phân biệt nơi đi vào và nơi đi ra",
+        "j": "部屋を出ます。",
+        "v": "Tôi ra khỏi phòng.",
+        "category": 6
+      },
+      {
+        "id": "gram_927c56f8f0baab715258",
+        "lesson": 13,
+        "p": "どこか・何か",
+        "m": "Chỉ nơi hoặc vật chưa xác định",
+        "j": "何か食べたいです。",
+        "v": "Tôi muốn ăn thứ gì đó.",
+        "category": 2
+      },
+      {
+        "id": "gram_e6ead2dbabe4dfc9ed75",
+        "lesson": 13,
+        "p": "ご + N",
+        "m": "Thêm sắc thái kính trọng với danh từ",
+        "j": "ご注文は何ですか。",
+        "v": "Quý khách gọi món gì ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_b7f87f17907825f16158",
+        "lesson": 14,
+        "p": "Vて",
+        "m": "Nối hành động theo trình tự",
+        "j": "朝ごはんを食べて、学校へ行きます。",
+        "v": "Tôi ăn sáng rồi đi học.",
+        "category": 0
+      },
+      {
+        "id": "gram_f8993616f6ba151fe60a",
+        "lesson": 14,
+        "p": "Vてください",
+        "m": "Nhờ hoặc yêu cầu làm một việc",
+        "j": "ここに名前を書いてください。",
+        "v": "Xin hãy viết tên ở đây.",
+        "category": 0
+      },
+      {
+        "id": "gram_88b1a22668081541fea8",
+        "lesson": 14,
+        "p": "Vています",
+        "m": "Diễn tả việc đang xảy ra",
+        "j": "今、本を読んでいます。",
+        "v": "Bây giờ tôi đang đọc sách.",
+        "category": 9
+      },
+      {
+        "id": "gram_df3bbbb6a64d472e67a7",
+        "lesson": 14,
+        "p": "Vましょうか",
+        "m": "Đề nghị làm giúp",
+        "j": "荷物を持ちましょうか。",
+        "v": "Để tôi xách hành lý giúp nhé?",
+        "category": 1
+      },
+      {
+        "id": "gram_a4cb689999b00c658c83",
+        "lesson": 14,
+        "p": "N が V",
+        "m": "Miêu tả hiện tượng tự nhiên",
+        "j": "雨が降っています。",
+        "v": "Trời đang mưa.",
+        "category": 9
+      },
+      {
+        "id": "gram_44be35000f87cb81933a",
+        "lesson": 15,
+        "p": "Vてもいいです",
+        "m": "Cho phép làm một việc",
+        "j": "ここで写真を撮ってもいいです。",
+        "v": "Bạn được phép chụp ảnh ở đây.",
+        "category": 12
+      },
+      {
+        "id": "gram_ccd536acd5acbfc07b7a",
+        "lesson": 15,
+        "p": "Vてはいけません",
+        "m": "Cấm làm một việc",
+        "j": "ここでたばこを吸ってはいけません。",
+        "v": "Không được hút thuốc ở đây.",
+        "category": 3
+      },
+      {
+        "id": "gram_dc959276cefff60b2b17",
+        "lesson": 15,
+        "p": "Vています",
+        "m": "Nói trạng thái đang tiếp diễn",
+        "j": "東京に住んでいます。",
+        "v": "Tôi đang sống ở Tokyo.",
+        "category": 9
+      },
+      {
+        "id": "gram_fd95a1f0263e30e354e6",
+        "lesson": 15,
+        "p": "知りません",
+        "m": "Nói rằng mình không biết",
+        "j": "その人を知りません。",
+        "v": "Tôi không biết người đó.",
+        "category": 0
+      },
+      {
+        "id": "gram_8a4569f0ff3d8218184d",
+        "lesson": 16,
+        "p": "Vて、Vて、～",
+        "m": "Nối nhiều hành động liên tiếp",
+        "j": "顔を洗って、朝ごはんを食べます。",
+        "v": "Tôi rửa mặt rồi ăn sáng.",
+        "category": 0
+      },
+      {
+        "id": "gram_aef69c506af207de91e6",
+        "lesson": 16,
+        "p": "Aくて・Aで",
+        "m": "Nối các đặc điểm của đối tượng",
+        "j": "この部屋は広くて明るいです。",
+        "v": "Phòng này rộng và sáng.",
+        "category": 0
+      },
+      {
+        "id": "gram_ef56251c70f56f07423f",
+        "lesson": 16,
+        "p": "どうやって",
+        "m": "Hỏi cách thức",
+        "j": "駅までどうやって行きますか。",
+        "v": "Đi đến ga bằng cách nào?",
+        "category": 6
+      },
+      {
+        "id": "gram_6f37cb103c11ee264e9a",
+        "lesson": 16,
+        "p": "どの + N",
+        "m": "Hỏi chọn một đối tượng cụ thể",
+        "j": "どの本を読みますか。",
+        "v": "Bạn đọc quyển sách nào?",
+        "category": 0
+      },
+      {
+        "id": "gram_71ac569104d25fc8d4c1",
+        "lesson": 17,
+        "p": "Vない",
+        "m": "Phủ định hành động ở thể thông thường",
+        "j": "今日は出かけない。",
+        "v": "Hôm nay tôi không ra ngoài.",
+        "category": 0
+      },
+      {
+        "id": "gram_600dcc51e2c57fc0d57f",
+        "lesson": 17,
+        "p": "Vないでください",
+        "m": "Yêu cầu đừng làm",
+        "j": "ここで写真を撮らないでください。",
+        "v": "Xin đừng chụp ảnh ở đây.",
+        "category": 3
+      },
+      {
+        "id": "gram_aa2b2196077fa9cc4ba9",
+        "lesson": 17,
+        "p": "Vなければなりません",
+        "m": "Nêu việc bắt buộc phải làm",
+        "j": "明日までに宿題を出さなければなりません。",
+        "v": "Tôi phải nộp bài tập trước hạn ngày mai.",
+        "category": 0
+      },
+      {
+        "id": "gram_da2c384e1a18d7fc30ca",
+        "lesson": 17,
+        "p": "Vなくてもいいです",
+        "m": "Nói không cần phải làm",
+        "j": "今日は来なくてもいいです。",
+        "v": "Hôm nay bạn không cần đến.",
+        "category": 12
+      },
+      {
+        "id": "gram_d4d4623d2f86be7c5cf7",
+        "lesson": 17,
+        "p": "thời gian までに",
+        "m": "Nêu thời hạn hoàn thành",
+        "j": "五時までに帰ってください。",
+        "v": "Xin hãy về trước hạn năm giờ.",
+        "category": 8
+      },
+      {
+        "id": "gram_3bac82d80cd9de7fcbd3",
+        "lesson": 18,
+        "p": "なかなか～ない",
+        "m": "Nói việc khó xảy ra như mong đợi",
+        "j": "バスがなかなか来ません。",
+        "v": "Mãi mà xe buýt không đến.",
+        "category": 0
+      },
+      {
+        "id": "gram_913836d29d53ea6a02cb",
+        "lesson": 18,
+        "p": "ぜひ",
+        "m": "Nhấn mạnh lời mời hoặc mong muốn",
+        "j": "ぜひ遊びに来てください。",
+        "v": "Nhất định hãy đến chơi nhé.",
+        "category": 1
+      },
+      {
+        "id": "gram_c0754df3900f34e4a86f",
+        "lesson": 19,
+        "p": "Vたことがあります",
+        "m": "Nói về kinh nghiệm đã từng làm",
+        "j": "富士山に登ったことがあります。",
+        "v": "Tôi đã từng leo núi Phú Sĩ.",
+        "category": 5
+      },
+      {
+        "id": "gram_406ab3e4677fb43a3738",
+        "lesson": 21,
+        "p": "～と思います",
+        "m": "Nêu suy nghĩ hoặc nhận định",
+        "j": "明日は晴れると思います。",
+        "v": "Tôi nghĩ ngày mai trời nắng.",
+        "category": 0
+      },
+      {
+        "id": "gram_c58933285fc55174887a",
+        "lesson": 21,
+        "p": "địa điểm で N があります",
+        "m": "Nói nơi một sự kiện diễn ra",
+        "j": "学校でお祭りがあります。",
+        "v": "Ở trường có lễ hội.",
+        "category": 6
+      },
+      {
+        "id": "gram_df5aa43009157b1ed840",
+        "lesson": 21,
+        "p": "sự việc で",
+        "m": "Nêu dịp hoặc tình huống",
+        "j": "会議で意見を言います。",
+        "v": "Tôi phát biểu ý kiến trong cuộc họp.",
+        "category": 0
+      },
+      {
+        "id": "gram_36690ce87668b2c99c65",
+        "lesson": 21,
+        "p": "Vないと",
+        "m": "Nói tắt ý phải làm",
+        "j": "もう帰らないと。",
+        "v": "Tôi phải về rồi.",
+        "category": 0
+      },
+      {
+        "id": "gram_6af5e933f45a65c5bd24",
+        "lesson": 23,
+        "p": "Vると、～",
+        "m": "Nêu kết quả tự nhiên hoặc tất yếu",
+        "j": "このボタンを押すと、ドアが開きます。",
+        "v": "Ấn nút này thì cửa sẽ mở.",
+        "category": 0
+      },
+      {
+        "id": "gram_f28df9f9529c621f6bbe",
+        "lesson": 23,
+        "p": "N が A／V",
+        "m": "Miêu tả đối tượng được chú ý",
+        "j": "この道は車が多いです。",
+        "v": "Con đường này có nhiều xe.",
+        "category": 0
+      },
+      {
+        "id": "gram_06fd0c677e69bd488130",
+        "lesson": 24,
+        "p": "người が V",
+        "m": "Nhấn mạnh người thực hiện hành động",
+        "j": "田中さんが手伝ってくれました。",
+        "v": "Chính anh Tanaka đã giúp tôi.",
+        "category": 0
+      },
+      {
+        "id": "gram_6ca6d1f8391129d33d6f",
+        "lesson": 24,
+        "p": "từ nghi vấn が",
+        "m": "Hỏi ai thực hiện hành động",
+        "j": "だれが来ますか。",
+        "v": "Ai sẽ đến?",
+        "category": 0
+      },
+      {
+        "id": "gram_a1664c4dd4116f9dad41",
+        "lesson": 25,
+        "p": "N が",
+        "m": "Đánh dấu chủ thể trong mệnh đề điều kiện",
+        "j": "雨が降ったら、行きません。",
+        "v": "Nếu trời mưa thì tôi không đi.",
+        "category": 0
+      },
+      {
+        "id": "gram_2027a946eba100973f5c",
+        "lesson": 25,
+        "p": "もし～たら",
+        "m": "Nêu điều kiện giả định",
+        "j": "もし時間があったら、来てください。",
+        "v": "Nếu có thời gian thì hãy đến nhé.",
+        "category": 0
+      },
+      {
+        "id": "gram_d22d517e20cfb1a67e62",
+        "lesson": 25,
+        "p": "～ても",
+        "m": "Nói kết quả trái với điều kiện",
+        "j": "雨が降っても、行きます。",
+        "v": "Dù trời mưa tôi vẫn đi.",
+        "category": 0
+      }
+    ]
+  },
+  "N4": {
+    "vocabulary": [
+      {
+        "id": "voc_af24474542970d19eadf",
+        "m": "công ty báo chí; tòa soạn báo",
+        "sourceIndex": 0
+      },
+      {
+        "id": "voc_8b3d6d9683eca7e38f6c",
+        "m": "hội thi thể thao",
+        "sourceIndex": 1
+      },
+      {
+        "id": "voc_de6104d78d7de7e00d44",
+        "m": "bất cứ thứ gì",
+        "sourceIndex": 2
+      },
+      {
+        "id": "voc_974cfae290438c650d3f",
+        "m": "Ngày Trẻ em",
+        "sourceIndex": 3
+      },
+      {
+        "id": "voc_c86c8c3c56d7b71f8993",
+        "m": "rác",
+        "sourceIndex": 4
+      },
+      {
+        "id": "voc_84b865b54bc3f84c761c",
+        "m": "cháy",
+        "sourceIndex": 5
+      },
+      {
+        "id": "voc_e17c0c96566ea6af1094",
+        "m": "nơi để đồ",
+        "sourceIndex": 6
+      },
+      {
+        "id": "voc_8d100300d26c0d7f0102",
+        "m": "cái chai",
+        "sourceIndex": 7
+      },
+      {
+        "id": "voc_b798ac2e922df2fa751e",
+        "m": "liên lạc",
+        "sourceIndex": 8
+      },
+      {
+        "id": "voc_82f1d3f662fd1896691b",
+        "m": "thư điện tử",
+        "sourceIndex": 9
+      },
+      {
+        "id": "voc_fdfd21b529a196a7b2d6",
+        "m": "vũ trụ",
+        "sourceIndex": 10
+      },
+      {
+        "id": "voc_e97321a6b44a0b7a0d86",
+        "m": "đáng sợ; sợ",
+        "sourceIndex": 11
+      },
+      {
+        "id": "voc_fa221ff59959efd4c9c7",
+        "m": "tàu vũ trụ",
+        "sourceIndex": 12
+      },
+      {
+        "id": "voc_fa78b5cf253f55af0eed",
+        "m": "tàu vũ trụ",
+        "sourceIndex": 13
+      },
+      {
+        "id": "voc_26ffc4729a23b547e7dc",
+        "m": "phi hành gia",
+        "sourceIndex": 14
+      },
+      {
+        "id": "voc_6608090d031c461d1df1",
+        "m": "nuôi (động vật)",
+        "sourceIndex": 15
+      },
+      {
+        "id": "voc_1a3d7a967d70ee902338",
+        "m": "con chim",
+        "sourceIndex": 16
+      },
+      {
+        "id": "voc_16261a10aae6f5c2e8da",
+        "m": "sóng",
+        "r": "なみ",
+        "sourceIndex": 17
+      },
+      {
+        "id": "voc_df4d4f48e184a3eab7d0",
+        "m": "pháo hoa",
+        "sourceIndex": 18
+      },
+      {
+        "id": "voc_854512957356e17ffde9",
+        "m": "dụng cụ; công cụ",
+        "sourceIndex": 20
+      },
+      {
+        "id": "voc_588cddaa7aa9204f7c6a",
+        "m": "chung cư",
+        "sourceIndex": 21
+      },
+      {
+        "id": "voc_eadfc8f8e3e7d8652ab2",
+        "m": "phòng học; lớp học",
+        "sourceIndex": 22
+      },
+      {
+        "id": "voc_fb77d9e6815164bdf10a",
+        "m": "phòng tiệc",
+        "r": "パーティールーム",
+        "sourceIndex": 23
+      },
+      {
+        "id": "voc_a1ebad1565578974896a",
+        "m": "hầu hết; hầu như",
+        "sourceIndex": 24
+      },
+      {
+        "id": "voc_22a34a9f912842c356cc",
+        "m": "giá sách",
+        "sourceIndex": 25
+      },
+      {
+        "id": "voc_3ccb2826c7ddf3ad6d6e",
+        "m": "ước mơ; giấc mơ",
+        "sourceIndex": 26
+      },
+      {
+        "id": "voc_e47a7f2c92257b19fd04",
+        "m": "một lúc nào đó",
+        "sourceIndex": 27
+      },
+      {
+        "id": "voc_2a4d0c49e334f31bcff5",
+        "m": "tuyệt vời",
+        "sourceIndex": 28
+      },
+      {
+        "id": "voc_f1e6926e83b5184c6129",
+        "m": "trẻ em",
+        "sourceIndex": 29
+      },
+      {
+        "id": "voc_b30245c6b4fccd647ef5",
+        "m": "truyện tranh",
+        "sourceIndex": 30
+      },
+      {
+        "id": "voc_95516c8bd9cefdd1f09a",
+        "m": "nhân vật chính",
+        "sourceIndex": 31
+      },
+      {
+        "id": "voc_a85b01a7f39e54eba99d",
+        "m": "hình dạng",
+        "sourceIndex": 32
+      },
+      {
+        "id": "voc_2b04ffedf4f7976e3609",
+        "m": "người máy",
+        "sourceIndex": 33
+      },
+      {
+        "id": "voc_705c4070a8522b39cd84",
+        "m": "ví dụ như",
+        "sourceIndex": 34
+      },
+      {
+        "id": "voc_5f08548e9030515323f7",
+        "m": "gắn; lắp thêm",
+        "sourceIndex": 35
+      },
+      {
+        "id": "voc_4d88ee95873321847bae",
+        "m": "tự do; tùy ý",
+        "sourceIndex": 36
+      },
+      {
+        "id": "voc_10180200c6517484f831",
+        "m": "bầu trời",
+        "sourceIndex": 37
+      },
+      {
+        "id": "voc_093943874f29d6543bf1",
+        "m": "bản thân",
+        "sourceIndex": 38
+      },
+      {
+        "id": "voc_634bdfa7291db9f481e8",
+        "m": "bay",
+        "r": "とびます",
+        "sourceIndex": 39
+      },
+      {
+        "id": "voc_24e8f717da94e7de6e74",
+        "m": "tương lai",
+        "sourceIndex": 40
+      },
+      {
+        "id": "voc_8ef80c95236ee805684b",
+        "m": "nhảy; khiêu vũ",
+        "sourceIndex": 41
+      },
+      {
+        "id": "voc_7ed707bc5c190b07d7c3",
+        "m": "nhai; cắn",
+        "sourceIndex": 42
+      },
+      {
+        "id": "voc_8a381474f8895e354711",
+        "m": "chọn",
+        "sourceIndex": 43
+      },
+      {
+        "id": "voc_66a1710ce6c7e29487f3",
+        "m": "khác; không đúng",
+        "sourceIndex": 44
+      },
+      {
+        "id": "voc_f45b7864ad56658096c1",
+        "m": "ghi chép",
+        "r": "メモします",
+        "sourceIndex": 45
+      },
+      {
+        "id": "voc_b558b7f58c649ee2ad9a",
+        "m": "hiền lành; dịu dàng",
+        "sourceIndex": 46
+      },
+      {
+        "id": "voc_2728b3235692e3a288f4",
+        "m": "vừa đủ; vừa đúng",
+        "sourceIndex": 47
+      },
+      {
+        "id": "voc_7198032356b17f6d24e1",
+        "m": "kinh nghiệm",
+        "sourceIndex": 48
+      },
+      {
+        "id": "voc_94a596d3bcc60570c7be",
+        "m": "màu sắc",
+        "sourceIndex": 50
+      },
+      {
+        "id": "voc_ce59998d77f8e71ed8f4",
+        "m": "vị",
+        "sourceIndex": 51
+      },
+      {
+        "id": "voc_0ce0b2adbe2a88b88937",
+        "m": "hàng hóa; đồ vật",
+        "sourceIndex": 52
+      },
+      {
+        "id": "voc_7a6dfce20c0b2cdaf4cc",
+        "m": "giá tiền",
+        "sourceIndex": 53
+      },
+      {
+        "id": "voc_0130f010943381ded8e1",
+        "m": "tiền thưởng",
+        "sourceIndex": 54
+      },
+      {
+        "id": "voc_89b875c65484282fa489",
+        "m": "ca sĩ",
+        "sourceIndex": 55
+      },
+      {
+        "id": "voc_1de3c6547403a99da4f2",
+        "m": "chương trình truyền hình hoặc phát thanh",
+        "sourceIndex": 56
+      },
+      {
+        "id": "voc_100059cd65d2005b6ffd",
+        "m": "phim truyền hình; kịch",
+        "sourceIndex": 57
+      },
+      {
+        "id": "voc_8063d4defd4e8bcb72a9",
+        "m": "tiểu thuyết",
+        "sourceIndex": 58
+      },
+      {
+        "id": "voc_78903d21639d80bc0a95",
+        "m": "người quản lý",
+        "sourceIndex": 59
+      },
+      {
+        "id": "voc_91e705b0fd891095f394",
+        "m": "con trai của người khác",
+        "sourceIndex": 60
+      },
+      {
+        "id": "voc_d14dfac5b41cd0faf137",
+        "m": "con gái của người khác",
+        "sourceIndex": 61
+      },
+      {
+        "id": "voc_20926e43c956ee7357c9",
+        "m": "một lúc; một khoảng thời gian",
+        "sourceIndex": 62
+      },
+      {
+        "id": "voc_70959694791eb06ecc63",
+        "m": "thường; phần lớn",
+        "sourceIndex": 63
+      },
+      {
+        "id": "voc_b2c46ae1e8dbd32b8e9d",
+        "m": "vì thế; do đó",
+        "sourceIndex": 64
+      },
+      {
+        "id": "voc_8ebaac6d3d43e8790aee",
+        "m": "ở cùng gia đình bản xứ",
+        "sourceIndex": 65
+      },
+      {
+        "id": "voc_d83e7de5c58f70e7ab39",
+        "m": "nói chuyện; tán gẫu",
+        "sourceIndex": 66
+      },
+      {
+        "id": "voc_99b4e833a0689d04f65d",
+        "m": "thông báo",
+        "sourceIndex": 67
+      },
+      {
+        "id": "voc_628a0d293ef602c96000",
+        "m": "ngày tháng; ngày cụ thể",
+        "sourceIndex": 68
+      },
+      {
+        "id": "voc_85aaf170d69b521dd863",
+        "m": "cái cốc",
+        "sourceIndex": 69
+      },
+      {
+        "id": "voc_24505759b8b148b66e7e",
+        "m": "cái túi",
+        "sourceIndex": 70
+      },
+      {
+        "id": "voc_9c31a42bd41c6ab7514b",
+        "m": "cái ví",
+        "sourceIndex": 71
+      },
+      {
+        "id": "voc_445e6d1e31242b57cfab",
+        "m": "đồ bỏ quên",
+        "sourceIndex": 72
+      },
+      {
+        "id": "voc_e2fba3704be65aad145c",
+        "m": "túi áo; túi quần",
+        "sourceIndex": 73
+      },
+      {
+        "id": "voc_dc8a0ffd92e2044ce212",
+        "m": "giá để hành lý trên tàu",
+        "sourceIndex": 74
+      },
+      {
+        "id": "voc_6bda0393a0c1fc3cdde3",
+        "m": "nếu nhớ không nhầm",
+        "sourceIndex": 75
+      },
+      {
+        "id": "voc_b9ba46f6298399b7881f",
+        "m": "động đất",
+        "sourceIndex": 76
+      },
+      {
+        "id": "voc_7ae1aeede8aeb597cbb1",
+        "m": "bức tường",
+        "sourceIndex": 77
+      },
+      {
+        "id": "voc_ee56c229d9ed39825c00",
+        "m": "kim (đồng hồ); cây kim",
+        "sourceIndex": 78
+      },
+      {
+        "id": "voc_ef8055ab82361ad903fe",
+        "m": "đổ; ngã",
+        "sourceIndex": 80
+      },
+      {
+        "id": "voc_cb790c653e3f6b56d7db",
+        "m": "hướng; phía",
+        "sourceIndex": 82
+      },
+      {
+        "id": "voc_c61e6b5002f35aca8d5a",
+        "m": "dán",
+        "sourceIndex": 84
+      },
+      {
+        "id": "voc_dc24d0b00645cd809bf7",
+        "m": "treo",
+        "sourceIndex": 85
+      },
+      {
+        "id": "voc_ad11944a45daf0e44668",
+        "m": "trang trí",
+        "sourceIndex": 86
+      },
+      {
+        "id": "voc_07c775311159f8169cba",
+        "m": "trồng",
+        "sourceIndex": 87
+      },
+      {
+        "id": "voc_877b767d09661cbb5370",
+        "m": "gom lại; tóm tắt",
+        "sourceIndex": 88
+      },
+      {
+        "id": "voc_5be164991f2da2c649fc",
+        "m": "dọn dẹp; sắp xếp",
+        "r": "かたづけます",
+        "sourceIndex": 89
+      },
+      {
+        "id": "voc_90bc987c7a9320a9d953",
+        "m": "quyết định",
+        "sourceIndex": 90
+      },
+      {
+        "id": "voc_056daef4d5ac3777460d",
+        "m": "báo cho biết",
+        "sourceIndex": 91
+      },
+      {
+        "id": "voc_88dfe082397ed76794d6",
+        "m": "chuẩn bị bài mới",
+        "r": "よしゅうします",
+        "sourceIndex": 92
+      },
+      {
+        "id": "voc_1dfbc154d6b9e24c3c04",
+        "m": "ôn bài cũ",
+        "sourceIndex": 93
+      },
+      {
+        "id": "voc_d117116ed51d748a453b",
+        "m": "con của người khác",
+        "sourceIndex": 94
+      },
+      {
+        "id": "voc_5882d034d3bc78d4a268",
+        "m": "giờ học",
+        "sourceIndex": 95
+      },
+      {
+        "id": "voc_acd632e601cfab3bfaee",
+        "m": "bài giảng",
+        "sourceIndex": 96
+      },
+      {
+        "id": "voc_87ecd98d358cfba325e7",
+        "m": "sách hướng dẫn",
+        "sourceIndex": 97
+      },
+      {
+        "id": "voc_075202796f36be9b2039",
+        "m": "áp phích",
+        "sourceIndex": 98
+      },
+      {
+        "id": "voc_e23fbd5b5ae8d1c2fec3",
+        "m": "búp bê; con rối",
+        "sourceIndex": 99
+      },
+      {
+        "id": "voc_f83bfcdcf357862c5c80",
+        "m": "cái gương",
+        "sourceIndex": 100
+      },
+      {
+        "id": "voc_5b9388e634fd5bd0f50c",
+        "m": "ngăn kéo",
+        "sourceIndex": 101
+      },
+      {
+        "id": "voc_7402453da010efe50ac8",
+        "m": "lối vào nhà",
+        "sourceIndex": 102
+      },
+      {
+        "id": "voc_5ad9fb8f2a63aaaf3cb2",
+        "m": "hành lang",
+        "sourceIndex": 103
+      },
+      {
+        "id": "voc_c7ab363839a3629667f1",
+        "m": "cái ao",
+        "sourceIndex": 104
+      },
+      {
+        "id": "voc_97217c7c478bb185df4c",
+        "m": "bốt cảnh sát",
+        "sourceIndex": 105
+      },
+      {
+        "id": "voc_f3dce518f812f543517c",
+        "m": "xung quanh",
+        "sourceIndex": 106
+      },
+      {
+        "id": "voc_a0a2facab96f89815889",
+        "m": "chính giữa",
+        "sourceIndex": 107
+      },
+      {
+        "id": "voc_8daafb4e06779a045e7c",
+        "m": "góc",
+        "sourceIndex": 108
+      },
+      {
+        "id": "voc_e01eb12682a60e537cf0",
+        "m": "bảng kế hoạch; thời khóa biểu",
+        "sourceIndex": 109
+      },
+      {
+        "id": "voc_ff31effdefbaa1472620",
+        "m": "nhạc kịch",
+        "sourceIndex": 110
+      },
+      {
+        "id": "voc_458fce4f6ef15516c59d",
+        "m": "tròn",
+        "sourceIndex": 111
+      },
+      {
+        "id": "voc_a684410139c6c7d9e770",
+        "m": "Mặt Trăng",
+        "sourceIndex": 112
+      },
+      {
+        "id": "voc_2f6d9892fc70ef50dc19",
+        "m": "Trái Đất",
+        "sourceIndex": 114
+      },
+      {
+        "id": "voc_35f87ddd58119ded2f45",
+        "m": "thế rồi; sau đó",
+        "sourceIndex": 115
+      },
+      {
+        "id": "voc_8bfb2a86429d5aba80ad",
+        "m": "tỉnh giấc",
+        "r": "めがさめます",
+        "sourceIndex": 116
+      },
+      {
+        "id": "voc_7c67a8b9b369811957df",
+        "m": "tiếp tục",
+        "sourceIndex": 117
+      },
+      {
+        "id": "voc_cbe40d04dbbbef3a30ef",
+        "m": "tìm thấy",
+        "sourceIndex": 118
+      },
+      {
+        "id": "voc_7594e3d85552c82840ed",
+        "m": "nghỉ giải lao",
+        "r": "きゅうけいします",
+        "sourceIndex": 119
+      },
+      {
+        "id": "voc_4add59d5e57543234c5f",
+        "m": "kỳ nghỉ nhiều ngày liên tiếp",
+        "sourceIndex": 120
+      },
+      {
+        "id": "voc_623e2cb434b95468cde9",
+        "m": "bài văn",
+        "sourceIndex": 121
+      },
+      {
+        "id": "voc_637279c69b9b7e3aef45",
+        "m": "triển lãm",
+        "sourceIndex": 122
+      },
+      {
+        "id": "voc_1c67c092cd9ea8844bc7",
+        "m": "lễ cưới",
+        "sourceIndex": 123
+      },
+      {
+        "id": "voc_2a14860f2bb5a36f2e83",
+        "m": "buổi lễ",
+        "sourceIndex": 124
+      },
+      {
+        "id": "voc_84a0d0fbd0fa584fabde",
+        "m": "trụ sở chính",
+        "sourceIndex": 125
+      },
+      {
+        "id": "voc_450b63fca5b5afc61762",
+        "m": "nhà thờ",
+        "sourceIndex": 126
+      },
+      {
+        "id": "voc_bcaffd33e0c3d4fad6ea",
+        "m": "ai đó",
+        "sourceIndex": 128
+      },
+      {
+        "id": "voc_edc13a4853ccdc90136f",
+        "m": "suốt; liên tục",
+        "sourceIndex": 129
+      },
+      {
+        "id": "voc_c8893ff8282e59b11e69",
+        "m": "ở lại; còn lại",
+        "sourceIndex": 130
+      },
+      {
+        "id": "voc_34bfe0a41facc61f7d9e",
+        "m": "ngôi làng",
+        "sourceIndex": 131
+      },
+      {
+        "id": "voc_1434c09cf55f1f4f8719",
+        "m": "rạp chiếu phim",
+        "sourceIndex": 132
+      },
+      {
+        "id": "voc_52a1ed2b6860f5e4eec7",
+        "m": "đóng; nhắm",
+        "sourceIndex": 133
+      },
+      {
+        "id": "voc_a64e3135441153b40421",
+        "m": "khắp thế giới",
+        "sourceIndex": 134
+      },
+      {
+        "id": "voc_ed4de5d9c6f229e4caa0",
+        "m": "tập trung; tụ họp",
+        "r": "あつまります",
+        "sourceIndex": 135
+      },
+      {
+        "id": "voc_3dfd2cbf2e03650d1fc0",
+        "m": "đẹp",
+        "sourceIndex": 136
+      },
+      {
+        "id": "voc_eb7d7e5bc8d67dc1b32e",
+        "m": "thiên nhiên",
+        "sourceIndex": 137
+      },
+      {
+        "id": "voc_128ff4240caaec5f60c3",
+        "m": "sự tuyệt vời",
+        "sourceIndex": 138
+      },
+      {
+        "id": "voc_94e2c7fd795fd01c8327",
+        "m": "nhận ra; để ý",
+        "sourceIndex": 139
+      },
+      {
+        "id": "voc_051214e0b97ba867f975",
+        "m": "vận động; tập thể thao",
+        "sourceIndex": 140
+      },
+      {
+        "id": "voc_31b47c9ca1969beee38d",
+        "m": "thành công",
+        "r": "せいこうします",
+        "sourceIndex": 141
+      },
+      {
+        "id": "voc_4ec10ce057f6ad8e511a",
+        "m": "quay lại",
+        "r": "もどります",
+        "sourceIndex": 142
+      },
+      {
+        "id": "voc_509334abe137f931ffab",
+        "m": "trời nắng; quang đãng",
+        "sourceIndex": 143
+      },
+      {
+        "id": "voc_5b54cd83820c66a2f837",
+        "m": "trời nhiều mây",
+        "sourceIndex": 144
+      },
+      {
+        "id": "voc_7c449362ed825e5af4a8",
+        "m": "làm lạnh",
+        "sourceIndex": 145
+      },
+      {
+        "id": "voc_7f41da51b6667849468e",
+        "m": "ồn ào",
+        "sourceIndex": 146
+      },
+      {
+        "id": "voc_231a1757693851b4e86d",
+        "m": "vết thương; chấn thương",
+        "sourceIndex": 147
+      },
+      {
+        "id": "voc_8c0d58b2a0c008650bea",
+        "m": "gió",
+        "sourceIndex": 148
+      },
+      {
+        "id": "voc_96a9ed080a906fc47744",
+        "m": "phía bắc",
+        "sourceIndex": 149
+      },
+      {
+        "id": "voc_2100f4da619f8054483b",
+        "m": "phía nam",
+        "sourceIndex": 150
+      },
+      {
+        "id": "voc_1cb6ad5eade4cd7d05b5",
+        "m": "nước máy",
+        "sourceIndex": 151
+      },
+      {
+        "id": "voc_9e04780f5b78b9683a0a",
+        "m": "chiều tối",
+        "sourceIndex": 152
+      },
+      {
+        "id": "voc_b287d908e2e51366f6f7",
+        "m": "trước",
+        "sourceIndex": 153
+      },
+      {
+        "id": "voc_1b66d304010476c944af",
+        "m": "đến mức như thế này",
+        "sourceIndex": 154
+      },
+      {
+        "id": "voc_926033e1a80a52630c0e",
+        "m": "đến mức như thế kia",
+        "sourceIndex": 155
+      },
+      {
+        "id": "voc_ca75f3dc6458f7c7c7ff",
+        "m": "muộn; khuya",
+        "sourceIndex": 156
+      },
+      {
+        "id": "voc_b29db2f03b62c898bb36",
+        "m": "biết đâu; có thể là",
+        "sourceIndex": 157
+      },
+      {
+        "id": "voc_4237ddffc93056bbaa58",
+        "m": "khỏe mạnh",
+        "sourceIndex": 158
+      },
+      {
+        "id": "voc_aa8eabf81a114bfcc649",
+        "m": "dạ dày",
+        "sourceIndex": 159
+      },
+      {
+        "id": "voc_deb1c337f090443c8198",
+        "m": "căng thẳng tâm lý",
+        "sourceIndex": 160
+      },
+      {
+        "id": "voc_93e840b18d09b33b3317",
+        "m": "làm quá sức",
+        "r": "むりをします",
+        "sourceIndex": 161
+      },
+      {
+        "id": "voc_055895d3fe2e3817ac0e",
+        "m": "gặp khó khăn; khó xử",
+        "sourceIndex": 162
+      },
+      {
+        "id": "voc_8ff924d32656054395a7",
+        "m": "vé số; xổ số",
+        "r": "たからくじ",
+        "sourceIndex": 163
+      },
+      {
+        "id": "voc_2d18f042d8da294a1732",
+        "m": "tình yêu đôi lứa",
+        "sourceIndex": 164
+      },
+      {
+        "id": "voc_b0d5168af1132c380d63",
+        "m": "người yêu",
+        "sourceIndex": 165
+      },
+      {
+        "id": "voc_d1ce3a2b3cbcce57049b",
+        "m": "từ bỏ",
+        "sourceIndex": 166
+      },
+      {
+        "id": "voc_136ef68370a974d6eb83",
+        "m": "ném",
+        "sourceIndex": 167
+      },
+      {
+        "id": "voc_94976ca151567d708c36",
+        "m": "bảo vệ; tuân thủ",
+        "r": "まもります",
+        "sourceIndex": 168
+      },
+      {
+        "id": "voc_62c11bde36fafcb46b15",
+        "m": "nâng lên",
+        "sourceIndex": 169
+      },
+      {
+        "id": "voc_e58280c6c9f777638d63",
+        "m": "truyền đạt",
+        "sourceIndex": 170
+      },
+      {
+        "id": "voc_6a84024313f09123d9b1",
+        "m": "chỗ ngồi",
+        "sourceIndex": 171
+      },
+      {
+        "id": "voc_fa0da7536c22d1159ebf",
+        "m": "quả bóng",
+        "sourceIndex": 172
+      },
+      {
+        "id": "voc_b59117da412835d6e935",
+        "m": "máy giặt",
+        "sourceIndex": 173
+      },
+      {
+        "id": "voc_8fa0ec60535e99dca8ac",
+        "m": "quy tắc; nội quy",
+        "sourceIndex": 174
+      },
+      {
+        "id": "voc_e4cdb9a2af8e251463a2",
+        "m": "cấm sử dụng",
+        "sourceIndex": 175
+      },
+      {
+        "id": "voc_e6319f3d46c661a9e59c",
+        "m": "cấm vào",
+        "sourceIndex": 176
+      },
+      {
+        "id": "voc_55a8b8040e8ae3866474",
+        "m": "cửa vào",
+        "sourceIndex": 177
+      },
+      {
+        "id": "voc_527bedec5435779a011c",
+        "m": "miễn phí",
+        "sourceIndex": 178
+      },
+      {
+        "id": "voc_0ed88303d6ed6a309df1",
+        "m": "đang sử dụng",
+        "sourceIndex": 179
+      },
+      {
+        "id": "voc_77ae09c5482953d83dea",
+        "m": "thế thì; chuyện đó thì (thân mật)",
+        "sourceIndex": 180
+      },
+      {
+        "id": "voc_8298ae8b3c0edb8a028b",
+        "m": "cảnh sát",
+        "sourceIndex": 182
+      },
+      {
+        "id": "voc_bba5170c18a844e8e3d6",
+        "m": "mọi người; người dân",
+        "sourceIndex": 183
+      },
+      {
+        "id": "voc_0f4ea13b1e32ce059598",
+        "m": "việc gấp",
+        "sourceIndex": 184
+      },
+      {
+        "id": "voc_0e888acaf7e7fa69f844",
+        "m": "cảnh sát",
+        "sourceIndex": 185
+      },
+      {
+        "id": "voc_6c8301b74049ef377c08",
+        "m": "tiền phạt",
+        "sourceIndex": 186
+      },
+      {
+        "id": "voc_3b9b0d2392f2f2e59a0c",
+        "m": "điện báo",
+        "sourceIndex": 187
+      },
+      {
+        "id": "voc_01c4556c8c49b62d6b2d",
+        "m": "ngày mai",
+        "r": "あした",
+        "sourceIndex": 188
+      },
+      {
+        "id": "voc_3345771f2fec05922694",
+        "m": "vắng nhà",
+        "sourceIndex": 189
+      },
+      {
+        "id": "voc_dbf78fb6d6589c7101a4",
+        "m": "nỗi buồn",
+        "sourceIndex": 190
+      },
+      {
+        "id": "voc_8112cf54a87de1f5ad19",
+        "m": "lắp ráp",
+        "r": "くみたてます",
+        "sourceIndex": 191
+      },
+      {
+        "id": "voc_40ac61d1bc24158da20b",
+        "m": "gấp; bẻ gãy",
+        "sourceIndex": 192
+      },
+      {
+        "id": "voc_dfc04fc3ab2e707e34a0",
+        "m": "đặt câu hỏi",
+        "sourceIndex": 193
+      },
+      {
+        "id": "voc_d99fe1a142c0ab3b8004",
+        "m": "to; dày (vật hình trụ)",
+        "sourceIndex": 195
+      },
+      {
+        "id": "voc_2ead6e17e786c34b1b47",
+        "m": "điệu múa lễ hội Bon",
+        "sourceIndex": 196
+      },
+      {
+        "id": "voc_a210f9246b2251abe231",
+        "m": "đồ nội thất",
+        "sourceIndex": 197
+      },
+      {
+        "id": "voc_839af09aeabc19eb4027",
+        "m": "thon; mảnh; hẹp",
+        "sourceIndex": 198
+      },
+      {
+        "id": "voc_e049f73fe7e313b56243",
+        "m": "câu lạc bộ thể thao",
+        "sourceIndex": 199
+      },
+      {
+        "id": "voc_9da7ce8708243cd62673",
+        "m": "chìa khóa",
+        "sourceIndex": 200
+      },
+      {
+        "id": "voc_06230a299d9a0cd0b0fa",
+        "m": "dây an toàn",
+        "sourceIndex": 201
+      },
+      {
+        "id": "voc_b8f51ee563fbcbd5f24c",
+        "m": "sách hướng dẫn sử dụng",
+        "sourceIndex": 202
+      },
+      {
+        "id": "voc_2affd9977102a310c03d",
+        "m": "sơ đồ; hình vẽ",
+        "sourceIndex": 203
+      },
+      {
+        "id": "voc_f3972c92ad142d7d9834",
+        "m": "đường kẻ",
+        "sourceIndex": 204
+      },
+      {
+        "id": "voc_cfc7b2cbc82c022f6406",
+        "m": "mũi tên",
+        "sourceIndex": 205
+      },
+      {
+        "id": "voc_760f6e023c58c0a2a425",
+        "m": "màu đen",
+        "sourceIndex": 206
+      },
+      {
+        "id": "voc_16fc96c9ba5e6ff568e1",
+        "m": "màu đỏ",
+        "sourceIndex": 207
+      },
+      {
+        "id": "voc_c3ca28a7702e1ed8915e",
+        "m": "màu xanh da trời",
+        "sourceIndex": 208
+      },
+      {
+        "id": "voc_f165d86e613e30f2bd9e",
+        "m": "màu xanh lam đậm",
+        "sourceIndex": 209
+      },
+      {
+        "id": "voc_6c5f76289e1c1a4c48b5",
+        "m": "màu vàng",
+        "sourceIndex": 210
+      },
+      {
+        "id": "voc_59c69a97470091485905",
+        "m": "trà đạo",
+        "sourceIndex": 211
+      },
+      {
+        "id": "voc_ef2924206e29f1b16b5f",
+        "m": "trước; trước tiên",
+        "sourceIndex": 212
+      },
+      {
+        "id": "voc_00cdb40cc926cd1ceb33",
+        "m": "đặt lên",
+        "r": "のせます",
+        "sourceIndex": 213
+      },
+      {
+        "id": "voc_39ab73495b844d1ae06d",
+        "m": "đắng",
+        "sourceIndex": 214
+      },
+      {
+        "id": "voc_58ccf950fef37f320f3c",
+        "m": "nguyên liệu",
+        "sourceIndex": 215
+      },
+      {
+        "id": "voc_aa5e13b4abf5a193142b",
+        "m": "thịt gà",
+        "sourceIndex": 216
+      },
+      {
+        "id": "voc_626fb9ad5ea3691ddb01",
+        "m": "hành tây",
+        "sourceIndex": 217
+      },
+      {
+        "id": "voc_9a3984b0aa1adfb709b1",
+        "m": "gia vị",
+        "sourceIndex": 218
+      },
+      {
+        "id": "voc_5566e585cef2e2753481",
+        "m": "lửa",
+        "r": "ひ",
+        "sourceIndex": 219
+      },
+      {
+        "id": "voc_bc68b5eb38f79dddb3b9",
+        "m": "chín (do nấu)",
+        "r": "にえます",
+        "sourceIndex": 221
+      },
+      {
+        "id": "voc_57439907d07989e5db1e",
+        "m": "bát tô",
+        "sourceIndex": 222
+      },
+      {
+        "id": "voc_754ae7172b92f24e3f25",
+        "m": "hiếm; hiếm thấy",
+        "sourceIndex": 224
+      },
+      {
+        "id": "voc_145d693a10ce3ac34149",
+        "m": "cảng",
+        "sourceIndex": 226
+      },
+      {
+        "id": "voc_8f4da291ec139ea34990",
+        "m": "sân thượng",
+        "sourceIndex": 227
+      },
+      {
+        "id": "voc_e49487639ab085e23f76",
+        "m": "nước ngoài",
+        "sourceIndex": 228
+      },
+      {
+        "id": "voc_526f67d182176deaa2e5",
+        "m": "leo núi",
+        "sourceIndex": 229
+      },
+      {
+        "id": "voc_46cc61c278b4390e9203",
+        "m": "sự cho phép; giấy phép",
+        "sourceIndex": 232
+      },
+      {
+        "id": "voc_93a9ae3716c6224bbdc6",
+        "m": "hình tròn",
+        "r": "まる",
+        "sourceIndex": 233
+      },
+      {
+        "id": "voc_453dd74682ffb8b65c1b",
+        "m": "thao tác",
+        "sourceIndex": 234
+      },
+      {
+        "id": "voc_4fa1a630803f3a0afd59",
+        "m": "phương pháp",
+        "sourceIndex": 236
+      },
+      {
+        "id": "voc_079981a807543cad60d2",
+        "m": "thiết bị; cơ sở vật chất",
+        "sourceIndex": 237
+      },
+      {
+        "id": "voc_d44e3755abe431c92ec9",
+        "m": "rèm cửa",
+        "sourceIndex": 238
+      },
+      {
+        "id": "voc_f69ef29ed7e4e4608785",
+        "m": "sợi dây",
+        "sourceIndex": 239
+      },
+      {
+        "id": "voc_f1c560c5571bf501258b",
+        "m": "cái nắp",
+        "r": "ふた",
+        "sourceIndex": 240
+      },
+      {
+        "id": "voc_2e57d4775fcd1cc0f08e",
+        "m": "chiếc lá",
+        "sourceIndex": 241
+      },
+      {
+        "id": "voc_a50e71cef1a2e85f6bf0",
+        "m": "bản nhạc",
+        "r": "きょく",
+        "sourceIndex": 242
+      },
+      {
+        "id": "voc_1b979c8ae80fe90a2607",
+        "m": "niềm vui; điều mong đợi",
+        "sourceIndex": 243
+      },
+      {
+        "id": "voc_e1a1ec4b0ea4f86f2fb1",
+        "m": "nếu vậy thì",
+        "sourceIndex": 244
+      },
+      {
+        "id": "voc_e9f100073b1371ae5015",
+        "m": "công ty du lịch",
+        "sourceIndex": 245
+      },
+      {
+        "id": "voc_d7e3640b81be68a20efe",
+        "m": "chi tiết; tường tận",
+        "sourceIndex": 246
+      },
+      {
+        "id": "voc_8304b889519e105acddd",
+        "m": "hòa thuận; chơi thân",
+        "r": "なかよくします",
+        "sourceIndex": 248
+      },
+      {
+        "id": "voc_d4b52a5872c6832124e6",
+        "m": "tiết kiệm tiền",
+        "sourceIndex": 249
+      },
+      {
+        "id": "voc_f5a11299b18945013cf7",
+        "m": "tăng cân",
+        "r": "ふとります",
+        "sourceIndex": 250
+      },
+      {
+        "id": "voc_d3a7ea74eff5cb45a41d",
+        "m": "giảm cân",
+        "r": "やせます",
+        "sourceIndex": 251
+      },
+      {
+        "id": "voc_4021f3a9b11874d1f895",
+        "m": "mềm",
+        "sourceIndex": 252
+      },
+      {
+        "id": "voc_b80fa70972a126822336",
+        "m": "sức khỏe",
+        "sourceIndex": 253
+      },
+      {
+        "id": "voc_5fbb287406816c1f8158",
+        "m": "kiếm đạo",
+        "sourceIndex": 254
+      },
+      {
+        "id": "voc_ca06c6b0a936972adae7",
+        "m": "hằng tuần",
+        "sourceIndex": 255
+      },
+      {
+        "id": "voc_fc4665e7d58d269af07e",
+        "m": "hằng năm",
+        "r": "まいとし",
+        "sourceIndex": 256
+      },
+      {
+        "id": "voc_747a74caee0cbab3126b",
+        "m": "khá; tương đối",
+        "sourceIndex": 257
+      },
+      {
+        "id": "voc_185bd3287ce95f694f7e",
+        "m": "nhất định",
+        "sourceIndex": 258
+      },
+      {
+        "id": "voc_006c58059b4d290e4f46",
+        "m": "tuyệt đối",
+        "sourceIndex": 259
+      },
+      {
+        "id": "voc_42ede4899b1384a35718",
+        "m": "trong khả năng có thể",
+        "sourceIndex": 260
+      },
+      {
+        "id": "voc_f1661e21e52b225b1873",
+        "m": "dạo này",
+        "sourceIndex": 261
+      },
+      {
+        "id": "voc_bad07f7a3081ef7486cb",
+        "m": "quý khách",
+        "sourceIndex": 262
+      },
+      {
+        "id": "voc_def1d291a74b68a049de",
+        "m": "bơi lội",
+        "sourceIndex": 263
+      },
+      {
+        "id": "voc_698cc476219300e08b0c",
+        "m": "điệu tango",
+        "sourceIndex": 264
+      },
+      {
+        "id": "voc_eecec13c54bdea9b25ad",
+        "m": "phương tiện đi lại",
+        "sourceIndex": 265
+      },
+      {
+        "id": "voc_94a285e2b32d8991bf18",
+        "m": "lịch sử",
+        "sourceIndex": 266
+      },
+      {
+        "id": "voc_4a7c942184083b236d9a",
+        "m": "ở xa",
+        "sourceIndex": 267
+      },
+      {
+        "id": "voc_7c976ee0fd9593832079",
+        "m": "bay",
+        "sourceIndex": 269
+      },
+      {
+        "id": "voc_bc40fe65274420a46025",
+        "m": "an toàn",
+        "sourceIndex": 270
+      },
+      {
+        "id": "voc_4d62ba211e5a39ed329c",
+        "m": "khen",
+        "sourceIndex": 271
+      },
+      {
+        "id": "voc_c572d830a8af0b01b0da",
+        "m": "mắng",
+        "sourceIndex": 272
+      },
+      {
+        "id": "voc_c3a0cb320325f5985932",
+        "m": "mời; rủ",
+        "sourceIndex": 273
+      },
+      {
+        "id": "voc_c69a186d186aa8b6bf70",
+        "m": "đánh thức",
+        "r": "おこします",
+        "sourceIndex": 274
+      },
+      {
+        "id": "voc_41b66fbf6a5118369e96",
+        "m": "nhờ; yêu cầu",
+        "r": "たのみます",
+        "sourceIndex": 275
+      },
+      {
+        "id": "voc_95eceff7d41a54da3e3e",
+        "m": "giẫm lên",
+        "r": "ふみます",
+        "sourceIndex": 277
+      },
+      {
+        "id": "voc_b8a24f22d5b77002e542",
+        "m": "mời đến dự",
+        "sourceIndex": 278
+      },
+      {
+        "id": "voc_5bb77d88556769cb9756",
+        "m": "chú ý; nhắc nhở",
+        "sourceIndex": 279
+      },
+      {
+        "id": "voc_e8a1778339a0b2cde99b",
+        "m": "thực hiện; tiến hành",
+        "sourceIndex": 280
+      },
+      {
+        "id": "voc_a52d2e18b0cc084a3518",
+        "m": "biên dịch",
+        "r": "ほんやくします",
+        "sourceIndex": 281
+      },
+      {
+        "id": "voc_5406ce038b8ec8474b3c",
+        "m": "phát minh",
+        "sourceIndex": 282
+      },
+      {
+        "id": "voc_46a9bbc8fac4537480fb",
+        "m": "gạo",
+        "sourceIndex": 283
+      },
+      {
+        "id": "voc_a8c5fc900d62fccf4c52",
+        "m": "lúa mạch",
+        "sourceIndex": 284
+      },
+      {
+        "id": "voc_27ccbb4bd0c3fdbf8dbc",
+        "m": "dầu mỏ",
+        "sourceIndex": 285
+      },
+      {
+        "id": "voc_6366768e9361c6aaa550",
+        "m": "nguyên liệu thô",
+        "sourceIndex": 286
+      },
+      {
+        "id": "voc_1a1f23a5281962091067",
+        "m": "kẻ trộm",
+        "sourceIndex": 287
+      },
+      {
+        "id": "voc_359c0584cbcef0eef40c",
+        "m": "kiến trúc sư",
+        "sourceIndex": 288
+      },
+      {
+        "id": "voc_30675109c88379a12dcc",
+        "m": "nhà khoa học",
+        "sourceIndex": 289
+      },
+      {
+        "id": "voc_41ac15045676f2b88df7",
+        "m": "Truyện Genji (tên tác phẩm)",
+        "sourceIndex": 292
+      },
+      {
+        "id": "voc_220440a988fe1844966e",
+        "m": "san lấp",
+        "r": "うめたてます",
+        "sourceIndex": 293
+      },
+      {
+        "id": "voc_b8a9604b70d8b11f6366",
+        "m": "kỹ thuật",
+        "sourceIndex": 294
+      },
+      {
+        "id": "voc_ab92719756411b114a6b",
+        "m": "đất đai",
+        "r": "とち",
+        "sourceIndex": 295
+      },
+      {
+        "id": "voc_fae102051c5c14db3d94",
+        "m": "tiếng ồn",
+        "sourceIndex": 296
+      },
+      {
+        "id": "voc_b1f8a3c9b0d216567ffb",
+        "m": "đường tiếp cận; cách đi đến",
+        "sourceIndex": 297
+      },
+      {
+        "id": "voc_557ab16cd7d5dc85b262",
+        "m": "sử dụng",
+        "sourceIndex": 298
+      },
+      {
+        "id": "voc_0ffdede83cac8a992e0b",
+        "m": "ngủ",
+        "r": "ねむります",
+        "sourceIndex": 299
+      },
+      {
+        "id": "voc_bf1c8a59dd890bf65fdc",
+        "m": "chạm khắc",
+        "r": "ほります",
+        "sourceIndex": 300
+      },
+      {
+        "id": "voc_c27079587c282ca646f0",
+        "m": "bạn cùng nhóm; đồng đội",
+        "r": "なかま",
+        "sourceIndex": 301
+      },
+      {
+        "id": "voc_a5b4f02cf427da535fe1",
+        "m": "sau đó",
+        "sourceIndex": 302
+      },
+      {
+        "id": "voc_3a18c1face22684cb2db",
+        "m": "con chuột",
+        "r": "ねずみ",
+        "sourceIndex": 303
+      },
+      {
+        "id": "voc_698cb7559696034ebacf",
+        "m": "nuôi dưỡng; trồng",
+        "sourceIndex": 304
+      },
+      {
+        "id": "voc_531e0bbe0cffbc639c87",
+        "m": "vận chuyển",
+        "sourceIndex": 305
+      },
+      {
+        "id": "voc_13fcc10128b86116f023",
+        "m": "qua đời",
+        "r": "なくなります",
+        "sourceIndex": 306
+      },
+      {
+        "id": "voc_42e48df31441da993a83",
+        "m": "nhập viện",
+        "sourceIndex": 307
+      },
+      {
+        "id": "voc_39070db3aa6ce12a46d4",
+        "m": "xuất viện",
+        "sourceIndex": 308
+      },
+      {
+        "id": "voc_659c640a0323b28d82e0",
+        "m": "cảm thấy khó chịu; buồn nôn",
+        "sourceIndex": 309
+      },
+      {
+        "id": "voc_ebf4313a7a10996920ff",
+        "m": "em bé",
+        "sourceIndex": 310
+      },
+      {
+        "id": "voc_62ade7d605b519682aff",
+        "m": "trường tiểu học",
+        "sourceIndex": 311
+      },
+      {
+        "id": "voc_1c5e3e93ad5e4bc3c566",
+        "m": "trường trung học cơ sở",
+        "sourceIndex": 312
+      },
+      {
+        "id": "voc_b2b908f584aeb39b5f88",
+        "m": "phía trước nhà ga",
+        "sourceIndex": 313
+      },
+      {
+        "id": "voc_d3c1be697b8eedb6589b",
+        "m": "bờ biển",
+        "sourceIndex": 314
+      },
+      {
+        "id": "voc_2bb2af167c0908a7a96a",
+        "m": "giấy tờ; tài liệu",
+        "sourceIndex": 315
+      },
+      {
+        "id": "voc_e6183599e4931e8ec3ad",
+        "m": "phòng nghiên cứu",
+        "sourceIndex": 316
+      },
+      {
+        "id": "voc_4bae725c7f688b7a6b9f",
+        "m": "con dấu",
+        "r": "はんこ",
+        "sourceIndex": 317
+      },
+      {
+        "id": "voc_303a1a9d6afee16f7b78",
+        "m": "cặp sinh đôi",
+        "sourceIndex": 318
+      },
+      {
+        "id": "voc_51640fd6aa0694c7bed4",
+        "m": "chị em gái",
+        "r": "しまい",
+        "sourceIndex": 319
+      },
+      {
+        "id": "voc_99c4b221b171146de254",
+        "m": "tính cách",
+        "sourceIndex": 320
+      },
+      {
+        "id": "voc_711e975a76eda9437f8b",
+        "m": "điểm",
+        "sourceIndex": 321
+      },
+      {
+        "id": "voc_5fc16d7f7f2ad62f2926",
+        "m": "lớp học",
+        "sourceIndex": 322
+      },
+      {
+        "id": "voc_8f7d2ae0829e78024e2b",
+        "m": "cãi nhau",
+        "sourceIndex": 323
+      },
+      {
+        "id": "voc_9085008ed10d5a43f75e",
+        "m": "thất vọng",
+        "sourceIndex": 324
+      },
+      {
+        "id": "voc_a97134e883219492c035",
+        "m": "yên tâm",
+        "sourceIndex": 325
+      },
+      {
+        "id": "voc_dd9523ccb893dd8dac58",
+        "m": "ly hôn",
+        "sourceIndex": 326
+      },
+      {
+        "id": "voc_a976611ac81de00ebf50",
+        "m": "bẩn",
+        "sourceIndex": 327
+      },
+      {
+        "id": "voc_ec580274ae01f3e2faa8",
+        "m": "vui mừng",
+        "sourceIndex": 328
+      },
+      {
+        "id": "voc_5815b5163ab58f890f17",
+        "m": "buồn",
+        "sourceIndex": 329
+      },
+      {
+        "id": "voc_d757c12b55b2df98350a",
+        "m": "xấu hổ",
+        "sourceIndex": 330
+      },
+      {
+        "id": "voc_cbd797f6b45f024f0d02",
+        "m": "bão",
+        "sourceIndex": 331
+      },
+      {
+        "id": "voc_93c9e3f255aa5079c649",
+        "m": "hỏa hoạn",
+        "sourceIndex": 332
+      },
+      {
+        "id": "voc_c354488a77b228eaa414",
+        "m": "tai nạn",
+        "r": "じこ",
+        "sourceIndex": 333
+      },
+      {
+        "id": "voc_60d2716620a0266327b8",
+        "m": "tiền điện thoại",
+        "sourceIndex": 334
+      },
+      {
+        "id": "voc_6bfbad1df2c735009883",
+        "m": "khăn tắm; khăn lau",
+        "sourceIndex": 335
+      },
+      {
+        "id": "voc_1f8a3543ba1464d10839",
+        "m": "xà phòng",
+        "sourceIndex": 336
+      },
+      {
+        "id": "voc_d6b055e90a4d6c0320d5",
+        "m": "đông người",
+        "sourceIndex": 337
+      },
+      {
+        "id": "voc_7d2e9dfbf38114557901",
+        "m": "người lớn",
+        "sourceIndex": 338
+      },
+      {
+        "id": "voc_3db90c21c2cb10ce2bd1",
+        "m": "Tây phương hóa",
+        "r": "せいようかします",
+        "sourceIndex": 339
+      },
+      {
+        "id": "voc_ff96f9f85bdab177802d",
+        "m": "vừa; hợp",
+        "r": "あいます",
+        "sourceIndex": 340
+      },
+      {
+        "id": "voc_34e10d75bea8d14493ec",
+        "m": "đếm",
+        "r": "かぞえます",
+        "sourceIndex": 341
+      },
+      {
+        "id": "voc_4c95884b54bd23936f58",
+        "m": "đo; cân",
+        "sourceIndex": 342
+      },
+      {
+        "id": "voc_cf8938354c4495ac8406",
+        "m": "xác nhận; kiểm tra lại",
+        "sourceIndex": 343
+      },
+      {
+        "id": "voc_19bd0f8f8cf422a22050",
+        "m": "khởi hành",
+        "r": "しゅっぱつします",
+        "sourceIndex": 344
+      },
+      {
+        "id": "voc_78a5d1e9b5b4776440b7",
+        "m": "đến nơi",
+        "r": "とうちゃくします",
+        "sourceIndex": 345
+      },
+      {
+        "id": "voc_560b27d9b122d2db1045",
+        "m": "say",
+        "r": "よいます",
+        "sourceIndex": 346
+      },
+      {
+        "id": "voc_5645eef0a4405c1e38bb",
+        "m": "tiệc tất niên",
+        "sourceIndex": 347
+      },
+      {
+        "id": "voc_9d7cb767ad3b40db927b",
+        "m": "tiệc tân niên",
+        "sourceIndex": 348
+      },
+      {
+        "id": "voc_8c729cfebe8542ff0020",
+        "m": "đại hội; cuộc thi",
+        "sourceIndex": 349
+      },
+      {
+        "id": "voc_e3e4b48dc608fc56285a",
+        "m": "mặt trước",
+        "r": "おもて",
+        "sourceIndex": 350
+      },
+      {
+        "id": "voc_b315bbbf8d501f7a7d2e",
+        "m": "mặt sau",
+        "sourceIndex": 351
+      },
+      {
+        "id": "voc_2792244318cd97060eb1",
+        "m": "trả lời; hồi âm",
+        "sourceIndex": 352
+      },
+      {
+        "id": "voc_7dd8898494300d24fcb1",
+        "m": "đăng ký",
+        "sourceIndex": 353
+      },
+      {
+        "id": "voc_0aa072c2d771abc24ec9",
+        "m": "sự thật",
+        "sourceIndex": 354
+      },
+      {
+        "id": "voc_946483dac83e9e30f266",
+        "m": "lỗi; điều sai",
+        "sourceIndex": 355
+      },
+      {
+        "id": "voc_0f4be6f9c1cd05372b82",
+        "m": "chiều dài",
+        "sourceIndex": 356
+      },
+      {
+        "id": "voc_422b4cc755942b4c3dff",
+        "m": "trọng lượng",
+        "sourceIndex": 357
+      },
+      {
+        "id": "voc_45802c6b467d3eb12f67",
+        "m": "chiều cao",
+        "sourceIndex": 358
+      },
+      {
+        "id": "voc_3a58bdfaaa8be708dd48",
+        "m": "kích thước",
+        "sourceIndex": 359
+      },
+      {
+        "id": "voc_8141aa57d54df6e8d1db",
+        "m": "lễ hội tuyết",
+        "sourceIndex": 360
+      },
+      {
+        "id": "voc_30b886d01887ee454240",
+        "m": "một mi li mét",
+        "sourceIndex": 361
+      },
+      {
+        "id": "voc_0986c8fa11d3070b21ea",
+        "m": "bài kiểm tra",
+        "sourceIndex": 362
+      },
+      {
+        "id": "voc_5c74a6bbbe91874e46ef",
+        "m": "thành tích; kết quả học tập",
+        "sourceIndex": 363
+      },
+      {
+        "id": "voc_1524884885a350b72341",
+        "m": "tình hình; dáng vẻ",
+        "sourceIndex": 364
+      },
+      {
+        "id": "voc_0d0cd5e89ce4d55b44ee",
+        "m": "vụ việc; vụ án",
+        "sourceIndex": 365
+      },
+      {
+        "id": "voc_e07d9c0ab96a3f0de84a",
+        "m": "quả bom",
+        "r": "ばくだん",
+        "sourceIndex": 366
+      },
+      {
+        "id": "voc_1e19224c68d210921fc5",
+        "m": "xếp hàng hóa lên",
+        "r": "つみます",
+        "sourceIndex": 367
+      },
+      {
+        "id": "voc_9c05814326b829c09a22",
+        "m": "nhưng (nối mệnh đề)",
+        "sourceIndex": 368
+      },
+      {
+        "id": "voc_e02326859ee039741747",
+        "m": "đột nhiên; gấp",
+        "sourceIndex": 369
+      },
+      {
+        "id": "voc_f2068147d2c69abcdcdc",
+        "m": "thủ phạm",
+        "sourceIndex": 370
+      },
+      {
+        "id": "voc_ceb2545c5c7448855f54",
+        "m": "ngay cả bây giờ",
+        "sourceIndex": 371
+      },
+      {
+        "id": "voc_dab05209bbebb48181ea",
+        "m": "cho; tặng (bề dưới hoặc động thực vật)",
+        "sourceIndex": 372
+      },
+      {
+        "id": "voc_fef279b054e3cf04eeef",
+        "m": "gọi; mời",
+        "r": "よびます",
+        "sourceIndex": 373
+      },
+      {
+        "id": "voc_115379f0bc8ac0a42331",
+        "m": "dễ thương",
+        "sourceIndex": 374
+      },
+      {
+        "id": "voc_4d6aff1cb8d43529ee49",
+        "m": "thay thế; đổi",
+        "sourceIndex": 375
+      },
+      {
+        "id": "voc_1612039b34d60752d0b9",
+        "m": "ngữ pháp",
+        "sourceIndex": 376
+      },
+      {
+        "id": "voc_9418fdf10b00c3492316",
+        "m": "tất",
+        "sourceIndex": 377
+      },
+      {
+        "id": "voc_b949abc6ee19c87cc026",
+        "m": "năm kia",
+        "sourceIndex": 378
+      },
+      {
+        "id": "voc_134b1c13521b6c937c87",
+        "m": "giữ hộ",
+        "r": "あずかります",
+        "sourceIndex": 380
+      },
+      {
+        "id": "voc_c59815c5f202974e42a2",
+        "m": "à; vâng (đáp lời)",
+        "sourceIndex": 381
+      },
+      {
+        "id": "voc_ce743f6389116c2a0532",
+        "m": "hôm trước",
+        "sourceIndex": 382
+      },
+      {
+        "id": "voc_f87846806564fd518e60",
+        "m": "được giúp; thoát khó khăn",
+        "r": "たすかります",
+        "sourceIndex": 383
+      },
+      {
+        "id": "voc_f05ef614064c92e52486",
+        "m": "trẻ em",
+        "sourceIndex": 384
+      },
+      {
+        "id": "voc_9598971c02e15ca809c9",
+        "m": "bắt nạt",
+        "r": "いじめます",
+        "sourceIndex": 385
+      },
+      {
+        "id": "voc_9d4fc636f44788442c63",
+        "m": "con rùa",
+        "r": "かめ",
+        "sourceIndex": 386
+      },
+      {
+        "id": "voc_9a9a4d1efe22d0e12221",
+        "m": "đất liền",
+        "r": "りく",
+        "sourceIndex": 387
+      },
+      {
+        "id": "voc_bd8d40ba69a89376e419",
+        "m": "bọc; gói",
+        "sourceIndex": 388
+      },
+      {
+        "id": "voc_f98f52cfac95894da5f4",
+        "m": "trộn; khuấy",
+        "r": "まぜます",
+        "sourceIndex": 389
+      },
+      {
+        "id": "voc_015964076a1a122da94d",
+        "m": "tính toán",
+        "r": "けいさんします",
+        "sourceIndex": 390
+      },
+      {
+        "id": "voc_791f5fd589956dd75c55",
+        "m": "dày",
+        "sourceIndex": 391
+      },
+      {
+        "id": "voc_6d5ae77b583abb8a70ad",
+        "m": "nhạc sĩ",
+        "sourceIndex": 392
+      },
+      {
+        "id": "voc_cca07da6109abe0fd47b",
+        "m": "hai người",
+        "sourceIndex": 393
+      },
+      {
+        "id": "voc_0798a9328225cf477447",
+        "m": "giáo dục",
+        "sourceIndex": 394
+      },
+      {
+        "id": "voc_2c338e2dabcaa8be2466",
+        "m": "văn hóa",
+        "sourceIndex": 395
+      },
+      {
+        "id": "voc_5f43d3c2688a7e612b7a",
+        "m": "xã hội",
+        "sourceIndex": 396
+      },
+      {
+        "id": "voc_717e6ba4bb992cc53e79",
+        "m": "pháp luật",
+        "sourceIndex": 397
+      },
+      {
+        "id": "voc_65c354ef31eaa8a38311",
+        "m": "hòa bình",
+        "sourceIndex": 398
+      },
+      {
+        "id": "voc_35c1e5fed1fd99318aef",
+        "m": "mục đích",
+        "sourceIndex": 399
+      },
+      {
+        "id": "voc_9fae89e22d70937f2edb",
+        "m": "quan hệ",
+        "sourceIndex": 400
+      },
+      {
+        "id": "voc_dd50369ab51b67c442f2",
+        "m": "ấm đun nước",
+        "sourceIndex": 401
+      },
+      {
+        "id": "voc_4ca60b8c5cac5ed61d32",
+        "m": "dụng cụ mở nắp chai",
+        "sourceIndex": 402
+      },
+      {
+        "id": "voc_733a8d91f78d92cd4d5f",
+        "m": "dụng cụ mở đồ hộp",
+        "sourceIndex": 403
+      },
+      {
+        "id": "voc_4a368282f2a9d22eb4ed",
+        "m": "bàn tính",
+        "sourceIndex": 404
+      },
+      {
+        "id": "voc_243e54f67b3f9cfe0f28",
+        "m": "nhiệt kế đo thân nhiệt",
+        "sourceIndex": 405
+      },
+      {
+        "id": "voc_ec99ce952b2036d51f0a",
+        "m": "hòn đá",
+        "sourceIndex": 406
+      },
+      {
+        "id": "voc_4d2c8712e1625325a122",
+        "m": "dữ liệu",
+        "r": "データ",
+        "sourceIndex": 407
+      },
+      {
+        "id": "voc_2c39db05a16ce4bc742f",
+        "m": "tệp; bìa kẹp tài liệu",
+        "sourceIndex": 408
+      },
+      {
+        "id": "voc_b6cd0246aaabee8c728b",
+        "m": "hết sức; chăm chỉ",
+        "sourceIndex": 409
+      },
+      {
+        "id": "voc_768c3c605207d6f82bf2",
+        "m": "tại sao",
+        "r": "なぜ",
+        "sourceIndex": 410
+      },
+      {
+        "id": "voc_7792953722d52d6d9d01",
+        "m": "Liên Hợp Quốc",
+        "sourceIndex": 411
+      },
+      {
+        "id": "voc_33bbe4c0660c890003e9",
+        "m": "khoản vay",
+        "sourceIndex": 413
+      },
+      {
+        "id": "voc_fbc19c6ac293a8c75ae2",
+        "m": "bộ",
+        "sourceIndex": 414
+      },
+      {
+        "id": "voc_fe4b39075fbe03884ef1",
+        "m": "còn lại; sau",
+        "sourceIndex": 415
+      },
+      {
+        "id": "voc_66238050aa7035cd74d5",
+        "m": "thực phẩm",
+        "sourceIndex": 416
+      },
+      {
+        "id": "voc_1c1682eb1f8022028c27",
+        "m": "điều tra; khảo sát",
+        "sourceIndex": 417
+      },
+      {
+        "id": "voc_95da05a30e928cf2be8a",
+        "m": "lại; thêm nữa",
+        "sourceIndex": 418
+      },
+      {
+        "id": "voc_a57cd65f9b1481b78ce9",
+        "m": "bây giờ thì",
+        "sourceIndex": 419
+      },
+      {
+        "id": "voc_2576f009d43ec7a25a87",
+        "m": "thiết bị sưởi",
+        "sourceIndex": 420
+      },
+      {
+        "id": "voc_ce42d136ae707a192d1f",
+        "m": "khiếu thẩm mỹ; gu",
+        "sourceIndex": 421
+      },
+      {
+        "id": "voc_aa17e2b224a900335439",
+        "m": "sắp sửa; đến nơi rồi",
+        "sourceIndex": 422
+      },
+      {
+        "id": "voc_1fd2e08d55e233797938",
+        "m": "ôi (cảm thán)",
+        "sourceIndex": 423
+      },
+      {
+        "id": "voc_951f97ce13f4da7f3abb",
+        "m": "thành viên",
+        "sourceIndex": 424
+      },
+      {
+        "id": "voc_79d271baac1563fc42e3",
+        "m": "tuổi",
+        "sourceIndex": 425
+      },
+      {
+        "id": "voc_0ef074d51cf3af270b22",
+        "m": "khóc",
+        "r": "なきます",
+        "sourceIndex": 426
+      },
+      {
+        "id": "voc_349b30a9bae603ba0a0c",
+        "m": "điều chỉnh",
+        "r": "ちょうせつします",
+        "sourceIndex": 427
+      },
+      {
+        "id": "voc_3e489e341f9f2d59d0b4",
+        "m": "nhỏ; chi tiết",
+        "sourceIndex": 428
+      },
+      {
+        "id": "voc_dea1442f38db8b59e41b",
+        "m": "không khí",
+        "sourceIndex": 429
+      },
+      {
+        "id": "voc_0e1a7d7861d89b12ff43",
+        "m": "nước mắt",
+        "r": "なみだ",
+        "sourceIndex": 430
+      },
+      {
+        "id": "voc_c6729d1e76dc5eb727ba",
+        "m": "một nửa",
+        "sourceIndex": 431
+      },
+      {
+        "id": "voc_1a9e8c1281aa08e71e4a",
+        "m": "món ăn Nhật",
+        "sourceIndex": 432
+      },
+      {
+        "id": "voc_52d4c9f000f08db43d3a",
+        "m": "món ăn phương Tây",
+        "sourceIndex": 433
+      },
+      {
+        "id": "voc_ae0a160822388628b45f",
+        "m": "thức ăn ăn kèm cơm",
+        "sourceIndex": 434
+      },
+      {
+        "id": "voc_a2c8a1b7a9145b8f40b0",
+        "m": "lượng",
+        "sourceIndex": 435
+      },
+      {
+        "id": "voc_2c8174246fb00883a864",
+        "m": "phòng đơn",
+        "sourceIndex": 436
+      },
+      {
+        "id": "voc_ef7fadeae65b37c98f0b",
+        "m": "quần áo giặt",
+        "sourceIndex": 437
+      },
+      {
+        "id": "voc_befa2ed778c03f6ec499",
+        "m": "lý do",
+        "sourceIndex": 438
+      },
+      {
+        "id": "voc_974136038be0adb241aa",
+        "m": "ngắn; kiểu tóc ngắn",
+        "sourceIndex": 439
+      },
+      {
+        "id": "voc_aa5628d75f43a37a08cf",
+        "m": "cách diễn đạt",
+        "sourceIndex": 440
+      },
+      {
+        "id": "voc_1f7b1da2485525f0beef",
+        "m": "chia tay",
+        "r": "わかれます",
+        "sourceIndex": 441
+      },
+      {
+        "id": "voc_9f0ed5a27f2fc9a1236b",
+        "m": "không may; điềm xấu",
+        "sourceIndex": 442
+      },
+      {
+        "id": "voc_55a74491f3e83454daed",
+        "m": "xin lỗi",
+        "r": "あやまります",
+        "sourceIndex": 443
+      },
+      {
+        "id": "voc_471407db3cac32ac10f3",
+        "m": "hủy bỏ",
+        "sourceIndex": 446
+      },
+      {
+        "id": "voc_912793f66b85f0e05844",
+        "m": "giấy bảo hành",
+        "sourceIndex": 447
+      },
+      {
+        "id": "voc_56d211a807674836d236",
+        "m": "tin tưởng",
+        "sourceIndex": 448
+      },
+      {
+        "id": "voc_a6bb20b0d07b3f62fd9a",
+        "m": "chuẩn bị",
+        "sourceIndex": 449
+      },
+      {
+        "id": "voc_d07e98a3993d60d604a1",
+        "m": "diễn ra thuận lợi",
+        "sourceIndex": 450
+      },
+      {
+        "id": "voc_8bea38ddbefa6931e0ee",
+        "m": "quà tặng",
+        "sourceIndex": 451
+      },
+      {
+        "id": "voc_283d0e534466f3aceef1",
+        "m": "dừng; đình chỉ",
+        "sourceIndex": 452
+      },
+      {
+        "id": "voc_701d411b83d211f75d6b",
+        "m": "điểm",
+        "sourceIndex": 453
+      },
+      {
+        "id": "voc_23278e5c697e479dbc6f",
+        "m": "khởi đầu",
+        "sourceIndex": 454
+      },
+      {
+        "id": "voc_8d9499324ede0a7cf397",
+        "m": "vô địch; đoạt giải nhất",
+        "r": "ゆうしょうします",
+        "sourceIndex": 455
+      },
+      {
+        "id": "voc_5fd30379b2979d1eb59d",
+        "m": "sinh viên đại học",
+        "sourceIndex": 456
+      },
+      {
+        "id": "voc_758bcfcd7fee0e55c91c",
+        "m": "câu trả lời",
+        "sourceIndex": 457
+      },
+      {
+        "id": "voc_1a3da4f6c244574ef60f",
+        "m": "reo; kêu",
+        "r": "なります",
+        "sourceIndex": 458
+      },
+      {
+        "id": "voc_a1cdf8c73aa9ebf95ad5",
+        "m": "cài; đặt",
+        "sourceIndex": 459
+      },
+      {
+        "id": "voc_e6e2841d0be2a620a192",
+        "m": "nướng; rán",
+        "sourceIndex": 460
+      },
+      {
+        "id": "voc_e640d9f9127a6a881d71",
+        "m": "quay về",
+        "r": "かえってきます",
+        "sourceIndex": 461
+      },
+      {
+        "id": "voc_c4d2f38ba8f26927b4a5",
+        "m": "dù vậy",
+        "sourceIndex": 462
+      },
+      {
+        "id": "voc_cdecd52ef9a8b5c7409f",
+        "m": "dịch vụ giao hàng tận nơi",
+        "sourceIndex": 463
+      },
+      {
+        "id": "voc_35accc1e0a2992c590f0",
+        "m": "nguyên nhân",
+        "sourceIndex": 464
+      },
+      {
+        "id": "voc_d10767c6a16d6c696964",
+        "m": "tiêm",
+        "sourceIndex": 465
+      },
+      {
+        "id": "voc_fb14e99c19724bf09741",
+        "m": "dàn âm thanh stereo",
+        "sourceIndex": 466
+      },
+      {
+        "id": "voc_436157f4d0fd9534611c",
+        "m": "phía này; chỗ này (lịch sự)",
+        "sourceIndex": 467
+      },
+      {
+        "id": "voc_549864cfe918b78c87ca",
+        "m": "tình trạng",
+        "sourceIndex": 468
+      },
+      {
+        "id": "voc_b171012d8ee8ce20e84e",
+        "m": "kiến thức",
+        "sourceIndex": 469
+      },
+      {
+        "id": "voc_f6b86e9d3ae8c2234f54",
+        "m": "kho báu",
+        "sourceIndex": 470
+      },
+      {
+        "id": "voc_61d2d65d2c8f7ebc7d20",
+        "m": "hệ thống",
+        "sourceIndex": 471
+      },
+      {
+        "id": "voc_bbbe85fdb6addd587db9",
+        "m": "từ khóa",
+        "sourceIndex": 472
+      },
+      {
+        "id": "voc_2430024731bf3c80f1e0",
+        "m": "nhập (dữ liệu)",
+        "r": "にゅうりょくします",
+        "sourceIndex": 473
+      },
+      {
+        "id": "voc_e1d0c40066a02a512feb",
+        "m": "giây",
+        "sourceIndex": 474
+      },
+      {
+        "id": "voc_de6e38e840268aa6577a",
+        "m": "sống lâu",
+        "sourceIndex": 475
+      },
+      {
+        "id": "voc_fa42236b1c8baa359ddb",
+        "m": "tồi tệ",
+        "sourceIndex": 476
+      },
+      {
+        "id": "voc_b39dbbbaed9de8f304bc",
+        "m": "dự báo thời tiết",
+        "sourceIndex": 477
+      },
+      {
+        "id": "voc_65ba978fe578e06abb59",
+        "m": "công bố; trình bày",
+        "sourceIndex": 478
+      },
+      {
+        "id": "voc_66d21d9061ca48249d00",
+        "m": "dân số",
+        "sourceIndex": 479
+      },
+      {
+        "id": "voc_709e39273b74d21b5b8c",
+        "m": "mùi",
+        "sourceIndex": 480
+      },
+      {
+        "id": "voc_ba9ea2806dd7960fb78b",
+        "m": "y học",
+        "sourceIndex": 481
+      },
+      {
+        "id": "voc_9e63d84ff680a1d08700",
+        "m": "văn học",
+        "sourceIndex": 482
+      },
+      {
+        "id": "voc_2742b0df460e6bda9c94",
+        "m": "xe cấp cứu",
+        "sourceIndex": 483
+      },
+      {
+        "id": "voc_47b29e897336686a2b2a",
+        "m": "tán thành",
+        "sourceIndex": 484
+      },
+      {
+        "id": "voc_5ac125a90d55e25e0886",
+        "m": "phản đối",
+        "sourceIndex": 485
+      },
+      {
+        "id": "voc_56fa55351e8a02ada71b",
+        "m": "nam giới",
+        "sourceIndex": 486
+      },
+      {
+        "id": "voc_90a197612637a042cc43",
+        "m": "có vẻ như",
+        "sourceIndex": 487
+      },
+      {
+        "id": "voc_0d803008f31cd08eb7b0",
+        "m": "theo như; căn cứ vào",
+        "sourceIndex": 488
+      },
+      {
+        "id": "voc_64eb9762afdeb9a7a699",
+        "m": "Iran",
+        "sourceIndex": 489
+      },
+      {
+        "id": "voc_b4ca626a8aca78580b8a",
+        "m": "người yêu",
+        "sourceIndex": 490
+      },
+      {
+        "id": "voc_a8f0943314a1823a3ded",
+        "m": "đính hôn",
+        "sourceIndex": 491
+      },
+      {
+        "id": "voc_4cfc433544d6ecad00ba",
+        "m": "hạ xuống",
+        "sourceIndex": 492
+      },
+      {
+        "id": "voc_170b87185e6fb84e328a",
+        "m": "gửi đến; chuyển đến",
+        "sourceIndex": 493
+      },
+      {
+        "id": "voc_58d6c2f7fb8562f4d550",
+        "m": "chăm sóc",
+        "sourceIndex": 494
+      },
+      {
+        "id": "voc_a5fa8abb0abae4968986",
+        "m": "lớp học thêm",
+        "sourceIndex": 495
+      },
+      {
+        "id": "voc_5e146a81fb64b7e1f96a",
+        "m": "lịch làm việc",
+        "sourceIndex": 496
+      },
+      {
+        "id": "voc_2944a84660d27f8a0eed",
+        "m": "học sinh",
+        "sourceIndex": 497
+      },
+      {
+        "id": "voc_0b151d669869ed2078a2",
+        "m": "cơ quan quản lý xuất nhập cảnh",
+        "sourceIndex": 498
+      },
+      {
+        "id": "voc_c3e6dde9eb5ec785f6cd",
+        "m": "đã lâu không gặp",
+        "sourceIndex": 499
+      },
+      {
+        "id": "voc_013e5e35425cae346819",
+        "m": "kinh doanh",
+        "sourceIndex": 500
+      },
+      {
+        "id": "voc_87badaa8ff3d13d4a7bc",
+        "m": "tận hưởng",
+        "sourceIndex": 501
+      },
+      {
+        "id": "voc_8b915dd78fdb7462236c",
+        "m": "vốn dĩ",
+        "sourceIndex": 502
+      },
+      {
+        "id": "voc_53aadf06639bc40b3ee4",
+        "m": "chạy đua",
+        "r": "きょうそうします",
+        "sourceIndex": 503
+      },
+      {
+        "id": "voc_a793ddd8a2e0c601944b",
+        "m": "xiếc",
+        "sourceIndex": 504
+      },
+      {
+        "id": "voc_74d0f8d667a946b84da4",
+        "m": "trái tim; tấm lòng",
+        "sourceIndex": 507
+      },
+      {
+        "id": "voc_d537f24ceab327dcbcd1",
+        "m": "nắm bắt; bắt giữ",
+        "sourceIndex": 508
+      },
+      {
+        "id": "voc_b053e9cc8f8dfdd08bd3",
+        "m": "đối với",
+        "sourceIndex": 509
+      },
+      {
+        "id": "voc_24fb2796bcee7010d433",
+        "m": "tài nghệ; tiết mục biểu diễn",
+        "sourceIndex": 510
+      },
+      {
+        "id": "voc_abb0b4cabae2156eab2c",
+        "m": "đẹp",
+        "sourceIndex": 511
+      },
+      {
+        "id": "voc_8d056db97fbcf5731329",
+        "m": "dáng vẻ; hình bóng",
+        "sourceIndex": 512
+      },
+      {
+        "id": "voc_4a7fbd893233ed0bc33b",
+        "m": "nghỉ; nghỉ ngơi",
+        "sourceIndex": 513
+      },
+      {
+        "id": "voc_c887c73862d475e5b277",
+        "m": "làm (kính ngữ)",
+        "sourceIndex": 514
+      },
+      {
+        "id": "voc_351cc14ec61f20dc43ed",
+        "m": "gạt tàn",
+        "sourceIndex": 515
+      },
+      {
+        "id": "voc_fe76db1e3262cd00dab0",
+        "m": "nhà trọ kiểu Nhật",
+        "sourceIndex": 516
+      },
+      {
+        "id": "voc_afe5631109119f26396a",
+        "m": "bến xe buýt",
+        "sourceIndex": 517
+      },
+      {
+        "id": "voc_aa32760f3c27c5c59a10",
+        "m": "chẳng … chút nào (đi với phủ định)",
+        "sourceIndex": 518
+      },
+      {
+        "id": "voc_1d9a76a0d6218db881fc",
+        "m": "vậy thì",
+        "sourceIndex": 519
+      },
+      {
+        "id": "voc_892a45710ee31356e903",
+        "m": "giảng viên",
+        "sourceIndex": 520
+      },
+      {
+        "id": "voc_548a99d8c619916c88a0",
+        "m": "tác phẩm",
+        "sourceIndex": 521
+      },
+      {
+        "id": "voc_65fb16ffc6eaabed1fe2",
+        "m": "nhà văn",
+        "sourceIndex": 522
+      },
+      {
+        "id": "voc_b7b9530a00fdcfd3909f",
+        "m": "trở ngại; khuyết tật",
+        "sourceIndex": 523
+      },
+      {
+        "id": "voc_e9bec16239d29dd76511",
+        "m": "sáng tác nhạc",
+        "sourceIndex": 524
+      },
+      {
+        "id": "voc_557d53d6331c42b97dfd",
+        "m": "hoạt động",
+        "sourceIndex": 525
+      },
+      {
+        "id": "voc_82cdec6f9ac23e660c4c",
+        "m": "đôi khi; thỉnh thoảng",
+        "sourceIndex": 526
+      },
+      {
+        "id": "voc_b4972bda7d5875d53ab2",
+        "m": "nhận giải thưởng",
+        "sourceIndex": 527
+      },
+      {
+        "id": "voc_fbb346d961ec5e38bddf",
+        "m": "vậy thì; đến đây",
+        "sourceIndex": 529
+      },
+      {
+        "id": "voc_7c39e840f93a8b3399c4",
+        "m": "lần này; lần tới",
+        "sourceIndex": 534
+      },
+      {
+        "id": "voc_a817b27099591718cc2d",
+        "m": "hôm kia",
+        "sourceIndex": 536
+      },
+      {
+        "id": "voc_e1572afb9a3d461f6e75",
+        "m": "nhật ký",
+        "sourceIndex": 539
+      },
+      {
+        "id": "voc_456d8151325c16b858eb",
+        "m": "mặt trước",
+        "sourceIndex": 540
+      },
+      {
+        "id": "voc_52e2bc6e815a2144573f",
+        "m": "gom lại; tóm tắt",
+        "sourceIndex": 543
+      },
+      {
+        "id": "voc_0a91ef20eb9ec6f016a7",
+        "m": "làm việc (tại một nơi)",
+        "sourceIndex": 544
+      },
+      {
+        "id": "voc_9019d7d7bb59992e12c5",
+        "m": "đun sôi",
+        "sourceIndex": 548
+      },
+      {
+        "id": "voc_c0c9929b661206548d08",
+        "m": "Tết; đầu năm mới",
+        "sourceIndex": 550
+      },
+      {
+        "id": "voc_064094bac1eebc242c01",
+        "m": "xin chào",
+        "sourceIndex": 552
+      },
+      {
+        "id": "voc_4ddaf972c31a1bc51a5d",
+        "m": "ngày xưa",
+        "sourceIndex": 554
+      },
+      {
+        "id": "voc_9b354921599b0740696b",
+        "m": "nếu",
+        "sourceIndex": 563
+      },
+      {
+        "id": "voc_6812cf760f54db712724",
+        "m": "cả hai",
+        "sourceIndex": 567
+      },
+      {
+        "id": "voc_73610398162864eb557c",
+        "m": "tâm trạng; cảm giác",
+        "sourceIndex": 572
+      },
+      {
+        "id": "voc_27488ff066697f4be6b7",
+        "m": "hơn nữa",
+        "sourceIndex": 576
+      },
+      {
+        "id": "voc_27efeadf1f5a05eefe96",
+        "m": "tuy nhiên",
+        "sourceIndex": 577
+      }
+    ],
+    "grammar": [
+      {
+        "id": "gram_b94458844af2170b5100",
+        "lesson": 26,
+        "p": "～んです",
+        "m": "Giải thích hoàn cảnh hoặc lý do",
+        "j": "バスが来なかったんです。",
+        "v": "Vì xe buýt đã không đến.",
+        "category": 7
+      },
+      {
+        "id": "gram_98b3d48a81319afb221e",
+        "lesson": 26,
+        "p": "～んですが",
+        "m": "Mở lời trước khi nhờ hoặc hỏi",
+        "j": "日本語で書いたんですが、見ていただけませんか。",
+        "v": "Tôi viết bằng tiếng Nhật rồi, anh/chị xem giúp được không?",
+        "category": 0
+      },
+      {
+        "id": "gram_8d509a050f4d30792093",
+        "lesson": 26,
+        "p": "Vたらいいですか",
+        "m": "Xin lời khuyên nên làm thế nào",
+        "j": "どこで切符を買ったらいいですか。",
+        "v": "Tôi nên mua vé ở đâu?",
+        "category": 6
+      },
+      {
+        "id": "gram_baf211a56f70f2e2ed26",
+        "lesson": 26,
+        "p": "N は好きです",
+        "m": "Đưa đối tượng lên làm chủ đề",
+        "j": "魚は好きですが、肉はあまり好きじゃありません。",
+        "v": "Cá thì tôi thích, nhưng thịt thì không thích lắm.",
+        "category": 0
+      },
+      {
+        "id": "gram_0bb14ff1123703d66e13",
+        "lesson": 27,
+        "p": "V khả năng",
+        "m": "Diễn tả khả năng làm được",
+        "j": "日本語が話せます。",
+        "v": "Tôi có thể nói tiếng Nhật.",
+        "category": 0
+      },
+      {
+        "id": "gram_00cd708ffd3e529da8c7",
+        "lesson": 27,
+        "p": "まだ V khả năng ません",
+        "m": "Nói hiện tại vẫn chưa làm được",
+        "j": "まだ漢字が読めません。",
+        "v": "Tôi vẫn chưa đọc được chữ Hán.",
+        "category": 0
+      },
+      {
+        "id": "gram_b315dfc4e95f61be895e",
+        "lesson": 27,
+        "p": "N しか～ない",
+        "m": "Giới hạn: chỉ có như vậy",
+        "j": "百円しかありません。",
+        "v": "Tôi chỉ có một trăm yên.",
+        "category": 8
+      },
+      {
+        "id": "gram_23c613cb8f08a6087757",
+        "lesson": 27,
+        "p": "N1 は～が、N2 は～",
+        "m": "Đối chiếu hai đối tượng",
+        "j": "英語は話せますが、日本語は話せません。",
+        "v": "Tôi nói được tiếng Anh nhưng không nói được tiếng Nhật.",
+        "category": 4
+      },
+      {
+        "id": "gram_e83fac9beadf13aca2a7",
+        "lesson": 27,
+        "p": "địa điểm に N ができます",
+        "m": "Nói một công trình mới được hoàn thành",
+        "j": "駅の前に店ができました。",
+        "v": "Một cửa hàng đã được xây xong trước ga.",
+        "category": 6
+      },
+      {
+        "id": "gram_4ffe4fbfbb34295170f5",
+        "lesson": 27,
+        "p": "見えます・聞こえます",
+        "m": "Nói việc tự nhiên nhìn thấy hoặc nghe thấy",
+        "j": "ここから海が見えます。",
+        "v": "Từ đây có thể nhìn thấy biển.",
+        "category": 0
+      },
+      {
+        "id": "gram_7fc44d62e3093e2d7e47",
+        "lesson": 28,
+        "p": "Vながら、V",
+        "m": "Diễn tả hai hành động đồng thời",
+        "j": "音楽を聞きながら、料理します。",
+        "v": "Tôi vừa nghe nhạc vừa nấu ăn.",
+        "category": 0
+      },
+      {
+        "id": "gram_9b05cc16ecd09db5860b",
+        "lesson": 28,
+        "p": "Vています",
+        "m": "Diễn tả thói quen lặp lại",
+        "j": "毎朝、この公園を走っています。",
+        "v": "Sáng nào tôi cũng chạy ở công viên này.",
+        "category": 9
+      },
+      {
+        "id": "gram_2865904aabc2d1869831",
+        "lesson": 28,
+        "p": "～し、～し",
+        "m": "Liệt kê nhiều lý do hoặc đặc điểm",
+        "j": "この店は安いし、おいしいし、よく来ます。",
+        "v": "Cửa hàng này vừa rẻ vừa ngon nên tôi thường đến.",
+        "category": 7
+      },
+      {
+        "id": "gram_ff242f14b5d670e86d99",
+        "lesson": 29,
+        "p": "N が Vています",
+        "m": "Miêu tả trạng thái sau một thay đổi",
+        "j": "窓が開いています。",
+        "v": "Cửa sổ đang mở.",
+        "category": 9
+      },
+      {
+        "id": "gram_c56f6d01ce819c9ad2a6",
+        "lesson": 29,
+        "p": "N は Vています",
+        "m": "Nói trạng thái của vật đang làm chủ đề",
+        "j": "このいすは壊れています。",
+        "v": "Chiếc ghế này bị hỏng.",
+        "category": 9
+      },
+      {
+        "id": "gram_8bcbba71cd3f643a677c",
+        "lesson": 29,
+        "p": "Vてしまいました",
+        "m": "Nói việc đã lỡ làm, có tiếc nuối",
+        "j": "財布を忘れてしまいました。",
+        "v": "Tôi lỡ quên ví mất rồi.",
+        "category": 0
+      },
+      {
+        "id": "gram_28fa0f7960cbf26bef78",
+        "lesson": 29,
+        "p": "自動詞",
+        "m": "Nói thay đổi xảy ra ở chính đối tượng",
+        "j": "電気が消えました。",
+        "v": "Đèn đã tắt.",
+        "category": 0
+      },
+      {
+        "id": "gram_e85cc1aded682dbb1de2",
+        "lesson": 29,
+        "p": "ぜんぶ Vてしまいました",
+        "m": "Nói đã làm xong hoàn toàn",
+        "j": "宿題を全部やってしまいました。",
+        "v": "Tôi đã làm xong hết bài tập.",
+        "category": 0
+      },
+      {
+        "id": "gram_45ff07cfc362e4908e99",
+        "lesson": 29,
+        "p": "どこかに・どこかで",
+        "m": "Chỉ một nơi chưa xác định",
+        "j": "どこかにかぎを置きました。",
+        "v": "Tôi đã để chìa khóa ở đâu đó.",
+        "category": 6
+      },
+      {
+        "id": "gram_ae73d16b2e91e32333b7",
+        "lesson": 30,
+        "p": "Vてあります",
+        "m": "Nói trạng thái do ai đó chủ động làm sẵn",
+        "j": "窓が開けてあります。",
+        "v": "Cửa sổ đã được ai đó mở sẵn.",
+        "category": 9
+      },
+      {
+        "id": "gram_e6877b7de96d22f289b6",
+        "lesson": 30,
+        "p": "Vておきます",
+        "m": "Làm trước để chuẩn bị",
+        "j": "旅行の前に切符を買っておきます。",
+        "v": "Tôi mua vé sẵn trước chuyến đi.",
+        "category": 10
+      },
+      {
+        "id": "gram_be8850d07366df80dad5",
+        "lesson": 30,
+        "p": "まだ Vています",
+        "m": "Nói hành động hoặc trạng thái vẫn tiếp tục",
+        "j": "まだ雨が降っています。",
+        "v": "Trời vẫn đang mưa.",
+        "category": 9
+      },
+      {
+        "id": "gram_c99b54b4d36d3fbda061",
+        "lesson": 30,
+        "p": "また",
+        "m": "Nói sự việc lặp lại",
+        "j": "また来週会いましょう。",
+        "v": "Tuần sau chúng ta lại gặp nhé.",
+        "category": 1
+      },
+      {
+        "id": "gram_e0201c8d0b3b9a40727c",
+        "lesson": 30,
+        "p": "～とか～とか",
+        "m": "Nêu một vài ví dụ",
+        "j": "休みの日は映画とか買い物とかに行きます。",
+        "v": "Ngày nghỉ tôi đi xem phim, mua sắm chẳng hạn.",
+        "category": 0
+      },
+      {
+        "id": "gram_0fb44f7d188cb04768ed",
+        "lesson": 30,
+        "p": "trợ từ + も",
+        "m": "Thêm một đối tượng cùng thuộc phạm vi",
+        "j": "友だちにも知らせます。",
+        "v": "Tôi sẽ báo cả cho bạn nữa.",
+        "category": 0
+      },
+      {
+        "id": "gram_ef24612ce7cbedea5e78",
+        "lesson": 31,
+        "p": "V ý chí",
+        "m": "Nêu ý định bằng thể thân mật",
+        "j": "いっしょに帰ろう。",
+        "v": "Cùng về nào.",
+        "category": 1
+      },
+      {
+        "id": "gram_55a71d718f7ed186295c",
+        "lesson": 31,
+        "p": "Vる／Vないつもりです",
+        "m": "Nêu ý định của người nói",
+        "j": "来年、日本へ行くつもりです。",
+        "v": "Tôi định năm sau đi Nhật.",
+        "category": 10
+      },
+      {
+        "id": "gram_fd3bd347f34acb4b5179",
+        "lesson": 31,
+        "p": "Vる／Nの予定です",
+        "m": "Nêu kế hoạch hoặc lịch đã định",
+        "j": "会議は三時の予定です。",
+        "v": "Cuộc họp dự kiến lúc ba giờ.",
+        "category": 10
+      },
+      {
+        "id": "gram_2df91bd6a021df7d4fab",
+        "lesson": 31,
+        "p": "まだ Vていません",
+        "m": "Nói việc vẫn chưa làm xong",
+        "j": "まだ昼ごはんを食べていません。",
+        "v": "Tôi vẫn chưa ăn trưa.",
+        "category": 0
+      },
+      {
+        "id": "gram_bfe48172af4335b331e2",
+        "lesson": 32,
+        "p": "Vた／Vないほうがいい",
+        "m": "Đưa ra lời khuyên",
+        "j": "今日は早く寝たほうがいいです。",
+        "v": "Hôm nay bạn nên ngủ sớm.",
+        "category": 0
+      },
+      {
+        "id": "gram_050914449b09ad86cd0e",
+        "lesson": 32,
+        "p": "～でしょう",
+        "m": "Phỏng đoán điều có khả năng xảy ra",
+        "j": "明日は雨でしょう。",
+        "v": "Ngày mai có lẽ trời mưa.",
+        "category": 0
+      },
+      {
+        "id": "gram_83dcafc4003adc3a2542",
+        "lesson": 32,
+        "p": "～かもしれません",
+        "m": "Nêu một khả năng chưa chắc chắn",
+        "j": "明日は雪が降るかもしれません。",
+        "v": "Ngày mai có thể có tuyết rơi.",
+        "category": 0
+      },
+      {
+        "id": "gram_313af065b39194c8edcb",
+        "lesson": 32,
+        "p": "lượng từ で",
+        "m": "Nêu lượng hoặc phạm vi cần thiết",
+        "j": "三人でこの仕事をします。",
+        "v": "Ba người chúng tôi làm công việc này.",
+        "category": 8
+      },
+      {
+        "id": "gram_60832514a3d0d9ab5328",
+        "lesson": 33,
+        "p": "命令形・禁止形",
+        "m": "Ra lệnh hoặc cấm đoán mạnh",
+        "j": "ここに入るな。",
+        "v": "Không được vào đây.",
+        "category": 3
+      },
+      {
+        "id": "gram_35542c2c1dd5bbcd0938",
+        "lesson": 33,
+        "p": "Vてくれ",
+        "m": "Yêu cầu thân mật, có sắc thái mạnh",
+        "j": "ちょっと待ってくれ。",
+        "v": "Chờ tôi một chút.",
+        "category": 0
+      },
+      {
+        "id": "gram_6c32a3808141226b0ef8",
+        "lesson": 33,
+        "p": "～と読みます",
+        "m": "Nói cách đọc chữ hoặc từ",
+        "j": "この漢字は「やま」と読みます。",
+        "v": "Chữ Hán này đọc là yama.",
+        "category": 0
+      },
+      {
+        "id": "gram_923755037b1e32c4abfc",
+        "lesson": 33,
+        "p": "～という意味です",
+        "m": "Giải thích ý nghĩa",
+        "j": "「無料」はお金がいらないという意味です。",
+        "v": "Miễn phí nghĩa là không cần trả tiền.",
+        "category": 0
+      },
+      {
+        "id": "gram_1e537c43e91a95397cb4",
+        "lesson": 33,
+        "p": "～と言っていました",
+        "m": "Thuật lại lời người khác đã nói",
+        "j": "田中さんは明日来ると言っていました。",
+        "v": "Anh Tanaka đã nói rằng ngày mai sẽ đến.",
+        "category": 11
+      },
+      {
+        "id": "gram_f4db883f0c9b9758c6ea",
+        "lesson": 33,
+        "p": "～と伝えていただけませんか",
+        "m": "Nhờ chuyển lời một cách lịch sự",
+        "j": "明日休むと伝えていただけませんか。",
+        "v": "Anh/chị nhắn giúp rằng ngày mai tôi nghỉ được không?",
+        "category": 0
+      },
+      {
+        "id": "gram_bab92e00561f694906b7",
+        "lesson": 34,
+        "p": "～とおりに",
+        "m": "Làm theo đúng hướng dẫn hoặc mẫu",
+        "j": "説明書のとおりに組み立てます。",
+        "v": "Tôi lắp ráp theo đúng sách hướng dẫn.",
+        "category": 0
+      },
+      {
+        "id": "gram_3a0c6c2865e97323352f",
+        "lesson": 34,
+        "p": "Vた／Nのあとで",
+        "m": "Nêu việc làm sau một việc khác",
+        "j": "ごはんを食べたあとで、散歩します。",
+        "v": "Ăn cơm xong tôi sẽ đi dạo.",
+        "category": 0
+      },
+      {
+        "id": "gram_f60acb6cd31be12da06e",
+        "lesson": 34,
+        "p": "Vないで、V",
+        "m": "Làm việc sau mà không làm việc trước",
+        "j": "朝ごはんを食べないで、出かけました。",
+        "v": "Tôi ra ngoài mà không ăn sáng.",
+        "category": 0
+      },
+      {
+        "id": "gram_8c522cb8aaeb0589acd8",
+        "lesson": 35,
+        "p": "条件形",
+        "m": "Nêu điều kiện",
+        "j": "安ければ、買います。",
+        "v": "Nếu rẻ thì tôi mua.",
+        "category": 0
+      },
+      {
+        "id": "gram_88cb903c640eb33029ea",
+        "lesson": 35,
+        "p": "～ばいいですか",
+        "m": "Hỏi cách xử lý hoặc nên làm gì",
+        "j": "どうすればいいですか。",
+        "v": "Tôi nên làm thế nào?",
+        "category": 0
+      },
+      {
+        "id": "gram_0f852e511bdf38542274",
+        "lesson": 35,
+        "p": "N なら",
+        "m": "Nêu điều kiện theo chủ đề được nhắc đến",
+        "j": "京都なら、このお寺が有名です。",
+        "v": "Nếu nói đến Kyoto thì ngôi chùa này nổi tiếng.",
+        "category": 0
+      },
+      {
+        "id": "gram_36c650401475c7efb943",
+        "lesson": 35,
+        "p": "～はありませんか",
+        "m": "Hỏi xem có vật phù hợp hay không",
+        "j": "もっと小さいのはありませんか。",
+        "v": "Có cái nào nhỏ hơn không ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_21cb5fb5ee86c2432750",
+        "lesson": 36,
+        "p": "Vる／Vないように",
+        "m": "Nêu mục tiêu cần đạt hoặc tránh",
+        "j": "忘れないように、メモします。",
+        "v": "Tôi ghi chú để không quên.",
+        "category": 0
+      },
+      {
+        "id": "gram_6bda9085d1654ad405ea",
+        "lesson": 36,
+        "p": "Vるようになりました",
+        "m": "Nói sự thay đổi về khả năng",
+        "j": "日本語の新聞が読めるようになりました。",
+        "v": "Tôi đã đọc được báo tiếng Nhật rồi.",
+        "category": 0
+      },
+      {
+        "id": "gram_246cb82474ca527bb2a1",
+        "lesson": 36,
+        "p": "Vる／Vないようにします",
+        "m": "Cố gắng duy trì một cách làm",
+        "j": "毎日、野菜を食べるようにしています。",
+        "v": "Tôi cố gắng ăn rau mỗi ngày.",
+        "category": 0
+      },
+      {
+        "id": "gram_e728f699281a1cec2f8c",
+        "lesson": 36,
+        "p": "Vる／Vないようにしてください",
+        "m": "Yêu cầu cố gắng thực hiện",
+        "j": "遅れないようにしてください。",
+        "v": "Xin hãy cố gắng đừng đến muộn.",
+        "category": 0
+      },
+      {
+        "id": "gram_c7d66fb49c955b836fa2",
+        "lesson": 36,
+        "p": "Aく／Aに + V",
+        "m": "Dùng tính từ bổ nghĩa cho hành động",
+        "j": "もっとゆっくり、静かに話してください。",
+        "v": "Xin hãy nói chậm hơn và nhỏ nhẹ.",
+        "category": 0
+      },
+      {
+        "id": "gram_621da9c4275101a18647",
+        "lesson": 37,
+        "p": "受身形",
+        "m": "Nói người chịu tác động của hành động",
+        "j": "わたしは先生にほめられました。",
+        "v": "Tôi được thầy giáo khen.",
+        "category": 0
+      },
+      {
+        "id": "gram_0914292fde04c05e4e4c",
+        "lesson": 37,
+        "p": "N は V bị động",
+        "m": "Nêu sự việc được thực hiện với đối tượng",
+        "j": "この本は多くの人に読まれています。",
+        "v": "Cuốn sách này được nhiều người đọc.",
+        "category": 0
+      },
+      {
+        "id": "gram_f9b74cb701cd0a34659f",
+        "lesson": 37,
+        "p": "người によって V bị động",
+        "m": "Nêu tác giả hoặc người tạo ra",
+        "j": "この絵は有名な画家によって描かれました。",
+        "v": "Bức tranh này do một họa sĩ nổi tiếng vẽ.",
+        "category": 0
+      },
+      {
+        "id": "gram_1a6218892b7729a9b93a",
+        "lesson": 37,
+        "p": "N から／で作ります",
+        "m": "Nêu nguyên liệu hoặc chất liệu",
+        "j": "この机は木で作られています。",
+        "v": "Chiếc bàn này được làm bằng gỗ.",
+        "category": 0
+      },
+      {
+        "id": "gram_bea4557cf282f1d773bb",
+        "lesson": 38,
+        "p": "Vるのは Aです",
+        "m": "Đánh giá một hoạt động",
+        "j": "毎日運動するのは大切です。",
+        "v": "Vận động mỗi ngày là quan trọng.",
+        "category": 0
+      },
+      {
+        "id": "gram_606d9c9edb311e504465",
+        "lesson": 38,
+        "p": "Vるのが Aです",
+        "m": "Nêu sở thích hoặc năng lực với hoạt động",
+        "j": "わたしは泳ぐのが好きです。",
+        "v": "Tôi thích bơi.",
+        "category": 0
+      },
+      {
+        "id": "gram_b610b3be6b3093602f1b",
+        "lesson": 38,
+        "p": "Vるのを忘れました",
+        "m": "Nói đã quên làm việc gì",
+        "j": "電気を消すのを忘れました。",
+        "v": "Tôi quên tắt đèn.",
+        "category": 0
+      },
+      {
+        "id": "gram_6e532156ea03185dc4a6",
+        "lesson": 38,
+        "p": "～のを知っていますか",
+        "m": "Hỏi có biết sự việc hay không",
+        "j": "田中さんが結婚したのを知っていますか。",
+        "v": "Bạn có biết anh Tanaka đã kết hôn không?",
+        "category": 0
+      },
+      {
+        "id": "gram_75a03cb32fe4783546c1",
+        "lesson": 38,
+        "p": "～のは～です",
+        "m": "Nhấn mạnh thông tin cần xác định",
+        "j": "わたしが生まれたのは大阪です。",
+        "v": "Nơi tôi sinh ra là Osaka.",
+        "category": 0
+      },
+      {
+        "id": "gram_df2e7dcd55ffc31650fd",
+        "lesson": 38,
+        "p": "行き・帰り",
+        "m": "Dùng dạng danh từ chỉ lượt đi và lượt về",
+        "j": "帰りにスーパーへ寄ります。",
+        "v": "Trên đường về tôi sẽ ghé siêu thị.",
+        "category": 6
+      },
+      {
+        "id": "gram_2bea9f9f42528cd9ecc6",
+        "lesson": 39,
+        "p": "Vて／Aくて／Aで",
+        "m": "Nêu nguyên nhân dẫn tới cảm xúc hoặc trạng thái",
+        "j": "ニュースを聞いて、びっくりしました。",
+        "v": "Nghe tin đó tôi rất ngạc nhiên.",
+        "category": 7
+      },
+      {
+        "id": "gram_f97dbcd8a2585a2f6dd3",
+        "lesson": 39,
+        "p": "N で",
+        "m": "Nêu nguyên nhân của sự việc",
+        "j": "台風で電車が止まりました。",
+        "v": "Vì bão nên tàu điện đã dừng.",
+        "category": 7
+      },
+      {
+        "id": "gram_d1ff4908e7a9c69cd677",
+        "lesson": 39,
+        "p": "～ので",
+        "m": "Trình bày lý do nhẹ nhàng",
+        "j": "雨が降っているので、出かけません。",
+        "v": "Vì trời đang mưa nên tôi không ra ngoài.",
+        "category": 7
+      },
+      {
+        "id": "gram_ce464195b8d1bd07cd6a",
+        "lesson": 39,
+        "p": "Vる／Nの途中で",
+        "m": "Nói việc xảy ra giữa quá trình",
+        "j": "学校へ行く途中で、友だちに会いました。",
+        "v": "Trên đường đi học tôi gặp bạn.",
+        "category": 6
+      },
+      {
+        "id": "gram_c15a20f27bebb2a69c66",
+        "lesson": 40,
+        "p": "～か、～",
+        "m": "Đưa câu hỏi có từ nghi vấn vào trong câu",
+        "j": "会議が何時に始まるか、教えてください。",
+        "v": "Xin cho biết cuộc họp bắt đầu lúc mấy giờ.",
+        "category": 8
+      },
+      {
+        "id": "gram_7ae07064a304a7e24864",
+        "lesson": 40,
+        "p": "～かどうか、～",
+        "m": "Đưa câu hỏi có hay không vào trong câu",
+        "j": "明日行けるかどうか、わかりません。",
+        "v": "Tôi chưa biết ngày mai có đi được không.",
+        "category": 0
+      },
+      {
+        "id": "gram_373c9bfe3691055fe847",
+        "lesson": 40,
+        "p": "Vてみます",
+        "m": "Thử làm một việc",
+        "j": "この服を着てみます。",
+        "v": "Tôi thử mặc bộ đồ này.",
+        "category": 0
+      },
+      {
+        "id": "gram_364f373af0b0abc86016",
+        "lesson": 40,
+        "p": "Aさ",
+        "m": "Biến tính từ thành danh từ chỉ mức độ",
+        "j": "この箱の重さを測ります。",
+        "v": "Tôi đo trọng lượng của chiếc hộp này.",
+        "category": 8
+      },
+      {
+        "id": "gram_73cbc751572828cc3ec3",
+        "lesson": 40,
+        "p": "～でしょうか",
+        "m": "Hỏi một cách lịch sự, dè dặt",
+        "j": "これはいくらでしょうか。",
+        "v": "Cái này giá bao nhiêu ạ?",
+        "category": 8
+      },
+      {
+        "id": "gram_612e10dc532a27030faf",
+        "lesson": 41,
+        "p": "いただきます",
+        "m": "Nhận từ người khác bằng lời khiêm nhường",
+        "j": "先生に本をいただきました。",
+        "v": "Tôi đã nhận sách từ thầy giáo.",
+        "category": 0
+      },
+      {
+        "id": "gram_b7ed062b73918afb2b7e",
+        "lesson": 41,
+        "p": "くださいます",
+        "m": "Nói người trên cho mình bằng kính ngữ",
+        "j": "先生が本をくださいました。",
+        "v": "Thầy giáo đã cho tôi sách.",
+        "category": 0
+      },
+      {
+        "id": "gram_875897f216b720b715ac",
+        "lesson": 41,
+        "p": "やります",
+        "m": "Cho người dưới hoặc động thực vật",
+        "j": "花に水をやります。",
+        "v": "Tôi tưới nước cho hoa.",
+        "category": 0
+      },
+      {
+        "id": "gram_163ecd7ef8118b018e99",
+        "lesson": 41,
+        "p": "Vていただけませんか",
+        "m": "Nhờ người khác làm giúp một cách lịch sự",
+        "j": "もう一度説明していただけませんか。",
+        "v": "Anh/chị giải thích lại một lần nữa giúp được không?",
+        "category": 0
+      },
+      {
+        "id": "gram_b9036d1345c1351ddbbe",
+        "lesson": 41,
+        "p": "Vてくださいませんか",
+        "m": "Nhờ giúp bằng cách nói kính trọng",
+        "j": "少し待ってくださいませんか。",
+        "v": "Anh/chị đợi một chút giúp được không?",
+        "category": 0
+      },
+      {
+        "id": "gram_b57e09e6bbcce197f21d",
+        "lesson": 42,
+        "p": "～ために",
+        "m": "Nêu mục đích có chủ ý",
+        "j": "留学するために、お金をためています。",
+        "v": "Tôi đang tiết kiệm tiền để đi du học.",
+        "category": 0
+      },
+      {
+        "id": "gram_0649622526594ad06396",
+        "lesson": 42,
+        "p": "Vるのに使います",
+        "m": "Nêu công dụng",
+        "j": "このはさみは紙を切るのに使います。",
+        "v": "Cái kéo này dùng để cắt giấy.",
+        "category": 0
+      },
+      {
+        "id": "gram_0f4d24a82688a5a001ed",
+        "lesson": 43,
+        "p": "Vそうです",
+        "m": "Dự đoán việc sắp xảy ra từ dấu hiệu",
+        "j": "雨が降りそうです。",
+        "v": "Trông có vẻ sắp mưa.",
+        "category": 0
+      },
+      {
+        "id": "gram_f6c008ab064af403d8ac",
+        "lesson": 43,
+        "p": "Aそうです",
+        "m": "Nhận xét từ vẻ bên ngoài",
+        "j": "このケーキはおいしそうです。",
+        "v": "Chiếc bánh này trông ngon.",
+        "category": 0
+      },
+      {
+        "id": "gram_589c5f99b8724623b2fb",
+        "lesson": 43,
+        "p": "Vてきます",
+        "m": "Làm một việc rồi quay lại",
+        "j": "ちょっと飲み物を買ってきます。",
+        "v": "Tôi đi mua đồ uống một chút rồi quay lại.",
+        "category": 0
+      },
+      {
+        "id": "gram_20962d6b6d2e4921e778",
+        "lesson": 44,
+        "p": "～すぎます",
+        "m": "Diễn tả mức độ quá nhiều",
+        "j": "昨日は食べすぎました。",
+        "v": "Hôm qua tôi đã ăn quá nhiều.",
+        "category": 0
+      },
+      {
+        "id": "gram_3721845ec45277d76a86",
+        "lesson": 44,
+        "p": "Vやすい／Vにくい",
+        "m": "Nói dễ hoặc khó làm việc gì",
+        "j": "このペンは書きやすいです。",
+        "v": "Chiếc bút này dễ viết.",
+        "category": 0
+      },
+      {
+        "id": "gram_7edaf4afabf519d0c59f",
+        "lesson": 44,
+        "p": "Aく／Aにします",
+        "m": "Chủ động làm thay đổi trạng thái",
+        "j": "部屋をきれいにします。",
+        "v": "Tôi làm cho phòng sạch đẹp.",
+        "category": 0
+      },
+      {
+        "id": "gram_c192c60bc07b121d7e65",
+        "lesson": 44,
+        "p": "N にします",
+        "m": "Chọn hoặc quyết định một thứ",
+        "j": "飲み物はお茶にします。",
+        "v": "Đồ uống thì tôi chọn trà.",
+        "category": 0
+      },
+      {
+        "id": "gram_f0aadab96b3ee74c6f9e",
+        "lesson": 45,
+        "p": "～場合は",
+        "m": "Nêu cách xử lý trong một trường hợp",
+        "j": "火事の場合は、この階段を使ってください。",
+        "v": "Trong trường hợp hỏa hoạn, hãy dùng cầu thang này.",
+        "category": 0
+      },
+      {
+        "id": "gram_9d1b455fd64d2d8a9542",
+        "lesson": 45,
+        "p": "～のに",
+        "m": "Nói kết quả trái với điều mong đợi",
+        "j": "約束したのに、彼は来ませんでした。",
+        "v": "Dù đã hẹn nhưng anh ấy không đến.",
+        "category": 0
+      },
+      {
+        "id": "gram_2f7d42fabadb2578e0a3",
+        "lesson": 46,
+        "p": "Vるところです",
+        "m": "Nói việc sắp bắt đầu ngay",
+        "j": "今から昼ごはんを食べるところです。",
+        "v": "Tôi sắp bắt đầu ăn trưa ngay bây giờ.",
+        "category": 9
+      },
+      {
+        "id": "gram_450654bfd30290d29b2d",
+        "lesson": 46,
+        "p": "Vたばかりです",
+        "m": "Nói vừa mới làm xong",
+        "j": "先月、日本に来たばかりです。",
+        "v": "Tôi mới đến Nhật tháng trước.",
+        "category": 0
+      },
+      {
+        "id": "gram_455fa05904822e0a9915",
+        "lesson": 46,
+        "p": "～はずです",
+        "m": "Nêu dự đoán có căn cứ",
+        "j": "田中さんはもう着いたはずです。",
+        "v": "Anh Tanaka chắc đã đến rồi.",
+        "category": 0
+      },
+      {
+        "id": "gram_9a9243513a756d697ff2",
+        "lesson": 47,
+        "p": "～そうです",
+        "m": "Thuật lại thông tin nghe được",
+        "j": "天気予報によると、明日は雨だそうです。",
+        "v": "Theo dự báo thời tiết, nghe nói ngày mai trời mưa.",
+        "category": 11
+      },
+      {
+        "id": "gram_cf608ef999809b873d59",
+        "lesson": 47,
+        "p": "～ようです",
+        "m": "Suy đoán từ điều quan sát được",
+        "j": "だれか部屋にいるようです。",
+        "v": "Hình như có ai trong phòng.",
+        "category": 0
+      },
+      {
+        "id": "gram_46519479850213e703de",
+        "lesson": 47,
+        "p": "N がします",
+        "m": "Nói cảm nhận bằng giác quan",
+        "j": "いいにおいがします。",
+        "v": "Có mùi thơm.",
+        "category": 0
+      },
+      {
+        "id": "gram_4e864fb1080da768eb47",
+        "lesson": 48,
+        "p": "使役形",
+        "m": "Nói sai khiến hoặc cho phép người khác làm",
+        "j": "母は子どもに野菜を食べさせました。",
+        "v": "Mẹ bắt con ăn rau.",
+        "category": 12
+      },
+      {
+        "id": "gram_86f6de197bed143d09f9",
+        "lesson": 48,
+        "p": "người を V sai khiến",
+        "m": "Nêu người bị cho làm hành động tự động",
+        "j": "先生は学生を立たせました。",
+        "v": "Thầy giáo cho học sinh đứng lên.",
+        "category": 0
+      },
+      {
+        "id": "gram_fe3e82d17a1482b1dcab",
+        "lesson": 48,
+        "p": "người に vật を V sai khiến",
+        "m": "Nêu người thực hiện và đối tượng bị tác động",
+        "j": "先生は学生に作文を書かせました。",
+        "v": "Thầy giáo cho học sinh viết bài văn.",
+        "category": 0
+      },
+      {
+        "id": "gram_5802db4c3a9f831cb06c",
+        "lesson": 48,
+        "p": "Vさせていただけませんか",
+        "m": "Xin phép cho mình được làm",
+        "j": "明日、休ませていただけませんか。",
+        "v": "Ngày mai cho phép tôi nghỉ được không ạ?",
+        "category": 12
+      },
+      {
+        "id": "gram_fc21813e19cdee95bc43",
+        "lesson": 49,
+        "p": "お～になります",
+        "m": "Tôn kính hành động của người khác",
+        "j": "先生はもうお帰りになりました。",
+        "v": "Thầy giáo đã về rồi.",
+        "category": 0
+      },
+      {
+        "id": "gram_92bc85c2dd53b15d61f4",
+        "lesson": 49,
+        "p": "尊敬語",
+        "m": "Dùng động từ tôn kính cho người khác",
+        "j": "先生は何を召し上がりますか。",
+        "v": "Thầy dùng món gì ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_cb3a65ea5ae5c2a7f3b5",
+        "lesson": 49,
+        "p": "お／ご～ください",
+        "m": "Yêu cầu lịch sự bằng kính ngữ",
+        "j": "こちらでお待ちください。",
+        "v": "Xin quý khách đợi ở đây.",
+        "category": 0
+      },
+      {
+        "id": "gram_c63608ea4999f4d98b99",
+        "lesson": 49,
+        "p": "お／ご～ですか",
+        "m": "Hỏi về trạng thái bằng kính ngữ",
+        "j": "お元気ですか。",
+        "v": "Anh/chị có khỏe không ạ?",
+        "category": 0
+      },
+      {
+        "id": "gram_4ed2c94ec63db8b51af7",
+        "lesson": 50,
+        "p": "お～します",
+        "m": "Khiêm nhường khi làm giúp người khác",
+        "j": "荷物をお持ちします。",
+        "v": "Tôi xin xách hành lý giúp.",
+        "category": 0
+      },
+      {
+        "id": "gram_825e65be1b7792546b4d",
+        "lesson": 50,
+        "p": "ご～します",
+        "m": "Khiêm nhường với động từ Hán Nhật",
+        "j": "わたしがご案内します。",
+        "v": "Tôi xin hướng dẫn quý khách.",
+        "category": 0
+      },
+      {
+        "id": "gram_b4eabcd6428a171ebd2a",
+        "lesson": 50,
+        "p": "謙譲語",
+        "m": "Dùng động từ khiêm nhường cho bản thân",
+        "j": "明日、会社に伺います。",
+        "v": "Ngày mai tôi xin đến công ty.",
+        "category": 0
+      },
+      {
+        "id": "gram_fdba9c853b776ea1b54f",
+        "lesson": 50,
+        "p": "丁寧語",
+        "m": "Nói lịch sự bằng cách diễn đạt trang trọng",
+        "j": "こちらに資料がございます。",
+        "v": "Tài liệu có ở đây ạ.",
+        "category": 0
+      }
+    ]
+  }
+}
