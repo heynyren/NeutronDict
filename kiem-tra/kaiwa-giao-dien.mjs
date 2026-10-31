@@ -41,7 +41,7 @@ async function exercise(p,name,open,read){
  assert.equal(await p.locator(".jl-the").count(),6);
  assert.equal(await p.locator(".jl-the.sap").count(),3);
  await snapshot(p,"kaiwa-"+name+"-courses");
- await p.locator('.jl-the[data-mon="kaiwa"]').click();await dialogues(p);await p.waitForSelector(".jl-bd");
+ await p.locator('.jl-the[data-mon="kaiwa"]').click();await p.waitForSelector(".jl-thoai");await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.equal(await p.evaluate(()=>JlptUI.trangThai().monId),"kaiwa");
  assert.ok(await p.locator(".jl-nut.khoa").count()===1,"only final exam is locked");
  assert.equal(await p.locator(".jl-gioi-lop").count(),9);
@@ -61,6 +61,7 @@ async function exercise(p,name,open,read){
  await p.waitForSelector(".jl-lua");
  const correct=await p.evaluate(()=>JlptUI.dapAnDung());
  const word=await p.locator(".jl-nho-dong").innerText();
+ await snapshot(p,"kaiwa-"+name+"-question");
  await p.locator('.jl-lua[data-k="'+((correct+1)%4)+'"]').click();await p.waitForSelector(".jl-fb.sai");
  assert.match(await p.locator(".jl-fb").innerText(),/OSK-/);
  const book=await read("notebook");

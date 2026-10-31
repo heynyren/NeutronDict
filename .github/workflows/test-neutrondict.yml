@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           failed=0
-          for file in kiem-tra/rakulang-ui-giao-dien.mjs kiem-tra/jlpt-dong-bo-giao-dien.mjs kiem-tra/jlpt.mjs kiem-tra/youtube-background-ad.mjs; do
+          for file in kiem-tra/kaiwa-giao-dien.mjs kiem-tra/rakulang-ui-giao-dien.mjs kiem-tra/jlpt-dong-bo-giao-dien.mjs kiem-tra/jlpt.mjs kiem-tra/youtube-background-ad.mjs; do
             echo "::group::$file"
             timeout 300s node "$file" "$GITHUB_WORKSPACE/extension" || failed=1
             echo "::endgroup::"
@@ -74,7 +74,7 @@ jobs:
           set -u
           failed=0
           for file in kiem-tra/*.mjs; do
-            case "$file" in kiem-tra/web-context-giao-dien.mjs|kiem-tra/yt-source-giao-dien.mjs|kiem-tra/rakulang-ui-giao-dien.mjs|kiem-tra/jlpt-dong-bo-giao-dien.mjs|kiem-tra/jlpt.mjs|kiem-tra/youtube-background-ad.mjs) continue;; esac
+            case "$file" in kiem-tra/kaiwa-giao-dien.mjs|kiem-tra/web-context-giao-dien.mjs|kiem-tra/yt-source-giao-dien.mjs|kiem-tra/rakulang-ui-giao-dien.mjs|kiem-tra/jlpt-dong-bo-giao-dien.mjs|kiem-tra/jlpt.mjs|kiem-tra/youtube-background-ad.mjs) continue;; esac
             if ! grep -q '/opt/node22/lib/node_modules/playwright/index.mjs' "$file"; then
               continue
             fi
