@@ -60,7 +60,7 @@ async function exercise(p,name,open,read){
  else await p.locator(".jl-chay-nut .jl-btn.chinh").click();
  await p.waitForSelector(".jl-lua");
  const correct=await p.evaluate(()=>JlptUI.dapAnDung());
- const word=await p.locator(".jl-nho-dong").innerText();
+ const word=await p.locator(".jl-de .jl-nho-dong").innerText();
  await snapshot(p,"kaiwa-"+name+"-question");
  await p.locator('.jl-lua[data-k="'+((correct+1)%4)+'"]').click();await p.waitForSelector(".jl-fb.sai");
  assert.match(await p.locator(".jl-fb").innerText(),/OSK-/);
