@@ -72,8 +72,8 @@ async function exercise(p,name,open,read){
  await snapshot(p,"kaiwa-"+name+"-answer");
  await p.locator(".jl-fb .jl-btn.chinh").click();
  for(let i=0;i<20;i++){
+  await p.waitForSelector(".jl-kq, .jl-lua:not(:disabled)");
   if(await p.locator(".jl-kq").count())break;
-  await p.waitForSelector(".jl-lua:not(:disabled)");
   const right=await p.evaluate(()=>JlptUI.dapAnDung());
   await p.locator('.jl-lua[data-k="'+right+'"]').click();
   await p.waitForSelector(".jl-fb.dung");await p.locator(".jl-fb .jl-btn.chinh").click();
