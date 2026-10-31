@@ -34,6 +34,9 @@ nhầm bản dịch giữa hai dòng hội thoại. Vì vậy không nhập tr�
   bộ nội dung đã được giáo viên duyệt toàn bộ.
 - Các tài liệu chưa nhập được liệt kê trong manifest gốc vẫn nằm ngoài phạm vi.
 
+Các mục được chia thành 25 bài nhỏ trong app. Từ bổ sung được phân bố lại để học;
+không khẳng định số bài của app luôn trùng bài của bản gốc. Nguồn và trang gốc được giữ riêng.
+
 ## Tái tạo và truy nguyên
 Chạy trên cloud: node cong-cu/dung-jlpt-n45.mjs.
 Nguồn tối giản, giữ ID/page/tiêu đề và dữ liệu trước biên tập:
