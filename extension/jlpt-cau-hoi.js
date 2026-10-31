@@ -392,14 +392,16 @@
     const out=[];
     for(const item of pool) {
       const q=item.quiz;if(!q || !q.answer || q.wrong.length!==3 || new Set([q.answer,...q.wrong].map(chuanNghia)).size!==4)continue;
-      const variant=item.w && item.r && rng()<0.3 ? "nghe" : q.kind;
+      const variant=item.w && item.r && rng()<0.3 ? "nghe" : item.readQuiz && rng()<0.4 ? "tu-doc" : q.kind;
+      const answerSet=variant==="tu-doc"?item.readQuiz:q;
       const id=item.id+":"+variant;
       if(baoLoi[id])continue;
       const de=variant==="nghe"?{lenh:"Nghe rồi chọn nghĩa đúng",nghe:item.r}:
-        item.p?{lenh:"Chọn cách hiểu phù hợp với ngữ cảnh",chinh:q.context,phu:item.p}:
+        variant==="tu-doc"?{lenh:"Chọn cách đọc đúng",chinh:item.w,phu:item.m}:
+        item.p?{lenh:"Mẫu bên dưới có chức năng gì trong câu?",chinh:q.context,phu:item.p}:
         item.c?{lenh:"Âm Hán Việt của chữ này",chinh:item.c}:
         {lenh:"Chọn nghĩa đúng",chinh:item.w,phu:item.r,nghe:item.r};
-      out.push({id,mucId:item.id,kieu:variant,de,...lap(q.answer,q.wrong,rng),source:item.source,
+      out.push({id,mucId:item.id,kieu:variant,de,...lap(answerSet.answer,answerSet.wrong,rng),source:item.source,
         dapAn:{w:item.w,r:item.r,p:item.p,c:item.c,hv:item.hv,on:item.on,kun:item.kun,m:q.answer,
           cau:q.context,dich:q.translation}});
       if(out.length>=chang.soCau)break;

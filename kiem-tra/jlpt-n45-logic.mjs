@@ -11,7 +11,7 @@ const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const source=JSON.parse(read("docs/data/n45-source-selection.json")),editorial=JSON.parse(read("docs/data/n45-editorial.json"));
 const generated=buildN45(source,editorial),audit=JSON.parse(read("docs/data/n45-import-audit.json"));
 assert.deepEqual(generated.audit,audit,"reproducible source audit");
-for(const name of ["jlpt-cau-hoi.js","jlpt-giao-dien.js","jlpt-theme.js","jlpt-canh-gioi.js"])assert.equal(read("extension/"+name),read("android/www/"+name));
+for(const name of ["jlpt-cau-hoi.js","jlpt-giao-dien.js","jlpt-theme.js","jlpt-canh-gioi.js","jlpt/dictionary-license.txt"])assert.equal(read("extension/"+name),read("android/www/"+name));
 assert.deepEqual(JlptTheme.SAP_CO.map(x=>x.id),["n1"]);
 const allIds=new Set(),counts={n5:[355,115,86],n4:[510,397,104]};
 for(const level of ["n5","n4"]){
@@ -47,9 +47,11 @@ for(const level of ["n5","n4"]){
    assert.equal(new Set(qs.map(q=>q.mucId)).size,qs.length);
    for(const q of qs){
      const item=byId.get(q.mucId);assert.ok(item);
-     assert.equal(q.chon[q.dung],item.quiz.answer);
-     assert.equal(q.chon.filter(x=>x===item.quiz.answer).length,1);
-     assert.deepEqual(new Set(q.chon),new Set([item.quiz.answer,...item.quiz.wrong]));
+     const answerSet=q.kieu==="tu-doc"?item.readQuiz:item.quiz;
+     assert.equal(q.chon[q.dung],answerSet.answer);
+     assert.equal(q.chon.filter(x=>x===answerSet.answer).length,1);
+     assert.deepEqual(new Set(q.chon),new Set([answerSet.answer,...answerSet.wrong]));
+     if(q.kieu==="tu-doc")assert.equal(answerSet.answer,item.r);
      if(q.kieu==="nghe")assert.ok(q.de.nghe && !q.de.chinh);
      if(stage.ci>=0)assert.equal(item._ch,stage.ci);
      if(!stage.loai.startsWith("boss"))covered.add(q.mucId);
@@ -60,7 +62,7 @@ for(const level of ["n5","n4"]){
   }
  }
  assert.equal(covered.size,items.length,"every card is tested in an ordinary stage");
- for(const type of ["tu-nghia","nghe","han-hv","pp-context"])assert.ok(types.has(type));
+ for(const type of ["tu-nghia","tu-doc","nghe","han-hv","pp-context"])assert.ok(types.has(type));
  const a=JlptTienDo.macDinh(),b=JlptTienDo.macDinh();
  assert.ok(!JlptTienDo.changMo(a,level,ids,ids.length-1,true));
  stages.slice(0,-1).forEach((s,i)=>{

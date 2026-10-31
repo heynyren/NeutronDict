@@ -7,6 +7,8 @@ Hai màn có trên extension và Android; N1 vẫn là màn sắp có.
 | N5 · Kyoto | 355 | 115 | 86 | 5 / 25 |
 | N4 · Làng tuyết | 510 | 397 | 104 | 5 / 25 |
 
+N5 có 79 chặng; N4 có 120 chặng (kể cả thử thách chương và bài cuối).
+
 ## Cách học
 Chọn bất kỳ chặng thường hoặc thử thách chương nào. Hoàn thành tất cả chặng trước đó
 để mở bài cuối; không cần đạt 60%. Thẻ chưa thuộc và đáp án sai chuyển vào sổ tay hiện tại
@@ -42,7 +44,7 @@ Giấy phép từ điển: docs/data/N45-DICTIONARY-LICENSE.md.
 Không đóng gói PDF, SQLite thô, file tạm hay audio liên kết ngoài vào app.
 
 ## Câu hỏi
-Mỗi thẻ có bộ lựa chọn cố định được dựng từ dữ liệu biên tập. Câu từ vựng hỏi nghĩa hoặc nghe;
+Mỗi thẻ có bộ lựa chọn cố định được dựng từ dữ liệu biên tập. Câu từ vựng hỏi nghĩa, cách đọc hoặc nghe;
 câu chữ Hán loại các đáp án có cùng âm Hán Việt; câu ngữ pháp có ngữ cảnh xác định.
 Không lấy ngẫu nhiên các từ đồng nghĩa trong toàn bộ database để làm nhiễu.
 ID thẻ và báo lỗi có tiền tố n4:/n5: để không ảnh hưởng chéo hai màn.

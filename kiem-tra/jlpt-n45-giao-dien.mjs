@@ -22,7 +22,20 @@ async function stage(p,id){
  await p.waitForSelector(".jl-to-hop");
 }
 async function snapshot(p,name){
+ await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
  await p.evaluate(()=>document.getAnimations().forEach(a=>{if(Number.isFinite(a.effect?.getComputedTiming().endTime))a.finish();}));
+ await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+ const ratios=await p.evaluate(()=>{
+  const rgb=s=>s.match(/[0-9.]+/g)?.map(Number)||[];
+  const lum=c=>c.slice(0,3).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  return [...document.querySelectorAll(".jl-lua:not(:disabled), .jl-the-hoc .jl-nghia, .jl-chay-nut .chinh, .jl-fb-nut .chinh")].map(el=>{
+   const fg=rgb(getComputedStyle(el).color);let b=el,bg=[];
+   while(b){bg=rgb(getComputedStyle(b).backgroundColor);if(bg.length===3||bg[3]>=.99)break;b=b.parentElement;}
+   const l1=lum(fg),l2=lum(bg);
+   return {text:el.textContent,ratio:(Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05)};
+  });
+ });
+ assert.ok(ratios.every(x=>x.ratio>=4.5),name+" contrast "+JSON.stringify(ratios));
  await p.screenshot({path:join(evidence,name+".png")});
  const layout=await p.evaluate(()=>{
   const game=document.querySelector(".jl-chay");
@@ -47,6 +60,8 @@ async function exercise(p,name,open,read,write){
   const title=await p.locator(".jl-bd-ten").innerText();
   assert.doesNotMatch(title,/Con đường|Làng suối/,"course title translated");
   await snapshot(p,name+"-"+level+"-map");
+  await p.locator(".jl-nguon").click();await p.waitForSelector(".jl-to-hop");
+  assert.match(await p.locator(".jl-to-hop").innerText(),/EDRDG/);await p.locator(".jl-to-hop .chinh").click();
   const ids=await p.evaluate(data=>JlptCauHoi.chiaChang(data).map(s=>({id:s.id,type:s.loai})),courses[level]);
   // Jump to chapter two: no sequential unlock and no 60% score barrier.
   const wanted=ids.find(s=>s.id.startsWith("c2")&&s.type==="pp").id;
@@ -54,6 +69,7 @@ async function exercise(p,name,open,read,write){
   await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
   assert.match(await p.locator(".jl-the-hoc").innerText(),/PDF|pdf|docx/i);
   await snapshot(p,name+"-"+level+"-card");
+  if(name==="android"){await p.emulateMedia({colorScheme:"dark"});await snapshot(p,name+"-"+level+"-card-dark");await p.emulateMedia({colorScheme:"light"});}
   if(await p.locator(".jl-bo-qua").count())await p.locator(".jl-bo-qua").click();else await p.locator(".jl-chay-nut .jl-btn.chinh").click();
   await p.waitForSelector(".jl-lua");assert.equal(await p.locator(".jl-lua").count(),4);
   const answer=await p.evaluate(()=>JlptUI.dapAnDung());

@@ -442,7 +442,8 @@
    * @returns {string} chuỗi SVG ("" nếu màn chưa có cảnh)
    */
   function ve(monId, k, ti) {
-    if (["kaiwa","n4","n5"].includes(monId)) return goc.JlptTheme.canh(monId, k, true);
+    if (monId === "n4" || monId === "n5") return goc.JlptTheme.canhN45Full(monId, k, ti);
+    if (monId === "kaiwa") return goc.JlptTheme.canh(monId, k, true);
     const z = ZONES[monId];
     if (!z) return "";
     const W = Math.max(40, Math.min(190, Math.round((ti || 1.6) * 100)));

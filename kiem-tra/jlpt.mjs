@@ -78,7 +78,7 @@ console.log("\nChọn màn");
 const the = await pg.evaluate(() => [...document.querySelectorAll(".jl-the")].map((e) => ({ t: e.textContent.slice(0, 40), khoa: e.classList.contains("khoa"), sap: e.classList.contains("sap") })));
 soat("6 thẻ: N5/N4/N3/N2/Kaiwa mở, N1 sắp có", the.length === 6 && the.slice(0,5).every(x => !x.khoa && !x.sap) && the[5].sap, JSON.stringify(the.map((x) => x.t.slice(0, 18))));
 soat("thẻ chọn màn có cảnh vẽ động làm nền (N1 sắp có cũng có cảnh chuyển động)", (await pg.$$(".jl-the-canh svg")).length === 6);
-soat("N5/N4/N3/N2/Kaiwa có nhân vật trên thẻ", (await pg.$(".jl-the-nv .jl-nv-svg")).length === 5);
+soat("N5/N4/N3/N2/Kaiwa có nhân vật trên thẻ", (await pg.locator(".jl-the-nv .jl-nv-svg").count()) === 5);
 soat("hạt trôi + nút nhạc nền hiện ở màn chọn", !!(await pg.$(".jl-nhac")));
 const rongPc = await pg.evaluate(() => { const g = document.querySelector(".jl-chon").getBoundingClientRect(); return g.width; });
 soat("máy tính: khung chọn màn rộng hơn 900px (không bó như điện thoại)", rongPc > 900, Math.round(rongPc));

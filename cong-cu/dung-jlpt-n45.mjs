@@ -81,7 +81,7 @@ export function buildN45(source, editorial) {
       const candidates=grammarBank.map((text,i)=>({text,i})).filter(x=>x.i && x.i!==row.category);
       // Close pragmatic categories are kept out together (requests, permission, wishes, plans).
       const banned = new Set(row.category===1?[1,12,2]:row.category===2?[1,2,10]:row.category===12?[1,3,12]:row.category===3?[3,12]:[]);
-      const choices=candidates.filter(x=>!banned.has(x.i));
+      const choices=candidates.filter(x=>!banned.has(x.i) && !(row.avoid||[]).includes(x.i));
       const offset=hash(row.id)%choices.length;
       const wrong=Array.from({length:3},(_,i)=>choices[(offset+i)%choices.length].text);
       const p={id:level.toLowerCase()+":"+row.id,sourceEntityId:row.id,p:row.p,m:row.m,cn:row.p,gt:row.m,
@@ -89,6 +89,12 @@ export function buildN45(source, editorial) {
         quiz:{kind:"pp-context",context:row.j,translation:row.v,answer:row.m,wrong}};
       lessons[row.lesson-base].pp.push(p);
       lessons[row.lesson-base].vd.push({j:row.j,v:row.v,g:level.toLowerCase()+":"+row.id,editorial:true});
+    }
+    const allWords=lessons.flatMap(b=>b.tu);
+    for(const t of allWords)if(/[一-鿿]/u.test(t.w)) {
+      const readings=[...new Set(allWords.filter(x=>x.w!==t.w && x.r!==t.r).map(x=>x.r))];
+      const at=hash(t.id)%readings.length;
+      t.readQuiz={answer:t.r,wrong:Array.from({length:3},(_,i)=>readings[(at+i)%readings.length])};
     }
     const usedHan=new Set(), dict=new Map(raw.kanji.map(x=>[x.c,x]));
     for(const b of lessons)for(const t of b.tu)for(const c of t.w.match(/[一-鿿]/gu)||[]) {

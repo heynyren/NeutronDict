@@ -721,3 +721,8 @@ body.jlpt-toan .side { display: none; }
 .jl-kaiwa .jl-chay-nut { flex-wrap: wrap; }
 .jl-kaiwa .jl-chay-nut .jl-btn { flex: 1 1 110px; min-width: 0; white-space: normal; }
 .jl-kaiwa .jl-btn.chinh { background: #176b80; color: #fff; }
+
+/* Reviewed courses / Kaiwa: keep foreground and surface colors in sync when the OS theme changes. */
+.jl-kaiwa .jl-lua { transition: border-color .12s, transform .1s; }
+.jl-kaiwa .jl-nghia, .jl-kaiwa .jl-loa:not(.to) { color: var(--accent); }
+.jl-kaiwa .jl-loa.to { background: #176b80; color: #fff; }

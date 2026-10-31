@@ -2113,7 +2113,10 @@
         "m": "Hỏi người khác làm gì",
         "j": "休みの日に何をしますか。",
         "v": "Ngày nghỉ bạn làm gì?",
-        "category": 0
+        "category": 0,
+        "avoid": [
+          10
+        ]
       },
       {
         "id": "gram_d1fb91ecadfff2108b0f",
@@ -5417,7 +5420,10 @@
         "m": "Nói việc tự nhiên nhìn thấy hoặc nghe thấy",
         "j": "ここから海が見えます。",
         "v": "Từ đây có thể nhìn thấy biển.",
-        "category": 0
+        "category": 0,
+        "avoid": [
+          9
+        ]
       },
       {
         "id": "gram_7fc44d62e3093e2d7e47",
@@ -6173,7 +6179,7 @@
         "m": "Nêu người bị cho làm hành động tự động",
         "j": "先生は学生を立たせました。",
         "v": "Thầy giáo cho học sinh đứng lên.",
-        "category": 0
+        "category": 12
       },
       {
         "id": "gram_fe3e82d17a1482b1dcab",
@@ -6182,7 +6188,7 @@
         "m": "Nêu người thực hiện và đối tượng bị tác động",
         "j": "先生は学生に作文を書かせました。",
         "v": "Thầy giáo cho học sinh viết bài văn.",
-        "category": 0
+        "category": 12
       },
       {
         "id": "gram_5802db4c3a9f831cb06c",

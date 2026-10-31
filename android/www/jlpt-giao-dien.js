@@ -434,6 +434,10 @@
       nk.title = T("Nhật ký câu chuyện"); nk.setAttribute("aria-label", nk.title);
       dau.appendChild(nk);
     }
+    if (mon.quizMode === "reviewed-choices") {
+      const info = nut("jl-lui jl-nguon", "ⓘ", moNguonN45);
+      info.title=T("Thông tin học liệu"); info.setAttribute("aria-label",info.title); dau.appendChild(info);
+    }
     dau.appendChild(thongKe());
     o.appendChild(dau);
     o.appendChild(taoGioi());
@@ -597,6 +601,19 @@
     o.addEventListener("click", (e) => { if (e.target === o && o.dataset.dong !== "khong") o.remove(); });
     root.appendChild(o);
     return o;
+  }
+
+
+  function moNguonN45() {
+    const o=overlay("jl-to"),box=el("div","jl-to-hop");
+    box.appendChild(el("div","jl-to-ten",T("Thông tin học liệu")));
+    box.appendChild(el("p","jl-to-mo",T("Nội dung được biên tập từ tài liệu bạn cung cấp; nhãn cấp độ theo giáo trình, không phải danh mục JLPT chính thức.")));
+    box.appendChild(el("p","jl-to-mo",T("Ví dụ ngữ pháp được viết riêng cho bài học. Chữ Hán được chọn từ các từ đang học.")));
+    box.appendChild(el("p","jl-to-mo","JMdict / KANJIDIC2 © EDRDG · CC BY-SA 3.0 · jamdict-data 1.5"));
+    const link=el("a","jl-btn",T("Nguồn và giấy phép từ điển"));
+    link.href="https://www.edrdg.org/edrdg/licence.html";link.target="_blank";link.rel="noopener noreferrer";
+    box.appendChild(link);box.appendChild(nut("jl-btn chinh",T("Đóng"),()=>o.remove()));
+    o.appendChild(box);
   }
 
   function moChang(c, idx, mo) {
