@@ -1,15 +1,11 @@
 package com.kienhoang.dualsubreplay.ui
 
-internal const val PLAYBACK_CLOCK_STALE_MS = 250L
-
 /** One media clock for all caption surfaces. Android monotonic time is injected for tests. */
 internal class NeutronObservedPlaybackClock {
     private var snapshot: WebPlaybackSnapshot? = null
     private var sampledAt = 0L
     private var lastWallSample = 0L
     private var positionMs = 0L
-    private var lastEmittedPositionMs: Long? = null
-    private var lastEmittedSessionId: String? = null
     private val retiredSessions = ArrayDeque<String>()
 
     fun accept(
@@ -47,13 +43,7 @@ internal class NeutronObservedPlaybackClock {
         // Like the extension, only observed media time may select a new caption.
         // No wall-clock projection: waiting/rate-change events may arrive after the frame.
         val projectedPositionMs = positionMs
-        if (lastEmittedSessionId != sample.sessionId) {
-            lastEmittedSessionId = sample.sessionId
-            lastEmittedPositionMs = null
-        }
-        return projectedPositionMs.also {
-            lastEmittedPositionMs = it
-        }
+        return projectedPositionMs
     }
 
     fun sample(): WebPlaybackSnapshot? = snapshot

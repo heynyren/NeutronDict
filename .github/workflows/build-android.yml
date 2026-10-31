@@ -104,7 +104,12 @@ jobs:
 
       - name: Verify generated launcher name
         run: |
-          node -e "const fs=require('fs');const s=fs.readFileSync('android/app/src/main/res/values/strings.xml','utf8'); for(const key of ['app_name','title_activity_main']) if(!s.includes('<string name=\\"'+key+'\\">RaKuLanG</string>')) throw Error('Incorrect launcher label: '+key)"
+          python3 - <<'PY'
+          import xml.etree.ElementTree as E
+          values = {e.attrib.get("name"): e.text for e in E.parse("android/app/src/main/res/values/strings.xml").getroot()}
+          for key in ("app_name", "title_activity_main"):
+              assert values.get(key) == "RaKuLanG", (key, values.get(key))
+          PY
       - name: Build debug APK
         run: |
           cd android
