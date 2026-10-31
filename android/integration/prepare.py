@@ -551,3 +551,37 @@ patch(color_test, '    private fun lightness(color: Color)', '''    @Test
     }
 
     private fun lightness(color: Color)''')
+
+# Match the extension: observed video.currentTime, not a projected future cursor.
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "val clock = CaptionPlaybackClock()", "val clock = NeutronObservedPlaybackClock()")
+patch(dual / "ui/YouTubeWebScripts.kt",
+      "const second = video && Number.isFinite(video.currentTime) ? video.currentTime : null;",
+      """const ad = document.querySelector('.html5-video-player.ad-showing, .html5-video-player.ad-interrupting');
+      const second = !ad && video && Number.isFinite(video.currentTime) ? video.currentTime : null;""")
+# Timestamped tracks keep their last started row across quiet gaps. DOM text cannot
+# select another row, even when words repeat or YouTube reveals a line early.
+patch(dual / "ui/AppViewModel.kt",
+      "val timedIndex = activeSubtitleIndex(current.segments, timeMs)",
+      "val timedIndex = neutronObservedSubtitleIndex(current.segments, timeMs)")
+patch(dual / "ui/KaraokeTiming.kt",
+      """        val anchored = timedRow != null &&
+            playbackTimeMs >= timedRow.startMs && playbackTimeMs < timedRow.endMs""",
+      "        val anchored = segments != null")
+# A layout wrap must not invent a new sentence timestamp inside one source chunk.
+patch(dual / "data/SubtitleMerger.kt",
+      "val boundaries = ends.filter { end -> starts.any { it >= end } }.distinct() + segment.originalText.length",
+      """val boundaries = ends.filter { end ->
+            val next = starts.indexOfFirst { it >= end }
+            next > 0 && !sameNeutronCaptionChunk(segment.words[next - 1], segment.words[next])
+        }.distinct() + segment.originalText.length""")
+patch(dual / "data/SubtitleMerger.kt",
+      "output += buildSplitSegments(segment, chunks).takeIf { it.size > 1 } ?: estimateSplitSegments(segment, chunks)",
+      """val built = buildSplitSegments(segment, chunks)
+            output += if (segment.words.any { it.highlightStartMs >= 0 }) built
+                else built.takeIf { it.size > 1 } ?: estimateSplitSegments(segment, chunks)""")
+
+# An untimed cue has no evidence for a word-level sentence anchor.
+patch(OUT / "app/src/test/java/com/kienhoang/dualsubreplay/data/SubtitleMergerTest.kt",
+"    @Test fun rowSplitInsideAnUntimedCueSeeksNearTheSpokenWord() {\n        val cues =\n            listOf(\n                RawCaptionCue(10_000, 13_500, \"how do we give it a realistic\"),\n                RawCaptionCue(12_000, 15_500, \"enough scenario so it doesn't\"),\n                RawCaptionCue(14_000, 17_000, \"think it's being tested?\"),\n            )\n        val rows = SubtitleMerger.splitLongSegments(SubtitleMerger.merge(cues))\n        val second = rows.first { it.originalText.startsWith(\"it doesn't\") }\n\n        // \"it\" is spoken inside the second cue (12–14 s); the display-time estimate put it after 14 s.\n        assertTrue(\"row starts at ${second.startMs}\", second.startMs in 12_000L until 14_000L)\n    }\n",
+"    @Test fun untimedCueLayoutNeverInventsSpeechAnchors() {\n        val cues = listOf(\n            RawCaptionCue(10_000, 13_500, \"how do we give it a realistic\"),\n            RawCaptionCue(12_000, 15_500, \"enough scenario so it doesn't\"),\n            RawCaptionCue(14_000, 17_000, \"think it's being tested?\"),\n        )\n        val rows = SubtitleMerger.splitLongSegments(SubtitleMerger.merge(cues))\n        assertTrue(rows.isNotEmpty())\n        assertEquals(cues.joinToString(\" \") { it.text }, rows.joinToString(\" \") { it.originalText })\n        assertTrue(rows.all { row -> cues.any { it.startMs == row.startMs } })\n        assertTrue(rows.none { it.originalText.startsWith(\"it doesn't\") })\n    }\n")

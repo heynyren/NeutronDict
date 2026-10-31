@@ -1,0 +1,1397 @@
+{
+  "sources": [
+    {
+      "id": "nameraka",
+      "title": "Nameraka Nihongo Kaiwa — bản tiếng Việt do người dùng cung cấp",
+      "file": "Nameraka_Nihongo_Kaiwa_Overleaf.zip",
+      "sha256": "ebcacc2bcbb11c380bd7c7c340f5b675a104cded7c22b2e3a7081d3018bdf5c6",
+      "coverage": "23 bài; trích chọn 61 mục. Bản dịch ví dụ và lời giải được biên tập riêng để học."
+    },
+    {
+      "id": "osaka",
+      "title": "Osaka — Nhật–Việt song ngữ",
+      "file": "transcript_osaka_ja_vi.txt",
+      "sha256": "dbac67468e2aa1f6244f528239700c787ec14de1c4be03e13dc013587118100b",
+      "coverage": "16 chủ đề; 48 mục từ các đoạn inferred. Không dùng đoạn uncertain. Chưa đối chiếu âm thanh; không tạo mốc thời gian."
+    }
+  ],
+  "notes": [
+    "Nameraka lesson 1's printed omitted-vowel claim is excluded.",
+    "No universal gender/region restrictions are taught.",
+    "Osaka interview opinions and statistics are not generalized to all residents.",
+    "No invented audio timestamps or original-audio claim.",
+    "玉赤 reading ぎょくあか cross-checked: https://japan-word.com/gyokuaka",
+    "Kansai forms: https://www.irodori.jpf.go.jp/assets/data/pre-intermediate/pdf/ZZ_L09.pdf"
+  ],
+  "items": [
+    {
+      "id": "kaiwa-nam-01-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-01",
+        "file": "chapters/part1_start.tex",
+        "lesson": 1,
+        "page": 12,
+        "quote": "待ってるよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ad ～ている → ～てる}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：待っているよ。&→&待ってるよ。\\\\[8pt]\n\\hspace{2em}待っていてね。&→&待っててね。\\\\[8pt]\n\\hspace{2em}待っていないで。&→&待ってないで。\n\\end{tabularx}\n\\Needspace"
+    },
+    {
+      "id": "kaiwa-nam-01-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-01",
+        "file": "chapters/part1_start.tex",
+        "lesson": 1,
+        "page": 12,
+        "quote": "子供を連れてくよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "～ていく → ～てく}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：子供を連れていくよ。&→&子供を連れてくよ。\\\\[8pt]\n連れていって下さい。&→&連れてって下さい。\\\\[8pt]\n子供を連れていこうか。&→&子供を連れてこうか。\n\\end{tabularx}\n\\Needspace{225pt}\\sect"
+    },
+    {
+      "id": "kaiwa-nam-01-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-01",
+        "file": "chapters/part1_start.tex",
+        "lesson": 1,
+        "page": 12,
+        "quote": "買っとくよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ad ～ておく → ～とく}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：買っておくよ。&→&買っとくよ。\\\\[8pt]\n買っておいて下さい。&→&買っといて下さい。\\\\[8pt]\n買っておこうかな。&→&買っとこうかな。\n\\end{tabularx}\n"
+    },
+    {
+      "id": "kaiwa-nam-02-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-02",
+        "file": "chapters/lesson02.tex",
+        "lesson": 2,
+        "page": 24,
+        "quote": "食べちゃう",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "}～でしまう → ～じゃう}}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：食べてしまう&→&食べちゃう\\\\[8pt]\n飲んでしまう&→&飲んじゃう\n\\end{tabularx}\n\\Needspace{225pt}\\section*{3\\quad ～なくてはいけない → ～なくちゃいけない}\n～なければ"
+    },
+    {
+      "id": "kaiwa-nam-02-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-02",
+        "file": "chapters/lesson02.tex",
+        "lesson": 2,
+        "page": 24,
+        "quote": "食べちゃいけない",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "い → ～じゃいけない}}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：食べてはいけない&→&食べちゃいけない\\\\[8pt]\n急いではいけない&→&急いじゃいけない\n\\end{tabularx}\n\\Needspace{225pt}\\section*{2\\quad ～てしまう → ～ちゃう}\n\\JP{\\text"
+    },
+    {
+      "id": "kaiwa-nam-02-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-02",
+        "file": "chapters/lesson02.tex",
+        "lesson": 2,
+        "page": 24,
+        "quote": "食べなきゃだめ",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\\\[8pt]\n食べなくてはならない&→&食べなくちゃならない\\\\[8pt]\n食べなければならない&→&食べなきゃならない\\\\[8pt]\n食べなければだめ&→&食べなきゃだめ\n\\end{tabularx}\n"
+    },
+    {
+      "id": "kaiwa-nam-03-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-03",
+        "file": "chapters/lesson03.tex",
+        "lesson": 3,
+        "page": 36,
+        "quote": "さがしたって見つからないんだ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "→ ～だって}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：さがしても見つからないんだ。&→&さがしたって見つからないんだ。\\\\[8pt]\n急いでも間にあわないね。&→&急いだって間にあわないね。\\\\[8pt]\n安くても買うつもりはないよ。&→&安くたって買うつもりはないよ。\\\\[8pt]\n忙しくてもかまわないよ。&→&忙"
+    },
+    {
+      "id": "kaiwa-nam-03-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-03",
+        "file": "chapters/lesson03.tex",
+        "lesson": 3,
+        "page": 36,
+        "quote": "急いだって間にあわないね。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\linewidth}{@{}XcX@{}}\n例：さがしても見つからないんだ。&→&さがしたって見つからないんだ。\\\\[8pt]\n急いでも間にあわないね。&→&急いだって間にあわないね。\\\\[8pt]\n安くても買うつもりはないよ。&→&安くたって買うつもりはないよ。\\\\[8pt]\n忙しくてもかまわないよ。&→&忙しくたってかまわないよ。\\\\[8pt]\nへたでもかまわないから。&→&へ"
+    },
+    {
+      "id": "kaiwa-nam-03-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-03",
+        "file": "chapters/lesson03.tex",
+        "lesson": 3,
+        "page": 37,
+        "quote": "どっちだってかまわない。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\\\[8pt]\nいつでもひまです。&→&いつだってひまです。\\\\[8pt]\nどこでもいいよ。&→&どこだっていいよ。\\\\[8pt]\nどっちでもかまわない。&→&どっちだってかまわない。\\\\[8pt]\nなんでもやります。&→&なんだってやります。\n\\end{tabularx}\n\\Needspace{225pt}\\section*{用例}\n\\example{1}\n\\jpturn{祖母}"
+    },
+    {
+      "id": "kaiwa-nam-04-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-04",
+        "file": "chapters/lesson04.tex",
+        "lesson": 4,
+        "page": 51,
+        "quote": "えっ、アクアランドってなに？",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "i hỏi để biết rõ hơn về một vấn đề.\n例：\n\\jpturn{父}{みんなでアクアランドに行かないか。}\n\\jpturn{子}{えっ、アクアランドってなに？}\n\\jpturn{父}{新しくできた水族館だよ。来月の一日に行こう。}\n\\jpturn{子}{一日って何曜日？}\n\\jpturn{父}{来週の日曜日だよ。}\n\\jpturn{子}{うん、行こう、行こ"
+    },
+    {
+      "id": "kaiwa-nam-04-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-04",
+        "file": "chapters/lesson04.tex",
+        "lesson": 4,
+        "page": 52,
+        "quote": "エンゼルフィッシュっていうのよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": " vất vả đấy.\n◆ これ、何という魚？ → これ、何ていう魚？\nĐây là con cá gì vậy?\n◆ エンゼルフィッシュというのよ。\\\\→ エンゼルフィッシュっていうのよ。\nĐó là cá ông tiên.\n\\Needspace{225pt}\\section*{用例}\n\\example{1}\n\\jpturn{男A}{山田課長、中国へ転勤するんだって聞いたよ。}\n\\j"
+    },
+    {
+      "id": "kaiwa-nam-04-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-04",
+        "file": "chapters/lesson04.tex",
+        "lesson": 4,
+        "page": 51,
+        "quote": "よかったって思ってるんだよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\n◆ よかったと思ってるんだよ。\\\\→ よかったって思ってるんだよ。\nTôi nghĩ là tốt.\n\\Needspace{225pt}\\section*{2. もっとはっきり知るために聞くときの言い方}\nCách nói khi hỏi để biết rõ hơ"
+    },
+    {
+      "id": "kaiwa-nam-05-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-05",
+        "file": "chapters/lesson05.tex",
+        "lesson": 5,
+        "page": 68,
+        "quote": "わからんから",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "n mới sử dụng.\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：わからないから&→&わからんから\\\\[8pt]\n知らないふり&→&知らんぷり\\\\[8pt]\n～かもしれない&→&～かもしれん\\\\[8pt]\nたまらない&→&たまらん\\\\[8pt]\nすまない&→&すまん\n\\end{tabularx}\n"
+    },
+    {
+      "id": "kaiwa-nam-05-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-05",
+        "file": "chapters/lesson05.tex",
+        "lesson": 5,
+        "page": 69,
+        "quote": "何してんの",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：どうするの&→&どうすんの\\\\[8pt]\n何してるの&→&何してんの\\\\[8pt]\nいろいろな&→&いろんな\n\\end{tabularx}\n〈注〉次は主に子供や若い女性が使う。\nChú ý: Dưới đây chủ yếu là trẻ con và những c"
+    },
+    {
+      "id": "kaiwa-nam-05-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-05",
+        "file": "chapters/lesson05.tex",
+        "lesson": 5,
+        "page": 69,
+        "quote": "ぼくんち",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": " trẻ tuổi sử dụng.\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\nぼくのうち&→&ぼくんち\\\\[8pt]\nぼくのところ&→&ぼくんとこ\\\\[8pt]\nここのところ&→&ここんとこ\n\\end{tabularx}\n"
+    },
+    {
+      "id": "kaiwa-nam-06-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-06",
+        "file": "chapters/lesson06.tex",
+        "lesson": 6,
+        "page": 81,
+        "quote": "こないだ",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "あなた&→&あんた\\\\[8pt]\nこのあいだ&→&こないだ\n\\end{tabularx}\n\\Needspace{225pt}\\section*{っ}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\nど"
+    },
+    {
+      "id": "kaiwa-nam-06-tu-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-06",
+        "file": "chapters/lesson06.tex",
+        "lesson": 6,
+        "page": 80,
+        "quote": "どっち",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": " ĐỔI\\par\nくだけた会話で使われる言葉はいろいろな理由から音の変化が起こりやすいです。「ところ」→「とこ」の場合は、短い形に変化しています。「どちら」→「どっち」や、「あまり」→「あんまり」の場合は、「っ」や「ん」を含む形に変化しています。「とても」→「とっても」などの副詞は、意味を強く表現しようとするために音が変化しています。\nTrong đàm thoạ"
+    },
+    {
+      "id": "kaiwa-nam-06-tu-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-06",
+        "file": "chapters/lesson06.tex",
+        "lesson": 6,
+        "page": 80,
+        "quote": "とこ",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "}{}\n\\noindentNHỮNG TỪ NGỮ BỊ BIẾN ĐỔI\\par\nくだけた会話で使われる言葉はいろいろな理由から音の変化が起こりやすいです。「ところ」→「とこ」の場合は、短い形に変化しています。「どちら」→「どっち」や、「あまり」→「あんまり」の場合は、「っ」や「ん」を含む形に変化しています。「とても」→「とっても」などの副詞は、意味を強く表現"
+    },
+    {
+      "id": "kaiwa-nam-06-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-06",
+        "file": "chapters/lesson06.tex",
+        "lesson": 6,
+        "page": 82,
+        "quote": "考えりゃ",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "～れば&→&～りゃ\n\\end{tabularx}\n（例：考えれば → 考えりゃ）\n\\Needspace{225pt}\\section*{◆ ことばの初めの音が省略される}\nLược bỏ âm đầu tiên\n\\par\\noindent\\begin{tabularx}{\\li"
+    },
+    {
+      "id": "kaiwa-nam-07-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-07",
+        "file": "chapters/lesson07.tex",
+        "lesson": 7,
+        "page": 98,
+        "quote": "くだけた会話では「を」がよく省略されます。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\n\\lesson{7}{助詞の省略}{}\n\\noindentTĨNH LƯỢC TRỢ TỪ\\par\nくだけた会話では「を」がよく省略されます。前後の文章の内容から意味がはっきりしていて、まちがえることがない場合には「が」「に／へ（行く）」も省略されます。けれども、その他の「に」や「で」「と」などの助詞を省略すると意味が通じなくなります。また"
+    },
+    {
+      "id": "kaiwa-nam-07-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-07",
+        "file": "chapters/lesson07.tex",
+        "lesson": 7,
+        "page": 98,
+        "quote": "また、文の主題としての「は」は、話し言葉ではよく省略されます。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ていて、まちがえることがない場合には「が」「に／へ（行く）」も省略されます。けれども、その他の「に」や「で」「と」などの助詞を省略すると意味が通じなくなります。また、文の主題としての「は」は、話し言葉ではよく省略されます。\nTrong đàm thoại thân mật trợ từ 「wo」 thường được lược bỏ. Đối với những trường hợp nội dung câu văn"
+    },
+    {
+      "id": "kaiwa-nam-08-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-08",
+        "file": "chapters/lesson08.tex",
+        "lesson": 8,
+        "page": 112,
+        "quote": "入って。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "&～て。\\\\[8pt]\n\\textbullet\\ ～ないでください。&→&～ないで。\n\\end{tabularx}\n例：入ってください。\\quad→\\quad 入って。\n入らないでください。\\quad→\\quad 入らないで。\n\\Needspace{225pt}\\section*{2. 人に何かをすすめるときの言い方}\nCách nói khi khuyên bảo"
+    },
+    {
+      "id": "kaiwa-nam-08-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-08",
+        "file": "chapters/lesson08.tex",
+        "lesson": 8,
+        "page": 113,
+        "quote": "やってみたら",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "すか。&→&～ては\n\\end{tabularx}\n\\par\\noindent\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：やってみたらどうですか。&→&やってみたら\\\\[8pt]\nやってみればいいですよ。&→&やってみれば\\\\[8pt]\nやってみてはどうですか。&→&やってみては\n\\end{tabularx}\n\\Needspace{"
+    },
+    {
+      "id": "kaiwa-nam-08-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-08",
+        "file": "chapters/lesson08.tex",
+        "lesson": 8,
+        "page": 113,
+        "quote": "がんばらないと。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "(がんばらなきゃ)\\\\[8pt]\nがんばらなくてはならない。&→&がんばらなくては。\\\\\n&&(がんばらなくちゃ)\\\\[8pt]\nがんばらないといけない。&→&がんばらないと。\n\\end{tabularx}\n\\Needspace{225pt}\\section*{4. 人に聞いたことを話すときの言い方}\nCách nói dùng khi nói chuyện với ngư"
+    },
+    {
+      "id": "kaiwa-nam-08-pp-04",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-08",
+        "file": "chapters/lesson08.tex",
+        "lesson": 8,
+        "page": 114,
+        "quote": "合格したって？",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\begin{tabularx}{\\linewidth}{@{}XcX@{}}\n例：何と言いましたか。&→&何て？\\\\[8pt]\n合格したと言いましたか。&→&合格したって？\\\\[8pt]\nインターネットって何ですか。&→&インターネットって？\\\\[8pt]\n海の日っていつですか。&→&海の日って？\n\\end{tabularx}\n"
+    },
+    {
+      "id": "kaiwa-nam-09-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-09",
+        "file": "chapters/lesson09.tex",
+        "lesson": 9,
+        "page": 131,
+        "quote": "どうぞお大事に。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\nXin mời đi hướng này (lối này).\n\\Needspace{100pt}\\textbullet\\ どうぞお大事にしてください。\n→ どうぞお大事に。\nXin hãy bảo trọng / Hãy giữ gìn sức khỏe.\\par Chúc chóng khỏe.\n"
+    },
+    {
+      "id": "kaiwa-nam-09-tu-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-09",
+        "file": "chapters/lesson09.tex",
+        "lesson": 9,
+        "page": 132,
+        "quote": "どうぞおかまいなく。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "い。\n→ どうぞご心配なく。\nXin đừng lo lắng.\n\\Needspace{100pt}\\textbullet\\ どうぞかまわないでください。\n→ どうぞおかまいなく。\nXin đừng bận tâm.\n"
+    },
+    {
+      "id": "kaiwa-nam-09-tu-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-09",
+        "file": "chapters/lesson09.tex",
+        "lesson": 9,
+        "page": 133,
+        "quote": "お先に失礼します。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "うも。\nTôi xin phép. / Xin thất lễ.\n\\Needspace{225pt}\\section*{4. その他（Ngoài ra）}\n例：お先に失礼します。\\quad→\\quad お先に。\nTôi xin phép đi trước.\n\\Needspace{100pt}\\textbullet\\ じゃ、また後で会いましょう。\\quad→\\quad じゃ、ま"
+    },
+    {
+      "id": "kaiwa-nam-09-tu-04",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-09",
+        "file": "chapters/lesson09.tex",
+        "lesson": 9,
+        "page": 132,
+        "quote": "どうぞよいお年を。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "o tôi gởi lời thăm (ông, bà …)\n\\Needspace{100pt}\\textbullet\\ どうぞよいお年をお迎えください。\n→ どうぞよいお年を。\nChúc một năm tốt lành. / Chúc năm mới tốt lành.\n\\Needspace{100pt}\\textbullet\\ どうぞお先に行ってください。\n→ どうぞお"
+    },
+    {
+      "id": "kaiwa-nam-10-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-10",
+        "file": "chapters/lesson10.tex",
+        "lesson": 10,
+        "page": 150,
+        "quote": "そうそう",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ào / đâu nào đâu nào\\\\[8pt]\n\\textbullet\\ それそれ&cái đó cái đó\\\\[8pt]\n\\textbullet\\ そうそう&đúng rồi đúng rồi\\\\[8pt]\n\\textbullet\\ これこれ&cái này cái này\n\\end{tabularx}\n\\par\\noindent\\begin{tabul"
+    },
+    {
+      "id": "kaiwa-nam-10-tu-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-10",
+        "file": "chapters/lesson10.tex",
+        "lesson": 10,
+        "page": 150,
+        "quote": "どれどれ",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ng thả thong thả\\\\[8pt]\n\\textbullet\\ 何回も何回も&mấy lần mấy lần\\\\[8pt]\n\\textbullet\\ どれどれ&cái nào cái nào / đâu nào đâu nào\\\\[8pt]\n\\textbullet\\ それそれ&cái đó cái đó\\\\[8pt]\n\\textbullet\\ そうそう&đ"
+    },
+    {
+      "id": "kaiwa-nam-10-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-10",
+        "file": "chapters/lesson10.tex",
+        "lesson": 10,
+        "page": 150,
+        "quote": "あ、来た、来た。やっと来たよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "oindent\\begin{minipage}{\\linewidth}\n例：\n\\jpturn{母}{バス、遅いね。もう来る時間なのに。}\n\\jpturn{子}{あ、来た、来た。やっと来たよ。}\n\\jpturn{母}{バスの切符、ある？}\n\\jpturn{子}{あれ？どこかな？あっ、あったあった。}\n\\end{minipage}\\par\n"
+    },
+    {
+      "id": "kaiwa-nam-11-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-11",
+        "file": "chapters/lesson11.tex",
+        "lesson": 11,
+        "page": 167,
+        "quote": "商品券なんかどうかな。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ipage}{\\linewidth}\n\\example{2}\n\\jpturn{妻}{お世話になった課長さんには何をさしあげましょうか。}\n\\jpturn{夫}{商品券なんかどうかな。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{3}\n\\jpturn{男A}{本社に転勤になったんだって"
+    },
+    {
+      "id": "kaiwa-nam-11-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-11",
+        "file": "chapters/lesson11.tex",
+        "lesson": 11,
+        "page": 167,
+        "quote": "いつか、ご一緒に食事でもしませんか。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ến.\n用例（ví dụ）：\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{1}\n\\jpturn{A}{いつか、ご一緒に食事でもしませんか。}\n\\jpturn{B}{そうですね。じゃ、今度の土曜日でもいかがですか。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n"
+    },
+    {
+      "id": "kaiwa-nam-11-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-11",
+        "file": "chapters/lesson11.tex",
+        "lesson": 11,
+        "page": 169,
+        "quote": "それとも、ホームシックになったとか？",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\n\\jpturn{女A}{体でも悪いんじゃないの。それとも、ホームシックになったとか？}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{5}\n\\jpturn{女A}{何してるの？}\n\\jptu"
+    },
+    {
+      "id": "kaiwa-nam-12-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-12",
+        "file": "chapters/lesson12.tex",
+        "lesson": 12,
+        "page": 188,
+        "quote": "どうしたの、いったい？",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "inipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{3}\nいったいどうしたの？\n→ どうしたの、いったい？\n\\end{minipage}\\par\n\\Needspace{225pt}\\subsection*{〈注〉語順の変化にはいくつかの可能性がある。}\n\\noindentChú ý: Trật tự từ"
+    },
+    {
+      "id": "kaiwa-nam-12-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-12",
+        "file": "chapters/lesson12.tex",
+        "lesson": 12,
+        "page": 190,
+        "quote": "いいわね、独身の人は。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\n\\jpturn{女D}{いいわね、独身の人は。わたしなんか家で掃除と洗濯よ。}\n\\jpturn{女A}{おみやげ買ってくるわ。何がいい？}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\lin"
+    },
+    {
+      "id": "kaiwa-nam-13-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-13",
+        "file": "chapters/lesson13.tex",
+        "lesson": 13,
+        "page": 204,
+        "quote": "ところで",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "kslash}X@{}}\n▼ ていねいな会話 đàm thoại lịch sự & ▼ くだけた会話 đàm thoại thân mật\\\\[7pt]\n・ ところで & ・ それはそうと\\\\[3pt]\n・ 話は変わりますが & ・ 話は変わるけど\\\\[3pt]\n・ 話がそれますが & ・ 話がそれるけど\\\\[3pt]\n・ 話をもどしますが & ・ 話をもどすと\\"
+    },
+    {
+      "id": "kaiwa-nam-13-tu-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-13",
+        "file": "chapters/lesson13.tex",
+        "lesson": 13,
+        "page": 203,
+        "quote": "実はね",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "X@{}}\n▼ ていねいな会話 đàm thoại lịch sự & ▼ くだけた会話 đàm thoại thân mật\\\\[7pt]\n・ 実は & ・ 実はね\\\\[3pt]\n・ さっそくですが & ・ さっそくだけど\\\\[3pt]\n・ さて &\n\\end{tabularx}\n\\end{minipage}\\par\n"
+    },
+    {
+      "id": "kaiwa-nam-13-tu-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-13",
+        "file": "chapters/lesson13.tex",
+        "lesson": 13,
+        "page": 204,
+        "quote": "じゃ、このへんで…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "いねいな会話 đàm thoại lịch sự & ▼ くだけた会話 đàm thoại thân mật\\\\[7pt]\n・ それでは、このへんで… & ・ じゃ、このへんで…\\\\[3pt]\n・ では、そういうことで… & ・ じゃ、そういうことで\\\\[3pt]\n・ では、そろそろ… & ・ じゃ、そろそろ…\\\\[3pt]\n・ では、こんなところで… & ・ じゃ、こんなと"
+    },
+    {
+      "id": "kaiwa-nam-14-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-14",
+        "file": "chapters/lesson14.tex",
+        "lesson": 14,
+        "page": 214,
+        "quote": "課長、次回の会議のことですが…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{3}\n\\jpturn{社員}{課長、次回の会議のことですが…}\n\\jpturn{課長}{あ、会議の議題なら君にまかせるよ。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\examp"
+    },
+    {
+      "id": "kaiwa-nam-14-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-14",
+        "file": "chapters/lesson14.tex",
+        "lesson": 14,
+        "page": 213,
+        "quote": "連休に家族で久しぶりに京都へ行きまして…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\section*{用例}\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{1}\n\\jpturn{男A}{連休に家族で久しぶりに京都へ行きまして…}\n\\jpturn{男B}{いかがでしたか。}\n\\jpturn{男A}{人が多すぎてさんざんでしたよ。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage"
+    },
+    {
+      "id": "kaiwa-nam-15-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-15",
+        "file": "chapters/lesson15.tex",
+        "lesson": 15,
+        "page": 228,
+        "quote": "はい、ございますが…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "minipage}{\\linewidth}\n\\example{1}\n\\jpturn{客}{20日のコンサートのチケット、ありますか。}\n\\jpturn{店員}{はい、ございますが…}\n\\jpturn{客}{じゃ、A席2枚ください。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{2}\n"
+    },
+    {
+      "id": "kaiwa-nam-15-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-15",
+        "file": "chapters/lesson15.tex",
+        "lesson": 15,
+        "page": 228,
+        "quote": "いいですけど…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\\linewidth}\n\\example{2}\n\\jpturn{女}{あのー、すみませんけど、この荷物、ちょっと預かってもらえません？}\n\\jpturn{男}{いいですけど…}\n\\jpturn{女}{すぐもどってきますから。}\n\\end{minipage}\\par\n"
+    },
+    {
+      "id": "kaiwa-nam-16-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-16",
+        "file": "chapters/lesson16.tex",
+        "lesson": 16,
+        "page": 243,
+        "quote": "実はね。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "section*{用例}\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{1a}\n\\jpturn{男A}{実はね。}\n\\jpturn{女B}{何なの？}\n\\jpturn{男A}{外国に行くことになって。}\n\\jpturn{女B}{ほんと？}\n\\jpturn{男A}{しばらく会えなくなるからさ。}\n\\jpturn{"
+    },
+    {
+      "id": "kaiwa-nam-16-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-16",
+        "file": "chapters/lesson16.tex",
+        "lesson": 16,
+        "page": 243,
+        "quote": "しばらく会えなくなるからさ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "実はね。}\n\\jpturn{女B}{何なの？}\n\\jpturn{男A}{外国に行くことになって。}\n\\jpturn{女B}{ほんと？}\n\\jpturn{男A}{しばらく会えなくなるからさ。}\n\\jpturn{女B}{さびしくなるね。}\n\\jpturn{男A}{それでお別れを言いにきたんだ。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage"
+    },
+    {
+      "id": "kaiwa-nam-17-tu-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-17",
+        "file": "chapters/lesson17.tex",
+        "lesson": 17,
+        "page": 253,
+        "quote": "なるほど。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "男A}{楽しかったですよ。}\n\\jpturn{女B}{そうでしょうね。}\n\\jpturn{男A}{泳いだり、ゴルフをしたりしまして…}\n\\jpturn{女B}{なるほど。}\n\\jpturn{男A}{あなたも行ってみられたら？}\n\\jpturn{女B}{そうですね。お金さえあったらね。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{mi"
+    },
+    {
+      "id": "kaiwa-nam-17-tu-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-17",
+        "file": "chapters/lesson17.tex",
+        "lesson": 17,
+        "page": 253,
+        "quote": "ふーん。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "rn{男A}{おれの子供のころはね。}\n\\jpturn{女B}{なーに？}\n\\jpturn{男A}{ぜんぜん勉強なんかしなかったよ。}\n\\jpturn{女B}{ふーん。}\n\\jpturn{男A}{それにね勉強しろって言われたこともなかったしね。}\n"
+    },
+    {
+      "id": "kaiwa-nam-18-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-18",
+        "file": "chapters/lesson18.tex",
+        "lesson": 18,
+        "page": 271,
+        "quote": "8階ですね。どうもありがとう。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "約している中川ですが…}\n\\jpturn{受付}{中川様ですね。お待ちしておりました。お二人様ですね。815号室をおとりしてあります。}\n\\jpturn{客}{8階ですね。どうもありがとう。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{2}\n\\jpturn{男A}{明日の晩、会える？}\n\\j"
+    },
+    {
+      "id": "kaiwa-nam-18-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-18",
+        "file": "chapters/lesson18.tex",
+        "lesson": 18,
+        "page": 271,
+        "quote": "6時ね。いいわよ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ものところで。}\n\\jpturn{女B}{カメラ屋の向かいの喫茶店ね。何時？}\n\\jpturn{男A}{そうだなあ。6時ごろはどう？}\n\\jpturn{女B}{6時ね。いいわよ。}\n\\end{minipage}\\par\n\\example{3}\n\\jpturn{女A}{ピザを届けてほしいんですが…}\n\\jpturn{店員}{はい、ご注文をどうぞ。}\n\\jpturn{女A}{Lサ"
+    },
+    {
+      "id": "kaiwa-nam-19-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-19",
+        "file": "chapters/lesson19.tex",
+        "lesson": 19,
+        "page": 285,
+        "quote": "田中さーん、お荷物ですよ。はんこお願いします。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "section*{用例}\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{1}\n\\jpwide{配達人}{田中さーん、お荷物ですよ。はんこお願いします。}\n\\jpturn{女A}{はーい。サインでもいいかしら。}\n\\jpwide{配達人}{ええ、けっこうですよ。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{mini"
+    },
+    {
+      "id": "kaiwa-nam-19-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-19",
+        "file": "chapters/lesson19.tex",
+        "lesson": 19,
+        "page": 286,
+        "quote": "ちがうわよ。あれは飛行機の光よ。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "れいだなあ。}\n\\jpturn{女B}{そうね。とってもロマンチックな夜ね。}\n\\jpturn{男A}{あ、あそこにも星が見えるよ。}\n\\jpturn{女B}{ちがうわよ。あれは飛行機の光よ。}\n\\begin{center}\\includegraphics[width=.44\\linewidth]{figures/lesson19_stars.pdf}\\end{center}\n\\end{m"
+    },
+    {
+      "id": "kaiwa-nam-20-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-20",
+        "file": "chapters/lesson20.tex",
+        "lesson": 20,
+        "page": 302,
+        "quote": "いつもお世話になりまして…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ững người không quen thân lắm.\n\\Needspace{225pt}\\subsection*{1. お礼を言うときの言い方}\n1. いつもお世話になりまして…\n2. まことにけっこうなものをいただきまして…\n3. 先日はすっかりごちそうになりまして…\n4. 遠いところをわざわざお越しくださいまして…\n"
+    },
+    {
+      "id": "kaiwa-nam-20-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-20",
+        "file": "chapters/lesson20.tex",
+        "lesson": 20,
+        "page": 303,
+        "quote": "電車の事故で遅くなりまして…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "\n5. 留守中にお電話をいただきましたそうで…\n\\Needspace{225pt}\\subsection*{2. あやまるときの言い方}\n1. 電車の事故で遅くなりまして…\n2. 夜分遅くおじゃまいたしまして…\n3. すっかりごぶさたいたしておりまして…\n4. ご迷惑をおかけしましたそうで…\n5. 入院なさっていたそうですね。ちっとも知りませんで…\n\\Needspace"
+    },
+    {
+      "id": "kaiwa-nam-21-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-21",
+        "file": "chapters/lesson21.tex",
+        "lesson": 21,
+        "page": 313,
+        "quote": "土曜日ですか。土曜日はちょっと…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ipage}{\\linewidth}\n\\example{1}\n\\jpturn{男C}{今週の土曜日あたり、ゴルフなんかいかがですか。}\n\\jpturn{男D}{土曜日ですか。土曜日はちょっと…}\n\\jpturn{男C}{そうですか。じゃまた別の機会にでも…}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\exam"
+    },
+    {
+      "id": "kaiwa-nam-21-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-21",
+        "file": "chapters/lesson21.tex",
+        "lesson": 21,
+        "page": 314,
+        "quote": "犬の声がどうも…",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "}\n\\jpturn{女C}{お宅の犬が少し…}\n\\jpwide{隣の人}{うちの犬が何か？}\n\\jpturn{女C}{夜になりますとあたりが静かになりますので、犬の声がどうも…}\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\jpwide{隣の人}{うるさいとおっしゃるんですか。}\n\\jpturn{女C}{ええ、そういうわけですから…"
+    },
+    {
+      "id": "kaiwa-nam-22-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-22",
+        "file": "chapters/lesson22.tex",
+        "lesson": 22,
+        "page": 328,
+        "quote": "いえいえ、わたしは次の駅で降りますから。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "e}{\\linewidth}\n\\example{1}\n\\jpwide{乗客A}{あのー、おじいさん、どうぞこちらに座ってください。}\n\\jpwide{乗客C}{いえいえ、わたしは次の駅で降りますから。}\n\\end{minipage}\\par\n\\par\\noindent\\begin{minipage}{\\linewidth}\n\\example{2}\n\\jpturn{店員}{いらっしゃいませ。何かおさ"
+    },
+    {
+      "id": "kaiwa-nam-22-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-22",
+        "file": "chapters/lesson22.tex",
+        "lesson": 22,
+        "page": 329,
+        "quote": "いいえ、またお電話させていただきますので。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ん、いらっしゃいますか。}\n\\jpturn{B}{課長はただいま席をはずしております。何かご伝言がありましたら、お聞きしておきますが…}\n\\jpturn{A}{いいえ、またお電話させていただきますので。}\n\\end{minipage}\\par\n\\example{4}\n\\jpturn{駅員}{お客さん、だいじょうぶですか。}\n\\jpwide{乗客}{いや、急に胸が苦しくなって…}\n\\par\\noind"
+    },
+    {
+      "id": "kaiwa-nam-23-pp-01",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-23",
+        "file": "chapters/lesson23.tex",
+        "lesson": 23,
+        "page": 341,
+        "quote": "あの人はだれだったっけ？",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "khứ.\n例：あの人はだれだった？ → あの人はだれだったかな？\n\\JP{\\hspace{5em}あの人はだれだったかしら？}\n\\JP{\\hspace{5em}あの人はだれだったっけ？}\n"
+    },
+    {
+      "id": "kaiwa-nam-23-pp-02",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-23",
+        "file": "chapters/lesson23.tex",
+        "lesson": 23,
+        "page": 342,
+        "quote": "そうかしら。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": " ý kiến khác với ý kiến của đối phương.\n\\jpwide{例：男A}{鈴木先生ってきれいだね。}\n\\jpturn{女B}{そうかしら。}\n\\Needspace{225pt}\\subsection*{③「～じゃないかな」「～じゃないかしら」}\nひかえめに自分の意見を主張するときに使う。\nCụm từ 「~ja nai kana」「~j"
+    },
+    {
+      "id": "kaiwa-nam-23-pp-03",
+      "source": {
+        "id": "nameraka",
+        "ref": "NM-23",
+        "file": "chapters/lesson23.tex",
+        "lesson": 23,
+        "page": 342,
+        "quote": "ぼくも悪かったけど、君にも少し責任があるんじゃないかな。",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "shira」 được dùng khi khẳng định ý kiến của mình một cách bảo thủ.\n\\jpwide{例：男A}{ぼくも悪かったけど、君にも少し責任があるんじゃないかな。}\nAnh cũng có lỗi, nhưng chẳng phải em cũng có một phần trách nhiệm đó sao?\n"
+    },
+    {
+      "id": "kaiwa-osk-01-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-003",
+        "section": 1,
+        "quote": "おらんかったよな",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "の本を読む時とかでも？」「多分、関西弁のイントネーションが出てると思う」「あ、そうですか。1人ぐらい、きちっと共通語でしゃべってるみたいな子はいないんですか」「おらんかったよな」「おらんかった」。これは想像以上に共通語になじみがない様子。ならば、共通語でインタビューに答えてもらうとどうなるのか。「健康診断」「あ、健康診断ですか」「はい」"
+    },
+    {
+      "id": "kaiwa-osk-01-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-011",
+        "section": 1,
+        "quote": "違和感なく見れてます",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "いですね」「見させてもらってます……見させていただいてます。番組MCもだいぶなじんで、違和感なく……なじんで、なじんで、なじんで、なじんで……番組にもなじんで、違和感なく見れてます」「無理ですね」「無理です」「無理ですね」。府民の皆さん、慣れない共通語、ありがとうございました。"
+    },
+    {
+      "id": "kaiwa-osk-01-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-003",
+        "section": 1,
+        "quote": "共通語になじみがない",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ョンが出てると思う」「あ、そうですか。1人ぐらい、きちっと共通語でしゃべってるみたいな子はいないんですか」「おらんかったよな」「おらんかった」。これは想像以上に共通語になじみがない様子。ならば、共通語でインタビューに答えてもらうとどうなるのか。「健康診断」「あ、健康診断ですか」「はい」"
+    },
+    {
+      "id": "kaiwa-osk-02-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-014",
+        "section": 2,
+        "quote": "奢ったったやん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「お願い事する時に『奢ったったやん』って言います？」「言いますね。奢る時は全員で奢るんですよ。けど、ちょっとしたことを仕事で頼んで、こんなことも断るんかちゅう時に、『あいつ、あん時奢ったったのにな』っていうのが」「はい」「なんかこう、"
+    },
+    {
+      "id": "kaiwa-osk-02-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-015",
+        "section": 2,
+        "quote": "男には言うけど、女には言わへんよね",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「男には言うけど、女には言わへんよね」「それ昔からそうじゃない？」「さすがに女性には言わへん」「言わへん。二度と口きいてくれへん」。どうやらこの「奢ったったやん」、缶ジュース1本からでも使う必殺ワード。男性には使っても女性には使わないデ"
+    },
+    {
+      "id": "kaiwa-osk-02-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-015",
+        "section": 2,
+        "quote": "覚えてる人、めっちゃおる",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "なフレーズらしい。さらに興味深い新情報をゲット。「奢られた方は忘れるけど、奢ったことは覚えてるから」「奢った方はずっと覚えてるでしょ」「『奢ったった』に関しては覚えてる人、めっちゃおる」「おる。いつまで覚えてるんすかね」「いや、俺多分、死ぬまで覚えてる」「覚えてる」。そこで、奢ったことをどこまで覚えているのか聞いてみた。"
+    },
+    {
+      "id": "kaiwa-osk-03-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-021",
+        "section": 3,
+        "quote": "3日も4日も先のパン買えへんから",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "」「明日のパン、よう言いますね」「言います」「口癖ですね」「おかん、明日のパン結構言うてるよ。1日2回ぐらいは絶対言う。『明日のパンあったかな』みたいな言うて。3日も4日も先のパン買えへんから、もう、明日のパン」「うん」。天神橋筋商店街にいた仲良しなにわファミリーは、「言う。『明日のパンある？』言う」「言うてますわ」「言うな。パン、パン、めっちゃ言うわ」「じゃあ、今日のパンとかはないんです"
+    },
+    {
+      "id": "kaiwa-osk-03-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-025",
+        "section": 3,
+        "quote": "じゃあ、明日のパンちゃうやん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "それはわかるけど、食べるのは明日やから明日のパン」「今日のパンですって……」「帰ったらすぐ冷凍して」「はい」「こないだのがあるから」「はい」「また出して……」「じゃあ、明日のパンちゃうやん」「そうだけど、明日のパンって言う」"
+    },
+    {
+      "id": "kaiwa-osk-03-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-021",
+        "section": 3,
+        "quote": "明日のパン結構言うてるよ",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "が言っちゃう『明日の○○』って言われて、何か気になるものあります？」「明日のパンかな」「パン」「明日のパン、よう言いますね」「言います」「口癖ですね」「おかん、明日のパン結構言うてるよ。1日2回ぐらいは絶対言う。『明日のパンあったかな』みたいな言うて。3日も4日も先のパン買えへんから、もう、明日のパン」「うん」。天神橋筋商店街にいた仲良しなにわファミリーは、「言う。『明日のパンある"
+    },
+    {
+      "id": "kaiwa-osk-04-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-028",
+        "section": 4,
+        "quote": "いじったったらええねん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "。面白い、こんな後輩たちどうですか」「いや、かわいいです」「いや、ありがとうございます」「ありがとうございます」。大阪先生の教え。「上司と仲良くなりたいんなら、いじったったらええねん」"
+    },
+    {
+      "id": "kaiwa-osk-04-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-029",
+        "section": 4,
+        "quote": "好きやからいじる",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "しかし、いじるにはあるルールが。「いじりは愛情表現ですね」「愛情表現」「愛情表現です。好きやからいじる」「何？ いじりが愛情表現？」「いじるからには、僕じゃなくてこっちがおいしくなるように。先輩のことも思って」「そうですね」「それ以外にないです」「いやいや、まあ、そう思ってたよ。いや、一応ね」。上司が"
+    },
+    {
+      "id": "kaiwa-osk-04-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-029",
+        "section": 4,
+        "quote": "好きやからいじる",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "しかし、いじるにはあるルールが。「いじりは愛情表現ですね」「愛情表現」「愛情表現です。好きやからいじる」「何？ いじりが愛情表現？」「いじるからには、僕じゃなくてこっちがおいしくなるように。先輩のことも思って」「そうですね」「それ以外にないです」「いやいや、まあ、そう思ってたよ。いや、一応ね」。上司が"
+    },
+    {
+      "id": "kaiwa-osk-05-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-033",
+        "section": 5,
+        "quote": "ここまっすぐ行ったら100均あるんちゃうかな。知らんけど",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「めっちゃ言う」「言う言う」「めっちゃ言う。『ここまっすぐ行ったら100均あるんちゃうかな。知らんけど』」「そんな感じ、そんな感じ」「『1回行ってみるわ。知らんけど』みたいな感じ」「『多分な』みたいな感じやんな」「関西人、予防線張るんか」「予防線張るな」「予防線。『なかったやん』言われたら嫌やから」「"
+    },
+    {
+      "id": "kaiwa-osk-05-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-033",
+        "section": 5,
+        "quote": "あるんちゃうかな",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「めっちゃ言う」「言う言う」「めっちゃ言う。『ここまっすぐ行ったら100均あるんちゃうかな。知らんけど』」「そんな感じ、そんな感じ」「『1回行ってみるわ。知らんけど』みたいな感じ」「『多分な』みたいな感じやんな」「関西人、予防線張るんか」「予防線張るな」「予防線。『なかったやん』言われたら"
+    },
+    {
+      "id": "kaiwa-osk-05-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-035",
+        "section": 5,
+        "quote": "みたいなこと言うてたで",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「朝起きて『おはよう』言うのと一緒ぐらいの感覚」「仕事で上司に何か言われたやつを部下に伝える時に、こっちの責任になるんで」「はい」「『こうこうこうや、みたいなこと言うてたで。まあ、知らんけどな』」「あ、お仕事でもお使い……」「もう常にです」「『知らないの？』ってならないですか」"
+    },
+    {
+      "id": "kaiwa-osk-06-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-037",
+        "section": 6,
+        "quote": "おおきに、ありがとう",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「おおきに、ありがとう」「7月6日放送なんすけど、見てくれます？」「見よう思ってるよ。知らんけど」「勉強になります」「知らんけど」。続いては飲み会。コロナが落ち着いて増えた飲みの席。飲み会をもっと楽しくする方法がある。それ"
+    },
+    {
+      "id": "kaiwa-osk-06-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-037",
+        "section": 6,
+        "quote": "店員さんにはタメ口で",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "よ。知らんけど」「勉強になります」「知らんけど」。続いては飲み会。コロナが落ち着いて増えた飲みの席。飲み会をもっと楽しくする方法がある。それが大阪先生の教え。「店員さんにはタメ口で、フレンドリーな方がええで」。とはいえ、東京都内で店員さんとのやり取りについて聞いてみると、「唐揚げください」とか「この皿下げてください」とか。「はい」"
+    },
+    {
+      "id": "kaiwa-osk-06-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-037",
+        "section": 6,
+        "quote": "フレンドリーな方がええで",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "になります」「知らんけど」。続いては飲み会。コロナが落ち着いて増えた飲みの席。飲み会をもっと楽しくする方法がある。それが大阪先生の教え。「店員さんにはタメ口で、フレンドリーな方がええで」。とはいえ、東京都内で店員さんとのやり取りについて聞いてみると、「唐揚げください」とか「この皿下げてください」とか。「はい」"
+    },
+    {
+      "id": "kaiwa-osk-07-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-045",
+        "section": 7,
+        "quote": "開けてんねん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「『チャック開いてるよ』とご自身が言われた時、どのように返しますか」「開けてんねんしか言わんかな」「うん」「開けてんねん」「開けてんねん」「開けてんねん」「開けてんねん」「……開けてんねん」。大阪先生の教え。「チャック開いてるって言われたら、『開けてんねん』って言うといたらええねん"
+    },
+    {
+      "id": "kaiwa-osk-07-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-046",
+        "section": 7,
+        "quote": "オチをつけないと話になんない",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「恥ずかしい気持ちはあると思うんですけど」「はい」「それでも笑いに変えたい。日頃の会話の中でオチをつけないと話になんないっていうところがあるので、恥ずかしがらないです」「これチャンスですね」「これチャンス、チャンス、チャンス、チャンス」「恥ずかしないん？」「まあ恥ずかしいけど、チャンス」。返し方次第で失敗をチャンスに。"
+    },
+    {
+      "id": "kaiwa-osk-07-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-046",
+        "section": 7,
+        "quote": "返し方次第で失敗をチャンスに",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ころがあるので、恥ずかしがらないです」「これチャンスですね」「これチャンス、チャンス、チャンス、チャンス」「恥ずかしないん？」「まあ恥ずかしいけど、チャンス」。返し方次第で失敗をチャンスに。ちなみに他の恥ずかしいシチュエーションではどうなのか。「ご飯粒ついてる……」"
+    },
+    {
+      "id": "kaiwa-osk-08-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-049",
+        "section": 8,
+        "quote": "気にしいとは大阪弁で、物事を何でも気にする人のこと。",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "最初のテーマは「気にしい」。「気にしいね」。気にしいとは大阪弁で、物事を何でも気にする人のこと。「そうそうそう、気にしい」。以前の放送で大阪府民は、「何テレビ？」「はい」「読売新聞ですか」「いや、テレビです」。他県民ならスルーのところを、カメラが気になって話しかけに来た。「男に収入聞くことありま"
+    },
+    {
+      "id": "kaiwa-osk-08-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-050",
+        "section": 8,
+        "quote": "誰からやった？",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "す」。いくらぐらいもらってると収入を聞いたりと、普通なら聞かない内容や場面でも、気になったら何でも口にしてしまう大阪府民。だが、大阪府民は電話が終わった相手に「誰からやった？」と聞かずにはいられない。"
+    },
+    {
+      "id": "kaiwa-osk-08-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-059",
+        "section": 8,
+        "quote": "その天ぷらが何かわからへん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「飲みで、隣の席の頼んでるメニューが気になってね。天ぷらみたいなやつがあって、その天ぷらがおいしそうで」「はい、はい」「その天ぷら、何ていう……わかれへんやん。その天ぷらが何かわからへん」「わからんかったら店員さんに聞いたらいいんじゃないですか」「ああ、そうか。それはなかったな、俺の頭に」。大阪府民はいつどこでも、とにかく聞かずには……"
+    },
+    {
+      "id": "kaiwa-osk-09-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-065",
+        "section": 9,
+        "quote": "あんた、どっか行こ、今から",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "さらにこちらのパープルなにわレディーは、「おいくつですか」「いくつと思う？ 例えば、例えば、いくつと思う？」「40代後半ぐらい？」「あんた、どっか行こ、今から」。逆ナンされるほど効果てきめんだった。「いくつです？」「70……69。この7月で69で、年越えたら70」。本当にむちゃくちゃ若かった。"
+    },
+    {
+      "id": "kaiwa-osk-09-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-065",
+        "section": 9,
+        "quote": "どっか行こ、今から",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "さらにこちらのパープルなにわレディーは、「おいくつですか」「いくつと思う？ 例えば、例えば、いくつと思う？」「40代後半ぐらい？」「あんた、どっか行こ、今から」。逆ナンされるほど効果てきめんだった。「いくつです？」「70……69。この7月で69で、年越えたら70」。本当にむちゃくちゃ若かった。"
+    },
+    {
+      "id": "kaiwa-osk-09-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-064",
+        "section": 9,
+        "quote": "30代もカミングアウト",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "41」「あ、41」。やはり実年齢を公表した。一番年齢が言いにくそうな年頃の女性は、「お若いですよね」「あ、結構言われ……」「いくつですか」「え、37です」。あ、30代もカミングアウト。「なんで教えてくれたんすか」「いや、若く見えるって言われたら、ちょっと驚いてほしかった」。どうやらなにわレディー特有のサービス精神で、実年齢を言ってしまうらしい。"
+    },
+    {
+      "id": "kaiwa-osk-10-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-066",
+        "section": 10,
+        "quote": "大阪のおかん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "今回のテーマは、ずばり、なにわの象徴「大阪のおかん」。「東京だとね、お鍋にはしらたきが定番なんですよ」「ああ」「しらたきってご存じですか」「知ってるよ。キノコやろ」「キノコじゃない」。いつだって……パワフルでチャーミングな大阪のおばちゃんたちには、毎"
+    },
+    {
+      "id": "kaiwa-osk-10-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-073",
+        "section": 10,
+        "quote": "同じような時間に電話かけてくる人がいてるんですよ。",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "うふうに番号がずっとあってね、『何番へ』って言うねんね」「はい」「ひもをまた、ちゅっと持ってね、その番号のとこへ突っ込んだらね」「うん」「会話ができるんですよ。同じような時間に電話かけてくる人がいてるんですよ。聞いたらいかんけどね」「うん」「ちょっと上げたらね、聞けるのよ。……それが楽しみやった。私もすごく、こう、ほら、うぶな女やったしね。ためになったわ」"
+    },
+    {
+      "id": "kaiwa-osk-10-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-073",
+        "section": 10,
+        "quote": "うぶな女やったしね",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "じような時間に電話かけてくる人がいてるんですよ。聞いたらいかんけどね」「うん」「ちょっと上げたらね、聞けるのよ。……それが楽しみやった。私もすごく、こう、ほら、うぶな女やったしね。ためになったわ」"
+    },
+    {
+      "id": "kaiwa-osk-11-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-085",
+        "section": 11,
+        "quote": "おとんにも青春があった",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "かんのアイドルショット。「主人が一番思ってると思うよ。こんなに変わるとは」。ご主人の話も出たところで、帰宅してきたおとんも参戦。「おかんにも青春があったように、おとんにも青春があったわけじゃないですか」「いやもう、今と昔と、ご覧の通りで」「え、全然違います」「全然違います」"
+    },
+    {
+      "id": "kaiwa-osk-11-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-082",
+        "section": 11,
+        "quote": "カツラじゃないねんけど",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ですよ。ミニスカート、ミニスカート」「ミニスカートはいてたんですか」「そう。ミニスカートで、ヘアピースがすごい……ヘアピースってわかる？」「いや……」「カツラ、カツラじゃないねんけど、ここへだけつけるヘアピース。ここ、こうってなった……ちょうちょっていうの？」「ちょうちょ」「うん。ここ、また今もなんか来てるよ、やっぱり。1周して……」「1周？」「もう3周ぐらいしてるかも」。こちら"
+    },
+    {
+      "id": "kaiwa-osk-11-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-086",
+        "section": 11,
+        "quote": "キラキラ、キラキラ光ってた",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "スキーですね」「スキー、はやってたんですか」「『私をスキーに連れてって』っていう映画がはやって、みんなスキーに行ってたんですよね」「へえ。初対面で見てたら？」「キラキラ、キラキラ光ってた」「光ってたんですか」"
+    },
+    {
+      "id": "kaiwa-osk-12-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-098",
+        "section": 12,
+        "quote": "正直、おいしそうに見えへんわ。",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「これ何かわかります？」「何これ？」「これ、それ……巻き？」「知らない？ これね、かんぴょう巻きって言うんです」「正直、おいしそうに見えへんわ。なんか、テレビで見るもんや思う……」「東京の寿司屋さんだと、これで締めるんすけど」「ええ。それにお金使いたくない」"
+    },
+    {
+      "id": "kaiwa-osk-12-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-104",
+        "section": 12,
+        "quote": "玉、卵と赤だしの短縮",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「はい」「はい」「玉2つ」「何？」「玉赤」「玉赤、ありやな」。出てきたのは、何やら大ぶりなおわん。「これはおいしそうだね。でも、これは玉赤なんですか」「玉、卵と赤だしの短縮」。これが卵大好き大阪府民が寿司の締めとして楽しむ、卵入りの赤だし、通称「玉赤」。他にも特製だしをたっぷり利かせた……"
+    },
+    {
+      "id": "kaiwa-osk-12-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-095",
+        "section": 12,
+        "quote": "鉄砲って、かんぴょうにわさび入れること",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ケートなとこなんで」。さらに寿司好きの江戸っ子に話を聞くと、「細巻きっていったら何ですかね」「昔ながらのかんぴょう。まあ、鉄砲とかが好きですけどね」「鉄砲？」「鉄砲って、かんぴょうにわさび入れること」「ええ」「わさび入れると、また一味違うんです」"
+    },
+    {
+      "id": "kaiwa-osk-13-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-108",
+        "section": 13,
+        "quote": "ポン酢かけたら、もたれへん気するやん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "桃谷商店街にいたおかんコンビは、「ポン酢調べてまして」「ポン酢、めっちゃ……」「ポン酢ってよく使われます？」「使います」「え、それよりも……」「うん、使う。ポン酢かけたら、もたれへん気するやん」「気する。だって油もポン酢やったらさっぱり食べれるし、ステーキもポン酢で食べる。料理を殺さない」「そう。何本もある、家に、いろんな種類が」「僕たち、多分、鍋物ぐらいしか使わないんですよ」「え、もった"
+    },
+    {
+      "id": "kaiwa-osk-13-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-108",
+        "section": 13,
+        "quote": "使ったるわ",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "な種類が」「僕たち、多分、鍋物ぐらいしか使わないんですよ」「え、もったいない。ないないない。なんかポン酢の周りカピカピしてそうやな」「そうなったら持っておいで、使ったるわ。何でも使ったるわ、ほんまに」。帰ってきた息子、登場しました。"
+    },
+    {
+      "id": "kaiwa-osk-13-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-114",
+        "section": 13,
+        "quote": "おとん渾身のダジャレ",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "おとん渾身のダジャレに感心する間もなく、「ちょっと、肉野菜炒めにポン酢ですか」。なにわファミリーのポン酢使いに、我々もうついていけません。「ポン酢、いろんなものにかけます？」「何でもかけますね」「何でもかけます」「野菜炒"
+    },
+    {
+      "id": "kaiwa-osk-14-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-125",
+        "section": 14,
+        "quote": "ほんだらちょっとばかにされたっすもん。",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「そんな焼いたことないっていう」「焼いたことないですか」「はい。ほんだらちょっとばかにされたっすもん。『え、作ったことない？』みたいな」。東京では「お好み焼き焼くの上手でしょ」プレッシャーに気ぃつけや。「もし東京に行くなら、ちゃんとお好み焼きの焼き方を覚えてから行きなさい。覚えていかなかったらばかにさ"
+    },
+    {
+      "id": "kaiwa-osk-14-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-125",
+        "section": 14,
+        "quote": "気ぃつけや",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "」「焼いたことないですか」「はい。ほんだらちょっとばかにされたっすもん。『え、作ったことない？』みたいな」。東京では「お好み焼き焼くの上手でしょ」プレッシャーに気ぃつけや。「もし東京に行くなら、ちゃんとお好み焼きの焼き方を覚えてから行きなさい。覚えていかなかったらばかにされます」"
+    },
+    {
+      "id": "kaiwa-osk-14-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-131",
+        "section": 14,
+        "quote": "おもろいと思われる",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "隣の人とちょっとしゃべったりして、『どっから来たの？』『大阪』『何か面白いこと言うて』とか」「そう。みんながお笑いやと思ってるからね」。他県の人は大阪ってだけでおもろいと思われるから気ぃつけや。「でも大阪から東京行く時に、滑らない話1個持ってたら、めっちゃ人気者になります」「めっちゃ人気者になります」「あ、本当ですか」"
+    },
+    {
+      "id": "kaiwa-osk-15-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-134",
+        "section": 15,
+        "quote": "おかゆさん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "出ないっすよ。関西に自分で住んで、自分で……それしかない。3年ぐらい住んだら……」。当の府民も理由はわからないようだが、ご飯類では唯一おかゆのみ「さん」づけで「おかゆさん」。次いで多かったのが、「お豆さんも言うわな」「普通のお豆とは言えへん。お豆……」"
+    },
+    {
+      "id": "kaiwa-osk-15-tu-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-136",
+        "section": 15,
+        "quote": "お揚げさん",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「揚げって呼ぶ、揚げは揚げじゃないですか」「お揚げさん」「お揚げさん」「お揚げさん」「お芋さん言うな、私」「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」「サツマイモのことなんですか」「うん」「うん」"
+    },
+    {
+      "id": "kaiwa-osk-15-tu-03",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-136",
+        "section": 15,
+        "quote": "「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「揚げって呼ぶ、揚げは揚げじゃないですか」「お揚げさん」「お揚げさん」「お揚げさん」「お芋さん言うな、私」「お芋さん。お芋さんっていうのは、どの芋のことをおっしゃってるんですか」「サツマイモ」「サツマイモのことなんですか」「うん」「うん」"
+    },
+    {
+      "id": "kaiwa-osk-16-tu-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-140",
+        "section": 16,
+        "quote": "大阪ってあめちゃんっていうのに",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「あんな田舎……」。府民とワースト5の理由を考えてみた。「大阪ってあめちゃんっていうのに、なんで43位なのか、今回調べに来まして」「配ってるだけで食べへんとか？」「え、配ってるだけで、食べとったら買うやん」「あ、買うか」「配って……」「そうそう。おかしいな。配ったやつを配っとるんかな。回"
+    },
+    {
+      "id": "kaiwa-osk-16-pp-01",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-140",
+        "section": 16,
+        "quote": "配ってるだけで食べへんとか？",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "「あんな田舎……」。府民とワースト5の理由を考えてみた。「大阪ってあめちゃんっていうのに、なんで43位なのか、今回調べに来まして」「配ってるだけで食べへんとか？」「え、配ってるだけで、食べとったら買うやん」「あ、買うか」「配って……」「そうそう。おかしいな。配ったやつを配っとるんかな。回っとるんか、あれが」「回っとる」「なるほど」「うん」「だって……」「なる"
+    },
+    {
+      "id": "kaiwa-osk-16-pp-02",
+      "source": {
+        "id": "osaka",
+        "ref": "OSK-142",
+        "section": 16,
+        "quote": "古いんちゃうかな、多分古い",
+        "status": "inferred",
+        "translation": "editorial"
+      },
+      "sourceExcerpt": "ゃんクライシス、その2。……をガバッと大量ゲット説。さらにこのような説も。「食ってない、持ってるだけで」「ああ、完全にかばんの中で眠ってるパターン」「眠ってる。古いんちゃうかな、多分古い」「うん」"
+    }
+  ]
+}

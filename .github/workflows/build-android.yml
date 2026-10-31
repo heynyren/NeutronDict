@@ -5,7 +5,7 @@ name: Build Android APK
 # Release "latest-debug".
 on:
   push:
-    branches: [ main ]
+    branches: [ main, codex/kaiwa-caption-sync ]
     paths:
       - 'android/**'
       - '.github/workflows/build-android.yml'
@@ -99,9 +99,17 @@ jobs:
           sed -i -E 's/versionCode [0-9]+/versionCode 11/' "$f" || true
           grep -E 'versionName|versionCode' "$f" || true
 
-      - name: Generate NeutronDict polar bear icons
+      - name: Generate RaKuLanG polar bear icons
         run: npx --yes @capacitor/assets generate --android
 
+      - name: Verify generated launcher name
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as E
+          values = {e.attrib.get("name"): e.text for e in E.parse("android/app/src/main/res/values/strings.xml").getroot()}
+          for key in ("app_name", "title_activity_main"):
+              assert values.get(key) == "RaKuLanG", (key, values.get(key))
+          PY
       - name: Build debug APK
         run: |
           cd android
@@ -109,7 +117,7 @@ jobs:
           ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk NeutronDict-debug.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk RaKuLanG-debug.apk
 
       # `continue-on-error` cố ý: kho bản build đầy là chuyện của CÁI KHO, không
       # phải lỗi của mã nguồn. Không có nó thì hết chỗ là bước này đỏ, kéo cả
@@ -124,8 +132,8 @@ jobs:
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
-          name: NeutronDict-debug-apk
-          path: android/NeutronDict-debug.apk
+          name: RaKuLanG-debug-apk
+          path: android/RaKuLanG-debug.apk
           if-no-files-found: error
           # APK có 6 MB nhưng vẫn cắt hạn: bản cũ hơn 5 ngày thì đã có bản mới rồi.
           retention-days: 5
@@ -150,18 +158,19 @@ jobs:
       # 0,5 GB của kho bản build — nên kho bản build có đầy thì bước này vẫn chạy
       # và vẫn có file để tải.
       - name: Publish to "latest-debug" release
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-debug
-          name: NeutronDict — debug build
+          name: RaKuLanG — debug build
           body: |
             Bản APK debug tự build từ `${{ github.ref_name }}`
             (commit `${{ github.sha }}`).
 
-            Tải file `NeutronDict-debug.apk` bên dưới, mở trên điện thoại và cho phép
+            Tải file `RaKuLanG-debug.apk` bên dưới, mở trên điện thoại và cho phép
             "Cài đặt từ nguồn không xác định" để cài.
 
             Bản phát hành này bị ghi đè mỗi lần build, nên nó luôn là bản mới nhất —
             và vì Releases nằm ở kho riêng, nó vẫn có kể cả lúc kho bản build đầy.
           prerelease: true
-          files: android/NeutronDict-debug.apk
+          files: android/RaKuLanG-debug.apk

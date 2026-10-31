@@ -110,8 +110,8 @@ fs.writeFileSync(MANIFEST, man);
 // 3) Tên hiển thị
 if (fs.existsSync(STRINGS)) {
   let st = fs.readFileSync(STRINGS, "utf8");
-  st = st.replace(/(<string name="app_name">)[^<]*(<\/string>)/, "$1NeutronDict$2");
-  st = st.replace(/(<string name="title_activity_main">)[^<]*(<\/string>)/, "$1NeutronDict$2");
+  st = st.replace(/(<string name="app_name">)[^<]*(<\/string>)/, "$1RaKuLanG$2");
+  st = st.replace(/(<string name="title_activity_main">)[^<]*(<\/string>)/, "$1RaKuLanG$2");
   fs.writeFileSync(STRINGS, st);
   console.log("✓ Đã đổi tên hiển thị thành RaKuLanG (strings.xml)");
 }

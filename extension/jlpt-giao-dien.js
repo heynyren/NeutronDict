@@ -143,7 +143,7 @@
   function veNutNhac() {
     if (!nutNhac) return;
     const bat = td.nhac !== false;
-    nutNhac.hidden = !(NH && NH.kha());
+    nutNhac.hidden = monId === "kaiwa" || !(NH && NH.kha());
     nutNhac.classList.toggle("tat", !bat);
     nutNhac.innerHTML = icon("speaker-high", 22) + "<span class=\"jl-nhac-nt\">♪</span>";   // gạch chéo khi tắt do CSS vẽ (.tat::after)
     nutNhac.title = bat ? T("Tắt nhạc nền") : T("Bật nhạc nền");
@@ -192,7 +192,7 @@
 
   /* ================================================================ chọn màn */
 
-  const TRUM = { n3: "boss", n2: "boss" };    // màn có dữ liệu → id trùm cuối
+  const TRUM = { n3: "boss", n2: "boss", kaiwa: "boss" };    // màn có dữ liệu → id trùm cuối
 
   function veChonMan() {
     monId = null; mon = null; chang = [];
@@ -328,7 +328,7 @@
     const kh = el("div", "jl-gioi-khung");
     g.appendChild(kh);
     const lop = [];
-    for (let k = 0; k < (CG ? CG.SO_KHUNG : 0); k++) {
+    for (let k = 0; k < (CG ? (monId === "kaiwa" ? mon.chuong.length + 1 : CG.SO_KHUNG) : 0); k++) {
       const l = el("div", "jl-gioi-lop an");
       l.style.zIndex = String(k);
       l.dataset.k = String(k);
@@ -587,7 +587,7 @@
     if (c.loai === "boss") return T("Trùm cuối");
     if (c.loai === "boss-chuong") return T("Trùm chương") + " " + c.chuong;
     const loai = c.loai === "han" ? T("Chữ Hán") : c.loai === "tu" ? T("Từ vựng") : T("Ngữ pháp");
-    return T("Bài") + " " + c.bai + " · " + loai + (c.tongPhan > 1 ? " (" + c.phan + "/" + c.tongPhan + ")" : "");
+    return (c.lessonTitle || T("Bài") + " " + c.bai) + " · " + loai + (c.tongPhan > 1 ? " (" + c.phan + "/" + c.tongPhan + ")" : "");
   }
 
   /* ================================================================ tờ chặng */
@@ -606,7 +606,9 @@
     const tot = TD.tot(td, monId, c.id);
     const cc = ((td.mon[monId] || { chang: {} }).chang[c.id]) || null;
     let mota;
-    if (c.loai === "boss") mota = T("Đề tổng hợp toàn màn, 30 câu. Mở sau khi hoàn thành mọi chặng.");
+    if (monId === "kaiwa" && (c.loai === "boss" || c.loai === "boss-chuong"))
+      mota = c.soCau + " " + T("câu hỏi") + " · " + T(c.loai === "boss" ? "Hoàn thành mọi chặng để mở bài cuối." : "Có thể luyện bất cứ lúc nào.");
+    else if (c.loai === "boss") mota = T("Đề tổng hợp toàn màn, 30 câu. Mở sau khi hoàn thành mọi chặng.");
     else if (c.loai === "boss-chuong") mota = T("Đề tổng hợp của cả chương, 20 câu. Bạn có thể làm bất cứ lúc nào.");
     else mota = c.items.length + " " + (c.loai === "han" ? T("chữ Hán") : c.loai === "tu" ? T("từ vựng") : T("mẫu ngữ pháp")) + " · " + c.soCau + " " + T("câu hỏi") + " · " + T("làm hết câu hỏi để hoàn thành");
     p.appendChild(el("div", "jl-to-mo", mota));
@@ -699,7 +701,7 @@
   }
 
   function khungChay() {
-    const o = el("div", "jl-chay");
+    const o = el("div", "jl-chay" + (monId === "kaiwa" ? " jl-kaiwa" : ""));
     const th = TH.MON[monId];
     o.style.setProperty("--m1", th.mau[0]); o.style.setProperty("--m2", th.mau[1]);
     // Cảnh của chương đang chơi làm nền mờ dưới đáy màn hình; nội dung nằm trên.
@@ -838,6 +840,10 @@
         if (the.vd) { mat.appendChild(el("div", "jl-vd", the.vd.j)); if (the.vd.v) mat.appendChild(el("div", "jl-vd-v", the.vd.v)); }
       }
     }
+    if (chay.lat && the.muc.source) {
+      mat.appendChild(el("div", "jl-vd-v", T("Nguồn") + ": " + nguonKaiwa(the.muc.source)));
+      mat.appendChild(el("div", "jl-vd-v", T("Bản dịch biên tập cho bài học")));
+    }
     if (!chay.lat) mat.appendChild(el("div", "jl-goi-y", T("Chạm để lật thẻ")));
     card.appendChild(mat);
     // Nhả chuột sau cú vuốt cũng sinh `click`: thư viện vuốt đã chặn (preventDefault), ta bỏ qua để thẻ không lật nhầm.
@@ -896,7 +902,7 @@
       de.appendChild(cau);
       if (q.de.dich) de.appendChild(el("div", "jl-vd-v", q.de.dich));
     } else {
-      de.appendChild(el("div", "jl-lon" + (q.kieu === "nghia-tu" || q.kieu === "hv-han" ? " vi" : ""), q.de.chinh));
+      de.appendChild(el("div", q.source ? "jl-cau" : "jl-lon" + (q.kieu === "nghia-tu" || q.kieu === "hv-han" ? " vi" : ""), q.de.chinh));
       if (q.de.phu) de.appendChild(el("div", "jl-nho-dong", q.de.phu));
       if (q.de.nghe && q.kieu === "tu-nghia") de.appendChild(nut("jl-loa", icon("speaker-high", 20), () => A.nghe(q.de.nghe)));
     }
@@ -966,6 +972,10 @@
     const tieu = dung ? T(KHEN[Math.floor(Math.random() * KHEN.length)]) : T("Chưa đúng");
     fb.appendChild(el("div", "jl-fb-tieude", th.nhanVat.emoji + " " + tieu + (dung && chay.combo >= 3 ? "  🔥×" + chay.combo : "")));
     fb.appendChild(el("div", "jl-fb-dap", giaiThich(q)));
+    if (q.source) {
+      fb.appendChild(el("div", "jl-vd-v", q.dapAn.explanation));
+      fb.appendChild(el("div", "jl-vd-v", T("Nguồn") + ": " + nguonKaiwa(q.source)));
+    }
     const hang = el("div", "jl-fb-nut");
     hang.appendChild(nut("jl-bao", "🚩 " + T("Báo câu sai"), async () => {
       td.baoLoi[q.id] = Date.now(); await luu(); A.toast(T("Đã ghi nhận. Câu này sẽ không xuất hiện lại.")); hang.querySelector(".jl-bao").disabled = true;
@@ -975,6 +985,10 @@
     if (A.nghe && (q.kieu === "tu-doc" || q.kieu === "tu-nghia") && dung) { /* không đọc lại: đã đọc ở đề */ }
   }
 
+  function nguonKaiwa(s) {
+    return s.id === "osaka" ? s.ref + " · " + T("Bản dựng từ phụ đề, chưa đối chiếu âm thanh") :
+      "Nameraka · " + T("Bài") + " " + s.lesson + " · " + T("trang") + " " + s.page;
+  }
   function giaiThich(q) {
     const d = q.dapAn || {};
     if (q.kieu === "han-hv" || q.kieu === "han-on" || q.kieu === "hv-han") return d.c + "  ·  " + (d.hv || "—") + "  ·  On: " + (d.on || "—") + "  ·  Kun: " + (d.kun && d.kun !== "---" ? d.kun : "—");

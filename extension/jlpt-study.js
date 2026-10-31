@@ -11,7 +11,7 @@
       ...(han?{hv:m.hv || "",on:m.on || "",kun:m.kun || ""}:{}),
       jlptSource:{level,id:m.id,kind:card.kieu},
       ...(sentence?{cauNghe:{cau:sentence,dich:card.vd.v || "",nguon:"jlpt"},
-        src:{cau:sentence,cauDich:card.vd.v || "",title:"JLPT "+level.toUpperCase()}}:{})};
+        src:{cau:sentence,cauDich:card.vd.v || "",title:(level==="kaiwa"?"Kaiwa Nihongo":"JLPT "+level.toUpperCase())}}:{})};
   }
   function merge(old, incoming, now) {
     if (old?.del) return old; // A deleted item requires an explicit restore.
