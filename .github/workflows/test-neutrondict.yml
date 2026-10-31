@@ -5,6 +5,7 @@ on:
     branches:
       - codex/neutrondict-work
       - codex/neutrondict-youtube-news
+      - codex/kaiwa-caption-sync
       - main
   workflow_dispatch:
 

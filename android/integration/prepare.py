@@ -551,3 +551,32 @@ patch(color_test, '    private fun lightness(color: Color)', '''    @Test
     }
 
     private fun lightness(color: Color)''')
+
+# Match the extension: observed video.currentTime, not a projected future cursor.
+patch(dual / "ui/YouTubeBrowserScreen.kt",
+      "val clock = CaptionPlaybackClock()", "val clock = NeutronObservedPlaybackClock()")
+patch(dual / "ui/YouTubeWebScripts.kt",
+      "const second = video && Number.isFinite(video.currentTime) ? video.currentTime : null;",
+      """const ad = document.querySelector('.html5-video-player.ad-showing, .html5-video-player.ad-interrupting');
+      const second = !ad && video && Number.isFinite(video.currentTime) ? video.currentTime : null;""")
+# Timestamped tracks keep their last started row across quiet gaps. DOM text cannot
+# select another row, even when words repeat or YouTube reveals a line early.
+patch(dual / "ui/AppViewModel.kt",
+      "val timedIndex = activeSubtitleIndex(current.segments, timeMs)",
+      "val timedIndex = neutronObservedSubtitleIndex(current.segments, timeMs)")
+patch(dual / "ui/KaraokeTiming.kt",
+      """        val anchored = timedRow != null &&
+            playbackTimeMs >= timedRow.startMs && playbackTimeMs < timedRow.endMs""",
+      "        val anchored = segments != null")
+# A layout wrap must not invent a new sentence timestamp inside one source chunk.
+patch(dual / "data/SubtitleMerger.kt",
+      "val boundaries = ends.filter { end -> starts.any { it >= end } }.distinct() + segment.originalText.length",
+      """val boundaries = ends.filter { end ->
+            val next = starts.indexOfFirst { it >= end }
+            next > 0 && !sameNeutronCaptionChunk(segment.words[next - 1], segment.words[next])
+        }.distinct() + segment.originalText.length""")
+patch(dual / "data/SubtitleMerger.kt",
+      "output += buildSplitSegments(segment, chunks).takeIf { it.size > 1 } ?: estimateSplitSegments(segment, chunks)",
+      """val built = buildSplitSegments(segment, chunks)
+            output += if (segment.words.any { it.highlightStartMs >= 0 }) built
+                else built.takeIf { it.size > 1 } ?: estimateSplitSegments(segment, chunks)""")

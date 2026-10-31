@@ -1,7 +1,7 @@
 name: Integrated Android preview
 on:
   push:
-    branches: [codex/neutrondict-youtube-news, main]
+    branches: [codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, main]
   workflow_dispatch:
 permissions:
   contents: read
