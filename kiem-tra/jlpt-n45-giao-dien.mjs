@@ -28,7 +28,7 @@ async function snapshot(p,name){
  const ratios=await p.evaluate(()=>{
   const rgb=s=>s.match(/[0-9.]+/g)?.map(Number)||[];
   const lum=c=>c.slice(0,3).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
-  return [...document.querySelectorAll(".jl-lua:not(:disabled), .jl-the-hoc .jl-nghia, .jl-chay-nut .chinh, .jl-fb-nut .chinh")].map(el=>{
+  return [...document.querySelectorAll(".jl-tom-tat-chu, .jl-tom-tat-nghia, .jl-tom-tat-ten, .jl-tom-tat summary, .jl-lua:not(:disabled), .jl-the-hoc .jl-nghia, .jl-chay-nut .chinh, .jl-fb-nut .chinh")].map(el=>{
    const fg=rgb(getComputedStyle(el).color);let b=el,bg=[];
    while(b){bg=rgb(getComputedStyle(b).backgroundColor);if(bg.length===3||bg[3]>=.99)break;b=b.parentElement;}
    const l1=lum(fg),l2=lum(bg);
