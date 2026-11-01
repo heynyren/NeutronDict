@@ -616,6 +616,36 @@
     o.appendChild(box);
   }
 
+  function tomTatNoiDung(c) {
+    const data = CH.tomTatChang(mon, c);
+    if (!data.items.length) return null;
+    const box = el("section", "jl-tom-tat");
+    const heading = T(data.tongHop ? "Một số nội dung ôn tập" : "Nội dung sẽ học");
+    box.setAttribute("aria-label", heading);
+    box.appendChild(el("h3", "jl-tom-tat-ten", heading));
+    const danhSach = items => {
+      const list = el("ul", "jl-tom-tat-list");
+      items.forEach(item => {
+        const row = el("li", "jl-tom-tat-muc");
+        row.dataset.itemId = item.id;
+        const word = el("span", "jl-tom-tat-chu", item.chu);
+        word.lang = "ja";
+        row.appendChild(word);
+        row.appendChild(el("span", "jl-tom-tat-nghia", item.nghia));
+        list.appendChild(row);
+      });
+      return list;
+    };
+    box.appendChild(danhSach(data.items.slice(0, 6)));
+    if (data.items.length > 6) {
+      const more = el("details", "jl-tom-tat-them");
+      more.appendChild(el("summary", null, T("Xem thêm {n} mục").replace("{n}", data.items.length - 6)));
+      more.appendChild(danhSach(data.items.slice(6)));
+      box.appendChild(more);
+    }
+    return box;
+  }
+
   function moChang(c, idx, mo) {
     const o = overlay("jl-to");
     const p = el("div", "jl-to-hop");
@@ -629,6 +659,8 @@
     else if (c.loai === "boss-chuong") mota = T("Đề tổng hợp của cả chương, 20 câu. Bạn có thể làm bất cứ lúc nào.");
     else mota = c.items.length + " " + (c.loai === "han" ? T("chữ Hán") : c.loai === "tu" ? T("từ vựng") : T("mẫu ngữ pháp")) + " · " + c.soCau + " " + T("câu hỏi") + " · " + T("làm hết câu hỏi để hoàn thành");
     p.appendChild(el("div", "jl-to-mo", mota));
+    const summary = tomTatNoiDung(c);
+    if (summary) { p.classList.add("jl-co-tom-tat"); p.appendChild(summary); }
     if (cc) p.appendChild(el("div", "jl-to-tot", T("Điểm cao nhất") + ": " + tot + "% " + "★".repeat(cc.sao || 0) + "☆".repeat(3 - (cc.sao || 0))));
     if (mo && doanTruyen(c).length && daKe(c)) {
       p.appendChild(nut("jl-btn jl-nghe-lai", "📖 " + T("Nghe lại câu chuyện"), () => { o.remove(); thoai(doanTruyen(c), () => veLaiChang(c, idx, mo), c.ci); }));

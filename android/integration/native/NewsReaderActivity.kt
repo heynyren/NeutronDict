@@ -49,6 +49,7 @@ class NewsReaderActivity : ComponentActivity() {
     private var currentUrl = ""
     private var language = "ja"
     private var lookupJob: Job? = null
+    private val meaningLookup by lazy { NeutronReaderLookup.get(this) }
     private var voice: TextToSpeech? = null
     private var voiceReady = false
     private var offline = false
@@ -132,6 +133,7 @@ class NewsReaderActivity : ComponentActivity() {
         val savedReader = savedInstanceState?.getString("readerText")
         if (offline && !savedReader.isNullOrBlank()) showText(savedReader, resetSource = false)
         else if (savedInstanceState?.getBundle("web")?.let { page.restoreState(it) } == null) page.loadUrl(currentUrl)
+        lifecycleScope.launch { runCatching { meaningLookup.warm(language) } }
         setContent { DualSubTheme { ReaderScreen() } }
     }
 
@@ -234,7 +236,7 @@ class NewsReaderActivity : ComponentActivity() {
                         onSave = { meaning, _ ->
                             val found = checkNotNull(pending).await()
                             val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
-                                .put("reading", found.optString("reading")).put("kind", "article")
+                                .put("reading", found.optString("reading").ifBlank { selected.token.reading.orEmpty() }).put("kind", "article")
                             neutronRequest(JSONObject().put("op", "save").put("item", item))
                             status = NeutronUiStrings.text(this@NewsReaderActivity,"Đã lưu vào sổ tay NeutronDict")
                         },
@@ -283,7 +285,7 @@ class NewsReaderActivity : ComponentActivity() {
                     if (selection === data) selectedTokens = tokens
                 }
                 try {
-                    val found = neutronRequest(JSONObject().put("op", "lookup").put("item", data))
+                    val found = meaningLookup.lookup(data.optString("word"), data.optString("language"))
                     if (generation == lookupGeneration && selection === data) {
                         entry = found
                         pending.complete(found)

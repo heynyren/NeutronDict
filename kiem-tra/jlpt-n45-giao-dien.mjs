@@ -28,7 +28,7 @@ async function snapshot(p,name){
  const ratios=await p.evaluate(()=>{
   const rgb=s=>s.match(/[0-9.]+/g)?.map(Number)||[];
   const lum=c=>c.slice(0,3).map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
-  return [...document.querySelectorAll(".jl-lua:not(:disabled), .jl-the-hoc .jl-nghia, .jl-chay-nut .chinh, .jl-fb-nut .chinh")].map(el=>{
+  return [...document.querySelectorAll(".jl-tom-tat-chu, .jl-tom-tat-nghia, .jl-tom-tat-ten, .jl-tom-tat summary, .jl-lua:not(:disabled), .jl-the-hoc .jl-nghia, .jl-chay-nut .chinh, .jl-fb-nut .chinh")].map(el=>{
    const fg=rgb(getComputedStyle(el).color);let b=el,bg=[];
    while(b){bg=rgb(getComputedStyle(b).backgroundColor);if(bg.length===3||bg[3]>=.99)break;b=b.parentElement;}
    const l1=lum(fg),l2=lum(bg);
@@ -44,6 +44,21 @@ async function snapshot(p,name){
    bad:[...document.querySelectorAll(".jl-chay-nut .jl-btn,.jl-fb-nut .jl-btn.chinh")].filter(b=>{const r=b.getBoundingClientRect();return r.left<0||r.right>innerWidth+1;}).map(b=>b.textContent)};
  });
  assert.deepEqual(layout,{overflow:false,gameOverflow:false,bad:[]},name);
+}
+async function preview(p, name, level, item, label) {
+ await stage(p,item.id);
+ const section=p.locator(".jl-tom-tat");
+ assert.equal(await section.getAttribute("aria-label"), label);
+ assert.equal(await section.locator(".jl-tom-tat-muc").count(), item.items.length);
+ assert.equal(await section.locator(".jl-tom-tat-chu").first().textContent(), item.items[0]);
+ assert.equal(await section.locator(".jl-tom-tat-muc:visible").count(), Math.min(6,item.items.length));
+ if(item.items.length>6){
+  await section.locator("summary").click();
+  assert.equal(await section.locator(".jl-tom-tat-muc:visible").count(),item.items.length);
+ }
+ await snapshot(p,name+"-"+level+"-"+item.type+"-stage-summary");
+ const controls=await p.locator(".jl-to-nut .jl-btn").evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {text:e.textContent,top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:innerWidth,height:innerHeight};}));
+ assert.ok(controls.every(r=>r.top>=0&&r.bottom<=r.height+1&&r.left>=0&&r.right<=r.width+1),"preview keeps start/quiz reachable: "+JSON.stringify(controls));
 }
 async function exercise(p,name,open,read,write){
  const errors=[];p.on("pageerror",x=>errors.push(x.message));
@@ -62,10 +77,22 @@ async function exercise(p,name,open,read,write){
   await snapshot(p,name+"-"+level+"-map");
   await p.locator(".jl-nguon").click();await p.waitForSelector(".jl-to-hop");
   assert.match(await p.locator(".jl-to-hop").innerText(),/EDRDG/);await p.locator(".jl-to-hop .chinh").click();
-  const ids=await p.evaluate(data=>JlptCauHoi.chiaChang(data).map(s=>({id:s.id,type:s.loai})),courses[level]);
+  const ids=await p.evaluate(data=>JlptCauHoi.chiaChang(data).map(s=>({id:s.id,type:s.loai,items:s.items.map(x=>s.loai==="han"?x.c:s.loai==="tu"?x.w:JlptCauHoi.tenPhap(x.p))})),courses[level]);
+  const previewLabel=name==="android"?"学習する内容":"What you will learn";
+  for(const type of ["han","tu"]){
+   const item=ids.find(s=>s.type===type);
+   await preview(p,name,level,item,previewLabel);
+   if(name==="android"&&level==="n5"&&type==="tu"){
+    await p.setViewportSize({width:320,height:640});await p.emulateMedia({colorScheme:"dark"});
+    const visible=await p.locator(".jl-to-nut").evaluate(e=>e.getBoundingClientRect().bottom<=innerHeight);
+    assert.ok(visible,"small-screen actions visible");await snapshot(p,"android-n5-tu-stage-summary-small-dark");
+    await p.setViewportSize({width:393,height:851});await p.emulateMedia({colorScheme:"light"});
+   }
+   await p.evaluate(()=>JlptUI.quayLai());
+  }
   // Jump to chapter two: no sequential unlock and no 60% score barrier.
   const wanted=ids.find(s=>s.id.startsWith("c2")&&s.type==="pp").id;
-  await stage(p,wanted);await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
+  await preview(p,name,level,ids.find(s=>s.id===wanted),previewLabel);await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
   await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
   assert.match(await p.locator(".jl-the-hoc").innerText(),/PDF|pdf|docx/i);
   await snapshot(p,name+"-"+level+"-card");

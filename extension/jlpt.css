@@ -706,3 +706,18 @@ body.jlpt-toan .side { display: none; }
 .jl-kaiwa .jl-lua { transition: border-color .12s, transform .1s; }
 .jl-kaiwa .jl-nghia, .jl-kaiwa .jl-loa:not(.to) { color: var(--accent); }
 .jl-kaiwa .jl-loa.to { background: #176b80; color: #fff; }
+
+/* Stage preview: concise source content, scroll the list while actions stay reachable. */
+.jl-to-hop.jl-co-tom-tat { box-sizing: border-box; max-height: calc(100dvh - 24px); overflow-y: auto; }
+.jl-co-tom-tat > * { flex-shrink: 0; }
+.jl-co-tom-tat > .jl-tom-tat { flex-shrink: 1; }
+.jl-tom-tat { min-height: 80px; max-height: 34vh; max-height: 34dvh; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line, #d8dce4); border-radius: 14px; padding: 12px; color: var(--ink); }
+.jl-tom-tat-ten { margin: 0 0 8px; font-size: 13px; font-weight: 800; }
+.jl-tom-tat-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.jl-tom-tat-muc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); align-items: baseline; gap: 10px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.jl-tom-tat-chu { font-weight: 700; }
+.jl-tom-tat-nghia { color: var(--ink); }
+.jl-tom-tat-them { margin-top: 10px; }
+.jl-tom-tat-them summary { cursor: pointer; font-size: 13px; font-weight: 700; padding: 6px 0; }
+.jl-tom-tat-them[open] summary { margin-bottom: 8px; }
+@media (min-width: 600px) { .jl-to-hop.jl-co-tom-tat { max-height: 84dvh; } }

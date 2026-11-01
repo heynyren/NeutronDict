@@ -42,11 +42,14 @@ public class IntegrationSmokeTest {
             field.setAccessible(true); return (android.webkit.WebView)field.get(activity);
         } catch(Exception e){throw new AssertionError(e);}
     }
-    @Test public void readerSelectionReachesNotebookWhileHostIsPaused() throws Exception {
+    @Test public void readerMeaningBypassesUnresponsiveHostAndSaveStillPreservesSource() throws Exception {
         try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(host);
-            // Fixture dictionary reply avoids depending on a live external provider.
-            evaluate(host,"window.__readerLookupCount=0;window.__readerLookupReplied=false;window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup'){window.__readerLookupCount++;await new Promise(done=>setTimeout(done,3000));window.__readerLookupReplied=true;return Capacitor.Plugins.NeutronMedia.readerReply({requestId:r.requestId,result:{meaning:'chăm sóc',reading:'ケア',translation:'Bôi kem để chăm sóc da.'}});}return window.__realReaderRequest(r)}");
+            // Deliberately never answer old JS lookups: native meanings must not depend on the paused host.
+            evaluate(host,"window.__readerLookupCount=0;window.__realReaderRequest=window.NeutronReaderRequest;window.NeutronReaderRequest=async r=>{if(r.op==='lookup'){window.__readerLookupCount++;return;}return window.__realReaderRequest(r)};window.__readerSeed=false;capNhat(nb=>{nb['javi:ケア']={word:'ケア',dict:'javi',means:['chăm sóc'],reading:'ケア',mEdit:true,duong:{nghe:{cap:4,han:9999999999999}}};}).then(()=>window.__readerSeed=true)");
+            long seedDeadline=System.currentTimeMillis()+10000;
+            while(!"true".equals(evaluate(host,"window.__readerSeed")) && System.currentTimeMillis()<seedDeadline)Thread.sleep(50);
+            assertEquals("true",evaluate(host,"window.__readerSeed"));
             Context context=ApplicationProvider.getApplicationContext();
             Intent intent=new Intent(context,com.kienhoang.dualsubreplay.ui.NewsReaderActivity.class)
                 .putExtra("url","https://example.org/integration-fixture").putExtra("language","ja")
@@ -103,6 +106,7 @@ public class IntegrationSmokeTest {
                 }catch(Exception ex){throw new AssertionError(ex);}});
                 assertNull("Selecting text must wait for the manual lookup command",selected.get());
                 assertEquals("0",evaluate(host,"window.__readerLookupCount"));
+                long lookupStart=android.os.SystemClock.elapsedRealtime();
                 onReader.accept(activity -> {
                     android.view.ActionMode mode=selectionMode.get();
                     assertNotNull("Tra NeutronDict menu entry is missing",mode.getMenu().findItem(0x4e44));
@@ -119,10 +123,21 @@ public class IntegrationSmokeTest {
                 java.util.concurrent.atomic.AtomicReference<String> readerStatus=new java.util.concurrent.atomic.AtomicReference<>("");
                 onReader.accept(activity -> {try {java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getStatus");getter.setAccessible(true);readerStatus.set(String.valueOf(getter.invoke(activity)));}catch(Exception e){readerStatus.set(e.toString());}});
                 assertNotNull("Native selection popup did not appear: "+readerStatus.get(),selected.get());
-                assertEquals("Quick popup must appear before dictionary reply", "false", evaluate(host,"window.__readerLookupReplied"));
-                long lookupDeadline=System.currentTimeMillis()+10000;
-                while(!"1".equals(evaluate(host,"window.__readerLookupCount")) && System.currentTimeMillis()<lookupDeadline)Thread.sleep(50);
-                assertEquals("1",evaluate(host,"window.__readerLookupCount"));
+                java.util.concurrent.atomic.AtomicReference<JSONObject> meaning=new java.util.concurrent.atomic.AtomicReference<>();
+                long lookupDeadline=lookupStart+2000;
+                while(meaning.get()==null && android.os.SystemClock.elapsedRealtime()<lookupDeadline){
+                    onReader.accept(activity -> {try {
+                        java.lang.reflect.Method getter=activity.getClass().getDeclaredMethod("getEntry");
+                        getter.setAccessible(true);meaning.set((JSONObject)getter.invoke(activity));
+                    }catch(Exception ex){throw new AssertionError(ex);}});
+                    if(meaning.get()==null)Thread.sleep(20);
+                }
+                long elapsed=android.os.SystemClock.elapsedRealtime()-lookupStart;
+                assertNotNull("Native notebook meaning must arrive without a JS reply within 2s; took "+elapsed+"ms",meaning.get());
+                assertEquals("chăm sóc",meaning.get().getString("meaning"));
+                assertEquals("notebook",meaning.get().getString("source"));
+                assertEquals("No lookup may traverse the paused notebook WebView","0",evaluate(host,"window.__readerLookupCount"));
+                System.out.println("READER_DEVICE_BENCH native meaning with unresponsive JS host: "+elapsed+"ms");
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
                 java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();
@@ -135,7 +150,7 @@ public class IntegrationSmokeTest {
             evaluate(host,"window.__readerSaved=null;getNB().then(nb=>window.__readerSaved=nb['javi:ケア'])");
             long deadline=System.currentTimeMillis()+10000;
             while(!"true".equals(evaluate(host,"!!window.__readerSaved")) && System.currentTimeMillis()<deadline)Thread.sleep(100);
-            assertEquals("true",evaluate(host,"window.__readerSaved.src.cau==='クリームを塗って肌のケアをする。' && window.__readerSaved.src.url==='https://example.org/integration-fixture'"));
+            assertEquals("true",evaluate(host,"window.__readerSaved.src.cau==='クリームを塗って肌のケアをする。' && window.__readerSaved.src.url==='https://example.org/integration-fixture' && window.__readerSaved.mEdit===true && window.__readerSaved.duong.nghe.cap===4"));
         }
     }
     @Test public void learnerDataWorksBeforeOpeningYouTube() throws Exception {

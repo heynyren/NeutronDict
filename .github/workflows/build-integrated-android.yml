@@ -1,7 +1,7 @@
 name: Integrated Android preview
 on:
   push:
-    branches: [codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/jlpt-n4-n5, main]
+    branches: [codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/reader-native-lookup, codex/jlpt-n4-n5, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -93,7 +93,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root = Path("android/integration/build/app/build/reports/androidTests/connected/debug")
-          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
+          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderNativeTest", "com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
               report = root / (name + ".html")
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
