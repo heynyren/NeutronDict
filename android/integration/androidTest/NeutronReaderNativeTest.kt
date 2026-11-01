@@ -27,7 +27,14 @@ class NeutronReaderNativeTest {
             val term = withTimeout(2000) { lookup.lookup("電圧", "ja") }
             assertEquals("local", term.getString("source"))
             assertTrue(term.getString("meaning").contains("điện áp"))
+            // Match the reader lifecycle: language packs and the HTTP client warm while the page opens.
+            val warmStart = android.os.SystemClock.elapsedRealtime()
+            withTimeout(10000) { lookup.warm("en") }
+            val cachedStart = android.os.SystemClock.elapsedRealtime()
             val cached = withTimeout(1000) { lookup.lookup("reader cache fixture 54321", "en") }
+            println("READER_DEVICE_CACHE_HIT_BENCH warmed disk-cache meaning: " +
+                (android.os.SystemClock.elapsedRealtime() - cachedStart) + "ms; setup: " +
+                (cachedStart - warmStart) + "ms")
             assertEquals("nghĩa từ bộ đệm", cached.getString("meaning"))
             val edited = JSONObject().put("envi:reader cache fixture 54321",
                 JSONObject().put("means", org.json.JSONArray().put("nghĩa tự sửa sau cache")))

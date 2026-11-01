@@ -182,8 +182,13 @@ internal class NeutronReaderLookup(context: Context) {
         translate = { word, lang -> translate(word, lang) },
     )
     suspend fun warm(language: String) = withContext(Dispatchers.IO) {
-        notebook.find("", language)
-        terms.warm(language)
+        val lang = language.substringBefore('-').substringBefore('_').lowercase(Locale.ROOT)
+        notebook.find("", lang)
+        terms.warm(lang)
+        // Initialise the HTTP client/SSL while the article opens. Blank cache lookups never use the network.
+        if (storedTranslationEngine(preferences.getString(TRANSLATION_ENGINE_PREFERENCE, null)) == TranslationEngine.GOOGLE_WEB)
+            google.cachedTranslation(lang, "vi", "")
+        Unit
     }
     suspend fun lookup(word: String, language: String): JSONObject = withContext(Dispatchers.IO) {
         val lang = language.substringBefore('-').substringBefore('_').lowercase(Locale.ROOT)
