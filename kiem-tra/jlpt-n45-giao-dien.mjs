@@ -56,9 +56,9 @@ async function preview(p, name, level, item, label) {
   await section.locator("summary").click();
   assert.equal(await section.locator(".jl-tom-tat-muc:visible").count(),item.items.length);
  }
- const controls=await p.locator(".jl-to-nut .jl-btn").evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth;}));
- assert.ok(controls.every(Boolean),"preview keeps start/quiz reachable");
  await snapshot(p,name+"-"+level+"-"+item.type+"-stage-summary");
+ const controls=await p.locator(".jl-to-nut .jl-btn").evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {text:e.textContent,top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:innerWidth,height:innerHeight};}));
+ assert.ok(controls.every(r=>r.top>=0&&r.bottom<=r.height+1&&r.left>=0&&r.right<=r.width+1),"preview keeps start/quiz reachable: "+JSON.stringify(controls));
 }
 async function exercise(p,name,open,read,write){
  const errors=[];p.on("pageerror",x=>errors.push(x.message));

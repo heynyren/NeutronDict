@@ -24,4 +24,4 @@ Các điểm này được xác nhận trong mã; chưa coi là số đo trên �
 Nhánh riêng từ main. Kiểm thử cloud và APK tích hợp trước khi gộp theo ủy quyền hiện có của chủ dự án. Không thay package/signing/schema đồng bộ.
 
 ## Trạng thái
-Đang triển khai; kết quả kiểm thử sẽ được cập nhật trước bàn giao.
+Kết quả cloud cho đúng commit và ảnh kiểm tra được ghi tại [PR #32](https://github.com/heynyren/NeutronDict/pull/32). Chỉ gộp sau khi các kiểm tra đạt; số đo giả lập không đại diện cho mạng hay điện thoại của người dùng.
