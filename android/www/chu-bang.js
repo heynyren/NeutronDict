@@ -3136,6 +3136,8 @@
   ja["Mẫu bên dưới có chức năng gì trong câu?"]="この文で下の表現はどんな働きをしていますか？";
   Object.assign(en,{"Thông tin học liệu":"Learning materials","Nội dung được biên tập từ tài liệu bạn cung cấp; nhãn cấp độ theo giáo trình, không phải danh mục JLPT chính thức.":"Content is edited from the supplied materials. Levels follow the curriculum, not an official JLPT list.","Ví dụ ngữ pháp được viết riêng cho bài học. Chữ Hán được chọn từ các từ đang học.":"Grammar examples are written for these lessons. Kanji are selected from the vocabulary you study.","Nguồn và giấy phép từ điển":"Dictionary sources and license"});
   Object.assign(ja,{"Thông tin học liệu":"教材について","Nội dung được biên tập từ tài liệu bạn cung cấp; nhãn cấp độ theo giáo trình, không phải danh mục JLPT chính thức.":"提供された教材をもとに編集しています。級の区分は教材に基づくもので、JLPT公式リストではありません。","Ví dụ ngữ pháp được viết riêng cho bài học. Chữ Hán được chọn từ các từ đang học.":"文法の例文は学習用に作成しています。漢字は学習する語彙から選んでいます。","Nguồn và giấy phép từ điển":"辞書の出典とライセンス"});
+  Object.assign(en, {"Nội dung sẽ học":"What you will learn","Một số nội dung ôn tập":"Review highlights","Xem thêm {n} mục":"Show {n} more items"});
+  Object.assign(ja, {"Nội dung sẽ học":"学習する内容","Một số nội dung ôn tập":"復習内容の例","Xem thêm {n} mục":"ほか{n}項目を表示"});
   goc.CHU_BANG = { en: en, ja: ja };
   if (typeof module !== "undefined" && module.exports) module.exports = goc.CHU_BANG;
 })(typeof self !== "undefined" ? self : this);

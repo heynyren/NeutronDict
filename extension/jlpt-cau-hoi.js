@@ -435,6 +435,32 @@
     return [];
   }
 
+  /** Preview only: actual stage content, stable order, no random quiz generation. */
+  function tomTatChang(mon, chang) {
+    chuanBi(mon);
+    const tomGon = value => {
+      const s = String(value || "").replace(/\s+/g, " ").trim();
+      return s.length > 72 ? s.slice(0, 71).trimEnd() + "…" : s;
+    };
+    const dong = (muc, loai) => ({
+      id: muc.id, loai,
+      chu: loai === "pp" ? tenPhap(muc.p) : loai === "han" ? muc.c : muc.w,
+      nghia: tomGon(loai === "han" ? muc.hv : muc.m)
+    });
+    const tongHop = chang.loai === "boss" || chang.loai === "boss-chuong";
+    if (!tongHop) return { tongHop: false, items: (chang.items || []).map(m => dong(m, chang.loai)) };
+    // Sample each available type across the actual chapter/course, without implying a fixed test.
+    const x = mon._idx;
+    const groups = [["pp", "chuongPp"], ["tu", "chuongTu"], ["han", "chuongHan"]];
+    const items = [];
+    groups.forEach(([loai, key]) => {
+      const pool = chang.loai === "boss" ? x[loai] : (x[key][chang.ci] || []);
+      if (pool.length) items.push(dong(pool[0], loai));
+      if (pool.length > 1) items.push(dong(pool[Math.floor(pool.length / 2)], loai));
+    });
+    return { tongHop: true, items };
+  }
+
   function theYeu(mon, id) {
     chuanBi(mon);
     const x = mon._idx;
@@ -450,7 +476,7 @@
   }
 
   goc.JlptCauHoi = {
-    chuanBi, chiaChang, dungDe, theHoc, theYeu, tachDoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
+    chuanBi, chiaChang, dungDe, theHoc, tomTatChang, theYeu, tachDoc, xaoTron, chia, dangPhapChu, nghiaNgan, tenPhap,
     KIEU_TU, KIEU_HAN, KIEU_PP, SO_LUA_CHON
   };
 })(typeof self !== "undefined" ? self : this);

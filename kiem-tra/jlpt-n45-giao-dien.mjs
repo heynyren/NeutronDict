@@ -45,6 +45,21 @@ async function snapshot(p,name){
  });
  assert.deepEqual(layout,{overflow:false,gameOverflow:false,bad:[]},name);
 }
+async function preview(p, name, level, item, label) {
+ await stage(p,item.id);
+ const section=p.locator(".jl-tom-tat");
+ assert.equal(await section.getAttribute("aria-label"), label);
+ assert.equal(await section.locator(".jl-tom-tat-muc").count(), item.items.length);
+ assert.equal(await section.locator(".jl-tom-tat-chu").first().textContent(), item.items[0]);
+ assert.equal(await section.locator(".jl-tom-tat-muc:visible").count(), Math.min(6,item.items.length));
+ if(item.items.length>6){
+  await section.locator("summary").click();
+  assert.equal(await section.locator(".jl-tom-tat-muc:visible").count(),item.items.length);
+ }
+ const controls=await p.locator(".jl-to-nut .jl-btn").evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth;}));
+ assert.ok(controls.every(Boolean),"preview keeps start/quiz reachable");
+ await snapshot(p,name+"-"+level+"-"+item.type+"-stage-summary");
+}
 async function exercise(p,name,open,read,write){
  const errors=[];p.on("pageerror",x=>errors.push(x.message));
  for(const level of ["n5","n4"]){
@@ -62,10 +77,22 @@ async function exercise(p,name,open,read,write){
   await snapshot(p,name+"-"+level+"-map");
   await p.locator(".jl-nguon").click();await p.waitForSelector(".jl-to-hop");
   assert.match(await p.locator(".jl-to-hop").innerText(),/EDRDG/);await p.locator(".jl-to-hop .chinh").click();
-  const ids=await p.evaluate(data=>JlptCauHoi.chiaChang(data).map(s=>({id:s.id,type:s.loai})),courses[level]);
+  const ids=await p.evaluate(data=>JlptCauHoi.chiaChang(data).map(s=>({id:s.id,type:s.loai,items:s.items.map(x=>s.loai==="han"?x.c:s.loai==="tu"?x.w:JlptCauHoi.tenPhap(x.p))})),courses[level]);
+  const previewLabel=name==="android"?"学習する内容":"What you will learn";
+  for(const type of ["han","tu"]){
+   const item=ids.find(s=>s.type===type);
+   await preview(p,name,level,item,previewLabel);
+   if(name==="android"&&level==="n5"&&type==="tu"){
+    await p.setViewportSize({width:320,height:640});await p.emulateMedia({colorScheme:"dark"});
+    const visible=await p.locator(".jl-to-nut").evaluate(e=>e.getBoundingClientRect().bottom<=innerHeight);
+    assert.ok(visible,"small-screen actions visible");await snapshot(p,"android-n5-tu-stage-summary-small-dark");
+    await p.setViewportSize({width:393,height:851});await p.emulateMedia({colorScheme:"light"});
+   }
+   await p.evaluate(()=>JlptUI.quayLai());
+  }
   // Jump to chapter two: no sequential unlock and no 60% score barrier.
   const wanted=ids.find(s=>s.id.startsWith("c2")&&s.type==="pp").id;
-  await stage(p,wanted);await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
+  await preview(p,name,level,ids.find(s=>s.id===wanted),previewLabel);await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
   await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
   assert.match(await p.locator(".jl-the-hoc").innerText(),/PDF|pdf|docx/i);
   await snapshot(p,name+"-"+level+"-card");
