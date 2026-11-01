@@ -6,6 +6,7 @@ on:
       - codex/neutrondict-work
       - codex/neutrondict-youtube-news
       - codex/kaiwa-caption-sync
+      - codex/reader-native-lookup
       - codex/jlpt-n4-n5
       - main
   workflow_dispatch:

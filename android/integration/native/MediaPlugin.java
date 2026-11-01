@@ -18,7 +18,8 @@ public class MediaPlugin extends Plugin {
     public static void request(JSONObject request, Reply reply) {
         MAIN.post(() -> {
             MediaPlugin plugin = current.get();
-            if (plugin == null || plugin.getActivity().isDestroyed()) { reply.complete(null, NeutronUiStrings.text(plugin.getContext(),"Mở lại NeutronDict rồi thử tra lại.")); return; }
+            if (plugin == null) { reply.complete(null, "Mở lại NeutronDict rồi thử tra lại."); return; }
+            if (plugin.getActivity().isDestroyed()) { reply.complete(null, NeutronUiStrings.text(plugin.getContext(),"Mở lại NeutronDict rồi thử tra lại.")); return; }
             String id = java.util.UUID.randomUUID().toString();
             try { request.put("requestId", id); } catch (Exception e) { reply.complete(null, e.getMessage()); return; }
             replies.put(id, reply);
