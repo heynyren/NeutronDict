@@ -101,6 +101,7 @@ async function exercise(p,name,open,read){
  await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
  let found=false;
  for(let i=0;i<12;i++){
+  await p.waitForFunction(()=>document.querySelectorAll(".jl-the-hoc").length===1);
   const title=await p.locator(".jl-the-hoc .jl-lon").innerText();
   if(title.includes("るの")){
    await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
