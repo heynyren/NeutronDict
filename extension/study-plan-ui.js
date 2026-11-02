@@ -4,7 +4,7 @@
 const rows=[
 ["Đã đủ hôm nay","Today's goal reached","今日の目標達成"],
 ["Chưa có bài phù hợp","No exercises available now","今学習できる問題はありません"],
-["Đã đạt giới hạn bài mới hôm nay. Bạn có thể chọn Học thêm 3 phút.","Today's new-exercise limit is reached. You can choose Study 3 more minutes.","今日の新規問題の上限に達しました。「あと3分学習」で続けられます。"],
+["Bài mới đang được giới hạn để giảm tải. Bạn có thể chọn Học thêm 3 phút.","New exercises are limited to keep the workload light. You can choose Study 3 more minutes.","負担を軽くするため新規問題を制限しています。「あと3分学習」で続けられます。"],
 ["Không còn bài đến hạn trong mục này.","No due exercises in this collection.","このコレクションには復習待ちの問題がありません。"],
 ["Chặng tiếp theo: {n} bài · khoảng {minutes} phút","Next round: {n} exercises · about {minutes} minutes","次の学習：{n}問・約{minutes}分"],
 ["Tổng đang chờ: {n} bài ôn ({words} từ/câu).","Total waiting: {n} exercises ({words} words/sentences).","復習待ち：計{n}問（{words}語・文）。"],
@@ -47,7 +47,7 @@ for(const[v,en,ja]of rows){g.CHU_BANG.en[v]=en;g.CHU_BANG.ja[v]=ja;}
 const t=s=>g.Chu?.T?g.Chu.T(s):g.T?g.T(s):s;
 const t2=(s,args)=>t(s).replace(/\{(\w+)\}/g,(_,k)=>args[k]??"");
 function emptyMessage(selection){
- const messages={goal:"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút.",daily_limit:"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai.",new_limit:"Đã đạt giới hạn bài mới hôm nay. Bạn có thể chọn Học thêm 3 phút.",no_due:"Không còn bài đến hạn trong mục này."};
+ const messages={goal:"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút.",daily_limit:"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai.",new_limit:"Bài mới đang được giới hạn để giảm tải. Bạn có thể chọn Học thêm 3 phút.",no_due:"Không còn bài đến hạn trong mục này."};
  return t(messages[selection.reason]||messages.no_due);
 }
 function mount(host,api){

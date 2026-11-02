@@ -2671,7 +2671,7 @@ function hangDoiDuong(scopeList, ds) {
 async function startStudyDuong() {
   try {
     if (!daNapXong) await choNapXong();
-    const snap = await readAdaptiveSnapshot();
+    const snap = await readAdaptiveSnapshot(true);
     window.DuongRiengUI.mo(
       ds => {
         const queue = hangDoiDuong(snap.scope,ds);
@@ -5052,10 +5052,11 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
 })();
 
 /* Shared daily plan: full language collection, independent of the selected deck. */
-async function readAdaptiveSnapshot(){
-  const data = await chrome.storage.local.get(["notebook","hoc","nguPhapSrs","ytKho"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
-  window.StudyGrammar.hydrate(data.nguPhapSrs,data.ytKho);
+async function readAdaptiveSnapshot(withQueue=false){
+  const data = await chrome.storage.local.get(withQueue?["notebook","hoc","nguPhapSrs","ytKho"]:["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+  if(withQueue)window.StudyGrammar.hydrate(data.nguPhapSrs,data.ytKho);
   const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+  if(!withQueue)return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
   const scope=setIn(current,all),inventory=hangDoiKhoi(all).flat();
   return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all),scope,inventory,queue:hangDoiKhoi(scope).flat()};
 }
@@ -5088,7 +5089,7 @@ async function adaptiveSummaryText(){
 let adaptivePlanUI;
 function refreshStudyPlan(){
   if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
-    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startStudy(true),
+    read:()=>readAdaptiveSnapshot(true),change:changeAdaptiveState,startExtra:()=>startStudy(true),
     preview:next=>{
       $("dueCount").textContent=next.queue.length?T2("{n} bài",{n:next.queue.length}):T(next.reason==="goal"?"Đã đủ hôm nay":"Chưa có bài phù hợp");
       $("study").disabled=studyLaunching||!next.queue.length;

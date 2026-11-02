@@ -4238,7 +4238,7 @@ function hangDoiDuong(scopeList, ds) {
 
 async function startStudyDuong() {
   try {
-    const snap=await readAdaptiveSnapshot();
+    const snap=await readAdaptiveSnapshot(true);
     window.DuongRiengUI.mo(
       ds=>{
         const queue=hangDoiDuong(snap.scope,ds);
@@ -5501,9 +5501,10 @@ async function donHuyHieu() {
 })();
 
 /* Shared daily plan: full language collection, independent of the selected deck. */
-async function readAdaptiveSnapshot(){
-  const nb=await getNBNgu(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
+async function readAdaptiveSnapshot(withQueue=false){
+  const nb=withQueue?await getNBNgu():window.Ngu.locSo(await getNB(),NGU), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
   const all=Object.entries(nb).map(([key,v])=>({key,...v}));
+  if(!withQueue)return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
   const scope=setIn(all.filter(it=>!it.del),curDeck),inventory=hangDoiKhoi(all).flat();
   return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all),scope,inventory,queue:hangDoiKhoi(scope).flat()};
 }
@@ -5536,7 +5537,7 @@ async function adaptiveSummaryText(){
 let adaptivePlanUI;
 function refreshStudyPlan(){
   if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
-    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:startAdaptiveExtra,
+    read:()=>readAdaptiveSnapshot(true),change:changeAdaptiveState,startExtra:startAdaptiveExtra,
     preview:next=>{
       $("dueCount").textContent=next.queue.length?T2("{n} bài",{n:next.queue.length}):T(next.reason==="goal"?"Đã đủ hôm nay":"Chưa có bài phù hợp");
       $("stStart").disabled=studyLaunching||!next.queue.length;
