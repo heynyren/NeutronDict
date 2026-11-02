@@ -42,6 +42,18 @@ public class IntegrationSmokeTest {
             field.setAccessible(true); return (android.webkit.WebView)field.get(activity);
         } catch(Exception e){throw new AssertionError(e);}
     }
+    private android.view.accessibility.AccessibilityNodeInfo findQuickSave(
+        android.view.accessibility.AccessibilityNodeInfo node,String label){
+        if(node==null)return null;
+        // Compose exposes virtual children; Android's native text-search method does not traverse them.
+        if(label.contentEquals(node.getText()==null?"":node.getText()) ||
+            "phrase_save_word".equals(node.getExtras().getString("androidx.compose.ui.semantics.testTag"))) return node;
+        for(int i=0;i<node.getChildCount();i++){
+            android.view.accessibility.AccessibilityNodeInfo found=findQuickSave(node.getChild(i),label);
+            if(found!=null)return found;
+        }
+        return null;
+    }
     @Test public void readerMeaningBypassesUnresponsiveHostAndSaveStillPreservesSource() throws Exception {
         try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(host);
@@ -143,13 +155,10 @@ public class IntegrationSmokeTest {
                     // Non-focusable Compose popups are separate windows; the active root can be the article.
                     for(android.view.accessibility.AccessibilityWindowInfo window:automation.getWindows()){
                         android.view.accessibility.AccessibilityNodeInfo root=window.getRoot();
-                        if(root!=null) for(android.view.accessibility.AccessibilityNodeInfo node:root.findAccessibilityNodeInfosByText(saveLabel)){
-                            android.view.accessibility.AccessibilityNodeInfo button=node;
-                            while(button!=null && !button.isClickable())button=button.getParent();
-                            if(button!=null && button.isEnabled()){
-                                clicked=button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
-                                if(clicked)break;
-                            }
+                        android.view.accessibility.AccessibilityNodeInfo button=findQuickSave(root,saveLabel);
+                        while(button!=null && !button.isClickable())button=button.getParent();
+                        if(button!=null && button.isEnabled()){
+                            clicked=button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
                         }
                         if(clicked)break;
                     }
