@@ -103,6 +103,7 @@
     if (d.badges && typeof d.badges === "object") {
       for (const k in d.badges) if (typeof d.badges[k] === "string") o.badges[k] = d.badges[k];
     }
+    if (d.study) o.study = root.AdaptiveStudy ? root.AdaptiveStudy.normal(d.study) : d.study;
     return o;
   }
 
@@ -124,6 +125,8 @@
     const out = rong();
     out.goal = (y.goalTs > x.goalTs) ? y.goal : x.goal;
     out.goalTs = Math.max(x.goalTs, y.goalTs);
+    if (x.study || y.study) out.study = root.AdaptiveStudy
+      ? root.AdaptiveStudy.merge(x.study, y.study) : (y.study || x.study);
 
     const ngay = new Set([...Object.keys(x.log), ...Object.keys(y.log)]);
     for (const d of ngay) {

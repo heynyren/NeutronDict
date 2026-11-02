@@ -347,7 +347,7 @@ function hangDoiKhoi(scopeList) {
   const khoi = [];
   for (const it of scopeList) {
     if (it.del) continue;
-    const han = window.Srs.denHan(it, now);
+    const han = window.Srs.duongMo(it).filter(d => window.Srs.denHanDuong(it, d, now));
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
   if (NGU === "ja") for (const q of (window.StudyGrammar?.queue(scopeList) || [])) khoi.push([q]);
@@ -666,7 +666,7 @@ async function gradeWord(key, remembered, ms, duong, chat) {
   const d = duong || "nhin";
   return suaSoTay(async () => {
     // Đọc lịch, nhịp và số đo mới nhất SAU khi đã có khóa chung.
-    const kho = await chrome.storage.local.get(["notebook", "nhipMs", "soDoSrs"]);
+    const kho = await chrome.storage.local.get(["notebook", "nhipMs", "soDoSrs", "hoc"]);
     const nb = kho.notebook || {};
     const e = nb[key];
     if (!e || e.del || window.Srs.biChan(e, d, Date.now())) return null;
@@ -681,6 +681,21 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     let kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d,
                              Math.random(), chat, lich);
     kq = window.Srs.phoiHop(e, d, kq, remembered, Date.now(), lich);
+    const reviewAt = Date.now();
+    const studyPrefs = window.AdaptiveStudy.normal(window.Ngu.tachHoc(kho.hoc)[NGU]?.study).prefs;
+    kq = window.AdaptiveStudy.observe(batDau, kq, !!remembered, d, reviewAt, studyPrefs.mode);
+    const reviewKey = key + "|" + d;
+    const reviewTiming = window.AdaptiveStudy.takeMetrics(reviewKey);
+    const recorded = window.AdaptiveStudy.appendReview(e.reviewLog, {
+      at: reviewAt, cardKey: reviewKey, wordKey: key, route: d, correct: !!remembered,
+      activeMs: reviewTiming.activeMs, responseMs: ms || 0,
+      isNew: !(batDau?.ts || batDau?.lv >= 0), lagDays: batDau?.ts ? Math.max(0, reviewAt-batDau.ts)/86400000 : 0,
+      hinted: reviewTiming.hinted, prediction: kq.modelLog?.prediction,
+      model: "FSRS-6-default", mode: studyPrefs.mode, modelLog: kq.modelLog?.log
+    });
+    kq.duong.reviewId = recorded.event.id;
+    kq.retryAllowed = Object.values(recorded.log).filter(x => !x.undoAt && x.cardKey === reviewKey && x.day === recorded.event.day).length < 2;
+    if (session.adaptive) session.adaptiveSpent = (session.adaptiveSpent || 0) + recorded.event.activeMs;
     const moi = Object.assign({}, e, {
       duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }),
       ts: Date.now()
@@ -696,6 +711,7 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     let vuaToiDa = false;
     if (remembered && !moi.dongBang && window.Srs.toiDa(moi)) { moi.dongBang = 1; vuaToiDa = true; }
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    moi.reviewLog = recorded.log;
     nb[key] = moi;
     tkAll[d] = kq.tk;
     const ghi = { notebook: nb, nhipMs: tkAll };
@@ -753,6 +769,7 @@ const theoDoi = window.TienDo.tao({
   },
   ghi: async (d) => {
     const cu = window.Ngu.tachHoc((await chrome.storage.local.get("hoc")).hoc);
+    d.study = window.AdaptiveStudy.merge(cu[nguDaNap || NGU]?.study, d.study);
     await chrome.storage.local.set({ hoc: Object.assign({}, cu, { [nguDaNap || NGU]: d }) });
   },
   soLieu: async () => soLieuSoTay(),
@@ -2590,7 +2607,7 @@ function renderStudyFav(it) {
   box.appendChild(window.LichRiengUI.nut(it, datLichRieng));
 }
 
-async function startStudy() {
+async function startStudy(extra) {
   /*
    * Chờ sổ về TRƯỚC khi hỏi có gì tới hạn không. Xem chú thích ở chỗ khai báo
    * huaNap: không chờ thì câu trả lời là "không có gì" dù sổ đầy từ tới hạn.
@@ -2644,9 +2661,9 @@ async function startStudy() {
    * Xáo phẳng cả hàng đợi thì 改善 rơi đầu buổi còn 改良 rơi cuối, và cả việc ôn
    * kèm cụm thành công cốc — cái được của nó nằm ở chỗ mấy từ ấy đi LIỀN NHAU.
    */
-  const due = [];
-  for (const k of khoi.slice().sort(() => Math.random() - 0.5)) for (const x of k) due.push(x);
-  session = { queue: due, done: 0, again: 0, deleted: 0 };
+  const selected = await prepareAdaptiveQueue(khoi.flat(), extra === true);
+  if (!selected.queue.length) return;
+  session = { queue: selected.queue, adaptive: selected, adaptiveSpent: 0, done: 0, again: 0, deleted: 0 };
   lastDeleted = null;
   $("stUndo").style.display = "none";
   $("stBody").style.display = "";
@@ -2668,7 +2685,7 @@ function hangDoiDuong(scopeList, ds) {
   const ra = [];
   for (const it of scopeList) {
     if (it.del) continue;
-    const d = ds.find((t) => window.Srs.denHanDuong(it, t, now));
+    const d = ds.filter(t => window.Srs.denHanDuong(it, t, now)).sort((a,b) => window.AdaptiveStudy.priority(it,b,now)-window.AdaptiveStudy.priority(it,a,now))[0];
     if (d) ra.push(Object.assign({}, it, { _d: d }));
   }
   return ra;
@@ -2678,10 +2695,11 @@ async function startStudyDuong() {
   if (!daNapXong) await choNapXong();
   window.DuongRiengUI.mo(
     (ds) => hangDoiDuong(currentActiveSet(), ds).length,
-    (ds) => {
-      const hang = hangDoiDuong(currentActiveSet(), ds).sort(() => Math.random() - 0.5);
+    async (ds) => {
+      const selected = await prepareAdaptiveQueue(hangDoiDuong(currentActiveSet(), ds));
+      const hang = selected.queue;
       if (!hang.length) { toast(T("Chưa có bài nào đến hạn ở loại này."), "bad"); return; }
-      session = { queue: hang, done: 0, again: 0, deleted: 0 };
+      session = { queue: hang, adaptive: selected, adaptiveSpent: 0, done: 0, again: 0, deleted: 0 };
       lastDeleted = null;
       $("stUndo").style.display = "none";
       $("stBody").style.display = "";
@@ -2838,6 +2856,7 @@ let msDaDung = null;
 
 /** Dừng đồng hồ ngay tại đây. Gọi nhiều lần thì giữ mốc ĐẦU TIÊN. */
 function dungDongHo() {
+  window.AdaptiveStudy.pauseClock(true);
   if (msDaDung !== null) return;
   if (mocHienThe) msDaDung = Math.round(performance.now() - mocHienThe);
   else if (baiDien && baiDien.moc) msDaDung = Math.round(performance.now() - baiDien.moc);
@@ -2861,12 +2880,14 @@ function veNguPhapTrongHoc(it) {
 }
 
 function showCard(giuLat, xem) {
+  if (!xem && session.adaptive && session.adaptiveSpent >= session.adaptive.budgetMs) session.queue = [];
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
   // `xem`: đang xem lại một thẻ đã chấm (xemThe). Gọi không tham số = quay về thẻ đang học.
   if (!xem) session.xem = null;
   const it = xem || session.queue[0];
   theTrenMan = it;
+  if (!xem && it) window.AdaptiveStudy.startClock(it);
   // Đang làm bài điền khuyết ở thẻ trước thì xoá trạng thái đó NGAY: sang thẻ khác bằng ›, ‹,
   // đóng buổi học… mà không xoá thì `baiDien` kẹt lại và chặn Space, F/J, vuốt trên cả thẻ thường.
   baiDien = null;
@@ -3191,7 +3212,7 @@ async function grade(remembered, tuVuot) {
     const kh = it.key + "|" + (it._d || "nhin");
     session.lapBuoi = session.lapBuoi || {};
     session.lapBuoi[kh] = (session.lapBuoi[kh] || 0) + 1;
-    if (session.lapBuoi[kh] < LAP_TOI_DA) {
+    if (kqCham.retryAllowed && session.lapBuoi[kh] < LAP_TOI_DA) {
       banSao = Object.assign({}, it);
       session.queue.push(banSao);                   // quên -> học lại cuối hàng
     } else {
@@ -3320,7 +3341,7 @@ async function chonDien(chon) {
     const kh = b.it.key + "|dien";
     session.lapBuoi = session.lapBuoi || {};
     session.lapBuoi[kh] = (session.lapBuoi[kh] || 0) + 1;
-    if (session.lapBuoi[kh] < LAP_TOI_DA) { banSao = Object.assign({}, b.it); session.queue.push(banSao); }
+    if (daCham.retryAllowed && session.lapBuoi[kh] < LAP_TOI_DA) { banSao = Object.assign({}, b.it); session.queue.push(banSao); }
     else toast(T("Từ này để mai gặp lại — hôm nay đủ rồi"));
   }
   session.lichSu = (session.lichSu || []).concat([{
@@ -3423,7 +3444,11 @@ async function huyLuot(b) {
     if (b.sau && !cungNoiDung((e.duong || {})[b.duong], b.sau)) return false;
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
+    // Keep an undo timestamp so a stale device cannot restore the reverted route.
+    if (d[b.duong]) d[b.duong] = Object.assign({}, d[b.duong], { ts: Date.now() });
+    else d[b.duong] = { lv: -1, ngay: 0, due: Date.now(), ts: Date.now() };
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
+    moi.reviewLog = window.AdaptiveStudy.undoReview(e.reviewLog, b.sau?.reviewId);
     // Lượt chấm vừa đẩy từ lên mức tối đa và đóng băng nó: hoàn tác thì gỡ luôn.
     if (b.vuaToiDa) delete moi.dongBang;
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
@@ -3635,7 +3660,8 @@ async function finishStudy() {
   phan.push(view.homNay.dat
     ? T2("Hôm nay đạt mục tiêu rồi — chuỗi {n} ngày.", { n: Math.max(1, view.chuoi.hienTai) })
     : T2("Còn {n} lượt nữa là đạt mục tiêu hôm nay.", { n: view.homNay.conLai }));
-  $("stSummary").textContent = phan.join(" · ");
+  $("stSummary").textContent = T("Đã xong chặng học") + " · " + await adaptiveSummaryText();
+  refreshStudyPlan();
 
   await load();
   syncSoon();
@@ -4697,7 +4723,19 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     }
     if (!moi) return null;
     kho[key] = moi;
-    await chrome.storage.local.set({ nguPhapSrs: kho });
+    if (q.onId && nb[q.key] && ketQua !== "mo") {
+      const item = nb[q.key], cardKey = "grammar|" + q.cau;
+      if (!Object.values(item.reviewLog || {}).some(x => x.attemptId === q.onId + "|" + ketQua)) {
+        const recorded = window.AdaptiveStudy.appendReview(item.reviewLog, {
+          at: bayGio, wordKey: q.key, cardKey, route: "grammar", attemptId: q.onId + "|" + ketQua,
+          correct: ketQua === "dung" || ketQua === "sua", isNew: !q.tsDau,
+          activeMs: window.AdaptiveStudy.takeClock(cardKey), lagDays: q.tsDau ? (bayGio-q.tsDau)/86400000 : 0
+        });
+        nb[q.key] = Object.assign({}, item, { reviewLog: recorded.log });
+        if (session.adaptive) session.adaptiveSpent = (session.adaptiveSpent || 0) + recorded.event.activeMs;
+      }
+    }
+    await chrome.storage.local.set({ nguPhapSrs: kho, notebook: nb });
     window.StudyGrammar.remember(q, moi);
     return moi;
   });
@@ -5057,3 +5095,47 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
   // cảnh "lần nào vào cũng hiện bảng thành tích".
   mung(await theoDoi.xetHuyHieu());
 })();
+
+/* Shared daily plan: full language collection, independent of the selected deck. */
+async function readAdaptiveSnapshot(){
+  const data = await chrome.storage.local.get(["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+  const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
+}
+async function changeAdaptiveState(fn){
+  await suaSoTay(async()=>{
+    const data = await chrome.storage.local.get(["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+    const old=hoc[NGU]||{};
+    hoc[NGU]={...old,study:fn(old.study)};
+    await chrome.storage.local.set({hoc});
+  });
+  syncSoon();
+  
+}
+async function prepareAdaptiveQueue(queue,extra=false){
+  let selected;
+  await suaSoTay(async()=>{
+    const data = await chrome.storage.local.get(["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+    const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+    selected=window.AdaptiveStudy.select(queue,hoc[NGU]?.study,window.AdaptiveStudy.allEvents(all),Date.now(),extra);
+    hoc[NGU]={...(hoc[NGU]||{}),study:selected.state};
+    await chrome.storage.local.set({hoc});
+  });
+  if(!selected.queue.length)toast(T(selected.stats.today.ms>=selected.plan.goalMs
+    ?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút."
+    :"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."));
+  return selected;
+}
+async function adaptiveSummaryText(){
+  const snap=await readAdaptiveSnapshot(),s=window.AdaptiveStudy.summary(snap.state,snap.events);
+  return s.done?T("Đã xong kế hoạch hôm nay"):T2("{done}/{goal} phút · còn khoảng {left} phút",{done:Math.floor(s.doneMs/60000),goal:Math.round(s.goalMs/60000*10)/10,left:s.minutes});
+}
+let adaptivePlanUI;
+function refreshStudyPlan(){
+  if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
+    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startStudy(true)
+  });
+  else adaptivePlanUI.refresh().catch(()=>{});
+}
+window.addEventListener("rakulang-language",refreshStudyPlan);
+setTimeout(refreshStudyPlan,0);

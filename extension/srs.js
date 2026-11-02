@@ -1029,9 +1029,9 @@
       if (!canOnJlpt(muc, t) && due && due > bayGio) continue;
       if (!canOnJlpt(muc, t) && choDen(muc, t, bayGio)) continue;          // vừa chấm một đường khác: ngủ đã
       ra.push(t);
-      break;                                          // mỗi lần chỉ MỘT đường
     }
-    return ra;
+    if (goc.AdaptiveStudy) ra.sort((a,b) => goc.AdaptiveStudy.priority(muc,b,bayGio)-goc.AdaptiveStudy.priority(muc,a,bayGio));
+    return ra.slice(0,1);
   }
 
   /**

@@ -149,6 +149,14 @@
   function gopSrs(thang, thua) {
     if (!thang || !thua || thang.del || thua.del) return thang;
     // Cài đặt từng đường có ts riêng, không bị lượt chấm/sửa nghĩa đè mất.
+    if (thang.reviewLog || thua.reviewLog) {
+      const log = { ...(thang.reviewLog || {}) };
+      for (const [id, event] of Object.entries(thua.reviewLog || {})) {
+        const old = log[id];
+        if (!old || (event.undoAt || 0) > (old.undoAt || 0)) log[id] = event;
+      }
+      thang = Object.assign({}, thang, { reviewLog: log });
+    }
     if (thang.lichRieng || thua.lichRieng)
       thang = Object.assign({}, thang, { lichRieng: gopDuong(thang.lichRieng, thua.lichRieng) });
     // `duong` gộp theo từng đường, KHÔNG theo bên thắng — xem gopDuong.

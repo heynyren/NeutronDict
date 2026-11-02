@@ -4,7 +4,7 @@ importScripts("kanji-data.js");  // self.KANJI — bảng Hán tự, để tính
 importScripts("kana.js");      // self.Kana — suy furigana khi từ điển không cho
 importScripts("ngu.js");        // self.Ngu — hai ngôn ngữ trong một extension
 importScripts("han-tu.js");     // self.HanTu — Hán tự là một loại mục của sổ tay
-importScripts("srs.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
+importScripts("srs.js", "vendor/ts-fsrs.js", "adaptive-study.js");       // self.Srs — cấp độ thuộc đo bằng nhiều đường
 importScripts("offscreen-jobs.js");
 importScripts("pdf-auto.js");
 importScripts("pdf-source.js");
