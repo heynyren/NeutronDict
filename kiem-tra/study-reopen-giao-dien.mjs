@@ -30,17 +30,34 @@ try{
   ep.on("pageerror",e=>{ee.push(e.message);console.log("Extension error",e.message);});
   await ep.goto("chrome-extension://"+id+"/notebook.html");
   await ep.waitForFunction(()=>items.length===12&&daNapXong);
-  for(const mode of ["normal","normal","extra","extra","path","path"]){
+  for(const mode of ["normal","normal","extra","extra","path","path","answer","normal","extra","path"]){
     console.log("Extension entry",mode);
-    if(mode==="normal")await ep.locator("#study").click();
+    if(mode==="normal"||mode==="answer")await ep.locator("#study").click();
     if(mode==="extra")await ep.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
     if(mode==="path"){
       await ep.locator("#studyPath").click();
       await ep.locator("#duongRiengDialog [data-ma=nhin]").click();
     }
     await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"),{},{timeout:10000});
+    if(mode==="answer"){
+      await ep.locator("#stReveal").click();await ep.locator("#gForgot").click();
+      await ep.waitForFunction(()=>session.lichSu?.length>0);
+    }
     await ep.locator("#stClose").click();
     await ep.waitForFunction(()=>!document.getElementById("studyOverlay").classList.contains("show"));
+  }
+  assert.deepEqual(ee,[]);
+  // Repeat against a large legacy notebook, with the default study settings.
+  const big=Object.fromEntries(Array.from({length:420},(_,i)=>["javi:単語"+i,{word:"単語"+i,dict:"javi",means:["Từ "+i],ts:Date.now(),srs:{lv:1,due:Date.now()-1000}}]));
+  await sw.evaluate(async big=>chrome.storage.local.set({notebook:big,hoc:{},settings:{ngu:"ja",chu:"vi",nhip:true,coVu:true,tach:true}}),big);
+  await ep.reload();await ep.waitForFunction(()=>items.length===420&&daNapXong);
+  for(const mode of ["normal","extra","path","normal"]){
+    console.log("Legacy notebook entry",mode);
+    if(mode==="normal")await ep.locator("#study").click();
+    if(mode==="extra")await ep.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
+    if(mode==="path"){await ep.locator("#studyPath").click();await ep.locator("#duongRiengDialog [data-ma=nhin]").click();}
+    await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"),{},{timeout:10000});
+    await ep.locator("#stClose").click();
   }
   assert.deepEqual(ee,[]);
  const p=await browser.newPage({viewport:{width:393,height:851}}),errors=[];
