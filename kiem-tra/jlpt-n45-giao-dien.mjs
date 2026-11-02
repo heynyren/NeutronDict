@@ -94,7 +94,8 @@ async function exercise(p,name,open,read,write){
   const wanted=ids.find(s=>s.id.startsWith("c2")&&s.type==="pp").id;
   await preview(p,name,level,ids.find(s=>s.id===wanted),previewLabel);await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
   await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
-  assert.match(await p.locator(".jl-the-hoc").innerText(),/PDF|pdf|docx/i);
+  assert.doesNotMatch(await p.locator(".jl-the-hoc").innerText(),/PDF|docx|Nguồn:|Source:|Bản dịch biên tập/i);
+  assert.ok((await p.locator(".jl-the-hoc .jl-nghia").innerText()).trim());
   await snapshot(p,name+"-"+level+"-card");
   if(name==="android"){await p.emulateMedia({colorScheme:"dark"});await snapshot(p,name+"-"+level+"-card-dark");await p.emulateMedia({colorScheme:"light"});}
   if(await p.locator(".jl-bo-qua").count())await p.locator(".jl-bo-qua").click();else await p.locator(".jl-chay-nut .jl-btn.chinh").click();

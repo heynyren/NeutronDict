@@ -136,7 +136,9 @@ function select(queue,state,events,now=Date.now(),extra=false,inventory=queue){
   const offered=p.plan.offered||sorted.reduce((n,it)=>n+(cost[it._d]||20000),0)>=left;
   if(offered!==p.plan.offered)p.plan={...p.plan,offered,ts:Math.max(now,finite(p.plan.ts)+1)};
   p.state.plans[p.plan.day]=p.plan;
-  return {...p,queue:selected,remaining:sorted.length-selected.length,estimateMs:used,budgetMs:budget};
+  const reason=selected.length?null:!sorted.length?"no_due":complete&&!extra?"goal":
+    sorted.every(it=>(today.routes[cardKey(it)]||0)>=2)?"daily_limit":"new_limit";
+  return {...p,queue:selected,remaining:sorted.length-selected.length,estimateMs:used,budgetMs:budget,reason};
 }
 let clock=null;
 function tick(){

@@ -27,16 +27,19 @@
     const h = document.createElement("h3"); h.textContent = T("Ôn từng đường");
     o.appendChild(h);
     const note = document.createElement("p");
-    note.textContent = T("Luyện liền một loại bài, không bị xen loại khác. Điểm và lịch ôn vẫn tính chung như học thường.");
+    note.textContent = T("Luyện liền một loại bài theo chặng khoảng 3 phút. Có thể ôn thêm sau khi đạt mục tiêu hôm nay.");
     o.appendChild(note);
     for (const l of LUA) {
-      const n = dem(l.ds);
+      const preview = dem(l.ds), n = typeof preview === "number" ? preview : preview.count;
       const b = document.createElement("button");
       b.type = "button"; b.className = "btn block duong-rieng-lua"; b.dataset.ma = l.ma;
       b.disabled = n <= 0;
       const ten = document.createElement("strong"); ten.textContent = T(l.ten);
       const mt = document.createElement("span"); mt.className = "t-small muted";
-      mt.textContent = n > 0 ? T(l.mota) + " · " + n : T("Chưa có bài nào đến hạn");
+      mt.textContent = typeof preview === "number"
+        ? (n > 0 ? T(l.mota) + " · " + n : T("Chưa có bài nào đến hạn"))
+        : T2("Chặng này: {n} bài · tổng đang chờ: {total} bài",{n,total:preview.total});
+      b.dataset.count = String(n);
       b.appendChild(ten); b.appendChild(mt);
       b.addEventListener("click", () => { o.close(); chon(l.ds, l.ma); });
       o.appendChild(b);

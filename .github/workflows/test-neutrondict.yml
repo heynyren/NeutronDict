@@ -8,6 +8,7 @@ on:
       - codex/kaiwa-caption-sync
       - codex/reader-native-lookup
       - codex/jlpt-n4-n5
+      - codex/study-reopen
       - codex/adaptive-srs
       - main
   workflow_dispatch:

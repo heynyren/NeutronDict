@@ -27,6 +27,11 @@ for(const item of items){
  if(item.source.id==="osaka")assert.equal(item.source.status,"inferred");
  assert.ok(item.quiz.translation && item.quiz.explanation);
 }
+const casualQuestion=byId.get("kaiwa-nam-05-pp-02");
+assert.equal(casualQuestion.source.quote,"何してんの");
+assert.match(casualQuestion.cn,/何しているの？ → 何してるの？ → 何してんの？/);
+assert.doesNotMatch(casualQuestion.m,/ら行/);
+assert.match(casualQuestion.gt,/không mang nghĩa/);
 CH.chuanBi(mon);const stages=CH.chiaChang(mon),ids=stages.map(s=>s.id);
 assert.equal(new Set(ids).size,ids.length);
 assert.equal(stages.filter(s=>s.loai==="boss-chuong").length,8);

@@ -44,13 +44,16 @@ async function snapshot(p,name){
 
 }
 async function exercise(p,name,open,read){
- const errors=[];p.on("pageerror",e=>errors.push(e.message));
+ const errors=[],storyRequests=[];p.on("pageerror",e=>errors.push(e.message));
+ p.on("request",r=>{if(/truyen-kaiwa\.json/.test(r.url()))storyRequests.push(r.url());});
  await open();await p.waitForSelector('.jl-the[data-mon="kaiwa"]');
  assert.equal(await p.locator(".jl-the").count(),6);
  assert.equal(await p.locator(".jl-the.sap").count(),1);
+ assert.equal(await p.locator("#jlThu, .jl-thu").count(),0,"test-mode switch removed on both platforms");
  await snapshot(p,"kaiwa-"+name+"-courses");
  await p.locator('.jl-the[data-mon="kaiwa"]').click();await p.waitForSelector(".jl-thoai");await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.equal(await p.evaluate(()=>JlptUI.trangThai().monId),"kaiwa");
+ assert.deepEqual(storyRequests,[],"Kaiwa uses bundled theme dialogue without requesting a nonexistent story file");
  assert.ok(await p.locator(".jl-nut.khoa").count()===1,"only final exam is locked");
  assert.equal(await p.locator(".jl-gioi-lop").count(),9);
  await snapshot(p,"kaiwa-"+name+"-map");
@@ -62,8 +65,10 @@ async function exercise(p,name,open,read){
  await enterStage(p,'.jl-nut[data-id="'+wanted+'"]');
  await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
  await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
- assert.match(await p.locator(".jl-the-hoc").innerText(),/OSK-/);
- await snapshot(p,"kaiwa-"+name+"-source");
+ assert.doesNotMatch(await p.locator(".jl-the-hoc").innerText(),/OSK-|Nameraka|Nguồn:|Source:|Bản dịch biên tập/);
+ assert.ok((await p.locator(".jl-the-hoc .jl-nghia").innerText()).trim());
+ assert.ok((await p.locator(".jl-the-hoc .jl-vd").innerText()).trim());
+ await snapshot(p,"kaiwa-"+name+"-card");
  if(await p.locator(".jl-bo-qua").count())await p.locator(".jl-bo-qua").click();
  else await p.locator(".jl-chay-nut .jl-btn.chinh").click();
  await p.waitForSelector(".jl-lua");
@@ -71,7 +76,8 @@ async function exercise(p,name,open,read){
  const word=await p.locator(".jl-de .jl-nho-dong").innerText();
  await snapshot(p,"kaiwa-"+name+"-question");
  await p.locator('.jl-lua[data-k="'+((correct+1)%4)+'"]').click();await p.waitForSelector(".jl-fb.sai");
- assert.match(await p.locator(".jl-fb").innerText(),/OSK-/);
+ assert.doesNotMatch(await p.locator(".jl-fb").innerText(),/OSK-|Nameraka|Nguồn:|Source:/);
+ assert.ok((await p.locator(".jl-fb .jl-fb-dap").innerText()).trim());
  const book=await read("notebook");
  const entry=Object.values(book||{}).find(x=>x.jlptSource?.level==="kaiwa");
  assert.ok(entry,"wrong answer enters the existing notebook");assert.ok(entry.cauNghe?.cau && entry.cauNghe?.dich);
@@ -91,7 +97,25 @@ async function exercise(p,name,open,read){
  assert.ok(Object.values(progress.mon.kaiwa.chang).some(c=>c.xong));
  await p.reload();await open();await p.locator('.jl-the[data-mon="kaiwa"]').click();await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.ok(await p.evaluate(()=>Object.keys(JlptUI.trangThai().td.mon.kaiwa.chang).length>0));
- assert.deepEqual(errors,[]);console.log("PASS "+name+": arbitrary stage, original source, quiz, wrong-answer transfer, progress reload ("+word+")");
+ const grammarStage=await p.evaluate(data=>JlptCauHoi.chiaChang(data).find(s=>s.loai==="pp"&&s.items.some(x=>x.id==="kaiwa-nam-05-pp-02")).id,course);
+ await enterStage(p,'.jl-nut[data-id="'+grammarStage+'"]');
+ await p.locator(".jl-to-nut .jl-btn.chinh").click();await dialogues(p);await p.waitForSelector(".jl-the-hoc");
+ let found=false;
+ for(let i=0;i<12;i++){
+  await p.waitForFunction(()=>document.querySelectorAll(".jl-the-hoc").length===1);
+  const title=await p.locator(".jl-the-hoc .jl-lon").innerText();
+  if(title.includes("るの")){
+   await p.locator(".jl-the-hoc").click();await p.waitForSelector(".jl-the-hoc.lat");
+   const text=await p.locator(".jl-the-hoc").innerText();
+   assert.match(text,/何しているの？ → 何してるの？ → 何してんの？/);
+   assert.match(text,/không mang nghĩa/);assert.doesNotMatch(text,/ら行|Nameraka|Nguồn:/);
+   await snapshot(p,"kaiwa-"+name+"-plain-grammar");found=true;break;
+  }
+  await p.keyboard.press("ArrowRight");
+  await p.waitForFunction(old=>document.querySelector(".jl-the-hoc .jl-lon")?.textContent!==old,title);
+ }
+ assert.ok(found,"corrected contraction has an accessible learning card");
+ assert.deepEqual(errors,[]);console.log("PASS "+name+": arbitrary stage, clean cards, clear grammar, quiz, wrong-answer transfer, progress reload ("+word+")");
 }
 try{
  const sw=ctx.serviceWorkers()[0]||await ctx.waitForEvent("serviceworker"),id=new URL(sw.url()).host;

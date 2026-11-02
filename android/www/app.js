@@ -4157,7 +4157,7 @@ async function currentDue() {
 
 async function updateDueButton() {
   const due = await currentDue();
-  $("dueCount").textContent = String(due.length);
+  refreshStudyPlan();
   if (session.queue.length) return;   // đang học dở thì đừng đụng vào phần thân
   const view = await theoDoi.xem();
   $("stIdleIcon").innerHTML = window.Icon(due.length ? "graduation-cap" : "seal-check",
@@ -4167,8 +4167,8 @@ async function updateDueButton() {
   const dsSo = await getDecks();
   const tenNgan = curDeck === ALL ? "" : (deckName(dsSo, curDeck) || nhanNgan(curDeck));
   $("stIdleTitle").textContent = due.length
-    ? (tenNgan ? T2("Có {n} mục đến hạn trong “{ten}”", { n: due.length, ten: tenNgan })
-               : T2("Có {n} mục đến hạn", { n: due.length }))
+    ? (tenNgan ? T2("Tổng đang chờ: {n} bài ôn ({words} từ/câu).", { n: due.length, words:new Set(due.map(it=>it.key)).size }) + " · " + tenNgan
+               : T2("Tổng đang chờ: {n} bài ôn ({words} từ/câu).", { n: due.length, words:new Set(due.map(it=>it.key)).size }))
     : (tenNgan ? T2("“{ten}” không còn mục nào đến hạn", { ten: tenNgan })
                : T("Không còn mục nào đến hạn"));
   $("stIdleSub").textContent = view.homNay.dat
@@ -4188,31 +4188,37 @@ async function napMucDaLuu() {
   mucDaLuu = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
 }
 
-let adaptiveExtraRequested = false;
-function startAdaptiveExtra(){adaptiveExtraRequested=true;$("stStart").click();}
-$("stStart").addEventListener("click", async () => {
-  await napMucDaLuu();
-  const due = await currentDue();
-  if (!due.length) { toast(T("Không có mục nào đến hạn. Quay lại sau nhé!"), "bad"); return; }
-  /*
-   * Xáo theo KHỐI, trong khối giữ nguyên — xem ghi chú bên bản extension. Xáo
-   * phẳng thì 改善 rơi đầu buổi còn 改良 rơi cuối, và cả việc ôn kèm cụm thành
-   * công cốc.
-   */
-  const khoi = await currentDueKhoi();
-  const extra=adaptiveExtraRequested; adaptiveExtraRequested=false;
-  const selected=await prepareAdaptiveQueue(khoi.flat(),extra);
-  if(!selected.queue.length)return;
-  session = { queue: selected.queue, adaptive:selected, adaptiveSpent:0,
-              done: 0, again: 0, deleted: 0 };
-  lastDeleted = null;
-  $("stUndo").style.display = "none";
-  $("stIdle").style.display = "none";
-  $("stBody").style.display = "";
-  $("stStart").style.display = "none";
-  if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-  showCard();
-});
+let studyLaunchVersion = 0, studyLaunching = false;
+async function launchStudy(makeQueue, extra = false) {
+  if(studyLaunching)return;
+  studyLaunching = true;
+  const version=++studyLaunchVersion,button=$("stStart");
+  button.disabled=true;button.setAttribute("aria-busy","true");
+  try {
+    await napMucDaLuu();
+    const nb=await getNBNgu();
+    const fresh=Object.entries(nb).map(([key,v])=>({key,...v})).filter(it=>!it.del);
+    const queue=makeQueue(setIn(fresh,curDeck));
+    if(!queue.length){toast(T("Không có mục nào đến hạn. Quay lại sau nhé!"));return;}
+    const selected=await prepareAdaptiveQueue(queue,extra);
+    if(version!==studyLaunchVersion||!selected.queue.length)return;
+    session={queue:selected.queue,adaptive:selected,adaptiveSpent:0,done:0,again:0,deleted:0};
+    lastDeleted=null;baiDien=null;tiepBaiDien=null;
+    $("stUndo").style.display="none";
+    $("stIdle").style.display="none";$("stBody").style.display="";
+    $("stStart").style.display="none";
+    if($("stStartDuong"))$("stStartDuong").style.display="none";
+    showCard();
+  } catch(error) {
+    console.error("Study entry failed",error);
+    toast(T("Chưa mở được bài học. Hãy thử lại."),"bad");
+  } finally {
+    studyLaunching=false;button.disabled=false;button.removeAttribute("aria-busy");
+    refreshStudyPlan();
+  }
+}
+function startAdaptiveExtra(){return launchStudy(scope=>hangDoiKhoi(scope).flat(),true);}
+$("stStart").addEventListener("click",()=>launchStudy(scope=>hangDoiKhoi(scope).flat()));
 
 /**
  * Hàng đợi của "Ôn từng đường" — xem bản extension. Mỗi từ tới hạn ở một trong
@@ -4231,24 +4237,19 @@ function hangDoiDuong(scopeList, ds) {
 }
 
 async function startStudyDuong() {
-  await napMucDaLuu();
-  const nb = await getNBNgu();
-  const lay = () => setIn(Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del), curDeck);
-  window.DuongRiengUI.mo(
-    (ds) => hangDoiDuong(lay(), ds).length,
-    async (ds) => {
-      const selected=await prepareAdaptiveQueue(hangDoiDuong(lay(),ds));
-      const hang=selected.queue;
-      if (!hang.length) { toast(T("Chưa có bài nào đến hạn ở loại này."), "bad"); return; }
-      session = { queue: hang, adaptive:selected, adaptiveSpent:0, done: 0, again: 0, deleted: 0 };
-      lastDeleted = null;
-      $("stUndo").style.display = "none";
-      $("stIdle").style.display = "none";
-      $("stBody").style.display = "";
-      $("stStart").style.display = "none";
-      if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-      showCard();
-    });
+  try {
+    const snap=await readAdaptiveSnapshot(true);
+    window.DuongRiengUI.mo(
+      ds=>{
+        const queue=hangDoiDuong(snap.scope,ds);
+        const selected=window.AdaptiveStudy.select(queue,snap.state,snap.events,Date.now(),true,snap.inventory);
+        return {count:selected.queue.length,total:queue.length};
+      },
+      ds=>launchStudy(scope=>hangDoiDuong(scope,ds),true));
+  } catch(error) {
+    console.error("Study routes failed",error);
+    toast(T("Chưa mở được bài học. Hãy thử lại."),"bad");
+  }
 }
 if ($("stStartDuong")) $("stStartDuong").addEventListener("click", startStudyDuong);
 
@@ -5170,6 +5171,9 @@ $("stUndoBtn").addEventListener("click", async () => {
 
 /** Dừng buổi học giữa chừng (nút Quay lại của máy). */
 function ketThucSom() {
+  ++studyLaunchVersion;
+  baiDien=null;tiepBaiDien=null;
+  if(window.NhipDoc)window.NhipDoc.dung();
   window.AdaptiveStudy.clearClock();
   dungNgheTrongHoc();
   session = { queue: [], done: 0, again: 0, deleted: 0 };
@@ -5210,7 +5214,7 @@ async function finishStudy() {
       : T2("Đã ôn {n} bài", { n: session.done });
     session = { queue: [], done: 0, again: 0, deleted: 0 };
     const dueR = await currentDue();
-    $("dueCount").textContent = String(dueR.length);
+    refreshStudyPlan();
     $("stStart").disabled = dueR.length === 0;
     veChuoiNgay(); syncSoon(); refreshNotifications();
     return;
@@ -5230,7 +5234,7 @@ async function finishStudy() {
 
   session = { queue: [], done: 0, again: 0, deleted: 0 };
   const due = await currentDue();
-  $("dueCount").textContent = String(due.length);
+  refreshStudyPlan();
   $("stStart").disabled = due.length === 0;
   veChuoiNgay(); syncSoon(); refreshNotifications();
 }
@@ -5497,10 +5501,12 @@ async function donHuyHieu() {
 })();
 
 /* Shared daily plan: full language collection, independent of the selected deck. */
-async function readAdaptiveSnapshot(){
-  const nb=await getNB(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
-  const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
-  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
+async function readAdaptiveSnapshot(withQueue=false){
+  const nb=withQueue?await getNBNgu():window.Ngu.locSo(await getNB(),NGU), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
+  const all=Object.entries(nb).map(([key,v])=>({key,...v}));
+  if(!withQueue)return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
+  const scope=setIn(all.filter(it=>!it.del),curDeck),inventory=hangDoiKhoi(all).flat();
+  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all),scope,inventory,queue:hangDoiKhoi(scope).flat()};
 }
 async function changeAdaptiveState(fn){
   await xepHang(async()=>{
@@ -5521,9 +5527,7 @@ async function prepareAdaptiveQueue(queue,extra=false){
     hoc[NGU]={...(hoc[NGU]||{}),study:selected.state};
     await Store.set("hoc",hoc);
   });
-  if(!selected.queue.length)toast(T((selected.stats.today.ms>=selected.plan.goalMs || (selected.plan.goalCards>0 && selected.stats.today.unique.size>=selected.plan.goalCards))
-    ?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút."
-    :"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."));
+  if(!selected.queue.length)toast(window.StudyPlanUI.emptyMessage(selected));
   return selected;
 }
 async function adaptiveSummaryText(){
@@ -5533,7 +5537,12 @@ async function adaptiveSummaryText(){
 let adaptivePlanUI;
 function refreshStudyPlan(){
   if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
-    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startAdaptiveExtra()
+    read:()=>readAdaptiveSnapshot(true),change:changeAdaptiveState,startExtra:startAdaptiveExtra,
+    preview:next=>{
+      $("dueCount").textContent=next.queue.length?T2("{n} bài",{n:next.queue.length}):T(next.reason==="goal"?"Đã đủ hôm nay":"Chưa có bài phù hợp");
+      $("stStart").disabled=studyLaunching||!next.queue.length;
+      $("stStart").title=next.queue.length?"":window.StudyPlanUI.emptyMessage(next);
+    }
   });
   else adaptivePlanUI.refresh().catch(()=>{});
 }

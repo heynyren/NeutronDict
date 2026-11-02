@@ -257,12 +257,6 @@
     });
     o.appendChild(ds);
 
-    const thu = el("label", "jl-thu");
-    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!td.thu; cb.id = "jlThu";
-    cb.addEventListener("change", async () => { td.thu = cb.checked; await luu(); veChonMan(); });
-    thu.appendChild(cb);
-    thu.appendChild(el("span", null, T("Chế độ thử: mở khoá tất cả màn và chặng (để xem thử)")));
-    o.appendChild(thu);
     root.appendChild(o);
     capNhatNhac();                          // về màn chọn cấp thì tắt nhạc của màn trước
   }
@@ -291,7 +285,10 @@
     }
     // Câu chuyện là file riêng (jlpt/truyen-<màn>.json); thiếu hoặc hỏng thì màn vẫn chơi được với lời thoại cũ.
     truyen = null;
-    try { const t = await A.taiMon("truyen-" + id); if (t && t.chang) truyen = t; } catch (e) { truyen = null; }
+    // Only these courses ship a separate story; other courses use theme dialogue.
+    if (id === "n2" || id === "n3") {
+      try { const t = await A.taiMon("truyen-" + id); if (t && t.chang) truyen = t; } catch (e) { truyen = null; }
+    }
     monId = id;
     CH.chuanBi(mon);
     chang = CH.chiaChang(mon);
@@ -459,7 +456,6 @@
 
     const R = rong();
     o.classList.toggle("rong", R);
-    o.classList.toggle("thu", !!td.thu);
     o.classList.toggle("leo-len", !!th.leoLen);       // màn leo núi: chương 1 ở DƯỚI cùng, cuộn lên để leo
     o.appendChild(khiQuyen(th));
     const trong = el("div", "jl-bd-trong");
@@ -889,10 +885,6 @@
         if (the.vd) { mat.appendChild(el("div", "jl-vd", the.vd.j)); if (the.vd.v) mat.appendChild(el("div", "jl-vd-v", the.vd.v)); }
       }
     }
-    if (chay.lat && the.muc.source) {
-      mat.appendChild(el("div", "jl-vd-v", T("Nguồn") + ": " + nguonKaiwa(the.muc.source)));
-      mat.appendChild(el("div", "jl-vd-v", T(the.muc.source.exampleEditorial ? "Ví dụ và bản dịch biên tập cho bài học" : "Bản dịch biên tập cho bài học")));
-    }
     if (!chay.lat) mat.appendChild(el("div", "jl-goi-y", T("Chạm để lật thẻ")));
     card.appendChild(mat);
     // Nhả chuột sau cú vuốt cũng sinh `click`: thư viện vuốt đã chặn (preventDefault), ta bỏ qua để thẻ không lật nhầm.
@@ -1023,7 +1015,6 @@
     fb.appendChild(el("div", "jl-fb-dap", giaiThich(q)));
     if (q.source) {
       fb.appendChild(el("div", "jl-vd-v", q.dapAn.explanation));
-      fb.appendChild(el("div", "jl-vd-v", T("Nguồn") + ": " + nguonKaiwa(q.source)));
     }
     const hang = el("div", "jl-fb-nut");
     hang.appendChild(nut("jl-bao", "🚩 " + T("Báo câu sai"), async () => {
@@ -1034,11 +1025,6 @@
     if (A.nghe && (q.kieu === "tu-doc" || q.kieu === "tu-nghia") && dung) { /* không đọc lại: đã đọc ở đề */ }
   }
 
-  function nguonKaiwa(s) {
-    if (s.id === "n4" || s.id === "n5") return s.title + (s.page ? " · " + T("trang") + " " + s.page : "");
-    return s.id === "osaka" ? s.ref + " · " + T("Bản dựng từ phụ đề, chưa đối chiếu âm thanh") :
-      "Nameraka · " + T("Bài") + " " + s.lesson + " · " + T("trang") + " " + s.page;
-  }
   function giaiThich(q) {
     const d = q.dapAn || {};
     if (q.kieu === "han-hv" || q.kieu === "han-on" || q.kieu === "hv-han") return d.c + "  ·  " + (d.hv || "—") + "  ·  On: " + (d.on || "—") + "  ·  Kun: " + (d.kun && d.kun !== "---" ? d.kun : "—");
