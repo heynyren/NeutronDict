@@ -159,7 +159,7 @@
    */
   function chuoi(d, ngay) {
     const goal = Math.max(1, d.goal);
-    const dat = (iso) => (d.log[iso] ? d.log[iso].r : 0) >= goal;
+    const dat = iso => typeof d.log[iso]?.goalDone === "boolean" ? d.log[iso].goalDone : (d.log[iso]?.r || 0) >= goal;
 
     const tuHomQua = !dat(ngay);
     let hienTai = 0;
@@ -192,7 +192,7 @@
   function soNgayDat(d) {
     const goal = Math.max(1, d.goal);
     let n = 0;
-    for (const k in d.log) if ((d.log[k].r || 0) >= goal) n += 1;
+    for (const k in d.log) if (typeof d.log[k].goalDone === "boolean" ? d.log[k].goalDone : (d.log[k].r || 0) >= goal) n += 1;
     return n;
   }
 
@@ -215,20 +215,29 @@
    * @param {object} them số liệu lấy từ sổ tay (tổng từ, đã thuộc, ghi chú…)
    */
   function tongQuan(d, them) {
-    const t = homNay();
+    const t = homNay(), adaptive=them?.adaptive?.summary;
+    if(them?.adaptive){
+      const log={...d.log};
+      for(const [day,p] of Object.entries(them.adaptive.plans)){
+        const a=them.adaptive.days[day];
+        log[day]={...(log[day]||{}),goalDone:!!(a&&(a.ms>=p.goalMs||(p.goalCards>0&&a.unique.size>=p.goalCards)))};
+      }
+      d={...d,log};
+    }
     const nay = d.log[t] || { r: 0, y: 0, n: 0, s: 0 };
     const goal = Math.max(1, d.goal);
     return {
       ngay: t,
       goal,
+      adaptive,
       homNay: {
         on: nay.r || 0,
         nho: nay.y || 0,
         quen: nay.n || 0,
         luu: nay.s || 0,
         conLai: Math.max(0, goal - (nay.r || 0)),
-        ti: Math.min(1, (nay.r || 0) / goal),
-        dat: (nay.r || 0) >= goal
+        ti: adaptive ? Math.min(1,Math.max(adaptive.doneMs/adaptive.goalMs,adaptive.goalCards ? adaptive.completedCards/adaptive.goalCards : 0)) : Math.min(1, (nay.r || 0) / goal),
+        dat: adaptive ? adaptive.done : (nay.r || 0) >= goal
       },
       chuoi: chuoi(d, t),
       tongLuot: tongLuot(d),
@@ -501,8 +510,8 @@
     const ring = el("div", "ring" + (view.homNay.dat ? " done" : ""));
     ring.style.setProperty("--p", String(Math.round(view.homNay.ti * 100)));
     const val = el("div", "val");
-    val.appendChild(el("b", null, String(view.homNay.on)));
-    val.appendChild(el("span", null, "/ " + t2("{n} lượt",{n:view.goal})));
+    val.appendChild(el("b", null, String(view.adaptive ? (view.adaptive.goalCards ? view.adaptive.completedCards : Math.floor(view.adaptive.doneMs/60000)) : view.homNay.on)));
+    val.appendChild(el("span", null, "/ " + (view.adaptive ? (view.adaptive.goalCards ? t2("{n} bài",{n:view.adaptive.goalCards}) : t2("{n} phút",{n:Math.round(view.adaptive.goalMs/60000*10)/10})) : t2("{n} lượt",{n:view.goal}))));
     ring.appendChild(val);
     hang.appendChild(ring);
 
@@ -510,7 +519,7 @@
     const tieu = el("div", "t-lead");
     tieu.textContent = view.homNay.dat
       ? t("Xong mục tiêu hôm nay")
-      : t2("Còn {n} lượt nữa là đạt",{n:view.homNay.conLai});
+      : view.adaptive ? t2("Còn khoảng {n} phút",{n:view.adaptive.minutes}) : t2("Còn {n} lượt nữa là đạt",{n:view.homNay.conLai});
     ben.appendChild(tieu);
 
     const phu = el("div", "t-small muted");
@@ -576,7 +585,7 @@
       nhac.style.cssText = "margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn);font-size:13px;font-weight:600";
       nhac.appendChild(icon("warning-circle", { size: 17 }));
       nhac.appendChild(el("span", "grow",
-        t2("Chuỗi {days} ngày đang treo — ôn đủ {goal} lượt hôm nay là giữ được.",{days:view.chuoi.hienTai,goal:view.goal})));
+        view.adaptive ? t2("Hoàn thành kế hoạch hôm nay để giữ chuỗi {days} ngày.",{days:view.chuoi.hienTai}) : t2("Chuỗi {days} ngày đang treo — ôn đủ {goal} lượt hôm nay là giữ được.",{days:view.chuoi.hienTai,goal:view.goal})));
       card.appendChild(nhac);
     }
     return card;
@@ -741,7 +750,8 @@
     thung.appendChild(veSoLieu(view));
     thung.appendChild(veLich(theoDoi, view));
     thung.appendChild(veHuyHieu(view));
-    thung.appendChild(veMucTieu(theoDoi, view, veLai));
+    if(!view.adaptive) thung.appendChild(veMucTieu(theoDoi, view, veLai));
+    else thung.appendChild(el("p",t("Điều chỉnh kế hoạch trong tab Học."),"t-small muted"));
     return view;
   }
 

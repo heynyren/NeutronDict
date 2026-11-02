@@ -684,11 +684,13 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     const recorded = window.AdaptiveStudy.appendReview(e.reviewLog, {
       at: reviewAt, cardKey: reviewKey, wordKey: key, route: d, correct: !!remembered,
       activeMs: reviewTiming.activeMs, responseMs: ms || 0,
-      isNew: !(batDau?.ts || batDau?.lv >= 0), lagDays: batDau?.ts ? Math.max(0, reviewAt-batDau.ts)/86400000 : 0,
+      isNew: !!batDau?.reviewReset || !(batDau?.ts || batDau?.lv >= 0), lagDays: (batDau?.reviewedAt ?? batDau?.ts) ? Math.max(0, reviewAt-(batDau.reviewedAt ?? batDau.ts))/86400000 : 0,
       hinted: reviewTiming.hinted, prediction: kq.modelLog?.prediction,
-      model: "FSRS-6-default", mode: studyPrefs.mode, modelLog: kq.modelLog?.log
+      model: "FSRS-6-default", mode: studyPrefs.mode,
+      initialState: batDau?.fsrs ? undefined : {stability: window.Srs.ngayCua(batDau), lastReview: batDau?.reviewedAt ?? batDau?.ts ?? null}
     });
     kq.duong.reviewId = recorded.event.id;
+    kq.duong.reviewedAt = reviewAt;
     kq.retryAllowed = Object.values(recorded.log).filter(x => !x.undoAt && x.cardKey === reviewKey && x.day === recorded.event.day).length < 2;
     if (session.adaptive) session.adaptiveSpent = (session.adaptiveSpent || 0) + recorded.event.activeMs;
     const moi = Object.assign({}, e, { duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }), ts: Date.now() });
@@ -996,7 +998,11 @@ const theoDoi = window.TienDo.tao({
     d.study = window.AdaptiveStudy.merge(cu[nguDaNap || NGU]?.study, d.study);
     await Store.set("hoc", Object.assign({}, cu, { [nguDaNap || NGU]: d }));
   },
-  soLieu: soLieuSoTay,
+  soLieu: async () => {
+    const basic=await soLieuSoTay(), snap=await readAdaptiveSnapshot();
+    return {...basic,adaptive:{summary:window.AdaptiveStudy.summary(snap.state,snap.events),
+      days:window.AdaptiveStudy.stats(snap.events).days,plans:window.AdaptiveStudy.normal(snap.state).plans}};
+  },
   sauKhiGhi: () => syncSoon()
 });
 
@@ -1020,7 +1026,7 @@ async function veChuoiNgay() {
   const chip = $("streakChip");
   chip.innerHTML = window.Icon("fire", { size: 15, weight: view.homNay.dat ? "solid" : "line" });
   chip.appendChild(el("span", null,
-    (view.chuoi.hienTai ? view.chuoi.hienTai + " ngày · " : "") + view.homNay.on + "/" + view.goal));
+    (view.chuoi.hienTai ? view.chuoi.hienTai + " · " : "") + (view.adaptive ? (view.adaptive.done ? "✓" : view.adaptive.goalCards ? view.adaptive.completedCards+"/"+view.adaptive.goalCards : T2("{n} phút",{n:view.adaptive.minutes})) : view.homNay.on + "/" + view.goal)));
   chip.style.display = "";
   chip.onclick = () => show("Progress");
 }
@@ -4123,7 +4129,7 @@ function hangDoiKhoi(scopeList) {
   const khoi = [];
   for (const it of scopeList) {
     if (it.del) continue;
-    const han = window.Srs.duongMo(it).filter(d => window.Srs.denHanDuong(it, d, now));
+    const han = window.Srs.denHan(it, now);
     if (han.length) khoi.push(han.map((d) => Object.assign({}, it, { _d: d })));
   }
   if (NGU === "ja") for (const q of (window.StudyGrammar?.queue(scopeList) || [])) khoi.push([q]);
@@ -4533,6 +4539,7 @@ function showCard(giuLat, xem) {
   const it = xem || session.queue[0];
   theTrenMan = it;
   if (!xem && it) window.AdaptiveStudy.startClock(it);
+  else window.AdaptiveStudy.clearClock();
   // Đang làm bài điền khuyết ở thẻ trước thì xoá trạng thái đó NGAY: sang thẻ khác bằng ›, ‹,
   // đóng buổi học… mà không xoá thì `baiDien` kẹt lại và chặn Space, F/J, vuốt trên cả thẻ thường.
   baiDien = null;
@@ -5049,8 +5056,8 @@ async function huyLuot(b) {
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
     // Keep an undo timestamp so a stale device cannot restore the reverted route.
-    if (d[b.duong]) d[b.duong] = Object.assign({}, d[b.duong], { ts: Date.now() });
-    else d[b.duong] = { lv: -1, ngay: 0, due: Date.now(), ts: Date.now() };
+    if (d[b.duong]) d[b.duong] = Object.assign({}, d[b.duong], { reviewedAt: d[b.duong].reviewedAt || d[b.duong].ts || 0, ts: Math.max(Date.now(), (e.duong?.[b.duong]?.ts || 0)+1) });
+    else d[b.duong] = { lv: -1, ngay: 0, due: Date.now(), reviewedAt: 0, reviewReset: true, ts: Math.max(Date.now(), (e.duong?.[b.duong]?.ts || 0)+1) };
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
     moi.reviewLog = window.AdaptiveStudy.undoReview(e.reviewLog, b.sau?.reviewId);
     if (b.vuaToiDa) delete moi.dongBang;
@@ -5188,6 +5195,7 @@ $("stUndoBtn").addEventListener("click", async () => {
 
 /** Dừng buổi học giữa chừng (nút Quay lại của máy). */
 function ketThucSom() {
+  window.AdaptiveStudy.clearClock();
   dungNgheTrongHoc();
   session = { queue: [], done: 0, again: 0, deleted: 0 };
   theTrenMan = null;
@@ -5201,6 +5209,7 @@ function ketThucSom() {
 }
 
 async function finishStudy() {
+  window.AdaptiveStudy.clearClock();
   dungNgheTrongHoc();
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();
@@ -5534,11 +5543,11 @@ async function prepareAdaptiveQueue(queue,extra=false){
   await xepHang(async()=>{
     const nb=await getNB(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
     const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
-    selected=window.AdaptiveStudy.select(queue,hoc[NGU]?.study,window.AdaptiveStudy.allEvents(all),Date.now(),extra);
+    selected=window.AdaptiveStudy.select(queue,hoc[NGU]?.study,window.AdaptiveStudy.allEvents(all),Date.now(),extra,hangDoiKhoi(all).flat());
     hoc[NGU]={...(hoc[NGU]||{}),study:selected.state};
     await Store.set("hoc",hoc);
   });
-  if(!selected.queue.length)toast(T(selected.stats.today.ms>=selected.plan.goalMs
+  if(!selected.queue.length)toast(T((selected.stats.today.ms>=selected.plan.goalMs || (selected.plan.goalCards>0 && selected.stats.today.unique.size>=selected.plan.goalCards))
     ?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút."
     :"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."));
   return selected;

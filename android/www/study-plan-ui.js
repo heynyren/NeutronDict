@@ -2,6 +2,11 @@
 (function(g){
 "use strict";
 const rows=[
+["{n} bài","{n} exercises","{n}問"],
+["{done}/{goal} bài · tối đa khoảng {minutes} phút","{done}/{goal} exercises · up to about {minutes} minutes","{done}/{goal}問 · 最大約{minutes}分"],
+["Hoàn thành kế hoạch hôm nay để giữ chuỗi {days} ngày.","Finish today’s plan to keep your {days}-day streak.","今日のプランを終えて{days}日連続を続けましょう。"],
+["Còn khoảng {n} phút","About {n} minutes left","残り約{n}分"],
+["Điều chỉnh kế hoạch trong tab Học.","Adjust your plan in the Study tab.","学習タブでプランを調整できます。"],
 ["Kế hoạch hôm nay","Today's plan","今日の学習プラン"],
 ["{done}/{goal} phút · còn khoảng {left} phút","{done}/{goal} minutes · about {left} minutes left","{done}/{goal}分 · 残り約{left}分"],
 ["Đã xong kế hoạch hôm nay","Today's plan is complete","今日のプランは完了です"],
@@ -38,17 +43,19 @@ function mount(host,api){
   const n=++seq;
   const snap=await api.read();if(n!==seq)return;
   const summary=g.AdaptiveStudy.summary(snap.state,snap.events);
+  const wasOpen=!!host.querySelector("details")?.open;
   host.replaceChildren();host.className="card";host.style.cssText="padding:14px;margin:12px 0";
   function el(tag,text,cls,parent=host){const x=document.createElement(tag);if(text)x.textContent=text;if(cls)x.className=cls;parent.appendChild(x);return x;}
   el("strong",t("Kế hoạch hôm nay"));
   const status=el("div",summary.done?t("Đã xong kế hoạch hôm nay"):t2("{done}/{goal} phút · còn khoảng {left} phút",{done:Math.floor(summary.doneMs/60000),goal:Math.round(summary.goalMs/60000*10)/10,left:summary.minutes}),"t-small muted");
+  if(!summary.done&&summary.goalCards)status.textContent=t2("{done}/{goal} bài · tối đa khoảng {minutes} phút",{done:summary.completedCards,goal:summary.goalCards,minutes:summary.minutes});
   status.style.margin="6px 0";status.setAttribute("aria-live","polite");
   const actions=el("div","","rowx wrap");
   const button=(label,fn)=>{const b=el("button",t(label),"btn sm",actions);b.type="button";b.onclick=async()=>{b.disabled=true;try{await fn();await refresh();}catch{status.textContent=t("Chưa lưu được kế hoạch. Hãy thử lại.");}finally{b.disabled=false;}};return b;};
-  button("Giảm hôm nay",()=>api.change(s=>{const p=g.AdaptiveStudy.plan(s,snap.events);p.state.plans[p.plan.day]={...p.plan,goalMs:Math.max(180000,Math.round(p.plan.goalMs*.75)),ts:Date.now()};return p.state;}));
+  button("Giảm hôm nay",()=>api.change(s=>{const p=g.AdaptiveStudy.plan(s,snap.events);p.state.plans[p.plan.day]={...p.plan,goalMs:Math.max(180000,Math.round(p.plan.goalMs*.75)),goalCards:p.plan.goalCards?Math.max(1,Math.floor(p.plan.goalCards*.75)):undefined,ts:Math.max(Date.now(),(p.plan.ts||0)+1)};return p.state;}));
   button("Học thêm 3 phút",()=>api.startExtra());
   el("p",t("Mỗi chặng khoảng 3 phút. Bài còn chờ vẫn nằm trong sổ tay."),"t-tiny muted");
-  const details=el("details"),caption=el("summary",t("Điều chỉnh kế hoạch"),"",details);
+  const details=el("details"),caption=el("summary",t("Điều chỉnh kế hoạch"),"",details);details.open=wasOpen;
   caption.style.cursor="pointer";
   const field=el("label",t("Thời gian cơ sở mỗi ngày"),"t-small",details);
   field.style.cssText="display:block;margin-top:10px";
@@ -56,7 +63,7 @@ function mount(host,api){
   const prefs=g.AdaptiveStudy.normal(snap.state).prefs;
   for(const v of [3,5,10,15,30,60]){const option=el("option",t2("{n} phút",{n:v}),"",minutes);option.value=v;}
   minutes.value=String(prefs.minutes);
-  async function changePref(key,value){await api.change(s=>{const n=g.AdaptiveStudy.normal(s);n.prefs={...n.prefs,[key]:value,ts:Date.now()};delete n.plans[g.AdaptiveStudy.dateKey()];return n;});await refresh();}
+  async function changePref(key,value){try{await api.change(s=>{const n=g.AdaptiveStudy.normal(s);n.prefs={...n.prefs,[key]:value,ts:Math.max(Date.now(),(n.prefs.ts||0)+1)};const day=g.AdaptiveStudy.dateKey();if(key==="mode"&&n.plans[day])n.plans[day]={...n.plans[day],prefTs:n.prefs.ts,ts:n.prefs.ts};return n;});await refresh();}catch{status.textContent=t("Chưa lưu được kế hoạch. Hãy thử lại.");}}
   minutes.onchange=()=>changePref("minutes",Number(minutes.value));
   function checkbox(label,checked,fn){const l=el("label","","t-small",details);l.style.cssText="display:flex;gap:8px;align-items:center;margin-top:10px";const b=el("input","","",l);b.type="checkbox";b.checked=checked;el("span",t(label),"",l);b.onchange=()=>fn(b.checked);}
   checkbox("Tự điều chỉnh theo sức học",prefs.adaptive!==false,v=>changePref("adaptive",v));

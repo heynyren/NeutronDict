@@ -22,7 +22,7 @@ function recordMerge(a,b){
 function normal(s){s=s||{};return {v:1,prefs:{minutes:10,adaptive:true,mode:"shadow",...(s.prefs||{})},plans:{...(s.plans||{})}};}
 function merge(a,b){
   const x=normal(a),y=normal(b);
-  const prefs=finite(y.prefs.ts)>finite(x.prefs.ts)?y.prefs:x.prefs;
+  const prefs=finite(y.prefs.ts)>finite(x.prefs.ts)||(finite(y.prefs.ts)===finite(x.prefs.ts)&&JSON.stringify(y.prefs)>JSON.stringify(x.prefs))?y.prefs:x.prefs;
   const plans={...x.plans};
   for(const[k,p]of Object.entries(y.plans))if(!plans[k]||finite(p.ts)>finite(plans[k].ts)||(p.ts===plans[k].ts&&p.goalMs<plans[k].goalMs))plans[k]=p;
   return {v:1,prefs:{...prefs},plans};
@@ -36,20 +36,20 @@ function stats(events,now=Date.now()){
   const days={},costs={};
   for(const e of events){
     if(e.undoAt||e.at>now+300000)continue;
-    const key=e.day||dateKey(e.at),d=days[key]||(days[key]={ms:0,n:0,correct:0,delayed:0,recalled:0,newRoutes:new Set(),routes:{},first:e.at});
+    const key=e.day||dateKey(e.at),d=days[key]||(days[key]={ms:0,n:0,correct:0,delayed:0,recalled:0,newRoutes:new Set(),routes:{},unique:new Set(),first:e.at});
     d.ms+=clamp(finite(e.activeMs),0,180000);d.n++;d.correct+=e.correct?1:0;d.first=Math.min(d.first,e.at);
-    d.routes[e.cardKey]=(d.routes[e.cardKey]||0)+1;
+    d.routes[e.cardKey]=(d.routes[e.cardKey]||0)+1;d.unique.add(e.cardKey);
     if(e.isNew)d.newRoutes.add(e.cardKey);
     if(e.lagDays>=1&&!e.hinted){d.delayed++;d.recalled+=e.correct?1:0;}
     if(e.activeMs>=1000&&e.activeMs<=180000)(costs[e.route]||(costs[e.route]=[])).push(e.activeMs);
   }
   const cost={...DEFAULT_COST};
   for(const[k,v]of Object.entries(costs)){const a=v.slice(-80).sort((a,b)=>a-b);if(a.length>=5)cost[k]=clamp(a[Math.floor(a.length/2)],5000,90000);}
-  return {days,cost,today:days[dateKey(now)]||{ms:0,n:0,newRoutes:new Set(),routes:{}}};
+  return {days,cost,today:days[dateKey(now)]||{ms:0,n:0,newRoutes:new Set(),routes:{},unique:new Set()}};
 }
 function plan(state,events,now=Date.now()){
   const s=normal(state),key=dateKey(now),st=stats(events,now);
-  if(s.plans[key])return {state:s,plan:s.plans[key],stats:st};
+  if(s.plans[key]&&finite(s.plans[key].prefTs)===finite(s.prefs.ts))return {state:s,plan:s.plans[key],stats:st};
   const old=Object.entries(s.plans).filter(([k])=>k<key).sort(([a],[b])=>a.localeCompare(b)).slice(-14);
   const baseline=clamp(finite(s.prefs.minutes,10),3,60)*60000;
   const prev=old.at(-1)?.[1];
@@ -68,7 +68,7 @@ function plan(state,events,now=Date.now()){
   return {state:s,plan:p,stats:st};
 }
 function cardKey(it){return it._d==="grammar"?"grammar|"+(it._grammar?.cau||it.key):it.key+"|"+(it._d||"nhin");}
-function newRoute(it){const d=it.duong?.[it._d||"nhin"];return it._d==="grammar"?!it._grammar?.tsDau:!(d?.ts||d?.lv>=0||(it._d==="nhin"&&it.srs?.lv>=0));}
+function newRoute(it){const d=it.duong?.[it._d||"nhin"];return it._d==="grammar"?!it._grammar?.tsDau:d?.reviewReset?true:!(d?.ts||d?.lv>=0||(it._d==="nhin"&&it.srs?.lv>=0));}
 let engines={};
 function engine(route){
   if(!g.FSRS)return null;
@@ -77,20 +77,23 @@ function engine(route){
   return engines[route]||(engines[route]=g.FSRS.fsrs({request_retention:retention,maximum_interval:365,enable_fuzz:false,enable_short_term:true,learning_steps:[],relearning_steps:[]}));
 }
 function modelCard(d,now=Date.now()){
+  if(d?.reviewReset)return g.FSRS?.createEmptyCard(new Date(now))||null;
   if(d?.fsrs?.card){const c=copy(d.fsrs.card);c.due=new Date(c.due);if(c.last_review)c.last_review=new Date(c.last_review);return c;}
   if(!g.FSRS)return null;
   const c=g.FSRS.createEmptyCard(new Date(now));
   // An explicit bootstrap estimate, not invented historical review events.
   const interval=g.Srs?.ngayCua(d)||0;
-  if(interval>0&&d?.ts>0&&d.ts<=now){Object.assign(c,{stability:interval,difficulty:5,state:g.FSRS.State.Review,last_review:new Date(d.ts),due:new Date(d.due||now),scheduled_days:interval,reps:1});}
+  const last=d?.reviewedAt??d?.ts;
+  if(interval>0&&last>0&&last<=now){Object.assign(c,{stability:interval,difficulty:5,state:g.FSRS.State.Review,last_review:new Date(last),due:new Date(d.due||now),scheduled_days:interval,reps:1});}
   return c;
 }
 function prediction(d,route,now=Date.now()){
   const e=engine(route),c=modelCard(d,now);
   if(e&&c?.stability>0)return clamp(e.get_retrievability(c,new Date(now),false),0,1);
   const interval=g.Srs?.ngayCua(d)||0;
-  if(!interval||!d?.ts)return 0;
-  return Math.pow(.9,Math.max(0,now-d.ts)/(DAY*interval));
+  const last=d?.reviewedAt??d?.ts;
+  if(!interval||!last)return 0;
+  return Math.pow(.9,Math.max(0,now-last)/(DAY*interval));
 }
 function priority(it,route=it._d,now=Date.now()){
   if(route==="grammar")return .25+Math.min(.5,Math.max(0,now-(it._grammar?.tsDau||now))/DAY/100);
@@ -100,9 +103,22 @@ function priority(it,route=it._d,now=Date.now()){
 function order(queue,now=Date.now()){
   return queue.slice().sort((a,b)=>Number(newRoute(a))-Number(newRoute(b))||priority(b,b._d,now)-priority(a,a._d,now)||cardKey(a).localeCompare(cardKey(b)));
 }
-function select(queue,state,events,now=Date.now(),extra=false){
+function select(queue,state,events,now=Date.now(),extra=false,inventory=queue){
   const p=plan(state,events,now),{today,cost}=p.stats;
-  const left=extra?180000:Math.max(0,p.plan.goalMs-today.ms);
+  if(!Number.isFinite(p.plan.goalCards)){
+    const candidate=order(inventory,now),keys=new Set();let ms=0,newCount=0,count=0;
+    const cap=Math.min(5,Math.max(1,Math.floor(p.plan.goalMs/120000)));
+    const oldCost=candidate.filter(it=>!newRoute(it)).reduce((n,it)=>n+(cost[it._d]||20000),0);
+    for(const it of candidate){
+      if(keys.has(it.key))continue;
+      if(newRoute(it)&&(oldCost>p.plan.goalMs||newCount>=cap))continue;
+      const c=cost[it._d]||20000;if(ms+c>p.plan.goalMs*.8&&count)break;
+      keys.add(it.key);ms+=c;count++;if(newRoute(it))newCount++;
+    }
+    p.plan={...p.plan,goalCards:count||undefined};p.state.plans[p.plan.day]=p.plan;
+  }
+  const complete=today.ms>=p.plan.goalMs||(p.plan.goalCards>0&&today.unique.size>=p.plan.goalCards);
+  const left=extra?180000:complete?0:Math.max(0,p.plan.goalMs-today.ms);
   const budget=Math.min(180000,left),reserve=budget*.2;
   const sorted=order(queue,now),reviews=sorted.filter(it=>!newRoute(it));
   const backlogCost=reviews.reduce((s,it)=>s+(cost[it._d]||20000),0);
@@ -137,6 +153,7 @@ function pauseClock(paused){tick();if(clock){clock.paused=paused;if(paused)clock
 if(g.document)g.document.addEventListener("visibilitychange",()=>{tick();if(clock)clock.visible=!g.document.hidden;});
 function takeMetrics(key){tick();const match=clock?.key===key;const result={activeMs:Math.round(clamp(match?clock.ms:0,0,180000)),hinted:!!(match&&clock.hinted)};clock=null;return result;}
 function takeClock(key){return takeMetrics(key).activeMs;}
+function clearClock(){clock=null;}
 function appendReview(old,event){
   const at=event.at||Date.now(),id=uid();
   const e={...event,id,at,day:dateKey(at)};
@@ -146,16 +163,18 @@ function undoReview(log,id,now=Date.now()){if(!id||!log?.[id])return log;return 
 function observe(old,result,correct,route,now=Date.now(),mode="shadow"){
   const e=engine(route);if(!e)return result;
   const c=modelCard(old,now),r=prediction(old,route,now);
+  // Missing historical timestamps cannot justify shortening a mature legacy card.
+  const unanchoredLegacy=!old?.fsrs && (g.Srs?.ngayCua(old)||0)>0 && !(old?.reviewedAt??old?.ts);
   const next=e.next(c,new Date(now),correct?g.FSRS.Rating.Good:g.FSRS.Rating.Again);
   const card=copy(next.card),d={...result.duong,fsrs:{version:"6",library:"ts-fsrs@5.2.3",card,bootstrap:!old?.fsrs&&!!old?.ts,mode}};
-  if(mode==="fsrs"){
+  if(mode==="fsrs"&&!unanchoredLegacy){
     const days=Math.max(1/1440,(+new Date(card.due)-now)/DAY);
     d.ngay=Math.min(365,days);d.lv=g.Srs.capTu(d.ngay);d.due=+new Date(card.due);
     result={...result,ngay:d.ngay};
   }
   return {...result,duong:d,modelLog:{prediction:r,log:copy(next.log),mode}};
 }
-function summary(state,events,now=Date.now()){const p=plan(state,events,now);return {goalMs:p.plan.goalMs,doneMs:p.stats.today.ms,done:p.stats.today.ms>=p.plan.goalMs,minutes:Math.ceil(Math.max(0,p.plan.goalMs-p.stats.today.ms)/60000)};}
+function summary(state,events,now=Date.now()){const p=plan(state,events,now);return {goalMs:p.plan.goalMs,doneMs:p.stats.today.ms,done:p.stats.today.ms>=p.plan.goalMs||(p.plan.goalCards>0&&p.stats.today.unique.size>=p.plan.goalCards),goalCards:p.plan.goalCards,completedCards:p.stats.today.unique.size,minutes:Math.ceil(Math.max(0,p.plan.goalMs-p.stats.today.ms)/60000)};}
 function reminderTimes(events,state,now=Date.now()){
   const p=summary(state,events,now);if(p.done)return [];
   const days=stats(events,now).days,all=Object.values(days).sort((a,b)=>a.first-b.first);
@@ -174,5 +193,5 @@ function reminderTimes(events,state,now=Date.now()){
   }
   return times;
 }
-g.AdaptiveStudy={DAY,DEFAULT_COST,dateKey,uid,recordMerge,normal,merge,allEvents,stats,plan,cardKey,newRoute,prediction,priority,order,select,startClock,pauseClock,takeClock,takeMetrics,appendReview,undoReview,observe,summary,reminderTimes};
+g.AdaptiveStudy={DAY,DEFAULT_COST,dateKey,uid,recordMerge,normal,merge,allEvents,stats,plan,cardKey,newRoute,prediction,priority,order,select,startClock,pauseClock,clearClock,takeClock,takeMetrics,appendReview,undoReview,observe,summary,reminderTimes};
 })(typeof self!=="undefined"?self:globalThis);

@@ -62,4 +62,31 @@ ok(A.select([...backlog,fresh],{},[],now).queue.every(x=>x.key!=="new"),"Old bac
 for(const name of ["adaptive-study.js","study-plan-ui.js","srs.js","muc.js","tien-do.js","vendor/ts-fsrs.js"]){
  assert.equal(fs.readFileSync("extension/"+name,"utf8"),fs.readFileSync("android/www/"+name,"utf8"),"Shared core identical: "+name);checks++;
 }
+
+const tiny=A.select([fresh],{},[],now);
+assert.equal(tiny.plan.goalCards,1);checks++;
+const tinyDone=[{id:"tiny",at:now,day,cardKey:"new|nhin",route:"nhin",activeMs:5000,isNew:true}];
+ok(A.summary(tiny.state,tinyDone,now).done,"A short available workload completes without ten minutes of filler");
+assert.equal(A.reminderTimes(tinyDone,tiny.state,now).length,0);checks++;
+assert.equal(new Set(selected.queue.map(x=>x.key)).size,selected.queue.length,"One word per round");checks++;
+const changed=A.merge(tiny.state,{prefs:{minutes:5,ts:now+1}});
+assert.equal(A.plan(changed,[],now+2).plan.goalMs,300000,"New preferences invalidate a stale synced plan");checks++;
+const reset={...weak,reviewReset:true,reviewedAt:0,lv:-1};
+ok(A.newRoute({key:"A",_d:"nghe",duong:{nghe:reset}}),"Undo of first review remains new");
+const plain=S.cham({lv:4},true,1000,null,now,"nhin",.5);
+assert.equal(A.observe({lv:4},plain,true,"nhin",now,"fsrs").duong.due,plain.duong.due,"Missing historical timestamps preserve mature legacy interval on migration");checks++;
+const history={prefs:{minutes:10,ts:1},plans:{}},easy=[];
+for(let i=3;i>=1;i--){
+ const at=now-i*D,k=A.dateKey(at);
+ history.plans[k]={goalMs:600000,ts:at,prefTs:1,lastIncrease:now-9*D,offered:true};
+ for(let j=0;j<4;j++)easy.push({id:i+"-"+j,at,day:k,cardKey:i+"-"+j,route:"nhin",activeMs:150000,correct:true,lagDays:2});
+}
+assert.equal(A.plan(history,easy,now).plan.goalMs,630000,"Comfortable days grow only five percent per week");checks++;
+const hard=easy.filter(x=>x.id.endsWith("-0"));
+assert.equal(A.plan(history,hard,now).plan.goalMs,510000,"Repeated partial completion reduces the following target");checks++;
+const noOffer=JSON.parse(JSON.stringify(history));for(const p of Object.values(noOffer.plans))p.offered=false;
+assert.equal(A.plan(noOffer,hard,now).plan.goalMs,600000,"Insufficient content is not mistaken for overload");checks++;
+const prefA={prefs:{minutes:3,ts:2}},prefB={prefs:{minutes:5,ts:2}};
+assert.equal(JSON.stringify(A.merge(prefA,prefB)),JSON.stringify(A.merge(prefB,prefA)),"Equal-clock preference conflicts converge");checks++;
 console.log("Adaptive SRS:",checks,"checks passed");
+
