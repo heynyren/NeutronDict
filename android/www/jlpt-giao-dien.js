@@ -291,7 +291,10 @@
     }
     // Câu chuyện là file riêng (jlpt/truyen-<màn>.json); thiếu hoặc hỏng thì màn vẫn chơi được với lời thoại cũ.
     truyen = null;
-    try { const t = await A.taiMon("truyen-" + id); if (t && t.chang) truyen = t; } catch (e) { truyen = null; }
+    // Only these courses ship a separate story; other courses use theme dialogue.
+    if (id === "n2" || id === "n3") {
+      try { const t = await A.taiMon("truyen-" + id); if (t && t.chang) truyen = t; } catch (e) { truyen = null; }
+    }
     monId = id;
     CH.chuanBi(mon);
     chang = CH.chiaChang(mon);

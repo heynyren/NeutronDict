@@ -5078,9 +5078,7 @@ async function prepareAdaptiveQueue(queue,extra=false){
     hoc[NGU]={...(hoc[NGU]||{}),study:selected.state};
     await chrome.storage.local.set({hoc});
   });
-  if(!selected.queue.length)toast(T((selected.stats.today.ms>=selected.plan.goalMs || (selected.plan.goalCards>0 && selected.stats.today.unique.size>=selected.plan.goalCards))
-    ?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút."
-    :"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."));
+  if(!selected.queue.length)toast(window.StudyPlanUI.emptyMessage(selected));
   return selected;
 }
 async function adaptiveSummaryText(){
@@ -5091,7 +5089,11 @@ let adaptivePlanUI;
 function refreshStudyPlan(){
   if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
     read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startStudy(true),
-    preview:next=>{$("dueCount").textContent=T2("{n} bài",{n:next.queue.length});}
+    preview:next=>{
+      $("dueCount").textContent=next.queue.length?T2("{n} bài",{n:next.queue.length}):T(next.reason==="goal"?"Đã đủ hôm nay":"Chưa có bài phù hợp");
+      $("study").disabled=studyLaunching||!next.queue.length;
+      $("study").title=next.queue.length?"":window.StudyPlanUI.emptyMessage(next);
+    }
   });
   else adaptivePlanUI.refresh().catch(()=>{});
 }

@@ -50,16 +50,44 @@ try{
   assert.deepEqual(ee,[]);
   // Repeat against a large legacy notebook, with the default study settings.
   const big=Object.fromEntries(Array.from({length:420},(_,i)=>["javi:単語"+i,{word:"単語"+i,dict:"javi",means:["Từ "+i],ts:Date.now(),srs:{lv:1,due:Date.now()-1000}}]));
-  await sw.evaluate(async big=>chrome.storage.local.set({notebook:big,hoc:{},settings:{ngu:"ja",chu:"vi",nhip:true,coVu:true,tach:true}}),big);
+  await sw.evaluate(async big=>chrome.storage.local.set({notebook:big,hoc:{ja:{badges:Object.fromEntries(self.TienDo.HUY_HIEU.map(h=>[h.id,"2026-11-02"]))}},settings:{ngu:"ja",chu:"vi",nhip:true,coVu:true,tach:true}}),big);
   await ep.reload();await ep.waitForFunction(()=>items.length===420&&daNapXong);
+  await ep.waitForFunction(()=>document.querySelector("[data-study-backlog]")?.dataset.studyBacklog==="420");
+  const previewCount=Number(await ep.locator("[data-study-next]").getAttribute("data-study-next"));
+  assert.ok(previewCount>0&&previewCount<=20);
+  assert.equal(await ep.locator("#dueCount").innerText(),previewCount+" bài");
+  await ep.screenshot({animations:"disabled",path:path.join(output,"study-backlog-extension.png"),fullPage:true});
   for(const mode of ["normal","extra","path","normal"]){
     console.log("Legacy notebook entry",mode);
     if(mode==="normal")await ep.locator("#study").click();
     if(mode==="extra")await ep.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
     if(mode==="path"){await ep.locator("#studyPath").click();await ep.locator("#duongRiengDialog [data-ma=nhin]").click();}
     await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"),{},{timeout:10000});
+    if(mode==="normal")assert.equal(await ep.evaluate(()=>session.queue.length),previewCount,"Start count equals actual selected round");
     await ep.locator("#stClose").click();
+    assert.equal(await ep.evaluate(()=>session.queue.length),0,"Closing discards unreviewed session state");
   }
+  // Goal completion keeps explicit extra and targeted practice available.
+  await ep.evaluate(async()=>{
+    const data=await chrome.storage.local.get("notebook"),key=Object.keys(data.notebook)[0],now=Date.now();
+    for(let i=0;i<4;i++){
+      const r=AdaptiveStudy.appendReview(data.notebook[key].reviewLog,{at:now,cardKey:"done-"+i,route:"nhin",activeMs:180000});
+      data.notebook[key].reviewLog=r.log;
+    }
+    await chrome.storage.local.set(data);await load();await adaptivePlanUI.refresh();
+  });
+  assert.equal(await ep.locator("#dueCount").innerText(),"Đã đủ hôm nay");
+  assert.equal(await ep.locator("#study").isDisabled(),true);
+  await ep.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
+  await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"));
+  await ep.locator("#stClose").click();
+  await ep.locator("#studyPath").click();
+  const pathCount=Number(await ep.locator("#duongRiengDialog [data-ma=nhin]").getAttribute("data-count"));
+  await ep.locator("#duongRiengDialog [data-ma=nhin]").click();
+  await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"));
+  assert.equal(await ep.evaluate(()=>session.queue.length),pathCount);
+  await ep.locator("#stClose").click();
+  await ep.screenshot({animations:"disabled",path:path.join(output,"study-complete-extension.png"),fullPage:true});
   assert.deepEqual(ee,[]);
  const p=await browser.newPage({viewport:{width:393,height:851}}),errors=[];
  p.on("pageerror",e=>errors.push(e.message));
@@ -85,11 +113,19 @@ try{
   for (const extra of [false,true,false,true]) {
     await p.evaluate(()=>window.dispatchEvent(new PopStateEvent("popstate")));
     await p.waitForFunction(()=>session.queue.length===0);
-    console.log("Before restart",extra,await p.evaluate(async()=>({disabled:$("stStart").disabled,visible:$("stStart").style.display,hoc:await Store.get("hoc"),errors:[]})));
+    assert.equal(await p.locator("#stStart").isEnabled(),true);
     if(extra)await p.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
     else await p.locator("#stStart").click();
     await p.waitForFunction(()=>session.queue.length>0,{},{timeout:10000}).catch(async e=>{console.log("REOPEN FAILED",errors,await p.evaluate(async()=>({hoc:await Store.get("hoc"),queue:session.queue.length,toast:document.body.innerText.slice(-2000)})));throw e;});
   }
 
-  console.log("Android repeated starts passed");
+  await p.evaluate(()=>window.dispatchEvent(new PopStateEvent("popstate")));
+  for(let i=0;i<2;i++){
+    await p.locator("#stStartDuong").click();await p.locator("#duongRiengDialog [data-ma=nhin]").click();
+    await p.waitForFunction(()=>session.queue.length>0);
+    await p.evaluate(()=>window.dispatchEvent(new PopStateEvent("popstate")));
+  }
+  await p.screenshot({animations:"disabled",path:path.join(output,"study-reopen-android.png"),fullPage:true});
+  assert.deepEqual(errors,[]);
+  console.log("Repeated normal, extra and targeted starts, normal count vs 420 backlog, completed goal and Android Back passed");
 }finally{if(ext)await ext.close();await browser.close();await new Promise(r=>server.close(r));}

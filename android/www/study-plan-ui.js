@@ -2,6 +2,10 @@
 (function(g){
 "use strict";
 const rows=[
+["Đã đủ hôm nay","Today's goal reached","今日の目標達成"],
+["Chưa có bài phù hợp","No exercises available now","今学習できる問題はありません"],
+["Đã đạt giới hạn bài mới hôm nay. Bạn có thể chọn Học thêm 3 phút.","Today's new-exercise limit is reached. You can choose Study 3 more minutes.","今日の新規問題の上限に達しました。「あと3分学習」で続けられます。"],
+["Không còn bài đến hạn trong mục này.","No due exercises in this collection.","このコレクションには復習待ちの問題がありません。"],
 ["Chặng tiếp theo: {n} bài · khoảng {minutes} phút","Next round: {n} exercises · about {minutes} minutes","次の学習：{n}問・約{minutes}分"],
 ["Tổng đang chờ: {n} bài ôn ({words} từ/câu).","Total waiting: {n} exercises ({words} words/sentences).","復習待ち：計{n}問（{words}語・文）。"],
 ["Bài đang chờ được chia thành các chặng ngắn; không cần học hết hôm nay.","Waiting exercises are split into short rounds; you do not need to finish them all today.","復習待ちは短い学習に分けられます。今日すべて終える必要はありません。"],
@@ -42,6 +46,10 @@ g.CHU_BANG=g.CHU_BANG||{en:{},ja:{}};
 for(const[v,en,ja]of rows){g.CHU_BANG.en[v]=en;g.CHU_BANG.ja[v]=ja;}
 const t=s=>g.Chu?.T?g.Chu.T(s):g.T?g.T(s):s;
 const t2=(s,args)=>t(s).replace(/\{(\w+)\}/g,(_,k)=>args[k]??"");
+function emptyMessage(selection){
+ const messages={goal:"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút.",daily_limit:"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai.",new_limit:"Đã đạt giới hạn bài mới hôm nay. Bạn có thể chọn Học thêm 3 phút.",no_due:"Không còn bài đến hạn trong mục này."};
+ return t(messages[selection.reason]||messages.no_due);
+}
 function mount(host,api){
  if(!host)return;
  let seq=0;
@@ -60,7 +68,7 @@ function mount(host,api){
   status.style.margin="6px 0";status.setAttribute("aria-live","polite");
   if(next){
    const count=next.queue.length;
-   const upcoming=el("div",count?t2("Chặng tiếp theo: {n} bài · khoảng {minutes} phút",{n:count,minutes:Math.max(1,Math.ceil(next.estimateMs/60000))}):t(summary.done?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút.":"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."),"t-small");
+   const upcoming=el("div",count?t2("Chặng tiếp theo: {n} bài · khoảng {minutes} phút",{n:count,minutes:Math.max(1,Math.ceil(next.estimateMs/60000))}):emptyMessage(next),"t-small");
    upcoming.dataset.studyNext=String(count);
    const backlog=el("div",t2("Tổng đang chờ: {n} bài ôn ({words} từ/câu).",{n:snap.queue.length,words:new Set(snap.queue.map(it=>it.key)).size}),"t-small muted");
    backlog.dataset.studyBacklog=String(snap.queue.length);
@@ -90,5 +98,5 @@ function mount(host,api){
  refresh().catch(()=>{});
  return handle;
 }
-g.StudyPlanUI={mount,t,t2};
+g.StudyPlanUI={mount,t,t2,emptyMessage};
 })(typeof self!=="undefined"?self:globalThis);

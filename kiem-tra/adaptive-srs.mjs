@@ -98,6 +98,9 @@ assert.equal(mergedPlan.plans[day].goalCards,selected.plan.goalCards,"Plan workl
 const multi={key:"A",word:"A",dict:"javi",means:["nghĩa"],cauNghe:{cau:"これはAです。",dich:"Đây là A."},duong:{nhin:strong,nghe:weak}};
 assert.equal(S.denHan(multi,now)[0],"nghe","Unseen cloze route cannot hide a weak listening review");checks++;
 assert.equal(A.order([{key:"fresh",_d:"dien"},{key:"fresh",_d:"nhin"}],now)[0]._d,"nhin","A new word starts with recognition when both routes are unseen");checks++;
+assert.equal(A.select(items,{},done,now).reason,"goal");checks++;
+assert.equal(A.select([items[1]],{},Object.values(rec2.log),now+2).reason,"daily_limit");checks++;
+assert.equal(A.select([],{},[],now).reason,"no_due");checks++;
 console.log("Adaptive SRS:",checks,"checks passed");
 
 

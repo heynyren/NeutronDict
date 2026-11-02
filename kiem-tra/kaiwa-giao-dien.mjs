@@ -44,13 +44,15 @@ async function snapshot(p,name){
 
 }
 async function exercise(p,name,open,read){
- const errors=[];p.on("pageerror",e=>errors.push(e.message));
+ const errors=[],storyRequests=[];p.on("pageerror",e=>errors.push(e.message));
+ p.on("request",r=>{if(/truyen-kaiwa\.json/.test(r.url()))storyRequests.push(r.url());});
  await open();await p.waitForSelector('.jl-the[data-mon="kaiwa"]');
  assert.equal(await p.locator(".jl-the").count(),6);
  assert.equal(await p.locator(".jl-the.sap").count(),1);
  await snapshot(p,"kaiwa-"+name+"-courses");
  await p.locator('.jl-the[data-mon="kaiwa"]').click();await p.waitForSelector(".jl-thoai");await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.equal(await p.evaluate(()=>JlptUI.trangThai().monId),"kaiwa");
+ assert.deepEqual(storyRequests,[],"Kaiwa uses bundled theme dialogue without requesting a nonexistent story file");
  assert.ok(await p.locator(".jl-nut.khoa").count()===1,"only final exam is locked");
  assert.equal(await p.locator(".jl-gioi-lop").count(),9);
  await snapshot(p,"kaiwa-"+name+"-map");
