@@ -88,6 +88,28 @@
     "Đã lưu link đoạn chat vào ghi chú": "Chat link saved to the note",
 
     /* --- màn kết quả bài liên kết --- */
+    "+ Lưu": "+ Save",
+    "Đã có": "Saved",
+    "Không lưu được từ này": "Could not save this word",
+    "Tiếp": "Next",
+    "Đáp án": "Answers",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "These words are SYNONYMS of which word?",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "These words are ANTONYMS of which word?",
+    "Từ khác trong sổ":
+      "Other words from your notebook",
+    "Cùng nghĩa với nó":
+      "Its synonyms",
+    "Trái nghĩa với nó":
+      "Its antonyms",
+    "Tìm ra rồi · {t} giây":
+      "Found it · {t}s",
+    "Chưa ra · {t} giây":
+      "Not this time · {t}s",
+    "Nhặt nhầm": "Picked by mistake",
+    "Trái nghĩa của từ này": "Antonyms of this word",
+    "Cùng nghĩa của từ này": "Synonyms of this word",
     "Thiếu từ": "No word given",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "Question copied — over in Gemini, press {phim} then Enter.",
@@ -661,31 +683,7 @@
       "A soft click when you tap a button, the way Android apps do",
     "Nghe câu": "Play the sentence",
     "Tốc độ ×{t} — nhanh dần theo cấp": "Speed ×{t} — faster as the level rises",
-    "Mở nguồn trong chế độ học ở một cửa sổ riêng (Ctrl+W để đóng, sổ tay giữ nguyên chỗ)": "In study mode, open the source in its own window (Ctrl+W closes it; the notebook stays put)",
-    "Số đo thật của bạn": "Your own numbers",
-    "Kiểu bài": "Exercise",
-    "Bậc": "Step",
-    "Chờ": "Waited",
-    "Số lượt": "Reviews",
-    "Nhớ được": "Recalled",
-    "{n} ngày": "{n} days",
-    "Chưa có số đo nào. Học vài buổi rồi quay lại — mỗi lượt ôn có chờ qua ngày mới được tính.": "No measurements yet. Come back after a few sessions — only reviews that waited overnight count.",
-    "Mới {n} lượt — chưa đủ để tin (cần {c})": "Only {n} reviews — not enough to trust yet (need {c})",
     "Xong": "Done",
-    "Tiếp": "Next",
-    "Từ này để mai gặp lại — hôm nay đủ rồi": "Leave this one for tomorrow — enough for today",
-    "+ Lưu": "+ Save",
-    "Đã có": "Saved",
-    "Đang mở sổ tay…": "Opening your notebook…",
-    "Cùng nghĩa": "Synonyms",
-    "Trái nghĩa": "Antonyms",
-    "Có trong sổ tay — bấm để xem": "In your notebook — click to view",
-    "Chưa có trong sổ — bấm để tra": "Not saved yet — click to save",
-    "Đang lưu…": "Saving…",
-    "Đã lưu": "Saved",
-    "Không lưu được từ này": "Could not save this word",
-    "Đang dịch câu…": "Translating the sentence…",
-    "Chưa dịch được câu — bấm để thử lại": "Could not translate the sentence — tap to retry",
     "Phím tắt": "Shortcuts",
     "lật thẻ · rồi mở nguồn": "flip the card · then open the source",
     "thẻ trước (huỷ lượt chấm)": "previous card (undo that grade)",
@@ -962,6 +960,14 @@
       "Back to start",
     "Cấp {n}":
       "Level {n}",
+    "Cùng nghĩa":
+      "Synonyms",
+    "Trái nghĩa":
+      "Antonyms",
+    "Có trong sổ tay — bấm để xem":
+      "In your notebook — tap to view",
+    "Chưa có trong sổ — bấm để tra":
+      "Not saved yet — tap to look up",
     "mai":
       "tomorrow",
     "còn {n} ngày":
@@ -1004,24 +1010,6 @@
       "Reviewed together; each word keeps its own score.",
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
       "Study mode: when a word comes due, also review the synonyms / antonyms of it you have saved, one right after another — to practise telling close words apart",
-    "Đáp án": "Answers",
-    "Mấy từ này CÙNG NGHĨA với từ nào?":
-      "These words are SYNONYMS of which word?",
-    "Mấy từ này TRÁI NGHĨA với từ nào?":
-      "These words are ANTONYMS of which word?",
-    "Từ khác trong sổ":
-      "Other words from your notebook",
-    "Cùng nghĩa với nó":
-      "Its synonyms",
-    "Trái nghĩa với nó":
-      "Its antonyms",
-    "Tìm ra rồi · {t} giây":
-      "Found it · {t}s",
-    "Chưa ra · {t} giây":
-      "Not this time · {t}s",
-    "Nhặt nhầm": "Picked by mistake",
-    "Trái nghĩa của từ này": "Antonyms of this word",
-    "Cùng nghĩa của từ này": "Synonyms of this word",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "Remember it and it moves up a level with a longer gap; forget it and it drops back to the start.",
 
@@ -1114,6 +1102,28 @@
     "Đã lưu link đoạn chat vào ghi chú": "チャットのリンクをメモに保存しました",
 
     /* --- màn kết quả bài liên kết --- */
+    "+ Lưu": "＋保存",
+    "Đã có": "保存済み",
+    "Không lưu được từ này": "この語を保存できませんでした",
+    "Tiếp": "次へ",
+    "Đáp án": "正解",
+    "Mấy từ này CÙNG NGHĨA với từ nào?":
+      "これらはどの語の類義語ですか？",
+    "Mấy từ này TRÁI NGHĨA với từ nào?":
+      "これらはどの語の対義語ですか？",
+    "Từ khác trong sổ":
+      "単語帳の他の語",
+    "Cùng nghĩa với nó":
+      "その類義語",
+    "Trái nghĩa với nó":
+      "その対義語",
+    "Tìm ra rồi · {t} giây":
+      "正解 · {t}秒",
+    "Chưa ra · {t} giây":
+      "不正解 · {t}秒",
+    "Nhặt nhầm": "誤って選んだ語",
+    "Trái nghĩa của từ này": "この語の対義語",
+    "Cùng nghĩa của từ này": "この語の類義語",
     "Thiếu từ": "語が指定されていません",
     "Đã chép câu hỏi — sang Gemini bấm {phim} rồi Enter.":
       "質問をコピーしました — Gemini で {phim} を押して Enter。",
@@ -1682,31 +1692,7 @@
       "ボタンを押すと軽いクリック音——Android アプリと同じ感じ",
     "Nghe câu": "文を聞く",
     "Tốc độ ×{t} — nhanh dần theo cấp": "速度 ×{t}——レベルが上がるほど速く",
-    "Mở nguồn trong chế độ học ở một cửa sổ riêng (Ctrl+W để đóng, sổ tay giữ nguyên chỗ)": "学習モードでは出典を別ウィンドウで開く（Ctrl+Wで閉じても単語帳はそのまま）",
-    "Số đo thật của bạn": "あなた自身の数値",
-    "Kiểu bài": "問題の種類",
-    "Bậc": "段",
-    "Chờ": "間隔",
-    "Số lượt": "回数",
-    "Nhớ được": "正答率",
-    "{n} ngày": "{n}日",
-    "Chưa có số đo nào. Học vài buổi rồi quay lại — mỗi lượt ôn có chờ qua ngày mới được tính.": "まだ数値がありません。数回学習してから戻ってください — 日をまたいだ復習だけが計上されます。",
-    "Mới {n} lượt — chưa đủ để tin (cần {c})": "まだ{n}回 — 判断には足りません（{c}回必要）",
     "Xong": "完了",
-    "Tiếp": "次へ",
-    "Từ này để mai gặp lại — hôm nay đủ rồi": "この語は明日にしましょう — 今日はここまで",
-    "+ Lưu": "＋保存",
-    "Đã có": "保存済み",
-    "Đang mở sổ tay…": "単語帳を開いています…",
-    "Cùng nghĩa": "類義語",
-    "Trái nghĩa": "対義語",
-    "Có trong sổ tay — bấm để xem": "単語帳にあります — クリックで表示",
-    "Chưa có trong sổ — bấm để tra": "未保存 — クリックで保存",
-    "Đang lưu…": "保存中…",
-    "Đã lưu": "保存しました",
-    "Không lưu được từ này": "この語を保存できませんでした",
-    "Đang dịch câu…": "文を翻訳中…",
-    "Chưa dịch được câu — bấm để thử lại": "文を翻訳できませんでした — タップで再試行",
     "Phím tắt": "ショートカット",
     "lật thẻ · rồi mở nguồn": "カードをめくる・次に出典を開く",
     "thẻ trước (huỷ lượt chấm)": "前のカード（採点を取り消す）",
@@ -1983,6 +1969,14 @@
       "最初に戻る",
     "Cấp {n}":
       "レベル {n}",
+    "Cùng nghĩa":
+      "類義語",
+    "Trái nghĩa":
+      "対義語",
+    "Có trong sổ tay — bấm để xem":
+      "単語帳にあります — タップで表示",
+    "Chưa có trong sổ — bấm để tra":
+      "未保存 — タップで検索",
     "mai":
       "明日",
     "còn {n} ngày":
@@ -2025,24 +2019,6 @@
       "一緒に復習しますが、点数は語ごとに別です。",
     "Chế độ học: một từ tới hạn thì ôn kèm luôn những từ đồng nghĩa / trái nghĩa của nó đã lưu trong sổ, xếp liền nhau — để luyện phân biệt giữa mấy từ gần nhau":
       "学習モード：ある語が期限になったら、保存してある類義語・対義語も続けて出します——近い語を区別する練習のため",
-    "Đáp án": "正解",
-    "Mấy từ này CÙNG NGHĨA với từ nào?":
-      "これらはどの語の類義語ですか？",
-    "Mấy từ này TRÁI NGHĨA với từ nào?":
-      "これらはどの語の対義語ですか？",
-    "Từ khác trong sổ":
-      "単語帳の他の語",
-    "Cùng nghĩa với nó":
-      "その類義語",
-    "Trái nghĩa với nó":
-      "その対義語",
-    "Tìm ra rồi · {t} giây":
-      "正解 · {t}秒",
-    "Chưa ra · {t} giây":
-      "不正解 · {t}秒",
-    "Nhặt nhầm": "選び間違い",
-    "Trái nghĩa của từ này": "この語の対義語",
-    "Cùng nghĩa của từ này": "この語の類義語",
     "Nhớ thì lên một cấp và lần ôn sau xa hơn; quên thì về lại đầu.":
       "覚えていれば 1 段上がって次の復習が先に延び、忘れていれば最初に戻ります。",
 
@@ -2060,9 +2036,6 @@
   ja["Đã xem đáp án · Không tính điểm SRS"] = "解答を確認しました · SRSの採点なし";
   en["Xem đáp án"] = "Show answer";
   ja["Xem đáp án"] = "答えを見る";
-
-  en["Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."] = "Progress changed in another window. This older review cannot be undone.";
-  ja["Tiến độ đã thay đổi ở cửa sổ khác. Không thể hoàn tác lượt cũ."] = "別のウィンドウで進捗が更新されたため、以前の復習は取り消せません。";
 
   en["Câu gốc tôi đã lưu:"] = "Original sentence I saved:";
   ja["Câu gốc tôi đã lưu:"] = "保存した元の文：";
