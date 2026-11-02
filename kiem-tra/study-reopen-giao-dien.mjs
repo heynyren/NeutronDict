@@ -42,6 +42,7 @@ try{
     if(mode==="answer"){
       await ep.locator("#stReveal").click();await ep.locator("#gForgot").click();
       await ep.waitForFunction(()=>session.lichSu?.length>0);
+      await ep.evaluate(()=>TienDo.dongMung());
     }
     await ep.locator("#stClose").click();
     await ep.waitForFunction(()=>!document.getElementById("studyOverlay").classList.contains("show"));

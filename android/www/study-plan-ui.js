@@ -2,6 +2,12 @@
 (function(g){
 "use strict";
 const rows=[
+["Chặng tiếp theo: {n} bài · khoảng {minutes} phút","Next round: {n} exercises · about {minutes} minutes","次の学習：{n}問・約{minutes}分"],
+["Tổng đang chờ: {n} bài ôn ({words} từ/câu).","Total waiting: {n} exercises ({words} words/sentences).","復習待ち：計{n}問（{words}語・文）。"],
+["Bài đang chờ được chia thành các chặng ngắn; không cần học hết hôm nay.","Waiting exercises are split into short rounds; you do not need to finish them all today.","復習待ちは短い学習に分けられます。今日すべて終える必要はありません。"],
+["Chưa mở được bài học. Hãy thử lại.","Couldn't open the study round. Please try again.","学習を開始できませんでした。もう一度お試しください。"],
+["Chặng này: {n} bài · tổng đang chờ: {total} bài","This round: {n} exercises · total waiting: {total}","今回：{n}問・復習待ち合計：{total}問"],
+["Luyện liền một loại bài theo chặng khoảng 3 phút. Có thể ôn thêm sau khi đạt mục tiêu hôm nay.","Practice one exercise type in rounds of about 3 minutes. You can continue after reaching today's goal.","同じ種類の問題を約3分ずつ練習します。今日の目標達成後も追加で学習できます。"],
 ["{n} bài","{n} exercises","{n}問"],
 ["{done}/{goal} bài · tối đa khoảng {minutes} phút","{done}/{goal} exercises · up to about {minutes} minutes","{done}/{goal}問 · 最大約{minutes}分"],
 ["Hoàn thành kế hoạch hôm nay để giữ chuỗi {days} ngày.","Finish today’s plan to keep your {days}-day streak.","今日のプランを終えて{days}日連続を続けましょう。"],
@@ -42,7 +48,9 @@ function mount(host,api){
  async function refresh(){
   const n=++seq;
   const snap=await api.read();if(n!==seq)return;
-  const summary=g.AdaptiveStudy.summary(snap.state,snap.events);
+  const next=Array.isArray(snap.queue)?g.AdaptiveStudy.select(snap.queue,snap.state,snap.events,Date.now(),false,snap.inventory||snap.queue):null;
+  const summary=g.AdaptiveStudy.summary(next?.state||snap.state,snap.events);
+  if(next&&api.preview)api.preview(next,snap);
   const wasOpen=!!host.querySelector("details")?.open;
   host.replaceChildren();host.className="card";host.style.cssText="padding:14px;margin:12px 0";
   function el(tag,text,cls,parent=host){const x=document.createElement(tag);if(text)x.textContent=text;if(cls)x.className=cls;parent.appendChild(x);return x;}
@@ -50,11 +58,19 @@ function mount(host,api){
   const status=el("div",summary.done?t("Đã xong kế hoạch hôm nay"):t2("{done}/{goal} phút · còn khoảng {left} phút",{done:Math.floor(summary.doneMs/60000),goal:Math.round(summary.goalMs/60000*10)/10,left:summary.minutes}),"t-small muted");
   if(!summary.done&&summary.goalCards)status.textContent=t2("{done}/{goal} bài · tối đa khoảng {minutes} phút",{done:summary.completedCards,goal:summary.goalCards,minutes:summary.minutes});
   status.style.margin="6px 0";status.setAttribute("aria-live","polite");
+  if(next){
+   const count=next.queue.length;
+   const upcoming=el("div",count?t2("Chặng tiếp theo: {n} bài · khoảng {minutes} phút",{n:count,minutes:Math.max(1,Math.ceil(next.estimateMs/60000))}):t(summary.done?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút.":"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."),"t-small");
+   upcoming.dataset.studyNext=String(count);
+   const backlog=el("div",t2("Tổng đang chờ: {n} bài ôn ({words} từ/câu).",{n:snap.queue.length,words:new Set(snap.queue.map(it=>it.key)).size}),"t-small muted");
+   backlog.dataset.studyBacklog=String(snap.queue.length);
+   backlog.style.marginTop="6px";
+  }
   const actions=el("div","","rowx wrap");
   const button=(label,fn)=>{const b=el("button",t(label),"btn sm",actions);b.type="button";b.onclick=async()=>{b.disabled=true;try{await fn();await refresh();}catch{status.textContent=t("Chưa lưu được kế hoạch. Hãy thử lại.");}finally{b.disabled=false;}};return b;};
   button("Giảm hôm nay",()=>api.change(s=>{const p=g.AdaptiveStudy.plan(s,snap.events);p.state.plans[p.plan.day]={...p.plan,goalMs:Math.max(180000,Math.round(p.plan.goalMs*.75)),goalCards:p.plan.goalCards?Math.max(1,Math.floor(p.plan.goalCards*.75)):undefined,ts:Math.max(Date.now(),(p.plan.ts||0)+1)};return p.state;}));
   button("Học thêm 3 phút",()=>api.startExtra());
-  el("p",t("Mỗi chặng khoảng 3 phút. Bài còn chờ vẫn nằm trong sổ tay."),"t-tiny muted");
+  el("p",t("Bài đang chờ được chia thành các chặng ngắn; không cần học hết hôm nay."),"t-tiny muted");
   const details=el("details"),caption=el("summary",t("Điều chỉnh kế hoạch"),"",details);details.open=wasOpen;
   caption.style.cursor="pointer";
   const field=el("label",t("Thời gian cơ sở mỗi ngày"),"t-small",details);

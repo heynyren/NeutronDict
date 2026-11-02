@@ -951,8 +951,8 @@ async function napSoTay() {
  * để cái ĐẾM trên chip, cái HỌC của ngăn đó và danh sách đang hiện không bao
  * giờ nói ba con số khác nhau.
  */
-function setIn(id) {
-  const a = active(items);
+function setIn(id, source = items) {
+  const a = active(source);
   if (id === ALL) return a;
   if (id === NONE) return a.filter((it) => !it.deck);
   if (id === LIKE) return a.filter((it) => it.fav === 1);
@@ -2104,14 +2104,14 @@ function veDau() {
     + (rows.length !== base.length ? " trong " + base.length : "");
 
   const den = hangDoi(base).length;
-  $("dueCount").textContent = String(den);
+  refreshStudyPlan();
   // Nói thẳng buổi học sắp tới lấy mục ở đâu. Nút chỉ ghi "Học ngay" thì đang
   // mở một sổ con mà bấm vào, người ta vẫn tưởng nó ôn cả sổ tay.
   const tenNgan = current === ALL ? "" : (deckName(current) || nhanNgan(current));
   const oNgan = $("study").querySelector(".scope");
   if (oNgan) oNgan.textContent = tenNgan ? "\u2002·\u2002" + tenNgan : "";
   const chip = $("dueChip");
-  if (den) { chip.style.display = ""; chip.textContent = T2("{n} mục đến hạn", { n: den }); }
+  if (den) { chip.style.display = ""; chip.textContent = T2("Tổng đang chờ: {n} bài ôn ({words} từ/câu).", { n: den, words: new Set(hangDoi(base).map(it=>it.key)).size }); }
   else chip.style.display = "none";
 
   veHangLoat(rows);
@@ -2613,69 +2613,41 @@ function renderStudyFav(it) {
   box.appendChild(window.LichRiengUI.nut(it, datLichRieng));
 }
 
+let studyLaunchVersion = 0, studyLaunching = false;
+async function launchStudy(makeQueue, extra = false) {
+  if (studyLaunching) return;
+  studyLaunching = true;
+  const version = ++studyLaunchVersion;
+  const button = $("study");
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  try {
+    if (!daNapXong) await choNapXong();
+    const {nb} = await getStore();
+    const fresh = Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+    const queue = makeQueue(setIn(current,fresh));
+    if (!queue.length) { toast(T("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!")); return; }
+    const selected = await prepareAdaptiveQueue(queue, extra);
+    if (version !== studyLaunchVersion || !selected.queue.length) return;
+    session = {queue:selected.queue,adaptive:selected,adaptiveSpent:0,done:0,again:0,deleted:0};
+    lastDeleted = null; baiDien = null; tiepBaiDien = null;
+    $("stUndo").style.display = "none";
+    $("stBody").style.display = "";
+    $("stDone").style.display = "none";
+    ovl.classList.add("show");
+    showCard();
+  } catch (error) {
+    console.error("Study entry failed", error);
+    toast(T("Chưa mở được bài học. Hãy thử lại."), "bad");
+  } finally {
+    studyLaunching = false;
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+    refreshStudyPlan();
+  }
+}
 async function startStudy(extra) {
-  /*
-   * Chờ sổ về TRƯỚC khi hỏi có gì tới hạn không. Xem chú thích ở chỗ khai báo
-   * huaNap: không chờ thì câu trả lời là "không có gì" dù sổ đầy từ tới hạn.
-   *
-   * Nút bị khoá trong lúc chờ, để bấm dồn không mở ra hai buổi học chồng nhau.
-   */
-  const nut = $("study");
-  if (!daNapXong) {
-    /*
-     * Và phải NÓI RA là đang chờ. Trên sổ hai nghìn từ, lượt chờ này dài gần ba
-     * giây; một cái nút câm lặng không phản ứng suốt ba giây thì người ta bấm
-     * lại mấy lần rồi kết luận là app treo — đổi một lời nói dối lấy một vẻ
-     * chết máy thì chẳng hơn gì.
-     */
-    /*
-     * Lời báo "đang chờ" nằm trong MỘT THẺ RIÊNG, không mang `data-chu`.
-     *
-     * Hai bản vá trước đều hỏng ở đây. Đặt thẳng nut.textContent thì xoá luôn
-     * <span id="dueCount"> nằm trong nút, và draw() ngay sau đó ném "Cannot set
-     * properties of null". Đổi chữ của #studyLabel thì cũng không xong: nhãn ấy
-     * mang `data-chu`, mà lượt dựng trang gọi Chu.dat() NGAY SAU cú bấm — hàm
-     * ấy quét mọi [data-chu] và trả chữ về bản gốc, xoá mất lời báo. Đo được:
-     * nút đứng câm suốt 3029ms.
-     *
-     * Thẻ riêng không mang dấu thì bộ dịch không đụng tới, và #dueCount vẫn còn
-     * nguyên chỗ của nó.
-     */
-    const nhan = $("studyLabel"), oCho = $("studyCho");
-    if (nut) nut.disabled = true;
-    if (oCho) { oCho.textContent = T("Đang mở sổ tay…"); oCho.hidden = false; }
-    if (nhan) nhan.hidden = true;
-    try { await choNapXong(); }
-    finally {
-      if (nut) nut.disabled = false;
-      if (oCho) oCho.hidden = true;
-      if (nhan) nhan.hidden = false;
-    }
-  }
-  // Xếp hàng thẳng từ danh sách đang mở: `hangDoiKhoi` đã tự hỏi từng đường
-  // một, lọc qua `dueList` trước đó là lọc HAI LẦN và làm rơi mất những mục mà
-  // chỉ một đường tới hạn.
-  await getStore();
-  const khoi = hangDoiKhoi(currentActiveSet());
-  if (!khoi.length) {
-    toast(T("Không có mục nào đến hạn trong mục này. Quay lại sau nhé!"), "bad");
-    return;
-  }
-  /*
-   * Xáo theo KHỐI, trong khối giữ nguyên.
-   *
-   * Xáo phẳng cả hàng đợi thì 改善 rơi đầu buổi còn 改良 rơi cuối, và cả việc ôn
-   * kèm cụm thành công cốc — cái được của nó nằm ở chỗ mấy từ ấy đi LIỀN NHAU.
-   */
-  const selected = await prepareAdaptiveQueue(khoi.flat(), extra === true);
-  if (!selected.queue.length) return;
-  session = { queue: selected.queue, adaptive: selected, adaptiveSpent: 0, done: 0, again: 0, deleted: 0 };
-  lastDeleted = null;
-  $("stUndo").style.display = "none";
-  $("stBody").style.display = "";
-  $("stDone").style.display = "none";
-  ovl.classList.add("show");
-  showCard();
+  return launchStudy(scope => hangDoiKhoi(scope).flat(), extra === true);
 }
 
 /**
@@ -2697,21 +2669,20 @@ function hangDoiDuong(scopeList, ds) {
 }
 
 async function startStudyDuong() {
-  if (!daNapXong) await choNapXong();
-  window.DuongRiengUI.mo(
-    (ds) => hangDoiDuong(currentActiveSet(), ds).length,
-    async (ds) => {
-      const selected = await prepareAdaptiveQueue(hangDoiDuong(currentActiveSet(), ds));
-      const hang = selected.queue;
-      if (!hang.length) { toast(T("Chưa có bài nào đến hạn ở loại này."), "bad"); return; }
-      session = { queue: hang, adaptive: selected, adaptiveSpent: 0, done: 0, again: 0, deleted: 0 };
-      lastDeleted = null;
-      $("stUndo").style.display = "none";
-      $("stBody").style.display = "";
-      $("stDone").style.display = "none";
-      ovl.classList.add("show");
-      showCard();
-    });
+  try {
+    if (!daNapXong) await choNapXong();
+    const snap = await readAdaptiveSnapshot();
+    window.DuongRiengUI.mo(
+      ds => {
+        const queue = hangDoiDuong(snap.scope,ds);
+        const selected = window.AdaptiveStudy.select(queue,snap.state,snap.events,Date.now(),true,snap.inventory);
+        return {count:selected.queue.length,total:queue.length};
+      },
+      ds => launchStudy(scope => hangDoiDuong(scope,ds),true));
+  } catch (error) {
+    console.error("Study routes failed",error);
+    toast(T("Chưa mở được bài học. Hãy thử lại."),"bad");
+  }
 }
 
 /**
@@ -3658,6 +3629,10 @@ async function finishStudy() {
 }
 
 function closeStudy() {
+  ++studyLaunchVersion;
+  session = {queue:[],done:0,again:0,deleted:0};
+  baiDien = null; tiepBaiDien = null;
+  $("stGrammar").style.display = "none";
   window.AdaptiveStudy.clearClock();
   if (window.NhipDoc) window.NhipDoc.dung();
   theTrenMan = null;
@@ -5078,9 +5053,11 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
 
 /* Shared daily plan: full language collection, independent of the selected deck. */
 async function readAdaptiveSnapshot(){
-  const data = await chrome.storage.local.get(["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+  const data = await chrome.storage.local.get(["notebook","hoc","nguPhapSrs","ytKho"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
+  window.StudyGrammar.hydrate(data.nguPhapSrs,data.ytKho);
   const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
-  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
+  const scope=setIn(current,all),inventory=hangDoiKhoi(all).flat();
+  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all),scope,inventory,queue:hangDoiKhoi(scope).flat()};
 }
 async function changeAdaptiveState(fn){
   await suaSoTay(async()=>{
@@ -5113,7 +5090,8 @@ async function adaptiveSummaryText(){
 let adaptivePlanUI;
 function refreshStudyPlan(){
   if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
-    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startStudy(true)
+    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startStudy(true),
+    preview:next=>{$("dueCount").textContent=T2("{n} bài",{n:next.queue.length});}
   });
   else adaptivePlanUI.refresh().catch(()=>{});
 }
