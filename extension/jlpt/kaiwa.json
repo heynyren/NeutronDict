@@ -23,11 +23,11 @@
   "chuong": [
     {
       "so": 1,
-      "ten": "Nameraka · Biến âm",
+      "ten": "Biến âm",
       "bai": [
         {
           "so": 1,
-          "ten": "Nameraka · てる・てく・とく",
+          "ten": "てる・てく・とく",
           "tu": [],
           "han": [],
           "pp": [
@@ -136,7 +136,7 @@
         },
         {
           "so": 2,
-          "ten": "Nameraka · ちゃ・じゃ・きゃ",
+          "ten": "ちゃ・じゃ・きゃ",
           "tu": [],
           "han": [],
           "pp": [
@@ -245,7 +245,7 @@
         },
         {
           "so": 3,
-          "ten": "Nameraka · たって・だって",
+          "ten": "たって・だって",
           "tu": [
             {
               "id": "kaiwa-nam-03-tu-01",
@@ -354,7 +354,7 @@
         },
         {
           "so": 4,
-          "ten": "Nameraka · って・て",
+          "ten": "って・て",
           "tu": [],
           "han": [],
           "pp": [
@@ -463,7 +463,7 @@
         },
         {
           "so": 5,
-          "ten": "Nameraka · ん",
+          "ten": "ん",
           "tu": [
             {
               "id": "kaiwa-nam-05-tu-01",
@@ -525,11 +525,11 @@
             },
             {
               "id": "kaiwa-nam-05-pp-02",
-              "p": "んの",
-              "cn": "んの",
-              "gt": "Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp.",
+              "p": "〜るの → 〜んの",
+              "cn": "何しているの？ → 何してるの？ → 何してんの？",
+              "gt": "Trong ví dụ này, ている rút gọn thành てる, rồi るの thành んの. Câu vẫn có nghĩa là “Đang làm gì thế?”. Chữ ん ở đây không mang nghĩa “không”. Dùng với người thân quen; khi cần lịch sự, nói 何をしていますか。",
               "r": "んの",
-              "m": "ら行 đổi thành ん trong lời nói nhanh",
+              "m": "Nói gọn ～るの thành ～んの khi trò chuyện thân mật",
               "source": {
                 "id": "nameraka",
                 "ref": "NM-05",
@@ -542,13 +542,13 @@
               "quiz": {
                 "context": "何してんの",
                 "translation": "Đang làm gì thế?",
-                "answer": "ら行 đổi thành ん trong lời nói nhanh",
+                "answer": "Nói gọn ～るの thành ～んの khi trò chuyện thân mật",
                 "wrong": [
                   "Đã hứa sẽ làm gì",
                   "Không được làm việc gì",
                   "Đã được ai làm hộ"
                 ],
-                "explanation": "ら行 đổi thành ん trong lời nói nhanh. Cách dùng trong ngữ cảnh của bài; dạng rút gọn không tự động phù hợp với mọi quan hệ giao tiếp."
+                "explanation": "Nói gọn ～るの thành ～んの khi trò chuyện thân mật. 何しているの？ → 何してるの？ → 何してんの？ Trong ví dụ này, ている rút gọn thành てる, rồi るの thành んの. Câu vẫn có nghĩa là “Đang làm gì thế?”. Chữ ん ở đây không mang nghĩa “không”. Dùng với người thân quen; khi cần lịch sự, nói 何をしていますか。"
               }
             }
           ],
@@ -572,7 +572,7 @@
         },
         {
           "so": 6,
-          "ten": "Nameraka · 変化した言葉",
+          "ten": "変化した言葉",
           "tu": [
             {
               "id": "kaiwa-nam-06-tu-01",
@@ -714,11 +714,11 @@
     },
     {
       "so": 2,
-      "ten": "Nameraka · Câu nói tự nhiên",
+      "ten": "Câu nói tự nhiên",
       "bai": [
         {
           "so": 7,
-          "ten": "Nameraka · 助詞の省略",
+          "ten": "助詞の省略",
           "tu": [],
           "han": [],
           "pp": [
@@ -794,7 +794,7 @@
         },
         {
           "so": 8,
-          "ten": "Nameraka · 短縮句",
+          "ten": "短縮句",
           "tu": [],
           "han": [],
           "pp": [
@@ -936,7 +936,7 @@
         },
         {
           "so": 9,
-          "ten": "Nameraka · 決まり文句",
+          "ten": "決まり文句",
           "tu": [
             {
               "id": "kaiwa-nam-09-tu-01",
@@ -1074,7 +1074,7 @@
         },
         {
           "so": 10,
-          "ten": "Nameraka · くり返し",
+          "ten": "くり返し",
           "tu": [
             {
               "id": "kaiwa-nam-10-tu-01",
@@ -1182,7 +1182,7 @@
         },
         {
           "so": 11,
-          "ten": "Nameraka · あいまい表現",
+          "ten": "あいまい表現",
           "tu": [],
           "han": [],
           "pp": [
@@ -1291,7 +1291,7 @@
         },
         {
           "so": 12,
-          "ten": "Nameraka · 語順の変化",
+          "ten": "語順の変化",
           "tu": [],
           "han": [],
           "pp": [
@@ -1369,11 +1369,11 @@
     },
     {
       "so": 3,
-      "ten": "Nameraka · Giữ nhịp hội thoại",
+      "ten": "Giữ nhịp hội thoại",
       "bai": [
         {
           "so": 13,
-          "ten": "Nameraka · 会話を進める",
+          "ten": "会話を進める",
           "tu": [
             {
               "id": "kaiwa-nam-13-tu-01",
@@ -1479,7 +1479,7 @@
         },
         {
           "so": 14,
-          "ten": "Nameraka · 話を切り出す",
+          "ten": "話を切り出す",
           "tu": [],
           "han": [],
           "pp": [
@@ -1555,7 +1555,7 @@
         },
         {
           "so": 15,
-          "ten": "Nameraka · 答える",
+          "ten": "答える",
           "tu": [],
           "han": [],
           "pp": [
@@ -1631,7 +1631,7 @@
         },
         {
           "so": 16,
-          "ten": "Nameraka · 反応を見ながら話す",
+          "ten": "反応を見ながら話す",
           "tu": [],
           "han": [],
           "pp": [
@@ -1707,7 +1707,7 @@
         },
         {
           "so": 17,
-          "ten": "Nameraka · あいづち",
+          "ten": "あいづち",
           "tu": [
             {
               "id": "kaiwa-nam-17-tu-01",
@@ -1783,11 +1783,11 @@
     },
     {
       "so": 4,
-      "ten": "Nameraka · Ý định và sắc thái",
+      "ten": "Ý định và sắc thái",
       "bai": [
         {
           "so": 18,
-          "ten": "Nameraka · 確かめる",
+          "ten": "確かめる",
           "tu": [],
           "han": [],
           "pp": [
@@ -1863,7 +1863,7 @@
         },
         {
           "so": 19,
-          "ten": "Nameraka · 主張を伝える",
+          "ten": "主張を伝える",
           "tu": [],
           "han": [],
           "pp": [
@@ -1939,7 +1939,7 @@
         },
         {
           "so": 20,
-          "ten": "Nameraka · お礼・あやまる",
+          "ten": "お礼・あやまる",
           "tu": [],
           "han": [],
           "pp": [
@@ -2015,7 +2015,7 @@
         },
         {
           "so": 21,
-          "ten": "Nameraka · 文句・断る",
+          "ten": "文句・断る",
           "tu": [],
           "han": [],
           "pp": [
@@ -2091,7 +2091,7 @@
         },
         {
           "so": 22,
-          "ten": "Nameraka · 申し出を断る",
+          "ten": "申し出を断る",
           "tu": [],
           "han": [],
           "pp": [
@@ -2167,7 +2167,7 @@
         },
         {
           "so": 23,
-          "ten": "Nameraka · 問いかける",
+          "ten": "問いかける",
           "tu": [],
           "han": [],
           "pp": [
