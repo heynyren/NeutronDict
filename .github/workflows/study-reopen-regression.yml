@@ -1,0 +1,30 @@
+name: Study reopen regression
+on:
+  push:
+    branches: [codex/study-reopen]
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --prefix "$RUNNER_TEMP/nd-test" playwright
+          "$RUNNER_TEMP/nd-test/node_modules/.bin/playwright" install --with-deps chromium
+          sudo mkdir -p /opt/node22/lib/node_modules
+          sudo ln -s "$RUNNER_TEMP/nd-test/node_modules/playwright" /opt/node22/lib/node_modules/playwright
+      - name: Reproduce entry and exit
+        run: node kiem-tra/study-reopen-giao-dien.mjs
+      - name: UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: study-reopen-ui
+          path: ${{ runner.temp }}/nd-ui/
+          retention-days: 7
