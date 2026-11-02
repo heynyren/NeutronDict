@@ -1,7 +1,7 @@
 name: Integrated Android preview
 on:
   push:
-    branches: [codex/study-reopen, codex/adaptive-srs, codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/reader-native-lookup, codex/jlpt-n4-n5, main]
+    branches: [codex/android-quick-save, codex/study-reopen, codex/adaptive-srs, codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/reader-native-lookup, codex/jlpt-n4-n5, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -101,7 +101,7 @@ jobs:
           images = Path("android/integration/build/app/build")
           target = Path("android/integration/ui-evidence")
           target.mkdir(exist_ok=True)
-          for name in ("reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png", "caption-chunk-dark.png", "caption-chunk-light.png"):
+          for name in ("reader-save-light.png", "reader-save-dark.png", "caption-quick-save.png", "reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png", "caption-chunk-dark.png", "caption-chunk-light.png"):
               # AGP versions place collected images under additional-output or test-result artifacts.
               matches = list(images.rglob(name))
               assert matches, "Missing native UI screenshot: " + name
