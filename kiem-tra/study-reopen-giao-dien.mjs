@@ -132,5 +132,31 @@ try{
     else await p.locator("#stStart").click();
     await p.waitForFunction(()=>session.queue.length>0,{},{timeout:10000}).catch(async e=>{console.log("REOPEN FAILED",errors,await p.evaluate(async()=>({hoc:await Store.get("hoc"),queue:session.queue.length,toast:document.body.innerText.slice(-2000)})));throw e;});
   }
+
   console.log("Android repeated starts passed");
+  const dir=path.resolve("extension");
+  ext=await chromium.launchPersistentContext(fs.mkdtempSync(path.join(tmpdir(),"reopen-ext-")),{
+    channel:"chromium",headless:true,args:["--disable-extensions-except="+dir,"--load-extension="+dir]
+  });
+  const sw=ext.serviceWorkers()[0]||await ext.waitForEvent("serviceworker"),id=sw.url().split("/")[2];
+  await sw.evaluate(async seed=>chrome.storage.local.set({notebook:seed,settings:{ngu:"ja",chu:"vi",nhip:false,coVu:false,tach:false},decks:{},hoc:{},nhipMs:{}}),seed);
+  const ep=await ext.newPage(),ee=[];
+  ep.on("pageerror",e=>{ee.push(e.message);console.log("Extension error",e.message);});
+  await ep.goto("chrome-extension://"+id+"/notebook.html");
+  await ep.waitForFunction(()=>items.length===12&&daNapXong);
+  for(const mode of ["normal","normal","extra","extra","path","path"]){
+    console.log("Extension entry",mode);
+    if(mode==="normal")await ep.locator("#study").click();
+    if(mode==="extra")await ep.locator("#adaptivePlan").getByRole("button",{name:"Học thêm 3 phút",exact:true}).click();
+    if(mode==="path"){
+      await ep.locator("#studyPath").click();
+      await ep.locator("#duongRiengDialog [data-ma=nhin]").click();
+    }
+    await ep.waitForFunction(()=>document.getElementById("studyOverlay").classList.contains("show"),{},{timeout:10000});
+    await ep.locator("#stClose").click();
+    await ep.waitForFunction(()=>!document.getElementById("studyOverlay").classList.contains("show"));
+  }
+  assert.deepEqual(ee,[]);
+  console.log("Extension repeated normal, extra and single-route starts passed");
+
  }finally{if(ext)await ext.close();await browser.close();await new Promise(r=>server.close(r));}
