@@ -1,7 +1,7 @@
 name: Integrated Android preview
 on:
   push:
-    branches: [codex/android-quick-save, codex/study-reopen, codex/adaptive-srs, codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/reader-native-lookup, codex/jlpt-n4-n5, main]
+    branches: [codex/android-reader-selection, codex/android-quick-save, codex/study-reopen, codex/adaptive-srs, codex/neutrondict-youtube-news, codex/kaiwa-caption-sync, codex/reader-native-lookup, codex/jlpt-n4-n5, main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -93,7 +93,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root = Path("android/integration/build/app/build/reports/androidTests/connected/debug")
-          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderNativeTest", "com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
+          for name in ("com.neutrondict.app.media.IntegrationSmokeTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderNativeTest", "com.kienhoang.dualsubreplay.ui.ReaderSelectionGestureTest", "com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest", "com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest", "com.kienhoang.dualsubreplay.ui.WordLearningDialogTest", "com.kienhoang.dualsubreplay.ui.AiAssistantPanelUiTest"):
               report = root / (name + ".html")
               assert report.is_file(), "Missing device test suite: " + name
               print(name, "report verified")
@@ -101,7 +101,7 @@ jobs:
           images = Path("android/integration/build/app/build")
           target = Path("android/integration/ui-evidence")
           target.mkdir(exist_ok=True)
-          for name in ("reader-save-light.png", "reader-save-dark.png", "caption-quick-save.png", "reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png", "caption-chunk-dark.png", "caption-chunk-light.png"):
+          for name in ("reader-selection-word.png", "reader-selection-phrase.png", "reader-save-light.png", "reader-save-dark.png", "caption-quick-save.png", "reader-quick-dark.png", "reader-quick-light.png", "reader-details-dark.png", "reader-details-light.png", "caption-chunk-dark.png", "caption-chunk-light.png"):
               # AGP versions place collected images under additional-output or test-result artifacts.
               matches = list(images.rglob(name))
               assert matches, "Missing native UI screenshot: " + name
@@ -119,5 +119,6 @@ jobs:
             android/integration/build/INTEGRATION.json
             android/integration/ui-evidence/
             android/integration/build/app/build/outputs/androidTest-results/
+            android/integration/build/app/build/outputs/connected_android_test_additional_output/
           if-no-files-found: ignore
           retention-days: 7

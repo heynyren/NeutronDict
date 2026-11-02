@@ -27,3 +27,9 @@ Nhánh riêng từ main. Kiểm thử cloud và APK tích hợp trước khi g�
 
 ## Trạng thái
 Kết quả cloud cho đúng commit và ảnh kiểm tra được ghi tại [PR #32](https://github.com/heynyren/NeutronDict/pull/32). Chỉ gộp sau khi các kiểm tra đạt; số đo giả lập không đại diện cho mạng hay điện thoại của người dùng.
+
+## Sửa mất vùng chọn khi mở popup (02/11/2026)
+- Không kết thúc ActionMode khi nhận được từ: thao tác đó xóa vùng bôi đen và hai tay nắm của WebView.
+- Chỉ ẩn thanh công cụ hệ thống trong lúc popup tra từ đang mở; giữ vùng chọn native để kéo rộng/thu hẹp. Đổi vùng chọn sẽ hủy kết quả cũ và tra cụm mới sau khi ổn định.
+- Chỉ kết thúc vùng chọn khi người dùng đóng, mở thẻ chi tiết hoặc rời trang. Kết quả tra trùng vùng chọn không được khởi động lại yêu cầu đang chạy.
+- Kiểm thử bằng nhấn giữ và kéo tay nắm native trên WebView Android thật trong emulator; không dùng range JavaScript hoặc ActionMode giả để thay thế ca thao tác này. Chụp cả lúc chọn một từ và sau khi kéo thành cụm từ.
