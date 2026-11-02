@@ -4296,7 +4296,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, goiDien: true, goiIt: true, goiY: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, tach: true, chiaDoi: true };
+                       ytTuBat: false, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, tach: true, chiaDoi: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -4327,7 +4327,6 @@ async function loadSettings() {
   if ($("setGoiIt")) $("setGoiIt").checked = S.goiIt !== false;
   if ($("setGoiY")) $("setGoiY").checked = S.goiY !== false;
   if ($("setYtAuto")) $("setYtAuto").checked = !!S.ytTuBat;
-  if ($("setYtPhoi")) $("setYtPhoi").checked = S.ytPhoi !== false;
 }
 async function saveSettings() {
   // GỘP lên cấu hình cũ, không ghi đè cả cục: ngôn ngữ tra (ngu) và ngôn ngữ
@@ -4345,7 +4344,6 @@ async function saveSettings() {
       goiY: $("setGoiY") ? $("setGoiY").checked : true,
       maxSent: 400,
       ytTuBat: $("setYtAuto") ? $("setYtAuto").checked : false,
-      ytPhoi: $("setYtPhoi") ? $("setYtPhoi").checked : true,
       nhip: $("setNhip") ? $("setNhip").checked : true,
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),

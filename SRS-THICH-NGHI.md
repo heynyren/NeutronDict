@@ -40,3 +40,7 @@ Có nút tắt trong Cài đặt và vẫn cần quyền thông báo của Andro
 ## Nhạc nền
 
 Đã gỡ nhạc ga tàu Yamanote, bộ hẹn phát, nút nghe thử, tùy chọn bật nhạc và năm file âm thanh của tuyến tàu khỏi cả extension và Android. Cài đặt nhạc tàu cũ không còn được đọc.
+
+## Lời thoại YouTube
+
+Đã bỏ tùy chọn cung cấp lời thoại ẩn cho trợ lý AI khác và bộ tạo bản sao DOM ẩn. Cấu hình ytPhoi cũ không còn được đọc; bảng phụ đề hiển thị, mốc thời gian, tra từ và lưu câu vẫn dùng cơ chế hiện có.

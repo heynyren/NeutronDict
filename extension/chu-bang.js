@@ -657,10 +657,6 @@
     "Đã lưu.": "Saved.",
     "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
       "A cheer after each grade — 「すごいね」 for remembered, 「がんばって」 for forgotten, plus a short chime",
-    "Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào":
-      "Yamanote-line station jingles while you study — they come up sparsely, on no fixed cycle",
-    "Nghe thử một đoạn": "Play one now",
-    "Đang phát: nhạc ga {ten}": "Now playing: {ten} station jingle",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "A soft click when you tap a button, the way Android apps do",
     "Nghe câu": "Play the sentence",
@@ -1682,10 +1678,6 @@
     "Đã lưu.": "保存しました。",
     "Chấm bài xong thì có tiếng cổ vũ — 「すごいね」 khi nhớ, 「がんばって」 khi quên, kèm một tiếng chuông ngắn":
       "採点のあとに応援の声——覚えていたら「すごいね」、忘れていたら「がんばって」、短いチャイム付き",
-    "Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào":
-      "学習中に山手線の発車メロディ——一定の周期ではなく、たまに鳴ります",
-    "Nghe thử một đoạn": "1曲だけ試聴",
-    "Đang phát: nhạc ga {ten}": "再生中：{ten}駅の発車メロディ",
     "Bấm nút thì có tiếng tách nhẹ, như các app Android":
       "ボタンを押すと軽いクリック音——Android アプリと同じ感じ",
     "Nghe câu": "文を聞く",
@@ -2481,7 +2473,6 @@
   "Câu tiếp": "Next sentence",
   "Xuất & sao lưu": "Export & backup",
   "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.": "Export the entire notebook in both languages, including links and video timestamps, in an Excel-compatible format. Import only adds new words and preserves your edited translations.",
-  "Cho trợ lý AI khác (ChatGPT, Gemini…) đọc được lời thoại: đặt thêm một bản chữ khuất mắt vào trang YouTube": "Let other AI assistants (ChatGPT, Gemini…) read the transcript by adding a hidden text copy to the YouTube page",
   "Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab — chỉ đoạn dài hơn số trên mới bỏ qua phần từ điển, vì tra nguyên đoạn như một từ thì chắc chắn rỗng. Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.": "Selecting text opens word lookup and sentence translation in separate popup tabs. Only selections longer than the limit skip dictionary lookup. Keyboard shortcuts and the context menu still work when the popup is off.",
   "Mỗi lượt ôn ghi lại: app đã bắt bạn chờ bao nhiêu ngày ở bậc nào, và tới lúc gặp lại bạn có nhớ không. Đây là thứ duy nhất nói được thang giãn cách có hợp với bạn hay không — mọi con số trong thang là mặc định của app, không phải đo từ bạn.": "Each review records the level, days waited, and whether you remembered. Use this history to judge whether the intervals fit you; the initial intervals are defaults, not measurements of your memory.",
   "Bỏ chọn": "Deselect",
@@ -2970,7 +2961,6 @@
   "Câu tiếp": "次の文",
   "Xuất & sao lưu": "エクスポート・バックアップ",
   "Xuất CẢ SỔ (cả hai thứ tiếng), mang đủ link và phút video, mở bằng Excel được. Nạp vào thì chỉ THÊM từ mới, không đè lên bản dịch bạn đã tự sửa.": "両言語の単語帳全体を、リンクと動画時刻付きでExcel対応形式に書き出します。取り込み時は新しい単語のみ追加し、編集済みの訳は上書きしません。",
-  "Cho trợ lý AI khác (ChatGPT, Gemini…) đọc được lời thoại: đặt thêm một bản chữ khuất mắt vào trang YouTube": "他のAI（ChatGPT、Geminiなど）が字幕を読めるよう、YouTubeページに非表示のテキストを追加",
   "Bôi đen phát nào popup cũng chạy cả tra từ lẫn dịch câu và xếp vào các tab — chỉ đoạn dài hơn số trên mới bỏ qua phần từ điển, vì tra nguyên đoạn như một từ thì chắc chắn rỗng. Tắt popup thì vẫn dùng được phím tắt và chuột phải như cũ.": "文字を選択すると、ポップアップの各タブで単語検索と文の翻訳を行います。上限より長い選択では辞書検索を省略します。ポップアップをオフにしても、ショートカットと右クリックは使えます。",
   "Mỗi lượt ôn ghi lại: app đã bắt bạn chờ bao nhiêu ngày ở bậc nào, và tới lúc gặp lại bạn có nhớ không. Đây là thứ duy nhất nói được thang giãn cách có hợp với bạn hay không — mọi con số trong thang là mặc định của app, không phải đo từ bạn.": "復習ごとにレベル、待った日数、覚えていたかを記録します。この履歴から間隔が自分に合うか確認できます。初期間隔は既定値であり、個人の記憶から測定した値ではありません。",
   "Bỏ chọn": "選択解除",
