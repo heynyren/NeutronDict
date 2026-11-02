@@ -24,7 +24,7 @@ function merge(a,b){
   const x=normal(a),y=normal(b);
   const prefs=finite(y.prefs.ts)>finite(x.prefs.ts)||(finite(y.prefs.ts)===finite(x.prefs.ts)&&JSON.stringify(y.prefs)>JSON.stringify(x.prefs))?y.prefs:x.prefs;
   const plans={...x.plans};
-  for(const[k,p]of Object.entries(y.plans))if(!plans[k]||finite(p.ts)>finite(plans[k].ts)||(p.ts===plans[k].ts&&p.goalMs<plans[k].goalMs))plans[k]=p;
+  for(const[k,p]of Object.entries(y.plans))if(!plans[k]||finite(p.ts)>finite(plans[k].ts)||(p.ts===plans[k].ts&&(p.goalMs<plans[k].goalMs||(p.goalMs===plans[k].goalMs&&JSON.stringify(p)>JSON.stringify(plans[k])))))plans[k]=p;
   return {v:1,prefs:{...prefs},plans};
 }
 function allEvents(items){
@@ -101,7 +101,7 @@ function priority(it,route=it._d,now=Date.now()){
   return 1-prediction(d,route,now);
 }
 function order(queue,now=Date.now()){
-  return queue.slice().sort((a,b)=>Number(newRoute(a))-Number(newRoute(b))||priority(b,b._d,now)-priority(a,a._d,now)||cardKey(a).localeCompare(cardKey(b)));
+  return queue.slice().sort((a,b)=>Number(newRoute(a))-Number(newRoute(b))||priority(b,b._d,now)-priority(a,a._d,now)||(a.key===b.key ? ["nhin","nghe","dien","grammar"].indexOf(a._d)-["nhin","nghe","dien","grammar"].indexOf(b._d) : 0)||cardKey(a).localeCompare(cardKey(b)));
 }
 function select(queue,state,events,now=Date.now(),extra=false,inventory=queue){
   const p=plan(state,events,now),{today,cost}=p.stats;
@@ -115,7 +115,7 @@ function select(queue,state,events,now=Date.now(),extra=false,inventory=queue){
       const c=cost[it._d]||20000;if(ms+c>p.plan.goalMs*.8&&count)break;
       keys.add(it.key);ms+=c;count++;if(newRoute(it))newCount++;
     }
-    p.plan={...p.plan,goalCards:count||undefined};p.state.plans[p.plan.day]=p.plan;
+    p.plan={...p.plan,goalCards:count||undefined,ts:Math.max(now,finite(p.plan.ts)+1)};p.state.plans[p.plan.day]=p.plan;
   }
   const complete=today.ms>=p.plan.goalMs||(p.plan.goalCards>0&&today.unique.size>=p.plan.goalCards);
   const left=extra?180000:complete?0:Math.max(0,p.plan.goalMs-today.ms);
@@ -133,7 +133,8 @@ function select(queue,state,events,now=Date.now(),extra=false,inventory=queue){
     selected.push(it);seen.add(k);seenWords.add(it.key);used+=c;if(newRoute(it))introduced++;
     if(selected.length>=20||used>=budget-reserve)break;
   }
-  p.plan={...p.plan,offered:p.plan.offered||sorted.reduce((n,it)=>n+(cost[it._d]||20000),0)>=left};
+  const offered=p.plan.offered||sorted.reduce((n,it)=>n+(cost[it._d]||20000),0)>=left;
+  if(offered!==p.plan.offered)p.plan={...p.plan,offered,ts:Math.max(now,finite(p.plan.ts)+1)};
   p.state.plans[p.plan.day]=p.plan;
   return {...p,queue:selected,remaining:sorted.length-selected.length,estimateMs:used,budgetMs:budget};
 }
@@ -149,7 +150,7 @@ function startClock(it){
   const key=cardKey(it);if(clock?.key===key)return;
   clock={key,last:Date.now(),ms:0,visible:!g.document?.hidden,paused:false};
 }
-function pauseClock(paused){tick();if(clock){clock.paused=paused;if(paused)clock.hinted=true;}}
+function pauseClock(paused,hinted=paused){tick();if(clock){clock.paused=paused;if(paused&&hinted)clock.hinted=true;}}
 if(g.document)g.document.addEventListener("visibilitychange",()=>{tick();if(clock)clock.visible=!g.document.hidden;});
 function takeMetrics(key){tick();const match=clock?.key===key;const result={activeMs:Math.round(clamp(match?clock.ms:0,0,180000)),hinted:!!(match&&clock.hinted)};clock=null;return result;}
 function takeClock(key){return takeMetrics(key).activeMs;}

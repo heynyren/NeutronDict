@@ -1030,7 +1030,7 @@
       if (!canOnJlpt(muc, t) && choDen(muc, t, bayGio)) continue;          // vừa chấm một đường khác: ngủ đã
       ra.push(t);
     }
-    if (goc.AdaptiveStudy) ra.sort((a,b) => goc.AdaptiveStudy.priority(muc,b,bayGio)-goc.AdaptiveStudy.priority(muc,a,bayGio));
+    if (goc.AdaptiveStudy) return goc.AdaptiveStudy.order(ra.map(t=>Object.assign({},muc,{_d:t})),bayGio).slice(0,1).map(it=>it._d);
     return ra.slice(0,1);
   }
 

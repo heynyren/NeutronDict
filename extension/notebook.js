@@ -2691,7 +2691,7 @@ function hangDoiDuong(scopeList, ds) {
   const ra = [];
   for (const it of scopeList) {
     if (it.del) continue;
-    const d = ds.filter(t => window.Srs.denHanDuong(it, t, now)).sort((a,b) => window.AdaptiveStudy.priority(it,b,now)-window.AdaptiveStudy.priority(it,a,now))[0];
+    const d = window.AdaptiveStudy.order(ds.filter(t=>window.Srs.denHanDuong(it,t,now)).map(t=>({...it,_d:t})),now)[0]?._d;
     if (d) ra.push(Object.assign({}, it, { _d: d }));
   }
   return ra;
@@ -4748,7 +4748,7 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     window.StudyGrammar.remember(q, moi);
     return moi;
   });
-  if (ra) syncSoon();
+  if (ra) { syncSoon(); refreshStudyPlan(); }
   return ra;
 }
 

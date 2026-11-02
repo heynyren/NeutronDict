@@ -37,7 +37,7 @@ try{
  await p.locator("#stStart").click();
  await p.waitForFunction(()=>session.queue.length>0);
  const first=await p.evaluate(()=>({key:session.queue[0].key,route:session.queue[0]._d,count:session.queue.length,distinct:new Set(session.queue.map(x=>x.key)).size,plan:session.adaptive.plan}));
- assert.equal(first.key,"javi:学習");assert.equal(first.route,"nghe","Weakest due route is first through the real Start button");
+ assert.equal(first.key,"javi:学習",JSON.stringify(first));assert.equal(first.route,"nghe","Weakest due route is first through the real Start button");
  assert.equal(first.distinct,first.count);assert.ok(first.count<=20&&first.plan.goalCards>1);
  await p.locator("#stReveal").click();await p.locator("#gForgot").click();
  await p.waitForFunction(()=>session.lichSu?.length===1);

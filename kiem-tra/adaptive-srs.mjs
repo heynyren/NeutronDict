@@ -88,5 +88,17 @@ const noOffer=JSON.parse(JSON.stringify(history));for(const p of Object.values(n
 assert.equal(A.plan(noOffer,hard,now).plan.goalMs,600000,"Insufficient content is not mistaken for overload");checks++;
 const prefA={prefs:{minutes:3,ts:2}},prefB={prefs:{minutes:5,ts:2}};
 assert.equal(JSON.stringify(A.merge(prefA,prefB)),JSON.stringify(A.merge(prefB,prefA)),"Equal-clock preference conflicts converge");checks++;
+
+const tomb=g.Muc.biaMo({word:"A",dict:"javi",reviewLog:rec.log,duong:{nghe:weak}});
+assert.equal(A.allEvents([tomb]).length,1,"Deleting a word preserves completed effort");checks++;
+assert.equal(tomb.duong,undefined,"Deleting still clears SRS state");checks++;
+const mergedPlan=A.merge({plans:{[day]:{goalMs:600000,ts:1}}},selected.state);
+assert.equal(mergedPlan.plans[day].goalCards,selected.plan.goalCards,"Plan workload survives a stale counter sync");checks++;
+
+const multi={key:"A",word:"A",dict:"javi",means:["nghĩa"],cauNghe:{cau:"これはAです。",dich:"Đây là A."},duong:{nhin:strong,nghe:weak}};
+assert.equal(S.denHan(multi,now)[0],"nghe","Unseen cloze route cannot hide a weak listening review");checks++;
+assert.equal(A.order([{key:"fresh",_d:"dien"},{key:"fresh",_d:"nhin"}],now)[0]._d,"nhin","A new word starts with recognition when both routes are unseen");checks++;
 console.log("Adaptive SRS:",checks,"checks passed");
+
+
 

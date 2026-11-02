@@ -26,6 +26,8 @@
    */
   function biaMo(it) {
     const t = { word: it.word, dict: it.dict, del: true, ts: Date.now() };
+    // Learning effort remains counted after deleting a card; its SRS stays reset.
+    if (it.reviewLog) t.reviewLog = it.reviewLog;
     if (it.mEdit) {
       t.mEdit = 1;
       t.means = (it.means || []).slice();
@@ -82,6 +84,7 @@
    */
   function nhatLaiBanSua(ne, cu) {
     if (!cu || !cu.del) return ne;
+    if (cu.reviewLog) ne.reviewLog = Object.assign({},cu.reviewLog,ne.reviewLog||{});
     if (cu.note && !ne.note) ne.note = cu.note;
     if (cu.mEdit && !ne.mEdit) {
       ne.mEdit = 1;
@@ -147,7 +150,7 @@
   }
 
   function gopSrs(thang, thua) {
-    if (!thang || !thua || thang.del || thua.del) return thang;
+    if (!thang || !thua) return thang;
     // Cài đặt từng đường có ts riêng, không bị lượt chấm/sửa nghĩa đè mất.
     if (thang.reviewLog || thua.reviewLog) {
       const log = { ...(thang.reviewLog || {}) };
@@ -157,6 +160,7 @@
       }
       thang = Object.assign({}, thang, { reviewLog: log });
     }
+    if (thang.del || thua.del) return thang;
     if (thang.lichRieng || thua.lichRieng)
       thang = Object.assign({}, thang, { lichRieng: gopDuong(thang.lichRieng, thua.lichRieng) });
     // `duong` gộp theo từng đường, KHÔNG theo bên thắng — xem gopDuong.

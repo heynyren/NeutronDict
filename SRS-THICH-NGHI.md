@@ -21,7 +21,7 @@ Các trọng số là trọng số mặc định của thư viện, chưa tối 
 
 Nhật ký reviewLog nằm trên mục từ, mã lượt ngẫu nhiên, có dấu hoàn tác; gộp theo mã giữ các lượt từ hai thiết bị. Hoàn tác có mốc trạng thái mới để dữ liệu cũ không phục hồi lượt đã hủy. Kế hoạch theo ngôn ngữ nằm trong hoc[ngôn ngữ].study, đi qua đồng bộ Apps Script hiện có, không cần thay endpoint.
 
-Hai lượt cùng một đường thực hiện ngoại tuyến cùng lúc đều được giữ trong nhật ký; trạng thái lịch ôn của đường vẫn dùng bản có mốc mới nhất, chưa tái chạy toàn bộ lịch sử xung đột. Xóa mục từ vẫn theo cơ chế xóa hiện có.
+Hai lượt cùng một đường thực hiện ngoại tuyến cùng lúc đều được giữ trong nhật ký; trạng thái lịch ôn của đường vẫn dùng bản có mốc mới nhất, chưa tái chạy toàn bộ lịch sử xung đột. Xóa mục từ vẫn xóa trạng thái SRS, đồng thời giữ nhật ký để công sức đã học không biến mất khỏi chỉ tiêu.
 
 Thời gian kế hoạch đo thời gian foreground trên thẻ, bỏ thời gian nền và dừng khi mở trợ giúp/nguồn; đây là xấp xỉ công sức học, không phải phép đo chính xác thời gian nhớ lại.
 

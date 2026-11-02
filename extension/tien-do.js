@@ -503,6 +503,7 @@
   /** Vòng tròn mục tiêu hôm nay + mấy con số quan trọng nhất. */
   function veHomNay(view) {
     const card = el("div", "card");
+    card.appendChild(el("div","eyebrow",t("Mục tiêu mỗi ngày")));
 
     const hang = el("div", "rowx");
     hang.style.gap = "18px";
@@ -616,11 +617,11 @@
     for (const d of ngay) {
       if (trongCot === 7) { wrap.appendChild(cot); cot = el("div", "wk"); trongCot = 0; }
       const o = el("i");
-      const muc = d.on === 0 ? 0
-        : d.on >= view.goal * 0.6 ? 3
-        : d.on >= view.goal * 0.3 ? 2 : 1;
+      const p=view.so.adaptive?.plans[d.ngay],a=view.so.adaptive?.days[d.ngay];
+      const ratio=p ? Math.max((a?.ms||0)/p.goalMs,p.goalCards?(a?.unique.size||0)/p.goalCards:0) : d.on/view.goal;
+      const muc = !ratio ? 0 : ratio >= .6 ? 3 : ratio >= .3 ? 2 : 1;
       o.dataset.lv = String(muc);
-      if (d.on >= view.goal) o.dataset.goal = "1";
+      if (ratio >= 1) o.dataset.goal = "1";
       o.title = ngayVi(d.ngay) + " — " + t2("{n} lượt",{n:d.on});
       cot.appendChild(o);
       trongCot += 1;
