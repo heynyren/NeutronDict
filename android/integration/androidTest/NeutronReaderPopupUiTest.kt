@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
@@ -137,7 +139,10 @@ class NeutronReaderPopupUiTest {
                 }
             }
         } }
-        compose.onNodeWithTag("caption_save_fixture").performTouchInput { click(center) }
+        val caption = compose.onNodeWithText("care", useUnmergedTree = true)
+        val layouts = mutableListOf<TextLayoutResult>()
+        caption.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        caption.performTouchInput { click(layouts.single().getBoundingBox(1).center) }
         compose.onNodeWithTag("phrase_save_word").assertIsDisplayed().performClick()
         compose.waitForIdle()
         compose.runOnIdle {

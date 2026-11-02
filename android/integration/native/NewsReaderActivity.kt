@@ -217,7 +217,7 @@ class NewsReaderActivity : ComponentActivity() {
                     SubtitleSegment(0, 0, 0, sentence), false, parts)
             }
             val saveSelection: suspend (String) -> Unit = { meaning ->
-                val found = checkNotNull(pending).await()
+                val found = readerSelectionResult(state, checkNotNull(pending))
                 val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
                     .put("reading", found.optString("reading").ifBlank { selected.token.reading.orEmpty() }).put("kind", "article")
                 neutronRequest(JSONObject().put("op", "save").put("item", item))
@@ -237,14 +237,14 @@ class NewsReaderActivity : ComponentActivity() {
                         origin[0] - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
                         origin[1] - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
                     PhraseActionBar(rect, word, false, null, null,
-                        quickTranslate = { checkNotNull(pending).await().optString("meaning") },
+                        quickTranslate = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
                         onTranslate = { details = true },
                         onPronounce = { speak(word, lang) },
                         onClose = { dismissLookup() },
                         onSave = saveSelection, alreadySaved = selectionSaved, saveKey = state)
                 } else {
                     WordLearningDialog(selected, false,
-                        onTranslateWord = { checkNotNull(pending).await().optString("meaning") },
+                        onTranslateWord = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
                         onSave = { meaning, _ -> saveSelection(meaning) },
                         onSpeak = { speak(word, lang) }, speechMessage = null,
                         onDismiss = { dismissLookup() },
@@ -260,6 +260,23 @@ class NewsReaderActivity : ComponentActivity() {
                 dismissLookup()
                 askAi()
             }
+        }
+    }
+    /** A retry starts a native lookup, never re-awaits the same failed deferred forever. */
+    private suspend fun readerSelectionResult(state: JSONObject, pending: CompletableDeferred<JSONObject>): JSONObject {
+        if (selection !== state) throw CancellationException("Selection changed")
+        entry?.let { return it }
+        if (!pending.isCompleted) return pending.await()
+        return try {
+            pending.await()
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
+            val fresh = meaningLookup.lookup(state.optString("word"), state.optString("language"))
+            if (selection !== state) throw CancellationException("Selection changed")
+            entry = fresh
+            status = ""
+            fresh
         }
     }
     private fun speak(text: String, lang: String) {

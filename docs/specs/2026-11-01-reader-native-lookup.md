@@ -2,7 +2,9 @@
 
 ## Triệu chứng và phạm vi
 Người dùng xác nhận ngày 01/11/2026: popup mở ngay, nghĩa hiện chậm; YouTube không chậm tương tự.
-Giữ thao tác bôi đen rồi bấm Tra RaKuLanG và popup hai bước hiện có.
+Thiết kế ban đầu giữ thao tác bôi đen rồi bấm Tra RaKuLanG và popup hai bước.
+
+**Cập nhật theo yêu cầu ngày 02/11/2026:** riêng Android, bôi đen rồi thả tay sẽ tự mở popup đầu sau khi vùng chọn ổn định; bỏ bước bấm Tra RaKuLanG. Popup đầu của cả đọc báo và YouTube có nút Lưu vào sổ tay dưới nghĩa. Popup chi tiết vẫn mở được. Không thay đổi thao tác của extension. Cơ chế tra native và đường lưu sổ tay dưới đây tiếp tục được dùng.
 
 ## Phát hiện từ mã
 - NewsReaderActivity gửi lookup qua MediaPlugin.request sang WebView Capacitor của màn sổ tay đang ở nền.

@@ -130,18 +130,28 @@ public class IntegrationSmokeTest {
                 System.out.println("READER_DEVICE_BENCH native meaning with unresponsive JS host: "+elapsed+"ms");
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
                 // Tap the real first-popup save button, without opening the detailed dialog.
-                String saveLabel=context.getString(com.kienhoang.dualsubreplay.R.string.rakulang_quick_save);
+                java.util.concurrent.atomic.AtomicReference<String> label=new java.util.concurrent.atomic.AtomicReference<>();
+                onReader.accept(activity -> label.set(activity.getString(com.kienhoang.dualsubreplay.R.string.rakulang_quick_save)));
+                String saveLabel=label.get();
+                android.app.UiAutomation automation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation();
+                android.accessibilityservice.AccessibilityServiceInfo access=automation.getServiceInfo();
+                access.flags |= android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+                automation.setServiceInfo(access);
                 boolean clicked=false;
                 long buttonDeadline=System.currentTimeMillis()+10000;
                 while(!clicked && System.currentTimeMillis()<buttonDeadline){
-                    android.view.accessibility.AccessibilityNodeInfo root=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation().getRootInActiveWindow();
-                    if(root!=null) for(android.view.accessibility.AccessibilityNodeInfo node:root.findAccessibilityNodeInfosByText(saveLabel)){
-                        android.view.accessibility.AccessibilityNodeInfo button=node;
-                        while(button!=null && !button.isClickable())button=button.getParent();
-                        if(button!=null && button.isEnabled()){
-                            clicked=button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
-                            if(clicked)break;
+                    // Non-focusable Compose popups are separate windows; the active root can be the article.
+                    for(android.view.accessibility.AccessibilityWindowInfo window:automation.getWindows()){
+                        android.view.accessibility.AccessibilityNodeInfo root=window.getRoot();
+                        if(root!=null) for(android.view.accessibility.AccessibilityNodeInfo node:root.findAccessibilityNodeInfosByText(saveLabel)){
+                            android.view.accessibility.AccessibilityNodeInfo button=node;
+                            while(button!=null && !button.isClickable())button=button.getParent();
+                            if(button!=null && button.isEnabled()){
+                                clicked=button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
+                                if(clicked)break;
+                            }
                         }
+                        if(clicked)break;
                     }
                     if(!clicked)Thread.sleep(100);
                 }
