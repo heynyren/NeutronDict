@@ -42,6 +42,7 @@ class NewsReaderActivity : ComponentActivity() {
     private var selection by mutableStateOf<JSONObject?>(null)
     private var entry by mutableStateOf<JSONObject?>(null)
     private var details by mutableStateOf(false)
+    private var selectionSaved by mutableStateOf(false)
     private var lookupResult: CompletableDeferred<JSONObject>? = null
     private var selectedTokens by mutableStateOf<List<AnalyzedToken>>(emptyList())
     private var status by mutableStateOf("")
@@ -105,6 +106,7 @@ class NewsReaderActivity : ComponentActivity() {
             override fun onPageStarted(view: WebView, url: String, icon: android.graphics.Bitmap?) {
                 cancelSourceRestore()
                 sourceRestoreFinished = false
+                (page as? SelectionWebView)?.finishSelectionMenu()
                 lookupGeneration++; dismissLookup()
                 if (!offline) currentUrl = url
                 status = NeutronUiStrings.text(this@NewsReaderActivity,"Đang mở bài…")
@@ -187,7 +189,6 @@ class NewsReaderActivity : ComponentActivity() {
                 Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(onClick = { finish() }) { Text(getString(com.kienhoang.dualsubreplay.R.string.rakulang_return)) }
-                    TextButton(onClick = { captureSelection() }) { Text(getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)) }
                     TextButton(onClick = { askAi() }) { Text("✦ AI") }
                 }
                 }
@@ -215,6 +216,16 @@ class NewsReaderActivity : ComponentActivity() {
                 LearningWordSelection(token, lang, "vi", null,
                     SubtitleSegment(0, 0, 0, sentence), false, parts)
             }
+            val saveSelection: suspend (String) -> Unit = { meaning ->
+                val found = readerSelectionResult(state, checkNotNull(pending))
+                val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
+                    .put("reading", found.optString("reading").ifBlank { selected.token.reading.orEmpty() }).put("kind", "article")
+                neutronRequest(JSONObject().put("op", "save").put("item", item))
+                if (selection === state) {
+                    selectionSaved = true
+                    status = NeutronUiStrings.text(this@NewsReaderActivity,"Đã lưu vào sổ tay NeutronDict")
+                }
+            }
             CompositionLocalProvider(LocalAiAssistant provides aiHost) {
                 if (!details) {
                     val bounds = state.optJSONObject("bounds")
@@ -226,20 +237,15 @@ class NewsReaderActivity : ComponentActivity() {
                         origin[0] - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
                         origin[1] - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
                     PhraseActionBar(rect, word, false, null, null,
-                        quickTranslate = { checkNotNull(pending).await().optString("meaning") },
+                        quickTranslate = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
                         onTranslate = { details = true },
                         onPronounce = { speak(word, lang) },
-                        onClose = { dismissLookup() })
+                        onClose = { dismissLookup() },
+                        onSave = saveSelection, alreadySaved = selectionSaved, saveKey = state)
                 } else {
                     WordLearningDialog(selected, false,
-                        onTranslateWord = { checkNotNull(pending).await().optString("meaning") },
-                        onSave = { meaning, _ ->
-                            val found = checkNotNull(pending).await()
-                            val item = JSONObject(state.toString()).put("meaning", meaning).put("meaningLanguage", "vi")
-                                .put("reading", found.optString("reading").ifBlank { selected.token.reading.orEmpty() }).put("kind", "article")
-                            neutronRequest(JSONObject().put("op", "save").put("item", item))
-                            status = NeutronUiStrings.text(this@NewsReaderActivity,"Đã lưu vào sổ tay NeutronDict")
-                        },
+                        onTranslateWord = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
+                        onSave = { meaning, _ -> saveSelection(meaning) },
                         onSpeak = { speak(word, lang) }, speechMessage = null,
                         onDismiss = { dismissLookup() },
                         onSpeakPart = { part -> speak(part.text, lang) })
@@ -254,6 +260,23 @@ class NewsReaderActivity : ComponentActivity() {
                 dismissLookup()
                 askAi()
             }
+        }
+    }
+    /** A retry starts a native lookup, never re-awaits the same failed deferred forever. */
+    private suspend fun readerSelectionResult(state: JSONObject, pending: CompletableDeferred<JSONObject>): JSONObject {
+        if (selection !== state) throw CancellationException("Selection changed")
+        entry?.let { return it }
+        if (!pending.isCompleted) return pending.await()
+        return try {
+            pending.await()
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
+            val fresh = meaningLookup.lookup(state.optString("word"), state.optString("language"))
+            if (selection !== state) throw CancellationException("Selection changed")
+            entry = fresh
+            status = ""
+            fresh
         }
     }
     private fun speak(text: String, lang: String) {
@@ -301,7 +324,7 @@ class NewsReaderActivity : ComponentActivity() {
     private fun dismissLookup() {
         lookupJob?.cancel(); lookupJob = null
         lookupResult?.cancel(); lookupResult = null
-        selection = null; entry = null; selectedTokens = emptyList(); details = false
+        selection = null; entry = null; selectedTokens = emptyList(); details = false; selectionSaved = false
     }
     private fun askAi() {
         page.evaluateJavascript("(function(){const e=document.querySelector('article,main')||document.body;return (window.getSelection().toString()||e.innerText||'').slice(0,14000)})()") { raw ->
@@ -363,7 +386,10 @@ class NewsReaderActivity : ComponentActivity() {
         lookupGeneration++; dismissLookup()
         cancelSourceRestore()
         super.onPause()
-        if (::page.isInitialized) page.onPause()
+        if (::page.isInitialized) {
+            (page as? SelectionWebView)?.finishSelectionMenu()
+            page.onPause()
+        }
         voice?.stop()
     }
     override fun onResume() {
@@ -379,37 +405,91 @@ class NewsReaderActivity : ComponentActivity() {
         cancelSourceRestore()
         lookupJob?.cancel()
         voice?.shutdown()
-        if (::page.isInitialized) page.destroy()
+        if (::page.isInitialized) {
+            (page as? SelectionWebView)?.finishSelectionMenu()
+            page.destroy()
+        }
         super.onDestroy()
     }
 }
 
-/** Selection stays editable; dictionary lookup starts only from the explicit menu command. */
-private class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
+/** Open only after the native selection settles; never expose a bridge to article scripts. */
+internal class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
     private var selectionMode: ActionMode? = null
-    fun finishSelectionMenu() { selectionMode?.finish() }
+    private var fingerDown = false
+    private var lastRect: Rect? = null
+    private var pendingLookup: Runnable? = null
+    private fun cancelPending() {
+        pendingLookup?.let { removeCallbacks(it) }
+        pendingLookup = null
+    }
+    private fun scheduleLookup() {
+        cancelPending()
+        val mode = selectionMode ?: return
+        if (fingerDown) return
+        val task = Runnable {
+            pendingLookup = null
+            if (!fingerDown && selectionMode === mode && isAttachedToWindow) lookup()
+        }
+        pendingLookup = task
+        postDelayed(task, 250L)
+    }
+    fun finishSelectionMenu() {
+        cancelPending()
+        selectionMode?.finish()
+        fingerDown = false
+    }
+    override fun onDetachedFromWindow() {
+        cancelPending()
+        super.onDetachedFromWindow()
+    }
     override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
-        if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) touched()
+        when (event.actionMasked) {
+            android.view.MotionEvent.ACTION_DOWN -> {
+                fingerDown = true
+                cancelPending()
+                touched()
+            }
+            android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                fingerDown = false
+                scheduleLookup()
+            }
+        }
         return super.onTouchEvent(event)
     }
     override fun startActionMode(callback: ActionMode.Callback, type: Int): ActionMode? =
         super.startActionMode(object : ActionMode.Callback2() {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                 val created = callback.onCreateActionMode(mode, menu)
-                if (created) selectionMode = mode
-                menu.add(0, 0x4e44, 0, this@SelectionWebView.context.getString(com.kienhoang.dualsubreplay.R.string.rakulang_lookup)).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                if (created) {
+                    selectionMode = mode
+                    lastRect = null
+                    scheduleLookup()
+                }
                 return created
             }
-            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =
-                callback.onPrepareActionMode(mode, menu)
-            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-                if (item.itemId == 0x4e44) { lookup(); return true }
-                return callback.onActionItemClicked(mode, item)
+            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                val result = callback.onPrepareActionMode(mode, menu)
+                scheduleLookup()
+                return result
             }
-            override fun onDestroyActionMode(mode: ActionMode) { if (selectionMode === mode) selectionMode = null; callback.onDestroyActionMode(mode) }
+            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean =
+                callback.onActionItemClicked(mode, item)
+            override fun onDestroyActionMode(mode: ActionMode) {
+                if (selectionMode === mode) {
+                    cancelPending()
+                    selectionMode = null
+                    lastRect = null
+                }
+                callback.onDestroyActionMode(mode)
+            }
             override fun onGetContentRect(mode: ActionMode, view: View, rect: Rect) {
                 if (callback is ActionMode.Callback2) callback.onGetContentRect(mode, view, rect)
                 else super.onGetContentRect(mode, view, rect)
+                if (lastRect != rect) {
+                    lastRect = Rect(rect)
+                    scheduleLookup()
+                }
             }
         }, type)
 }

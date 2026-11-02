@@ -42,6 +42,18 @@ public class IntegrationSmokeTest {
             field.setAccessible(true); return (android.webkit.WebView)field.get(activity);
         } catch(Exception e){throw new AssertionError(e);}
     }
+    private android.view.accessibility.AccessibilityNodeInfo findQuickSave(
+        android.view.accessibility.AccessibilityNodeInfo node,String label){
+        if(node==null)return null;
+        // Compose exposes virtual children; Android's native text-search method does not traverse them.
+        if(label.contentEquals(node.getText()==null?"":node.getText()) ||
+            "phrase_save_word".equals(node.getExtras().getString("androidx.compose.ui.semantics.testTag"))) return node;
+        for(int i=0;i<node.getChildCount();i++){
+            android.view.accessibility.AccessibilityNodeInfo found=findQuickSave(node.getChild(i),label);
+            if(found!=null)return found;
+        }
+        return null;
+    }
     @Test public void readerMeaningBypassesUnresponsiveHostAndSaveStillPreservesSource() throws Exception {
         try(ActivityScenario<com.neutrondict.app.MainActivity> host=ActivityScenario.launch(com.neutrondict.app.MainActivity.class)){
             ready(host);
@@ -98,20 +110,10 @@ public class IntegrationSmokeTest {
                 long modeDeadline=System.currentTimeMillis()+10000;
                 while(selectionMode.get()==null && System.currentTimeMillis()<modeDeadline)Thread.sleep(100);
                 assertNotNull("Native selection menu did not open",selectionMode.get());
-                Thread.sleep(1200);
                 java.util.concurrent.atomic.AtomicReference<JSONObject> selected=new java.util.concurrent.atomic.AtomicReference<>();
-                onReader.accept(activity -> {try {
-                    java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelection");
-                    get.setAccessible(true);selected.set((JSONObject)get.invoke(activity));
-                }catch(Exception ex){throw new AssertionError(ex);}});
-                assertNull("Selecting text must wait for the manual lookup command",selected.get());
-                assertEquals("0",evaluate(host,"window.__readerLookupCount"));
                 long lookupStart=android.os.SystemClock.elapsedRealtime();
-                onReader.accept(activity -> {
-                    android.view.ActionMode mode=selectionMode.get();
-                    assertNotNull("Tra NeutronDict menu entry is missing",mode.getMenu().findItem(0x4e44));
-                    assertTrue("Lookup menu action was not handled",mode.getMenu().performIdentifierAction(0x4e44,0));
-                });
+                onReader.accept(activity -> assertNull("The extra lookup action must be removed",
+                    selectionMode.get().getMenu().findItem(0x4e44)));
                 long deadline=System.currentTimeMillis()+20000;
                 while(selected.get()==null && System.currentTimeMillis()<deadline){
                     onReader.accept(activity -> {try {
@@ -139,12 +141,40 @@ public class IntegrationSmokeTest {
                 assertEquals("No lookup may traverse the paused notebook WebView","0",evaluate(host,"window.__readerLookupCount"));
                 System.out.println("READER_DEVICE_BENCH native meaning with unresponsive JS host: "+elapsed+"ms");
                 assertEquals("クリームを塗って肌のケアをする。",selected.get().getString("sentence"));
-                java.util.concurrent.CountDownLatch saved=new java.util.concurrent.CountDownLatch(1);
-                java.util.concurrent.atomic.AtomicReference<String> error=new java.util.concurrent.atomic.AtomicReference<>();
-                JSONObject item=selected.get().put("meaning","chăm sóc").put("meaningLanguage","vi")
-                    .put("translatedSentence","Bôi kem để chăm sóc da.");
-                MediaPlugin.request(new JSONObject().put("op","save").put("item",item),(result,err)->{error.set(err);saved.countDown();});
-                assertTrue(saved.await(35,java.util.concurrent.TimeUnit.SECONDS));assertNull(error.get());
+                // Tap the real first-popup save button, without opening the detailed dialog.
+                java.util.concurrent.atomic.AtomicReference<String> label=new java.util.concurrent.atomic.AtomicReference<>();
+                onReader.accept(activity -> label.set(activity.getString(com.kienhoang.dualsubreplay.R.string.rakulang_quick_save)));
+                String saveLabel=label.get();
+                android.app.UiAutomation automation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getUiAutomation();
+                android.accessibilityservice.AccessibilityServiceInfo access=automation.getServiceInfo();
+                access.flags |= android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
+                automation.setServiceInfo(access);
+                boolean clicked=false;
+                long buttonDeadline=System.currentTimeMillis()+10000;
+                while(!clicked && System.currentTimeMillis()<buttonDeadline){
+                    // Non-focusable Compose popups are separate windows; the active root can be the article.
+                    for(android.view.accessibility.AccessibilityWindowInfo window:automation.getWindows()){
+                        android.view.accessibility.AccessibilityNodeInfo root=window.getRoot();
+                        android.view.accessibility.AccessibilityNodeInfo button=findQuickSave(root,saveLabel);
+                        while(button!=null && !button.isClickable())button=button.getParent();
+                        if(button!=null && button.isEnabled()){
+                            clicked=button.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK);
+                        }
+                        if(clicked)break;
+                    }
+                    if(!clicked)Thread.sleep(100);
+                }
+                assertTrue("First popup Save button was not clickable",clicked);
+                java.util.concurrent.atomic.AtomicBoolean saved=new java.util.concurrent.atomic.AtomicBoolean(false);
+                long saveDeadline=System.currentTimeMillis()+35000;
+                while(!saved.get() && System.currentTimeMillis()<saveDeadline){
+                    onReader.accept(activity -> {try {
+                        java.lang.reflect.Method get=activity.getClass().getDeclaredMethod("getSelectionSaved");
+                        get.setAccessible(true);saved.set((Boolean)get.invoke(activity));
+                    }catch(Exception ex){throw new AssertionError(ex);}});
+                    Thread.sleep(50);
+                }
+                assertTrue("Quick save did not finish",saved.get());
             } finally { onReader.accept(activity -> activity.finish()); }
             androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().waitForIdleSync();
             evaluate(host,"window.__readerSaved=null;getNB().then(nb=>window.__readerSaved=nb['javi:ケア'])");
