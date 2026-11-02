@@ -81,6 +81,9 @@ class NewsReaderActivity : ComponentActivity() {
         page = SelectionWebView(this, { captureSelection() }, {
             cancelSourceRestore(user = true)
             lookupGeneration++; dismissLookup()
+        }, {
+            // Opening details deliberately ends native selection after snapshotting the phrase.
+            if (!details) { lookupGeneration++; dismissLookup() }
         })
         page.settings.apply {
             javaScriptEnabled = true
@@ -179,8 +182,13 @@ class NewsReaderActivity : ComponentActivity() {
         val state = selection
         val result = entry
         var rootOffset by remember { mutableStateOf(Offset.Zero) }
+        var pageOffset by remember { mutableStateOf(Offset.Zero) }
+        var pageWidth by remember { mutableIntStateOf(0) }
         BackHandler {
-            if (state != null) dismissLookup()
+            if (state != null) {
+                (page as? SelectionWebView)?.finishSelectionMenu()
+                dismissLookup()
+            }
             else if (page.canGoBack() && !offline) { cancelSourceRestore(user = true); page.goBack() } else finish()
         }
         Box(Modifier.fillMaxSize().onGloballyPositioned { rootOffset = it.positionInWindow() }) {
@@ -201,7 +209,11 @@ class NewsReaderActivity : ComponentActivity() {
                 }
                 if (status.isNotBlank()) Text(NeutronUiStrings.text(this@NewsReaderActivity,status), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
                 if (pageProgress < 1f) LinearProgressIndicator(progress = { pageProgress }, modifier = Modifier.fillMaxWidth())
-                AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth())
+                AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth()
+                    .onGloballyPositioned {
+                        pageOffset = it.positionInWindow()
+                        pageWidth = it.size.width
+                    })
             }
         }
         if (state != null) {
@@ -229,18 +241,25 @@ class NewsReaderActivity : ComponentActivity() {
             CompositionLocalProvider(LocalAiAssistant provides aiHost) {
                 if (!details) {
                     val bounds = state.optJSONObject("bounds")
-                    val origin = IntArray(2).also { page.getLocationInWindow(it) }
-                    val scale = page.width.toFloat() / state.optDouble("viewportWidth", page.width.toDouble()).coerceAtLeast(1.0).toFloat()
+                    // Observe layout changes: status/title rows can move the WebView after
+                    // selection capture. Reading its old position during composition covers the word.
+                    val scale = pageWidth.toFloat() / state.optDouble("viewportWidth", pageWidth.toDouble()).coerceAtLeast(1.0).toFloat()
                     val rect = ComposeRect(
-                        origin[0] - rootOffset.x + (bounds?.optDouble("left") ?: 0.0).toFloat() * scale,
-                        origin[1] - rootOffset.y + (bounds?.optDouble("top") ?: 0.0).toFloat() * scale,
-                        origin[0] - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
-                        origin[1] - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
+                        pageOffset.x - rootOffset.x + (bounds?.optDouble("left") ?: 0.0).toFloat() * scale,
+                        pageOffset.y - rootOffset.y + (bounds?.optDouble("top") ?: 0.0).toFloat() * scale,
+                        pageOffset.x - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
+                        pageOffset.y - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
                     PhraseActionBar(rect, word, false, null, null,
                         quickTranslate = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
-                        onTranslate = { details = true },
+                        onTranslate = {
+                            details = true
+                            (page as? SelectionWebView)?.finishSelectionMenu()
+                        },
                         onPronounce = { speak(word, lang) },
-                        onClose = { dismissLookup() },
+                        onClose = {
+                            (page as? SelectionWebView)?.finishSelectionMenu()
+                            dismissLookup()
+                        },
                         onSave = saveSelection, alreadySaved = selectionSaved, saveKey = state)
                 } else {
                     WordLearningDialog(selected, false,
@@ -284,18 +303,25 @@ class NewsReaderActivity : ComponentActivity() {
     }
     private fun captureSelection() {
         if (isFinishing || isDestroyed) return
-        val generation = ++lookupGeneration
+        val generation = lookupGeneration
         val script = assets.open("neutron/reader-context.js").bufferedReader().use { it.readText() }
         page.evaluateJavascript(script) { raw ->
             val json = runCatching { JSONTokener(raw).nextValue() as? String }.getOrNull()
             val data = json?.let { runCatching { JSONObject(it) }.getOrNull() }
             if (generation != lookupGeneration || !readerActive || isFinishing || isDestroyed) return@evaluateJavascript
-            if (data == null) { status = NeutronUiStrings.text(this@NewsReaderActivity,"Bôi đen từ rồi bấm Tra NeutronDict."); return@evaluateJavascript }
+            if (data == null) { lookupGeneration++; dismissLookup(); return@evaluateJavascript }
             if (data.has("error")) { status = data.optString("error"); return@evaluateJavascript }
-            (page as? SelectionWebView)?.finishSelectionMenu()
+            // Hide only the floating toolbar. Finishing ActionMode also destroys the
+            // highlight and native drag handles, making phrase selection impossible.
+            (page as? SelectionWebView)?.hideSelectionToolbar()
             data.put("url", currentUrl).put("title", pageTitle)
             val detected = data.optString("language").substringBefore('-').lowercase()
             data.put("language", detected.ifBlank { language.substringBefore('-') })
+            val old = selection
+            if (old != null && listOf("word", "sentence", "url", "language", "prefix", "suffix").all {
+                    old.optString(it) == data.optString(it)
+                }) return@evaluateJavascript
+            val requestGeneration = ++lookupGeneration
             dismissLookup()
             val pending = CompletableDeferred<JSONObject>()
             lookupResult = pending
@@ -309,7 +335,7 @@ class NewsReaderActivity : ComponentActivity() {
                 }
                 try {
                     val found = meaningLookup.lookup(data.optString("word"), data.optString("language"))
-                    if (generation == lookupGeneration && selection === data) {
+                    if (requestGeneration == lookupGeneration && selection === data) {
                         entry = found
                         pending.complete(found)
                     }
@@ -414,11 +440,29 @@ class NewsReaderActivity : ComponentActivity() {
 }
 
 /** Open only after the native selection settles; never expose a bridge to article scripts. */
-internal class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit) : WebView(context) {
+internal class SelectionWebView(context: Context, private val lookup: () -> Unit, private val touched: () -> Unit, private val selectionEnded: () -> Unit) : WebView(context) {
     private var selectionMode: ActionMode? = null
     private var fingerDown = false
     private var lastRect: Rect? = null
     private var pendingLookup: Runnable? = null
+    private var toolbarHidden = false
+    private val keepToolbarHidden = object : Runnable {
+        override fun run() {
+            val mode = selectionMode ?: return
+            if (!toolbarHidden || !isAttachedToWindow) return
+            mode.hide(2000L)
+            postDelayed(this, 1000L)
+        }
+    }
+    fun hideSelectionToolbar() {
+        toolbarHidden = true
+        removeCallbacks(keepToolbarHidden)
+        keepToolbarHidden.run()
+    }
+    private fun stopHidingToolbar() {
+        toolbarHidden = false
+        removeCallbacks(keepToolbarHidden)
+    }
     private fun cancelPending() {
         pendingLookup?.let { removeCallbacks(it) }
         pendingLookup = null
@@ -435,11 +479,13 @@ internal class SelectionWebView(context: Context, private val lookup: () -> Unit
         postDelayed(task, 250L)
     }
     fun finishSelectionMenu() {
+        stopHidingToolbar()
         cancelPending()
         selectionMode?.finish()
         fingerDown = false
     }
     override fun onDetachedFromWindow() {
+        stopHidingToolbar()
         cancelPending()
         super.onDetachedFromWindow()
     }
@@ -480,14 +526,19 @@ internal class SelectionWebView(context: Context, private val lookup: () -> Unit
                     cancelPending()
                     selectionMode = null
                     lastRect = null
+                    stopHidingToolbar()
+                    selectionEnded()
                 }
                 callback.onDestroyActionMode(mode)
             }
             override fun onGetContentRect(mode: ActionMode, view: View, rect: Rect) {
                 if (callback is ActionMode.Callback2) callback.onGetContentRect(mode, view, rect)
                 else super.onGetContentRect(mode, view, rect)
-                if (lastRect != rect) {
+                if (selectionMode === mode && lastRect != rect) {
                     lastRect = Rect(rect)
+                    // WebView selection handles live in another window; their drags do
+                    // not necessarily pass through this WebView's onTouchEvent.
+                    touched()
                     scheduleLookup()
                 }
             }

@@ -5,6 +5,7 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     IntegrationSmokeTest.class,
     com.kienhoang.dualsubreplay.ui.NeutronReaderNativeTest.class,
+    com.kienhoang.dualsubreplay.ui.ReaderSelectionGestureTest.class,
     com.kienhoang.dualsubreplay.ui.NeutronCaptionChunkUiTest.class,
     com.kienhoang.dualsubreplay.ui.NeutronReaderPopupUiTest.class,
     com.kienhoang.dualsubreplay.ui.WordLearningDialogTest.class,
