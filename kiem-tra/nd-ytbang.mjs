@@ -43,7 +43,7 @@ const KHO = { "quen|ja:auto": { ts: Date.now(),
   cau: [{ s:"これは酒です。", t:1, tEnd:4 }, { s:"とても美味しい。", t:4, tEnd:7 }],
   dich: { 0:"Đây là rượu.", 1:"Rất ngon." }, tieuDe:"Thử", kenh:"K" } };
 await sw.evaluate(async ([kho, sua]) => {
-  await chrome.storage.local.set({ settings:{ ngu:"ja" }, notebook:{}, phuDeSua: sua, ytKho: kho });
+  await chrome.storage.local.set({ settings:{ ngu:"ja", ytPhoi:true }, notebook:{}, phuDeSua: sua, ytKho: kho });
 }, [KHO, SUA]);
 
 const page = await ctx.newPage();
@@ -63,6 +63,7 @@ const trong = (fn, arg) => page.evaluate(([f, a]) => {
   return new Function("r", "a", f)(h.shadowRoot, a);
 }, [fn, arg === undefined ? null : arg]);
 
+soat("không còn bản lời thoại ẩn dù cấu hình cũ từng bật",await page.locator("#neutrondict-loi-thoai,[data-ndict-phoi]").count()===0);
 const nut = await trong(`return [...r.querySelectorAll(".top .chip")].map(b => b.title || b.textContent)`);
 soat("thanh tiêu đề còn đủ nút", !!nut && nut.length >= 4, JSON.stringify(nut));
 soat("và KHÔNG còn nút cỡ khung hình",

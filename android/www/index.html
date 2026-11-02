@@ -278,13 +278,7 @@
           <input type="checkbox" id="setTach">
           <span data-chu>Bấm nút thì có tiếng tách nhẹ, như các app Android</span>
         </label>
-        <label class="check" style="margin-bottom:6px">
-          <input type="checkbox" id="setNhacTau">
-          <span data-chu>Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào</span>
-        </label>
-        <div class="rowx" style="gap:8px;margin-bottom:6px">
-          <button id="nghThu" class="btn xs" type="button" data-chu>Nghe thử một đoạn</button>
-        </div>
+        
         <label class="field-label" style="margin-top:6px" data-chu>Nhắc tập trung bằng loa, kể từ lúc mở app</label>
         <div class="rowx" style="gap:8px">
           <input type="number" id="setNhac" min="0" max="240" style="max-width:110px">
@@ -301,8 +295,8 @@
     <details class="box" id="notifBox">
       <summary data-chu><span id="icBell"></span> Nhắc học hằng ngày <span class="caret" id="cr2"></span></summary>
       <div class="boxbody">
-        <label class="field-label" data-chu>Giờ nhắc mỗi ngày</label>
-        <input id="notifTime" type="time" value="20:00">
+        <label class="field-label" data-chu>Nhắc học tự động</label>
+        <p class="t-small muted" data-chu>App tự chọn giờ phù hợp, tối đa 3 lời nhắc/ngày khi chưa hoàn thành. Im lặng từ 21:30 đến 09:00.</p>
         <div class="rowx" style="gap:8px">
           <button id="notifOn" class="btn sm primary grow" type="button" data-chu>Bật nhắc nhở</button>
           <button id="notifOff" class="btn sm grow" type="button" data-chu>Tắt</button>
@@ -390,6 +384,7 @@
       <div class="t-small muted" id="stIdleSub" style="margin-top:6px" data-chu>Bấm nút bên dưới để ôn các mục đến hạn hôm nay.</div>
     </div>
 
+    <div id="adaptivePlan"></div>
     <button id="stStart" class="btn primary block lg" style="margin-top:14px" type="button" data-chu>
       Bắt đầu học <span class="tag" id="dueCount" style="background:rgba(255,255,255,.35);color:var(--accent-ink)">0</span>
     </button>
@@ -594,6 +589,9 @@
 <script src="kanji-data.js"></script>
   <script src="han-tu.js"></script>
   <script src="srs.js"></script>
+<script src="vendor/ts-fsrs.js"></script>
+<script src="adaptive-study.js"></script>
+<script src="study-plan-ui.js"></script>
   <script src="lich-rieng-ui.js"></script>
   <script src="duong-rieng-ui.js"></script>
   <script src="cau-nghe.js"></script>
@@ -604,7 +602,6 @@
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
-  <script src="nhac-tau.js"></script>
   <script src="nhip-doc.js"></script>
   <script src="ngu.js"></script>
   <script src="thuat-ngu.js"></script>

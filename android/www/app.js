@@ -676,13 +676,32 @@ async function gradeWord(key, remembered, ms, duong, chat) {
     const batDau = cu || (d === "nhin" && e.srs ? { lv: e.srs.lv } : null);
     let kq = window.Srs.cham(batDau, remembered, ms || 0, tkAll[d], Date.now(), d, Math.random(), chat, lich);
     kq = window.Srs.phoiHop(e, d, kq, remembered, Date.now(), lich);
+    const reviewAt = Date.now();
+    const studyPrefs = window.AdaptiveStudy.normal(window.Ngu.tachHoc(await Store.get("hoc"))[NGU]?.study).prefs;
+    kq = window.AdaptiveStudy.observe(batDau, kq, !!remembered, d, reviewAt, studyPrefs.mode);
+    const reviewKey = key + "|" + d;
+    const reviewTiming = window.AdaptiveStudy.takeMetrics(reviewKey);
+    const recorded = window.AdaptiveStudy.appendReview(e.reviewLog, {
+      at: reviewAt, cardKey: reviewKey, wordKey: key, route: d, correct: !!remembered,
+      activeMs: reviewTiming.activeMs, responseMs: ms || 0,
+      isNew: !!batDau?.reviewReset || !(batDau?.ts || batDau?.lv >= 0), lagDays: (batDau?.reviewedAt ?? batDau?.ts) ? Math.max(0, reviewAt-(batDau.reviewedAt ?? batDau.ts))/86400000 : 0,
+      hinted: reviewTiming.hinted, prediction: kq.modelLog?.prediction,
+      model: "FSRS-6-default", mode: studyPrefs.mode,
+      initialState: batDau?.fsrs ? undefined : {stability: window.Srs.ngayCua(batDau), lastReview: batDau?.reviewedAt ?? batDau?.ts ?? null}
+    });
+    kq.duong.reviewId = recorded.event.id;
+    kq.duong.reviewedAt = reviewAt;
+    kq.retryAllowed = Object.values(recorded.log).filter(x => !x.undoAt && x.cardKey === reviewKey && x.day === recorded.event.day).length < 2;
+    if (session.adaptive) session.adaptiveSpent = (session.adaptiveSpent || 0) + recorded.event.activeMs;
     const moi = Object.assign({}, e, { duong: Object.assign({}, e.duong || {}, { [d]: kq.duong }), ts: Date.now() });
     // Đạt mức tối đa (mọi đường chạm trần) thì đóng băng — chỉ xét ở lượt nhớ.
     let vuaToiDa = false;
     if (remembered && !moi.dongBang && window.Srs.toiDa(moi)) { moi.dongBang = 1; vuaToiDa = true; }
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
+    moi.reviewLog = recorded.log;
     nb[key] = moi; tkAll[d] = kq.tk;
     await setNB(nb); await Store.set("nhipMs", tkAll); nhipMs = tkAll;
+    refreshNotifications().catch(()=>{});
     return Object.assign({}, kq, { vuaToiDa: vuaToiDa, truoc: truoc, tkTruoc: tkTruoc });
   });
 }
@@ -976,9 +995,14 @@ const theoDoi = window.TienDo.tao({
   },
   ghi: async (d) => {
     const cu = window.Ngu.tachHoc(await Store.get("hoc"));
+    d.study = window.AdaptiveStudy.merge(cu[nguDaNap || NGU]?.study, d.study);
     await Store.set("hoc", Object.assign({}, cu, { [nguDaNap || NGU]: d }));
   },
-  soLieu: soLieuSoTay,
+  soLieu: async () => {
+    const basic=await soLieuSoTay(), snap=await readAdaptiveSnapshot();
+    return {...basic,adaptive:{summary:window.AdaptiveStudy.summary(snap.state,snap.events),
+      days:window.AdaptiveStudy.stats(snap.events).days,plans:window.AdaptiveStudy.normal(snap.state).plans}};
+  },
   sauKhiGhi: () => syncSoon()
 });
 
@@ -1002,7 +1026,7 @@ async function veChuoiNgay() {
   const chip = $("streakChip");
   chip.innerHTML = window.Icon("fire", { size: 15, weight: view.homNay.dat ? "solid" : "line" });
   chip.appendChild(el("span", null,
-    (view.chuoi.hienTai ? view.chuoi.hienTai + " ngày · " : "") + view.homNay.on + "/" + view.goal));
+    (view.chuoi.hienTai ? view.chuoi.hienTai + " · " : "") + (view.adaptive ? (view.adaptive.done ? "✓" : view.adaptive.goalCards ? view.adaptive.completedCards+"/"+view.adaptive.goalCards : T2("{n} phút",{n:view.adaptive.minutes})) : view.homNay.on + "/" + view.goal)));
   chip.style.display = "";
   chip.onclick = () => show("Progress");
 }
@@ -1580,39 +1604,62 @@ function syncSoon(ngu) {
 /* Thông báo nhắc học                                                   */
 /* ==================================================================== */
 
-async function refreshNotifications() {
-  const LN = Plugins.LocalNotifications;
-  if (!LN) return;
-  const cfg = (await Store.get("notifCfg")) || {};
-  if (!cfg.on) return;
-  try {
-    const perm = await LN.checkPermissions();
-    if (perm.display !== "granted") { const r = await LN.requestPermissions(); if (r.display !== "granted") return; }
-    await LN.cancel({ notifications: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ id })) });
-    const nb = await getNB();
-    const list = Object.values(nb);
-    const view = await theoDoi.xem();
-    const [hh, mm] = (cfg.time || "20:00").split(":").map(Number);
-    const notis = [];
-    for (let d = 0; d < 7; d++) {
-      const at = new Date(); at.setDate(at.getDate() + d); at.setHours(hh, mm, 0, 0);
-      if (at.getTime() <= Date.now()) continue;
-      const n = dueCountOn(list, d);
-      if (n <= 0) continue;
-      // Nhắc kèm chuỗi ngày: "mất chuỗi 12 ngày" là lý do đứng dậy học mạnh hơn
-      // nhiều so với "có 8 từ đến hạn".
-      const chuoi = d === 0 && view.chuoi.hienTai > 0 && !view.homNay.dat
-        ? T2(" Chuỗi {n} ngày đang chờ bạn.", { n: view.chuoi.hienTai })
-        : "";
-      notis.push({
-        id: d + 1,
-        title: T("Đến giờ ôn từ vựng"),
-        body: T2("Hôm nay có {n} mục đến hạn.", { n: n }) + chuoi,
-        schedule: { at }
-      });
+let refreshingNotifications = Promise.resolve();
+function refreshNotifications(allowPrompt=false) {
+  refreshingNotifications = refreshingNotifications.catch(()=>{}).then(()=>scheduleAdaptiveNotifications(allowPrompt)).catch(()=>false);
+  return refreshingNotifications;
+}
+async function scheduleAdaptiveNotifications(allowPrompt=false) {
+  const LN=Plugins.LocalNotifications;if(!LN)return false;
+  const cfg=(await Store.get("notifCfg"))||{};
+  const oldIds=(await Store.get("notifScheduledIds"))||[];
+  const cancelIds=[...new Set([1,2,3,4,5,6,7,...oldIds])];
+  await LN.cancel({notifications:cancelIds.map(id=>({id}))});
+  if(cfg.on===false)return false;
+  let permission=await LN.checkPermissions();
+  if(permission.display!=="granted"){
+    if(cfg.asked||!allowPrompt)return false;
+    await Store.set("notifCfg",{...cfg,on:true,asked:true,since:cfg.since||Date.now()});
+    permission=await LN.requestPermissions();
+    if(permission.display!=="granted")return false;
+  }
+  const now=Date.now(),since=cfg.since||now;
+  if(!cfg.since)await Store.set("notifCfg",{...cfg,on:true,since});
+  const nb=await getNBNgu();
+  const items=Object.entries(nb).map(([key,v])=>({key,...v}));
+  const events=window.AdaptiveStudy.allEvents(items);
+  const state=window.Ngu.tachHoc(await Store.get("hoc"))[NGU]?.study;
+  const last=events.filter(x=>x.at<=now).at(-1)?.at||since;
+  const slots=(await Store.get("notifSlots"))||{},notis=[];
+  const bodies=[
+    "Có vài từ đang chờ bạn. Làm một chặng ngắn nhé?",
+    "Gấu quay lại rồi đây 👀 Hai phút ôn bài nào!",
+    "Hôm nay mình chưa học xong cùng nhau. Thử một chặng ngắn nhé?"
+  ];
+  for(let day=0;day<7;day++){
+    const date=new Date(now);date.setDate(date.getDate()+day);
+    if(day)date.setHours(0,0,0,0);
+    const at=+date,key=window.AdaptiveStudy.dateKey(at);
+    if(at-last>7*86400000)continue;
+    const done=window.AdaptiveStudy.summary(state,events,at).done;
+    if(done)continue;
+    const due=items.some(it=>window.Srs.denHan(it,at).length) ||
+      (NGU==="ja"&&window.StudyGrammar.queue(items,at).length>0);
+    if(!due)continue;
+    if(!slots[key])slots[key]=window.AdaptiveStudy.reminderTimes(events,state,at);
+    const chosen=at-last>3*86400000?slots[key].slice(0,1):slots[key];
+    for(const slot of chosen){
+      if(slot.at<=now)continue;
+      const id=700000+Math.floor(slot.at/86400000)*3+slot.kind;
+      notis.push({id,title:T("Gấu rủ bạn học 🐻"),body:T(bodies[slot.kind]),schedule:{at:new Date(slot.at)},extra:{study:true,day:key}});
     }
-    if (notis.length) await LN.schedule({ notifications: notis });
-  } catch (e) { /* bỏ qua */ }
+  }
+  // Keep today's original slots: repeated refreshes cannot create extra reminders.
+  const cutoff=window.AdaptiveStudy.dateKey(now-86400000);
+  await Store.set("notifSlots",Object.fromEntries(Object.entries(slots).filter(([day])=>day>=cutoff)));
+  await Store.set("notifScheduledIds",notis.map(x=>x.id));
+  if(notis.length)await LN.schedule({notifications:notis});
+  return true;
 }
 
 /* ==================================================================== */
@@ -1882,11 +1929,24 @@ async function ghiNguPhap(q, ketQua, chiBang) {
     }
     if (!moi) return null;
     kho[key] = moi;
+    if (q.onId && nb[q.key] && ketQua !== "mo") {
+      const item = nb[q.key], cardKey = "grammar|" + q.cau;
+      if (!Object.values(item.reviewLog || {}).some(x => x.attemptId === q.onId + "|" + ketQua)) {
+        const recorded = window.AdaptiveStudy.appendReview(item.reviewLog, {
+          at: bayGio, wordKey: q.key, cardKey, route: "grammar", attemptId: q.onId + "|" + ketQua,
+          correct: ketQua === "dung" || ketQua === "sua", isNew: !q.tsDau,
+          activeMs: window.AdaptiveStudy.takeClock(cardKey), lagDays: q.tsDau ? (bayGio-q.tsDau)/86400000 : 0
+        });
+        nb[q.key] = Object.assign({}, item, { reviewLog: recorded.log });
+        if (session.adaptive) session.adaptiveSpent = (session.adaptiveSpent || 0) + recorded.event.activeMs;
+      }
+    }
     await Store.set("nguPhapSrs", kho);
+    await setNB(nb);
     window.StudyGrammar.remember(q, moi);
     return moi;
   });
-  if (ra) syncSoon();
+  if (ra) { syncSoon(); refreshNotifications().catch(()=>{}); refreshStudyPlan(); }
   return ra;
 }
 
@@ -1932,16 +1992,16 @@ function show(view, huong) {
     if (cu >= 0) lichSu.length = cu + 1; else lichSu.push(view);
   }
   manHienTai = view;
+  window.AdaptiveStudy.pauseClock(view !== "Study",false);
   $("scroller").scrollTop = 0;
   veNav();
   veThanhChonNb();
 
   if (view !== "Study") dungNgheTrongHoc();
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
-  if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
   if (view !== "Study")  if (view === "Notebook") { drawNotebook().then(boiNguCanhCu); pullAndRefresh(); }
-  if (view === "Study") { updateDueButton(); pullAndRefresh(); }
+  if (view === "Study") { updateDueButton(); pullAndRefresh(); refreshNotifications(true); }
   if (view === "Speak") veLuyenNoi();
   if (view === "Grammar") window.NguPhapUI.lamMoi();
   if (view === "Jlpt") moJlpt();
@@ -3952,15 +4012,13 @@ $("syncNow").addEventListener("click", async () => {
 
 /* --- nhắc học --- */
 $("notifOn").addEventListener("click", async () => {
-  await Store.set("notifCfg", { on: true, time: $("notifTime").value || "20:00" });
-  await refreshNotifications();
-  $("notifStatus").textContent = T2("Đã bật nhắc lúc {gio} hằng ngày.", { gio: $("notifTime").value || "20:00" });
+  await Store.set("notifCfg", { on: true, asked: false, since: Date.now() });
+  const enabled=await refreshNotifications(true);
+  $("notifStatus").textContent = T(enabled ? "Đã bật nhắc học tự động." : "Hãy cho phép thông báo trong cài đặt điện thoại.");
 });
 $("notifOff").addEventListener("click", async () => {
   await Store.set("notifCfg", { on: false });
-  if (Plugins.LocalNotifications) {
-    try { await Plugins.LocalNotifications.cancel({ notifications: [1, 2, 3, 4, 5, 6, 7].map((id) => ({ id })) }); } catch (e) {}
-  }
+  await refreshNotifications();
   $("notifStatus").textContent = T("Đã tắt nhắc nhở.");
 });
 
@@ -4117,6 +4175,8 @@ async function updateDueButton() {
     ? T2("Hôm nay đã đạt mục tiêu {dich} lượt. Chuỗi {n} ngày.", { dich: view.goal, n: Math.max(1, view.chuoi.hienTai) })
     : T2("Ôn thêm {n} lượt nữa là đạt mục tiêu hôm nay.", { n: view.homNay.conLai });
   $("stStart").disabled = due.length === 0;
+  $("stIdleSub").textContent = await adaptiveSummaryText();
+  refreshStudyPlan();
 }
 
 /**
@@ -4128,6 +4188,8 @@ async function napMucDaLuu() {
   mucDaLuu = Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del);
 }
 
+let adaptiveExtraRequested = false;
+function startAdaptiveExtra(){adaptiveExtraRequested=true;$("stStart").click();}
 $("stStart").addEventListener("click", async () => {
   await napMucDaLuu();
   const due = await currentDue();
@@ -4138,10 +4200,10 @@ $("stStart").addEventListener("click", async () => {
    * công cốc.
    */
   const khoi = await currentDueKhoi();
-  const hang = [];
-  for (const k of khoi.slice().sort(() => Math.random() - 0.5)) for (const x of k) hang.push(x);
-
-  session = { queue: hang.length ? hang : due.sort(() => Math.random() - 0.5),
+  const extra=adaptiveExtraRequested; adaptiveExtraRequested=false;
+  const selected=await prepareAdaptiveQueue(khoi.flat(),extra);
+  if(!selected.queue.length)return;
+  session = { queue: selected.queue, adaptive:selected, adaptiveSpent:0,
               done: 0, again: 0, deleted: 0 };
   lastDeleted = null;
   $("stUndo").style.display = "none";
@@ -4149,7 +4211,6 @@ $("stStart").addEventListener("click", async () => {
   $("stBody").style.display = "";
   $("stStart").style.display = "none";
   if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-  batNhacTau();
   showCard();
 });
 
@@ -4163,7 +4224,7 @@ function hangDoiDuong(scopeList, ds) {
   const ra = [];
   for (const it of scopeList) {
     if (it.del) continue;
-    const d = ds.find((t) => window.Srs.denHanDuong(it, t, now));
+    const d = window.AdaptiveStudy.order(ds.filter(t=>window.Srs.denHanDuong(it,t,now)).map(t=>({...it,_d:t})),now)[0]?._d;
     if (d) ra.push(Object.assign({}, it, { _d: d }));
   }
   return ra;
@@ -4175,17 +4236,17 @@ async function startStudyDuong() {
   const lay = () => setIn(Object.entries(nb).map(([key, v]) => ({ key, ...v })).filter((it) => !it.del), curDeck);
   window.DuongRiengUI.mo(
     (ds) => hangDoiDuong(lay(), ds).length,
-    (ds) => {
-      const hang = hangDoiDuong(lay(), ds).sort(() => Math.random() - 0.5);
+    async (ds) => {
+      const selected=await prepareAdaptiveQueue(hangDoiDuong(lay(),ds));
+      const hang=selected.queue;
       if (!hang.length) { toast(T("Chưa có bài nào đến hạn ở loại này."), "bad"); return; }
-      session = { queue: hang, done: 0, again: 0, deleted: 0 };
+      session = { queue: hang, adaptive:selected, adaptiveSpent:0, done: 0, again: 0, deleted: 0 };
       lastDeleted = null;
       $("stUndo").style.display = "none";
       $("stIdle").style.display = "none";
       $("stBody").style.display = "";
       $("stStart").style.display = "none";
       if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-      batNhacTau();
       showCard();
     });
 }
@@ -4214,7 +4275,6 @@ async function hocRieng(it, ds) {
   $("stBody").style.display = "";
   $("stStart").style.display = "none";
   if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-  batNhacTau();
   showCard();
 }
 
@@ -4295,7 +4355,7 @@ function renderStudyFav(it) {
 /* ==================================================================== */
 
 /** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
-const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true };
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, tach: true };
 let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
 
 function nhipTocHopLe(v) {
@@ -4331,20 +4391,6 @@ function datLoiNhac() {
 // Tiếng tách khi bấm nút: gắn MỘT người nghe cho cả trang, hỏi lại cài đặt ở
 // từng lượt bấm. Gắn từng nút một thì mỗi nút mới dựng ra sau này lại câm.
 if (window.CoVu) window.CoVu.ngheNut(document, () => CAI_NHIP.tach !== false);
-
-/**
- * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
- *
- * `duoc()` được hỏi lại ở TỪNG lượt chứ không chỉ lúc bật: người ta có thể đã
- * sang màn khác, đóng buổi học, hay tắt màn hình — lúc đó nhạc vang lên là quấy rầy.
- */
-function batNhacTau() {
-  if (!window.NhacTau) return;
-  if (CAI_NHIP.nhacTau === false) { window.NhacTau.tat(); return; }
-  window.NhacTau.bat({
-    duoc: () => manHienTai === "Study" && $("stBody").style.display !== "none" && !document.hidden
-  });
-}
 
 const HU_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
 const HU_V = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.8l5 5L19.5 7"/></svg>';
@@ -4387,7 +4433,6 @@ async function napNhip() {
   if ($("setNhipToc")) $("setNhipToc").value = CAI_NHIP.nhipToc || NHIP_MAC_DINH.nhipToc;
   if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = CAI_NHIP.coVu !== false;
-  if ($("setNhacTau")) $("setNhacTau").checked = CAI_NHIP.nhacTau !== false;
   if ($("setTach")) $("setTach").checked = CAI_NHIP.tach !== false;
   datLoiNhac();
 }
@@ -4398,19 +4443,12 @@ async function luuNhip() {
     nhipToc: nhipTocHopLe($("setNhipToc").value),
     nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0)),
     coVu: $("setCoVu").checked,
-    nhacTau: $("setNhacTau").checked,
     tach: $("setTach").checked
   });
   await napNhip();
   $("nhipStatus").textContent = T("Đã lưu.");
 }
 if ($("saveNhip")) $("saveNhip").addEventListener("click", luuNhip);
-// Nghe thử: chỉnh âm lượng loa cho vừa tai TRƯỚC khi vào học, chứ đang học mà
-// nhạc vang to quá thì lúc mò nút đã mất mạch rồi.
-if ($("nghThu")) $("nghThu").addEventListener("click", () => {
-  const t = window.NhacTau && window.NhacTau.phatMot();
-  if (t) $("nhipStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
-});
 
 /*
  * Bấm giờ truy xuất — đo từ lúc thẻ hiện ra tới lúc bấm Nhớ. Quãng này gồm cả
@@ -4434,6 +4472,7 @@ let msDaDung = null;
 
 /** Dừng đồng hồ ngay tại đây. Gọi nhiều lần thì giữ mốc ĐẦU TIÊN. */
 function dungDongHo() {
+  window.AdaptiveStudy.pauseClock(true);
   if (msDaDung !== null) return;
   if (mocHienThe) msDaDung = Math.round(performance.now() - mocHienThe);
   else if (baiDien && baiDien.moc) msDaDung = Math.round(performance.now() - baiDien.moc);
@@ -4466,6 +4505,7 @@ function veNguPhapTrongHoc(it) {
 }
 
 function showCard(giuLat, xem) {
+  if (!xem && session.adaptive && session.adaptiveSpent >= session.adaptive.budgetMs) session.queue = [];
   dungNgheTrongHoc();
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();   // thẻ mới: nhịp của thẻ cũ phải tắt
@@ -4473,6 +4513,8 @@ function showCard(giuLat, xem) {
   if (!xem) session.xem = null;
   const it = xem || session.queue[0];
   theTrenMan = it;
+  if (!xem && it) window.AdaptiveStudy.startClock(it);
+  else window.AdaptiveStudy.clearClock();
   // Đang làm bài điền khuyết ở thẻ trước thì xoá trạng thái đó NGAY: sang thẻ khác bằng ›, ‹,
   // đóng buổi học… mà không xoá thì `baiDien` kẹt lại và chặn Space, F/J, vuốt trên cả thẻ thường.
   baiDien = null;
@@ -4729,7 +4771,7 @@ async function chonDien(chon) {
   if (daCham.vuaToiDa) toast(T("Đạt mức tối đa — từ này đã được đóng băng. Mở lại ở nút “Đang đóng băng”."), "good");
   let banSao = null;
   if (nho) session.done++;
-  else { session.again++; banSao = Object.assign({}, b.it); session.queue.push(banSao); }
+  else { session.again++; if (daCham.retryAllowed) { banSao = Object.assign({}, b.it); session.queue.push(banSao); } }
   session.lichSu = (session.lichSu || []).concat([{
     the: b.it, key: b.it.key, duong: "dien", nho: nho,
     truoc: daCham.truoc, tkTruoc: daCham.tkTruoc, sau: daCham.duong, tkSau: daCham.tk, banSao: banSao,
@@ -4932,7 +4974,7 @@ async function grade(remembered, tuVuot) {
   else toast(chuBaoCham(remembered, truocDiem, (await getNB())[it.key], it._d || "nhin"));
   let banSao = null;
   if (remembered) session.done++;
-  else { session.again++; banSao = Object.assign({}, it); session.queue.push(banSao); }  // quên -> học lại cuối hàng
+  else { session.again++; if (kqCham.retryAllowed) { banSao = Object.assign({}, it); session.queue.push(banSao); } }
   // Nhớ lại lượt chấm để nút ‹ lấy về xem hoặc chấm lại. Chỉ giữ vài lượt gần nhất.
   session.lichSu = (session.lichSu || []).concat([{
     the: it, key: it.key, duong: it._d || "nhin", nho: remembered,
@@ -4988,7 +5030,11 @@ async function huyLuot(b) {
     if (b.sau && !cungNoiDung((e.duong || {})[b.duong], b.sau)) return false;
     const d = Object.assign({}, e.duong || {});
     if (b.truoc) d[b.duong] = b.truoc; else delete d[b.duong];
+    // Keep an undo timestamp so a stale device cannot restore the reverted route.
+    if (d[b.duong]) d[b.duong] = Object.assign({}, d[b.duong], { reviewedAt: d[b.duong].reviewedAt || d[b.duong].ts || 0, ts: Math.max(Date.now(), (e.duong?.[b.duong]?.ts || 0)+1) });
+    else d[b.duong] = { lv: -1, ngay: 0, due: Date.now(), reviewedAt: 0, reviewReset: true, ts: Math.max(Date.now(), (e.duong?.[b.duong]?.ts || 0)+1) };
     const moi = Object.assign({}, e, { duong: d, ts: Date.now() });
+    moi.reviewLog = window.AdaptiveStudy.undoReview(e.reviewLog, b.sau?.reviewId);
     if (b.vuaToiDa) delete moi.dongBang;
     moi.srs = window.Srs.gomSrs(moi) || { lv: -1, due: Date.now(), ts: Date.now() };
     nb[b.key] = moi;
@@ -5124,6 +5170,7 @@ $("stUndoBtn").addEventListener("click", async () => {
 
 /** Dừng buổi học giữa chừng (nút Quay lại của máy). */
 function ketThucSom() {
+  window.AdaptiveStudy.clearClock();
   dungNgheTrongHoc();
   session = { queue: [], done: 0, again: 0, deleted: 0 };
   theTrenMan = null;
@@ -5137,10 +5184,10 @@ function ketThucSom() {
 }
 
 async function finishStudy() {
+  window.AdaptiveStudy.clearClock();
   dungNgheTrongHoc();
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();
-  if (window.NhacTau) window.NhacTau.tat();
   theTrenMan = null;
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";
@@ -5177,7 +5224,9 @@ async function finishStudy() {
   phan.push(view.homNay.dat
     ? T2("Hôm nay đạt mục tiêu — chuỗi {n} ngày.", { n: Math.max(1, view.chuoi.hienTai) })
     : T2("Còn {n} lượt nữa là đạt mục tiêu hôm nay.", { n: view.homNay.conLai }));
-  $("stIdleSub").textContent = phan.join(" · ");
+  $("stIdleTitle").textContent=T("Đã xong chặng học");
+  $("stIdleSub").textContent = await adaptiveSummaryText();
+  refreshStudyPlan();
 
   session = { queue: [], done: 0, again: 0, deleted: 0 };
   const due = await currentDue();
@@ -5428,8 +5477,12 @@ async function donHuyHieu() {
     }).catch(() => {});
   }
   await napNhip();      // đồng hồ nhắc tập trung đếm từ đây — lúc mở app
-  const ncfg = (await Store.get("notifCfg")) || {};
-  if (ncfg.time) $("notifTime").value = ncfg.time;
+  if(Plugins.LocalNotifications?.addListener) {
+    Plugins.LocalNotifications.addListener("localNotificationActionPerformed", event => {
+      if(event.notification?.extra?.study){show("Study");updateDueButton();}
+    });
+  }
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshNotifications().catch(()=>{});});
 
   updateDueButton();
   refreshNotifications();
@@ -5442,3 +5495,47 @@ async function donHuyHieu() {
   // máy tính, hoặc lưu qua menu Chia sẻ) nên không đi qua đường chấm bài.
   mung(await theoDoi.xetHuyHieu());
 })();
+
+/* Shared daily plan: full language collection, independent of the selected deck. */
+async function readAdaptiveSnapshot(){
+  const nb=await getNB(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
+  const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+  return {state:hoc[NGU]?.study,events:window.AdaptiveStudy.allEvents(all)};
+}
+async function changeAdaptiveState(fn){
+  await xepHang(async()=>{
+    const nb=await getNB(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
+    const old=hoc[NGU]||{};
+    hoc[NGU]={...old,study:fn(old.study)};
+    await Store.set("hoc",hoc);
+  });
+  syncSoon();
+  await refreshNotifications();
+}
+async function prepareAdaptiveQueue(queue,extra=false){
+  let selected;
+  await xepHang(async()=>{
+    const nb=await getNB(), hoc=window.Ngu.tachHoc(await Store.get("hoc"));
+    const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
+    selected=window.AdaptiveStudy.select(queue,hoc[NGU]?.study,window.AdaptiveStudy.allEvents(all),Date.now(),extra,hangDoiKhoi(all).flat());
+    hoc[NGU]={...(hoc[NGU]||{}),study:selected.state};
+    await Store.set("hoc",hoc);
+  });
+  if(!selected.queue.length)toast(T((selected.stats.today.ms>=selected.plan.goalMs || (selected.plan.goalCards>0 && selected.stats.today.unique.size>=selected.plan.goalCards))
+    ?"Hôm nay đã đủ. Bạn có thể chọn Học thêm 3 phút."
+    :"Các bài này đã luyện đủ hôm nay. Hãy quay lại ngày mai."));
+  return selected;
+}
+async function adaptiveSummaryText(){
+  const snap=await readAdaptiveSnapshot(),s=window.AdaptiveStudy.summary(snap.state,snap.events);
+  return s.done?T("Đã xong kế hoạch hôm nay"):T2("{done}/{goal} phút · còn khoảng {left} phút",{done:Math.floor(s.doneMs/60000),goal:Math.round(s.goalMs/60000*10)/10,left:s.minutes});
+}
+let adaptivePlanUI;
+function refreshStudyPlan(){
+  if(!adaptivePlanUI)adaptivePlanUI=window.StudyPlanUI.mount($("adaptivePlan"),{
+    read:readAdaptiveSnapshot,change:changeAdaptiveState,startExtra:()=>startAdaptiveExtra()
+  });
+  else adaptivePlanUI.refresh().catch(()=>{});
+}
+window.addEventListener("rakulang-language",refreshStudyPlan);
+setTimeout(refreshStudyPlan,0);

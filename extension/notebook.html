@@ -121,6 +121,7 @@
     <button id="pageProgress" type="button" data-chu>Tiến độ</button>
   </div>
 
+  <div id="adaptivePlan"></div>
   <button id="study" class="btn primary block lg" type="button">
     <span id="studyLabel" data-chu>Học ngay</span><span id="studyCho" hidden></span> <span id="dueCount" class="tag" style="background:rgba(255,255,255,.35);color:var(--accent-ink)">0</span>
   </button>
@@ -243,10 +244,7 @@
         <input type="checkbox" id="setYtAuto">
         <span data-chu>Tự bật bảng lời thoại khi mở video YouTube (tắt để tiết kiệm: video mới chỉ hiện nút, bấm mới lấy phụ đề và dịch)</span>
       </label>
-      <label class="check">
-        <input type="checkbox" id="setYtPhoi">
-        <span data-chu>Cho trợ lý AI khác (ChatGPT, Gemini…) đọc được lời thoại: đặt thêm một bản chữ khuất mắt vào trang YouTube</span>
-      </label>
+      
       <label class="check">
         <input type="checkbox" id="setNhip">
         <span data-chu>Chế độ học: lật thẻ xong thì chạy nhịp đọc — từng cụm trong câu lần lượt to lên và đổi màu, lặp lại</span>
@@ -268,13 +266,7 @@
         <input type="checkbox" id="setTach">
         <span data-chu>Bấm nút thì có tiếng tách nhẹ, như các app Android</span>
       </label>
-      <label class="check">
-        <input type="checkbox" id="setNhacTau">
-        <span data-chu>Nhạc ga tàu tuyến Yamanote trong lúc học — vang lên thưa thớt, không theo chu kỳ nào</span>
-      </label>
-      <div class="rowx" style="gap:8px">
-        <button id="nghThu" class="btn xs" type="button" data-chu>Nghe thử một đoạn</button>
-      </div>
+      
       <label class="field-label" style="margin-top:4px" data-chu>Nhắc tập trung bằng loa, kể từ lúc mở sổ tay</label>
       <div class="rowx" style="gap:8px">
         <input type="number" id="setNhac" min="0" max="240" style="max-width:110px">
@@ -621,6 +613,9 @@
   <script src="han-tu.js"></script>
   <script src="ngu.js"></script>
   <script src="srs.js"></script>
+<script src="vendor/ts-fsrs.js"></script>
+<script src="adaptive-study.js"></script>
+<script src="study-plan-ui.js"></script>
   <script src="the-vuot.js"></script>
   <script src="hang-vuot.js"></script>
   <script src="lich-rieng-ui.js"></script>
@@ -633,7 +628,6 @@
   <script src="hoi-gemini.js"></script>
   <script src="kana.js"></script>
   <script src="co-vu.js"></script>
-  <script src="nhac-tau.js"></script>
   <script src="nhip-doc.js"></script>
   <script src="muc.js"></script>
   <script src="ghi-am.js"></script>
