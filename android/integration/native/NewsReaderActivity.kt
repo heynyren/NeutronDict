@@ -182,6 +182,8 @@ class NewsReaderActivity : ComponentActivity() {
         val state = selection
         val result = entry
         var rootOffset by remember { mutableStateOf(Offset.Zero) }
+        var pageOffset by remember { mutableStateOf(Offset.Zero) }
+        var pageWidth by remember { mutableIntStateOf(0) }
         BackHandler {
             if (state != null) {
                 (page as? SelectionWebView)?.finishSelectionMenu()
@@ -207,7 +209,11 @@ class NewsReaderActivity : ComponentActivity() {
                 }
                 if (status.isNotBlank()) Text(NeutronUiStrings.text(this@NewsReaderActivity,status), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(8.dp))
                 if (pageProgress < 1f) LinearProgressIndicator(progress = { pageProgress }, modifier = Modifier.fillMaxWidth())
-                AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth())
+                AndroidView(factory = { page }, modifier = Modifier.weight(1f).fillMaxWidth()
+                    .onGloballyPositioned {
+                        pageOffset = it.positionInWindow()
+                        pageWidth = it.size.width
+                    })
             }
         }
         if (state != null) {
@@ -235,13 +241,14 @@ class NewsReaderActivity : ComponentActivity() {
             CompositionLocalProvider(LocalAiAssistant provides aiHost) {
                 if (!details) {
                     val bounds = state.optJSONObject("bounds")
-                    val origin = IntArray(2).also { page.getLocationInWindow(it) }
-                    val scale = page.width.toFloat() / state.optDouble("viewportWidth", page.width.toDouble()).coerceAtLeast(1.0).toFloat()
+                    // Observe layout changes: status/title rows can move the WebView after
+                    // selection capture. Reading its old position during composition covers the word.
+                    val scale = pageWidth.toFloat() / state.optDouble("viewportWidth", pageWidth.toDouble()).coerceAtLeast(1.0).toFloat()
                     val rect = ComposeRect(
-                        origin[0] - rootOffset.x + (bounds?.optDouble("left") ?: 0.0).toFloat() * scale,
-                        origin[1] - rootOffset.y + (bounds?.optDouble("top") ?: 0.0).toFloat() * scale,
-                        origin[0] - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
-                        origin[1] - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
+                        pageOffset.x - rootOffset.x + (bounds?.optDouble("left") ?: 0.0).toFloat() * scale,
+                        pageOffset.y - rootOffset.y + (bounds?.optDouble("top") ?: 0.0).toFloat() * scale,
+                        pageOffset.x - rootOffset.x + (bounds?.optDouble("right") ?: 1.0).toFloat() * scale,
+                        pageOffset.y - rootOffset.y + (bounds?.optDouble("bottom") ?: 1.0).toFloat() * scale)
                     PhraseActionBar(rect, word, false, null, null,
                         quickTranslate = { readerSelectionResult(state, checkNotNull(pending)).optString("meaning") },
                         onTranslate = {
@@ -527,7 +534,7 @@ internal class SelectionWebView(context: Context, private val lookup: () -> Unit
             override fun onGetContentRect(mode: ActionMode, view: View, rect: Rect) {
                 if (callback is ActionMode.Callback2) callback.onGetContentRect(mode, view, rect)
                 else super.onGetContentRect(mode, view, rect)
-                if (lastRect != rect) {
+                if (selectionMode === mode && lastRect != rect) {
                     lastRect = Rect(rect)
                     // WebView selection handles live in another window; their drags do
                     // not necessarily pass through this WebView's onTouchEvent.

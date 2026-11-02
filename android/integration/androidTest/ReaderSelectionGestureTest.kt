@@ -51,7 +51,7 @@ class ReaderSelectionGestureTest {
         fail("Expected selected phrase and popup '$word'; DOM='" + selection(scenario) + "', popup='" + popupWord(scenario) + "'")
     }
     private fun point(scenario: ActivityScenario<NewsReaderActivity>, id: String, handle: Boolean): PointF {
-        val script = "(function(){const e=document.getElementById('" + id + "');const r=document.createRange();r.selectNodeContents(e);const b=r.getBoundingClientRect();return JSON.stringify({left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:innerWidth})})()"
+        val script = "(function(){const e=document.getElementById('" + id + "');const r=document.createRange();r.selectNodeContents(e);const b=r.getBoundingClientRect();return JSON.stringify({left:b.left,right:b.right,top:b.top,bottom:b.bottom,height:b.height,lineHeight:parseFloat(getComputedStyle(e).lineHeight),width:innerWidth})})()"
         val data = JSONObject(JSONTokener(evaluate(scenario, script)).nextValue() as String)
         var point = PointF()
         scenario.onActivity { activity ->
@@ -59,11 +59,14 @@ class ReaderSelectionGestureTest {
             val origin = IntArray(2).also { web.getLocationOnScreen(it) }
             val scale = web.width / data.getDouble("width").toFloat()
             val density = activity.resources.displayMetrics.density
+            // Chromium's handle is attached to the line box, below the glyph box returned by Range.
+            val leading = ((data.getDouble("lineHeight") - data.getDouble("height")) / 2).coerceAtLeast(0.0).toFloat() * scale
             point = if (handle) PointF(origin[0] + data.getDouble("right").toFloat() * scale + 7 * density,
-                origin[1] + data.getDouble("bottom").toFloat() * scale + 12 * density)
+                origin[1] + data.getDouble("bottom").toFloat() * scale + leading + 12 * density)
             else PointF(origin[0] + (data.getDouble("left") + data.getDouble("right")).toFloat() * scale / 2,
                 origin[1] + (data.getDouble("top") + data.getDouble("bottom")).toFloat() * scale / 2)
         }
+        println("READER_GESTURE point id=$id handle=$handle x=${point.x} y=${point.y} rect=$data")
         return point
     }
     private fun touch(down: Long, action: Int, point: PointF) {
