@@ -36,3 +36,7 @@ Có nút tắt trong Cài đặt và vẫn cần quyền thông báo của Andro
 - kiem-tra/adaptive-srs.mjs: xếp nguy cơ quên, giữ hạn cũ, lịch thử nghiệm, đóng băng/hẹn riêng, giới hạn lặp, mục tiêu ngắn, tăng/giảm chỉ tiêu, gộp nhật ký và hoàn tác.
 - kiem-tra/adaptive-srs-giao-dien.mjs: nút học thật trên hai giao diện, hoàn tác và xung đột, ba ngôn ngữ, lưu cài đặt, lịch nhắc qua cầu nối native giả lập, ảnh giao diện.
 - Chạy cùng toàn bộ bộ kiểm thử Node, Chromium và Android tích hợp trên GitHub Actions. Kiểm thử cầu nối không thay cho xác nhận thông báo khi tắt màn hình trên điện thoại thật.
+
+## Nhạc nền
+
+Đã gỡ nhạc ga tàu Yamanote, bộ hẹn phát, nút nghe thử, tùy chọn bật nhạc và năm file âm thanh của tuyến tàu khỏi cả extension và Android. Cài đặt nhạc tàu cũ không còn được đọc.

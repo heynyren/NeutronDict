@@ -1999,7 +1999,6 @@ function show(view, huong) {
 
   if (view !== "Study") dungNgheTrongHoc();
   if (view !== "Study" && window.NhipDoc) window.NhipDoc.dung();
-  if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
   if (view !== "Study")  if (view === "Notebook") { drawNotebook().then(boiNguCanhCu); pullAndRefresh(); }
   if (view === "Study") { updateDueButton(); pullAndRefresh(); refreshNotifications(true); }
@@ -4212,7 +4211,6 @@ $("stStart").addEventListener("click", async () => {
   $("stBody").style.display = "";
   $("stStart").style.display = "none";
   if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-  batNhacTau();
   showCard();
 });
 
@@ -4249,7 +4247,6 @@ async function startStudyDuong() {
       $("stBody").style.display = "";
       $("stStart").style.display = "none";
       if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-      batNhacTau();
       showCard();
     });
 }
@@ -4278,7 +4275,6 @@ async function hocRieng(it, ds) {
   $("stBody").style.display = "";
   $("stStart").style.display = "none";
   if ($("stStartDuong")) $("stStartDuong").style.display = "none";
-  batNhacTau();
   showCard();
 }
 
@@ -4359,7 +4355,7 @@ function renderStudyFav(it) {
 /* ==================================================================== */
 
 /** Mặc định; xem nhip-doc.js về việc cụm là gì và vì sao cần nhịp. */
-const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true };
+const NHIP_MAC_DINH = { nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, tach: true };
 let CAI_NHIP = Object.assign({}, NHIP_MAC_DINH);
 
 function nhipTocHopLe(v) {
@@ -4395,20 +4391,6 @@ function datLoiNhac() {
 // Tiếng tách khi bấm nút: gắn MỘT người nghe cho cả trang, hỏi lại cài đặt ở
 // từng lượt bấm. Gắn từng nút một thì mỗi nút mới dựng ra sau này lại câm.
 if (window.CoVu) window.CoVu.ngheNut(document, () => CAI_NHIP.tach !== false);
-
-/**
- * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
- *
- * `duoc()` được hỏi lại ở TỪNG lượt chứ không chỉ lúc bật: người ta có thể đã
- * sang màn khác, đóng buổi học, hay tắt màn hình — lúc đó nhạc vang lên là quấy rầy.
- */
-function batNhacTau() {
-  if (!window.NhacTau) return;
-  if (CAI_NHIP.nhacTau === false) { window.NhacTau.tat(); return; }
-  window.NhacTau.bat({
-    duoc: () => manHienTai === "Study" && $("stBody").style.display !== "none" && !document.hidden
-  });
-}
 
 const HU_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
 const HU_V = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.8l5 5L19.5 7"/></svg>';
@@ -4451,7 +4433,6 @@ async function napNhip() {
   if ($("setNhipToc")) $("setNhipToc").value = CAI_NHIP.nhipToc || NHIP_MAC_DINH.nhipToc;
   if ($("setNhac")) $("setNhac").value = CAI_NHIP.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = CAI_NHIP.coVu !== false;
-  if ($("setNhacTau")) $("setNhacTau").checked = CAI_NHIP.nhacTau !== false;
   if ($("setTach")) $("setTach").checked = CAI_NHIP.tach !== false;
   datLoiNhac();
 }
@@ -4462,19 +4443,12 @@ async function luuNhip() {
     nhipToc: nhipTocHopLe($("setNhipToc").value),
     nhacPhut: Math.max(0, Math.min(240, parseInt($("setNhac").value, 10) || 0)),
     coVu: $("setCoVu").checked,
-    nhacTau: $("setNhacTau").checked,
     tach: $("setTach").checked
   });
   await napNhip();
   $("nhipStatus").textContent = T("Đã lưu.");
 }
 if ($("saveNhip")) $("saveNhip").addEventListener("click", luuNhip);
-// Nghe thử: chỉnh âm lượng loa cho vừa tai TRƯỚC khi vào học, chứ đang học mà
-// nhạc vang to quá thì lúc mò nút đã mất mạch rồi.
-if ($("nghThu")) $("nghThu").addEventListener("click", () => {
-  const t = window.NhacTau && window.NhacTau.phatMot();
-  if (t) $("nhipStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
-});
 
 /*
  * Bấm giờ truy xuất — đo từ lúc thẻ hiện ra tới lúc bấm Nhớ. Quãng này gồm cả
@@ -5214,7 +5188,6 @@ async function finishStudy() {
   dungNgheTrongHoc();
   $("stGrammar").style.display = "none";
   if (window.NhipDoc) window.NhipDoc.dung();
-  if (window.NhacTau) window.NhacTau.tat();
   theTrenMan = null;
   $("stBody").style.display = "none";
   $("stIdle").style.display = "";

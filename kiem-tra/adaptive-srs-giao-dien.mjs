@@ -31,6 +31,8 @@ try{
  },seed);
  await p.reload();await p.waitForFunction(()=>window.NeutronReady);
  await p.evaluate(()=>{speak=async()=>{};mung=(ids,next)=>{if(next)next();};});
+ assert.equal(await p.evaluate(()=>typeof window.NhacTau),"undefined","Removed station music cannot run from old saved preferences");
+ assert.equal(await p.locator("#setNhacTau,#nghThu").count(),0);
  await p.locator("#navStudy").click();
  await p.locator("#adaptivePlan").getByText("Kế hoạch hôm nay",{exact:true}).waitFor();
  await p.screenshot({animations:"disabled",path:path.join(output,"adaptive-android-vi.png"),fullPage:true});
@@ -115,6 +117,7 @@ try{
  await ep.waitForFunction(()=>typeof load==="function"&&items.length===12&&daNapXong);
  await ep.locator("#adaptivePlan").getByText("Kế hoạch hôm nay",{exact:true}).waitFor();
  await ep.screenshot({animations:"disabled",path:path.join(output,"adaptive-extension.png"),fullPage:true});
+ assert.equal(await ep.evaluate(()=>typeof window.NhacTau),"undefined");assert.equal(await ep.locator("#setNhacTau,#nghThu").count(),0);
  await ep.locator("#study").click();
  await ep.waitForFunction(()=>session.queue.length>0);
  const er=await ep.evaluate(()=>({key:session.queue[0].key,route:session.queue[0]._d,goal:session.adaptive.plan.goalCards}));

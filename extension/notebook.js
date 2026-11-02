@@ -2675,7 +2675,6 @@ async function startStudy(extra) {
   $("stBody").style.display = "";
   $("stDone").style.display = "none";
   ovl.classList.add("show");
-  batNhacTau();
   showCard();
 }
 
@@ -2711,7 +2710,6 @@ async function startStudyDuong() {
       $("stBody").style.display = "";
       $("stDone").style.display = "none";
       ovl.classList.add("show");
-      batNhacTau();
       showCard();
     });
 }
@@ -2738,7 +2736,6 @@ function hocRieng(it, ds) {
   $("stBody").style.display = "";
   $("stDone").style.display = "none";
   ovl.classList.add("show");
-  batNhacTau();
   showCard();
 }
 
@@ -2749,20 +2746,6 @@ function hocRieng(it, ds) {
 // Tiếng tách khi bấm nút: gắn MỘT người nghe cho cả trang, hỏi lại cài đặt ở
 // từng lượt bấm. Gắn từng nút một thì mỗi nút mới dựng ra sau này lại câm.
 if (window.CoVu) window.CoVu.ngheNut(document, () => CAI.tach !== false);
-
-/**
- * Hẹn nhạc ga tàu cho buổi học. Xem nhac-tau.js về việc vì sao thưa và ngẫu nhiên.
- *
- * `duoc()` được hỏi lại ở TỪNG lượt chứ không chỉ lúc bật: buổi học có thể đã
- * đóng, hoặc người ta đã chuyển sang tab khác — lúc đó nhạc vang lên là quấy rầy.
- */
-function batNhacTau() {
-  if (!window.NhacTau) return;
-  if (CAI.nhacTau === false) { window.NhacTau.tat(); return; }
-  window.NhacTau.bat({
-    duoc: () => ovl.classList.contains("show") && !document.hidden
-  });
-}
 
 const HU_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
 const HU_V = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.8l5 5L19.5 7"/></svg>';
@@ -3637,7 +3620,6 @@ async function finishStudy() {
   window.AdaptiveStudy.clearClock();
   if (window.NhipDoc) window.NhipDoc.dung();
   theTrenMan = null;
-  if (window.NhacTau) window.NhacTau.tat();
   $("stBody").style.display = "none";
   $("stDone").style.display = "";
   $("stProg").textContent = "";
@@ -3679,7 +3661,6 @@ function closeStudy() {
   window.AdaptiveStudy.clearClock();
   if (window.NhipDoc) window.NhipDoc.dung();
   theTrenMan = null;
-  if (window.NhacTau) window.NhacTau.tat();
   ovl.classList.remove("show");
   load();
   if ($("viewProgress").classList.contains("show")) veTienDo();
@@ -4315,7 +4296,7 @@ document.addEventListener("visibilitychange", async () => {
 /* ==================================================================== */
 
 const SET_DEFAULTS = { inline: true, requireCtrl: false, maxLen: 30, translate: true, goiDien: true, goiIt: true, goiY: true, maxSent: 400,
-                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, nhacTau: true, tach: true, chiaDoi: true };
+                       ytTuBat: false, ytPhoi: true, nhip: true, nhipToc: 320, nhacPhut: 0, coVu: true, tach: true, chiaDoi: true };
 
 /**
  * Bản cài đặt đang dùng, giữ sẵn trong bộ nhớ.
@@ -4334,7 +4315,6 @@ async function loadSettings() {
   if ($("setNhipToc")) $("setNhipToc").value = S.nhipToc || 320;
   if ($("setNhac")) $("setNhac").value = S.nhacPhut || 0;
   if ($("setCoVu")) $("setCoVu").checked = S.coVu !== false;
-  if ($("setNhacTau")) $("setNhacTau").checked = S.nhacTau !== false;
   if ($("setTach")) $("setTach").checked = S.tach !== false;
   if ($("setChiaDoi")) $("setChiaDoi").checked = S.chiaDoi !== false;
   if ($("stPhim")) $("stPhim").style.display = S.anPhim ? "none" : "";
@@ -4370,7 +4350,6 @@ async function saveSettings() {
       nhipToc: nhipTocHopLe($("setNhipToc") ? $("setNhipToc").value : 0),
       nhacPhut: Math.max(0, Math.min(240, parseInt(($("setNhac") || {}).value, 10) || 0)),
       coVu: $("setCoVu") ? $("setCoVu").checked : true,
-      nhacTau: $("setNhacTau") ? $("setNhacTau").checked : true,
       tach: $("setTach") ? $("setTach").checked : true,
       chiaDoi: $("setChiaDoi") ? $("setChiaDoi").checked : true
     })
@@ -4895,12 +4874,6 @@ veChuPhimTat();
 
 $("saveSet").addEventListener("click", saveSettings);
 $("clearCache").addEventListener("click", clearCache);
-// Nghe thử: chỉnh âm lượng loa cho vừa tai TRƯỚC khi vào học, chứ đang học mà
-// nhạc vang to quá thì lúc mò nút đã mất mạch rồi.
-if ($("nghThu")) $("nghThu").addEventListener("click", () => {
-  const t = window.NhacTau && window.NhacTau.phatMot();
-  if (t) $("setStatus").textContent = T2("Đang phát: nhạc ga {ten}", { ten: t.ten });
-});
 
 $("ipaGuide").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("ipa-guide.html") });
