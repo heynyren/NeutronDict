@@ -29,7 +29,7 @@ Thời gian kế hoạch đo thời gian foreground trên thẻ, bỏ thời gia
 
 Không cần chọn giờ. App chọn theo thói quen học gần đây, có độ dao động nhỏ, tối đa 3 lời nhắc/ngày cách nhau ít nhất 3 giờ; không gửi ngoài khoảng 09:00–21:30. Hoàn thành ngày hoặc hết bài đến hạn thì ngừng nhắc. Sau hơn 3 ngày không học giảm còn một lần/ngày, sau hơn 7 ngày dừng.
 
-Có nút tắt trong Cài đặt và vẫn cần quyền thông báo của Android. Lịch được chuẩn bị trước 7 ngày, cập nhật khi mở app, học hoặc đồng bộ. Hoàn thành trên máy tính chỉ hủy thông báo điện thoại sau khi dữ liệu đồng bộ tới điện thoại. Android có thể trì hoãn thông báo theo chế độ tiết kiệm pin.
+Có nút tắt trong Cài đặt và vẫn cần quyền thông báo của Android. Hộp xin quyền chỉ được phép mở khi người dùng vào tab Học hoặc bấm bật nhắc học; tác vụ cập nhật nền không tự mở hộp xin quyền. Lịch được chuẩn bị trước 7 ngày, cập nhật khi mở app, học hoặc đồng bộ. Hoàn thành trên máy tính chỉ hủy thông báo điện thoại sau khi dữ liệu đồng bộ tới điện thoại. Android có thể trì hoãn thông báo theo chế độ tiết kiệm pin.
 
 ## Kiểm chứng
 

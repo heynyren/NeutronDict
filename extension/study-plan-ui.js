@@ -65,7 +65,7 @@ function mount(host,api){
   minutes.value=String(prefs.minutes);
   async function changePref(key,value){try{await api.change(s=>{const n=g.AdaptiveStudy.normal(s);n.prefs={...n.prefs,[key]:value,ts:Math.max(Date.now(),(n.prefs.ts||0)+1)};const day=g.AdaptiveStudy.dateKey();if(key==="mode"&&n.plans[day])n.plans[day]={...n.plans[day],prefTs:n.prefs.ts,ts:n.prefs.ts};return n;});await refresh();}catch{status.textContent=t("Chưa lưu được kế hoạch. Hãy thử lại.");}}
   minutes.onchange=()=>changePref("minutes",Number(minutes.value));
-  function checkbox(label,checked,fn){const l=el("label","","t-small",details);l.style.cssText="display:flex;gap:8px;align-items:center;margin-top:10px";const b=el("input","","",l);b.type="checkbox";b.checked=checked;el("span",t(label),"",l);b.onchange=()=>fn(b.checked);}
+  function checkbox(label,checked,fn){const l=el("label","","t-small",details);l.style.cssText="display:flex;gap:8px;align-items:center;margin-top:10px";const b=el("input","","",l);b.type="checkbox";b.style.cssText="width:18px;height:18px;flex:0 0 18px;margin:0";b.checked=checked;const text=el("span",t(label),"",l);text.style.cssText="flex:1;text-align:left";b.onchange=()=>fn(b.checked);}
   checkbox("Tự điều chỉnh theo sức học",prefs.adaptive!==false,v=>changePref("adaptive",v));
   checkbox("Lịch ôn mới (thử nghiệm)",prefs.mode==="fsrs",v=>changePref("mode",v?"fsrs":"shadow"));
   el("p",t("Bật để áp dụng lịch mới sau mỗi lần trả lời. Lịch đã hẹn và các đường đóng băng được giữ nguyên."),"t-tiny muted",details);

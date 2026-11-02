@@ -1605,11 +1605,11 @@ function syncSoon(ngu) {
 /* ==================================================================== */
 
 let refreshingNotifications = Promise.resolve();
-function refreshNotifications() {
-  refreshingNotifications = refreshingNotifications.catch(()=>{}).then(scheduleAdaptiveNotifications).catch(()=>false);
+function refreshNotifications(allowPrompt=false) {
+  refreshingNotifications = refreshingNotifications.catch(()=>{}).then(()=>scheduleAdaptiveNotifications(allowPrompt)).catch(()=>false);
   return refreshingNotifications;
 }
-async function scheduleAdaptiveNotifications() {
+async function scheduleAdaptiveNotifications(allowPrompt=false) {
   const LN=Plugins.LocalNotifications;if(!LN)return false;
   const cfg=(await Store.get("notifCfg"))||{};
   const oldIds=(await Store.get("notifScheduledIds"))||[];
@@ -1618,7 +1618,7 @@ async function scheduleAdaptiveNotifications() {
   if(cfg.on===false)return false;
   let permission=await LN.checkPermissions();
   if(permission.display!=="granted"){
-    if(cfg.asked)return false;
+    if(cfg.asked||!allowPrompt)return false;
     await Store.set("notifCfg",{...cfg,on:true,asked:true,since:cfg.since||Date.now()});
     permission=await LN.requestPermissions();
     if(permission.display!=="granted")return false;
@@ -2002,7 +2002,7 @@ function show(view, huong) {
   if (view !== "Study" && window.NhacTau) window.NhacTau.tat();
   if (view !== "Jlpt" && window.JlptUI) window.JlptUI.tamDung();
   if (view !== "Study")  if (view === "Notebook") { drawNotebook().then(boiNguCanhCu); pullAndRefresh(); }
-  if (view === "Study") { updateDueButton(); pullAndRefresh(); }
+  if (view === "Study") { updateDueButton(); pullAndRefresh(); refreshNotifications(true); }
   if (view === "Speak") veLuyenNoi();
   if (view === "Grammar") window.NguPhapUI.lamMoi();
   if (view === "Jlpt") moJlpt();
@@ -4014,7 +4014,7 @@ $("syncNow").addEventListener("click", async () => {
 /* --- nhắc học --- */
 $("notifOn").addEventListener("click", async () => {
   await Store.set("notifCfg", { on: true, asked: false, since: Date.now() });
-  const enabled=await refreshNotifications();
+  const enabled=await refreshNotifications(true);
   $("notifStatus").textContent = T(enabled ? "Đã bật nhắc học tự động." : "Hãy cho phép thông báo trong cài đặt điện thoại.");
 });
 $("notifOff").addEventListener("click", async () => {

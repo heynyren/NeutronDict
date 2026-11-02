@@ -33,7 +33,7 @@ try{
  await p.evaluate(()=>{speak=async()=>{};mung=(ids,next)=>{if(next)next();};});
  await p.locator("#navStudy").click();
  await p.locator("#adaptivePlan").getByText("Kế hoạch hôm nay",{exact:true}).waitFor();
- await p.screenshot({path:path.join(output,"adaptive-android-vi.png"),fullPage:true});
+ await p.screenshot({animations:"disabled",path:path.join(output,"adaptive-android-vi.png"),fullPage:true});
  await p.locator("#stStart").click();
  await p.waitForFunction(()=>session.queue.length>0);
  const first=await p.evaluate(()=>({key:session.queue[0].key,route:session.queue[0]._d,count:session.queue.length,distinct:new Set(session.queue.map(x=>x.key)).size,plan:session.adaptive.plan}));
@@ -53,6 +53,8 @@ try{
  await p.evaluate(()=>ketThucSom());
  // Preferences must survive a tracker write that was initialized before the plan.
  await p.locator("#adaptivePlan summary").click();
+ const checkbox=await p.locator("#adaptivePlan input[type=checkbox]").first().boundingBox();
+ assert.ok(checkbox.width<=24&&checkbox.height<=24,"Checkbox does not inherit full-width field styling");
  await p.locator("#adaptivePlan select").selectOption("5");
  await p.waitForFunction(async()=>AdaptiveStudy.normal((await readAdaptiveSnapshot()).state).prefs.minutes===5);
  const persisted=await p.evaluate(async()=>{await theoDoi.ghiLuotOn(true);return (await readAdaptiveSnapshot()).state;});
@@ -84,7 +86,12 @@ try{
   await setNB(nb);await refreshNotifications();
   const afterDone=[...pending.values()].filter(x=>x.extra.day===day).length;
   await Store.set("notifCfg",{on:false});await refreshNotifications();
-  return {first,second,afterDone,afterDisable:pending.size,requested};
+  const afterDisable=pending.size;
+  await Store.set("notifCfg",{on:true,asked:false});
+  Plugins.LocalNotifications.checkPermissions=async()=>({display:"prompt"});
+  await refreshNotifications();const backgroundRequests=requested;
+  await refreshNotifications(true);const explicitRequests=requested;
+  return {first,second,afterDone,afterDisable,backgroundRequests,explicitRequests};
  });
  assert.ok(notif.first.length>0);assert.deepEqual(notif.first.map(x=>x.id),notif.second);
  for(const day of new Set(notif.first.map(x=>x.day))){
@@ -92,7 +99,7 @@ try{
   assert.ok(slots.length<=3);
   for(let i=0;i<slots.length;i++){const t=new Date(slots[i].at);assert.ok(t.getHours()>=9&&(t.getHours()<21||t.getMinutes()<=30));if(i)assert.ok(slots[i].at-slots[i-1].at>=10800000);}
  }
- assert.equal(notif.afterDone,0);assert.equal(notif.afterDisable,0);assert.equal(notif.requested,0);
+ assert.equal(notif.afterDone,0);assert.equal(notif.afterDisable,0);assert.equal(notif.backgroundRequests,0,"Background refresh cannot steal focus with a permission dialog");assert.equal(notif.explicitRequests,1,"Entering Study or enabling reminders may ask for OS permission once");
  await p.evaluate(()=>refreshStudyPlan());
  await p.locator("#adaptivePlan").getByText("今日のプランは完了です",{exact:true}).waitFor();
  await p.screenshot({path:path.join(output,"adaptive-android-complete.png"),fullPage:true});
@@ -107,7 +114,7 @@ try{
  const ep=await ext.newPage();await ep.goto("chrome-extension://"+id+"/notebook.html");
  await ep.waitForFunction(()=>typeof load==="function"&&items.length===12&&daNapXong);
  await ep.locator("#adaptivePlan").getByText("Kế hoạch hôm nay",{exact:true}).waitFor();
- await ep.screenshot({path:path.join(output,"adaptive-extension.png"),fullPage:true});
+ await ep.screenshot({animations:"disabled",path:path.join(output,"adaptive-extension.png"),fullPage:true});
  await ep.locator("#study").click();
  await ep.waitForFunction(()=>session.queue.length>0);
  const er=await ep.evaluate(()=>({key:session.queue[0].key,route:session.queue[0]._d,goal:session.adaptive.plan.goalCards}));
