@@ -2622,7 +2622,13 @@ async function launchStudy(makeQueue, extra = false) {
   button.disabled = true;
   button.setAttribute("aria-busy", "true");
   try {
-    if (!daNapXong) await choNapXong();
+    if (!daNapXong) {
+      const label=$("studyLabel"),waiting=$("studyCho");
+      if(waiting){waiting.textContent=T("Đang mở sổ tay…");waiting.hidden=false;}
+      if(label)label.hidden=true;
+      try { await choNapXong(); }
+      finally { if(waiting)waiting.hidden=true;if(label)label.hidden=false; }
+    }
     const {nb} = await getStore();
     const fresh = Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));
     const queue = makeQueue(setIn(current,fresh));
@@ -5053,6 +5059,8 @@ $("nguJa").addEventListener("click", () => doiNgu("ja"));
 
 /* Shared daily plan: full language collection, independent of the selected deck. */
 async function readAdaptiveSnapshot(withQueue=false){
+  // Initial language/notebook loading must finish before a preview can disable Study.
+  if(withQueue&&!daNapXong)await choNapXong();
   const data = await chrome.storage.local.get(withQueue?["notebook","hoc","nguPhapSrs","ytKho"]:["notebook","hoc"]); const nb=data.notebook||{}, hoc=window.Ngu.tachHoc(data.hoc);
   if(withQueue)window.StudyGrammar.hydrate(data.nguPhapSrs,data.ytKho);
   const all=Object.entries(window.Ngu.locSo(nb,NGU)).map(([key,v])=>({key,...v}));

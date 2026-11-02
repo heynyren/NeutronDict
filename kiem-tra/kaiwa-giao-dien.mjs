@@ -49,6 +49,7 @@ async function exercise(p,name,open,read){
  await open();await p.waitForSelector('.jl-the[data-mon="kaiwa"]');
  assert.equal(await p.locator(".jl-the").count(),6);
  assert.equal(await p.locator(".jl-the.sap").count(),1);
+ assert.equal(await p.locator("#jlThu, .jl-thu").count(),0,"test-mode switch removed on both platforms");
  await snapshot(p,"kaiwa-"+name+"-courses");
  await p.locator('.jl-the[data-mon="kaiwa"]').click();await p.waitForSelector(".jl-thoai");await dialogues(p);await p.waitForSelector(".jl-bd");
  assert.equal(await p.evaluate(()=>JlptUI.trangThai().monId),"kaiwa");

@@ -257,12 +257,6 @@
     });
     o.appendChild(ds);
 
-    const thu = el("label", "jl-thu");
-    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!td.thu; cb.id = "jlThu";
-    cb.addEventListener("change", async () => { td.thu = cb.checked; await luu(); veChonMan(); });
-    thu.appendChild(cb);
-    thu.appendChild(el("span", null, T("Chế độ thử: mở khoá tất cả màn và chặng (để xem thử)")));
-    o.appendChild(thu);
     root.appendChild(o);
     capNhatNhac();                          // về màn chọn cấp thì tắt nhạc của màn trước
   }
@@ -462,7 +456,6 @@
 
     const R = rong();
     o.classList.toggle("rong", R);
-    o.classList.toggle("thu", !!td.thu);
     o.classList.toggle("leo-len", !!th.leoLen);       // màn leo núi: chương 1 ở DƯỚI cùng, cuộn lên để leo
     o.appendChild(khiQuyen(th));
     const trong = el("div", "jl-bd-trong");

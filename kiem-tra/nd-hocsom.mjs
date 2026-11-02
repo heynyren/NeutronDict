@@ -61,6 +61,9 @@ const bamNgay = async () => {
           && (document.getElementById("stWord").textContent || "").trim())
         return { ok: true, ms: Math.round(performance.now() - t0), thayCho,
                  tu: document.getElementById("stWord").textContent.trim() };
+      const emptyPlan=document.querySelector('[data-study-next="0"]');
+      if (b.disabled && emptyPlan && /Không còn bài đến hạn|No due exercises/.test(emptyPlan.textContent || ""))
+        return {ok:false,banh:emptyPlan.textContent};
       const t = document.querySelector(".toast");
       if (t && /đến hạn|due/.test(t.textContent || ""))
         return { ok: false, banh: (t.textContent || "").slice(0, 60), chuLucBam };
